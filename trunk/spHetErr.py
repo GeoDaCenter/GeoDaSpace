@@ -1,4 +1,6 @@
 import numpy as np
+import numpy.linalg as la
+import pysal
 
 class SpHetErr:
     """GMM method for a spatial error model with heteroskedasticity"""
@@ -31,48 +33,24 @@ class SpHetErr:
         self.lamb=lambda3
         self.residuals=residuals2
 
-
         
-
+ 
 def ols(x,y):
-
-    XT=np.transpose(X)
-    xx=np.dot(XT,X)
+    xt=np.transpose(x)
+    xx=np.dot(xt,x)
     ixx=la.inv(xx)
-    ixxx=np.dot(ixx,XT)
-    b=np.dot(ixxx,y)
-    yhat=np.dot(X,b)
-    e=y-yhat
-    n,k=X.shape
-    dof=n-k
-    ess=np.dot(np.transpose(e),e)
-    sig2=ess/dof
-    yd=y-y.mean()
-    tss=np.dot(np.transpose(yd),yd)
-    self.tss=tss
-    self.sig2=sig2
-    self.sig2ml=ess/n
-    self.ess=ess
-    self.dof=dof
-    self.n=n
-    self.k=k
-    self.e=e
-    self.yhat=yhat
-    self.b=b
-    self.ixx=ixx
-    self.bvcv=sig2*ixx
-    self.bse=np.sqrt(np.diag(self.bvcv))
-    self.t=b/self.bse
-    self.r2=1.0-ess/tss
-    self.r2a=1.-(1-self.r2)*(n-1)/(n-k)
-    self.lik = -0.5*(n*(np.log(2*math.pi))+n*np.log(ess/n)+(ess/(ess/n)))
-
+    ixxx=np.dot(ixx,xt)
+    betas=np.dot(ixxx,y)
     return betas
 
 def get_residuals(x,y,betas):
+	predy=np.dot(x,betas)
+	residuals=y-predy
     return residuals
 
 def get_spCO(z,w,lambdaX):
+	lagz=pysal.weights.spatial_lag.lag_array(w,z)
+	zs=z-lambdaX*lagz
     return zs
 
 def optimizer(moments,vc=None):
