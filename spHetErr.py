@@ -58,7 +58,7 @@ def optimizer(moments,vc=None):
     return lambdaX
 
 class Moments:
-    def __init__(self,residuals,w):
+    def __init__(self,w,residuals):
         pass
     self.moments
 
