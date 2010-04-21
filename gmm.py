@@ -25,13 +25,22 @@ class Moments():
     def __init__(self,w,u,symmetric=False):
 
         ul=lag_array(w,u)
+        ult=ul.transpose()
         ull=lag_array(w,ul)
-        ultu=np.dot(ul.transpose(),u)
-        ultul=np.dot(ul.transpose(),ul)
-        ultull=np.dot(ul.transpose(),ull)
-        ulltu=np.dot(ull.transpose(),u)
-        ulltul=np.dot(ull.transpose(),ul)
-        ulltull=np.dot(ull.transpose(),ull)
+        ullt=ull.transpose()
+
+        #ultu=np.dot(ul.transpose(),u)
+        ultu=np.dot(ult,u)
+        #ultul=np.dot(ul.transpose(),ul)
+        ultul=np.dot(ult,ul)
+        #ultull=np.dot(ul.transpose(),ull)
+        ultull=np.dot(ult,ull)
+        #ulltu=np.dot(ull.transpose(),u)
+        ulltu=np.dot(ullt,u)
+        #ulltul=np.dot(ull.transpose(),ul)
+        ulltul=np.dot(ullt,ul)
+        #ulltull=np.dot(ull.transpose(),ull)
+        ulltull=np.dot(ullt,ull)
         ni=(1./w.n)
 
         d=np.zeros((w.n,1))
@@ -67,6 +76,7 @@ class Moments():
         self.ulltull=ulltull
         self.d=d
 
+
 def get_vc(w,u,l,m):
     """Computes the VC matrix \Psi based on \lambda and returns an array 2x2:
 
@@ -86,9 +96,9 @@ def get_vc(w,u,l,m):
     m           : Moments
                   Moments instance
                   """
-    psi11=
-    psi12=
-    psi22=
+    psi11=None
+    psi12=None
+    psi22=None
 
     psi=np.array([[psi11,psi12],[psi12,psi22]])
 
