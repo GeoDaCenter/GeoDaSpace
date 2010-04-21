@@ -35,7 +35,9 @@ class Spatial_Error_Het:
         self.residuals=residuals2
 
         
- 
+# LA - note: as written, requires recomputation of spatial lag
+#         for each value of lambda; since the spatial lag does
+#         not change, this should be moved out
 def get_spCO(z,w,lambdaX):
 	lagz=pysal.weights.spatial_lag.lag_array(w,z)
 	zs=z-lambdaX*lagz
