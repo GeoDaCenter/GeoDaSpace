@@ -22,6 +22,11 @@ class Moments():
                   Residuals. nx1 array assumed to be aligned with w
                   """
     
+    # LA - d should be computed outside of this
+    #         whereas u can change in an iterative procedure,
+    #         the value of d does not and we don't want to recompute this
+    #         each time
+    
     def __init__(self,w,u,symmetric=False):
 
         ul=lag_array(w,u)
@@ -29,14 +34,17 @@ class Moments():
         ull=lag_array(w,ul)
         ullt=ull.transpose()
 
+        # LA - use np.inner(ul,u)? why transpose a vector?
         ultu=np.dot(ult,u)
         ultul=np.dot(ult,ul)
         ultull=np.dot(ult,ull)
         ulltu=np.dot(ullt,u)
         ulltul=np.dot(ullt,ul)
         ulltull=np.dot(ullt,ull)
+        # LA - is unnecessary extra step, just divide by w.n where needed
         ni=(1./w.n)
 
+        # move outside of this class
         d=np.zeros((w.n,1))
         if symmetric:
             for i in range(w.n):
@@ -49,10 +57,10 @@ class Moments():
                     di+=w_ji**2
                 d[i]=di
 
-
+        # no need to premultiply by ni, see below
         g1=ni*(ultul-sum([d[i]*(u[i]**2) for i in range(w.n)]))
         g2=ni*ultu
-        self.g=np.array([[g1][0][0],[g2][0][0]])
+        self.g=np.array([[g1][0][0],[g2][0][0]])  # divide by n after this
 
         G11=2*ni*(sum([d[i]*u[i]*ul[i] for i in range(w.n)])-ultull) 
         G12=ni*(ulltull-sum([d[i]*(ul[i]**2) for i in range(w.n)]))
