@@ -67,6 +67,34 @@ class Moments():
         self.ulltull=ulltull
         self.d=d
 
+def get_vc(w,u,l,m):
+    """Computes the VC matrix \Psi based on \lambda and returns an array 2x2:
+
+        psi = [psi11  psi12]
+             [psi21  psi22]
+
+    NOTE: psi12=psi21
+
+    Parameters
+    ----------
+    w           : W
+                  Spatial weights instance
+    u           : array
+                  Residuals. nx1 array assumed to be aligned with w
+    l           : float
+                  LambdaX. Spatial error coefficient.
+    m           : Moments
+                  Moments instance
+                  """
+    psi11=
+    psi12=
+    psi22=
+
+    psi=np.array([[psi11,psi12],[psi12,psi22]])
+
+    return psi
+
+
 
 if __name__ == "__main__":
 
