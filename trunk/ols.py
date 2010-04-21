@@ -22,6 +22,7 @@ def get_betas(x,y):
 def get_residuals(x,y,betas):
 	predy=np.dot(x,betas)
 	residuals=y-predy
+	# LA - in addition to residuals, return predicted values
     return residuals
 
 
