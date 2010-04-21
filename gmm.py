@@ -29,17 +29,11 @@ class Moments():
         ull=lag_array(w,ul)
         ullt=ull.transpose()
 
-        #ultu=np.dot(ul.transpose(),u)
         ultu=np.dot(ult,u)
-        #ultul=np.dot(ul.transpose(),ul)
         ultul=np.dot(ult,ul)
-        #ultull=np.dot(ul.transpose(),ull)
         ultull=np.dot(ult,ull)
-        #ulltu=np.dot(ull.transpose(),u)
         ulltu=np.dot(ullt,u)
-        #ulltul=np.dot(ull.transpose(),ul)
         ulltul=np.dot(ullt,ul)
-        #ulltull=np.dot(ull.transpose(),ull)
         ulltull=np.dot(ullt,ull)
         ni=(1./w.n)
 
