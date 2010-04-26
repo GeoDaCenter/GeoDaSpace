@@ -10,7 +10,7 @@ Tasks
 +----------------------------------------------------------+-------+--------+
 | Handling of vectors: nx1 Vs. nxNone arrays               |       |        |
 +----------------------------------------------------------+-------+--------+
-| Comparison of PySAL sparse weights & algebra tricks Vs.  |       |        |
+| Comparison of PySAL sparse weights & algebra tricks Vs.  |  da   |        |
 | Scipy sparse & brute force                               |       |        |
 +----------------------------------------------------------+-------+--------+
 | Call up Charlie regarding computation of d_i             |       |        |
