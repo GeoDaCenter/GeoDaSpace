@@ -27,6 +27,8 @@ Tasks
 +----------------------------------------------------------+-------+--------+
 | Cross-reference class notes with current code            |       |        |
 +----------------------------------------------------------+-------+--------+
+| Add documentation in `spHetErr.py` similar to `ols.py`   |       |        |
++----------------------------------------------------------+-------+--------+
 
 NOTE:
 To edit the file, keep the structure and replace empty spaces by the text to
