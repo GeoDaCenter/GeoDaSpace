@@ -37,8 +37,8 @@ class Spatial_Error_Het:
 #         for each value of lambda; since the spatial lag does
 #         not change, this should be moved out
 def get_spCO(z,w,lambdaX):
-	lagz=pysal.weights.spatial_lag.lag_array(w,z)
-	zs=z-lambdaX*lagz
+    lagz=pysal.weights.spatial_lag.lag_array(w,z)
+    zs=z-lambdaX*lagz
     return zs
 
 def optimizer(moments,vc=None):
