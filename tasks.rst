@@ -21,7 +21,8 @@ Tasks
 +----------------------------------------------------------+-------+--------+
 | Creating example datasets (100, 10000, 100000, 1000000)  |  df   |        |
 +----------------------------------------------------------+-------+--------+
-| Write function for : Iteration of step 2.a and 2.b       |  nm   |        |
+| Write function for : Iteration of step 2.a and 2.b       |  nm   | needs  |
+|                                                          |       | check  |
 +----------------------------------------------------------+-------+--------+
 | Add to docstrings estimation of computational burden (O) |  rw   |        |
 +----------------------------------------------------------+-------+--------+
