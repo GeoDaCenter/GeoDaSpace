@@ -26,7 +26,7 @@ Tasks
 +----------------------------------------------------------+-------+--------+
 | Add to docstrings estimation of computational burden (O) |  rw   |        |
 +----------------------------------------------------------+-------+--------+
-| Cross-reference class notes with current code            |  em   |        |
+| Cross-reference class notes with current code            |  em   |  em    |
 +----------------------------------------------------------+-------+--------+
 | Add documentation in `spHetErr.py` similar to `ols.py`   |  em   |        |
 +----------------------------------------------------------+-------+--------+

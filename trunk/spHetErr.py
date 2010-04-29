@@ -18,10 +18,15 @@ class Spatial_Error_Het:
         vc1 = get_vc(ols.u,w,lambda1,moments1)
         lambda2 = optimizer(moments1,vc1)
 
-
         for n in range(i) #### Added loop.
             #2a. OLS -->\hat{betas}
             xs,ys = get_spCO(x,w,lambda2),get_spCO(y,w,lambda2)
+            
+            #This step assumes away heteroskedasticity, we are taking into account
+            #   spatial dependence (I-lambdaW), but not heteroskedasticity
+            #   GM lambda is only consistent in the absence of heteroskedasticity
+            #   so do we need to do FGLS here instead of OLS?
+            
             ols = OLS.OLS_dev(xs,ys)
 
             #2b. GMM --> \hat{\lambda}
@@ -30,6 +35,9 @@ class Spatial_Error_Het:
             lambda3 = optimizer(moments2.moments,vc2)
             lambda2 = lambda3 #### 
 
+            #How many times do we want to iterate after 2b.? What should value of i be
+            #   in loop?
+        
         #Output
         self.betas = ols.betas
         self.lamb = lambda3
@@ -44,6 +52,9 @@ def get_spCO(z,w,lambdaX):
     zs=z-lambdaX*lagz
     return zs
 
+# what do we wan to pass into the optimizer?
+#          suggestion of Pedrom to do a Cholesky decomposition on the weights 
+#          before computing g and G  
 def optimizer(moments,vc=None):
     """Minimizes the moments and returns lambda"""
     return lambdaX
