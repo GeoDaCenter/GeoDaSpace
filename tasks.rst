@@ -4,7 +4,7 @@ Tasks
 =====
 
 +----------------------------------------------------------+-------+--------+
-|                           Task                           | Owner | Status |
+|                      Current tasks                       | Owner | Status |
 +==========================================================+=======+========+
 | Reuse optimizer from old spreg to get spheterr running   |  pa   |        |
 +----------------------------------------------------------+-------+--------+
@@ -13,28 +13,38 @@ Tasks
 +----------------------------------------------------------+-------+--------+
 | Handling of vectors: nx1 Vs. nxNone arrays               |  rw   |        |
 +----------------------------------------------------------+-------+--------+
-| Comparison of PySAL sparse weights & algebra tricks Vs.  |  da   | done   |
-| Scipy sparse & brute force                               |       |        |
-+----------------------------------------------------------+-------+--------+
 | Check step 2a. and estimation procedure (ols Vs. FGLS)   |       |        |
 +----------------------------------------------------------+-------+--------+
 | Set up test system                                       | ps&df |        |
-+----------------------------------------------------------+-------+--------+
-| Creating example datasets (100, 10000, 100000, 1000000)  |  df   | done   |
 +----------------------------------------------------------+-------+--------+
 | Write function for : Iteration of step 2.a and 2.b       |  nm   | needs  |
 |                                                          |       | check  |
 +----------------------------------------------------------+-------+--------+
 | Add to docstrings estimation of computational burden (O) |  rw   |        |
 +----------------------------------------------------------+-------+--------+
-| Cross-reference class notes with current code            |  em   | done   |
-+----------------------------------------------------------+-------+--------+
 | Add documentation in `spHetErr.py` similar to `ols.py`   |  em   |        |
 +----------------------------------------------------------+-------+--------+
-| Explore the spatial error het model in R so              |       |        |
+| Explore the spatial error het model in R so              |  da   |        |
 | that we can use it to compare our speed and results      |       |        |
 +----------------------------------------------------------+-------+--------+
 | Outline new structure for spreg                          |  la   |        |
++----------------------------------------------------------+-------+--------+
+| Write get_vc() using scipy sparse                        |  da   |        |
++----------------------------------------------------------+-------+--------+
+| Set up a Sphinx system to create output of documentation |       |        |
++----------------------------------------------------------+-------+--------+
+
+
+
++----------------------------------------------------------+-------+--------+
+|                    Completed tasks                       | Owner | Status |
++==========================================================+=======+========+
+| Comparison of PySAL sparse weights & algebra tricks Vs.  |  da   | done   |
+| Scipy sparse & brute force                               |       |        |
++----------------------------------------------------------+-------+--------+
+| Creating example datasets (100, 10000, 100000, 1000000)  |  df   | done   |
++----------------------------------------------------------+-------+--------+
+| Cross-reference class notes with current code            |  em   | done   |
 +----------------------------------------------------------+-------+--------+
 
 NOTE:
