@@ -2,6 +2,8 @@ import numpy as np
 import pysal
 import gmm as GMM
 import ols as OLS
+import scipy.optimize as op
+import numpy.linalg as la
 
 class Spatial_Error_Het:
     """GMM method for a spatial error model with heteroskedasticity"""
@@ -12,12 +14,12 @@ class Spatial_Error_Het:
 
         #1b. GMM --> \tilde{\lambda1}
         moments1 = GMM.Moments(ols.u,w)
-        lambda1 = optimizer(moments1.moments)
+        lambda1 = Optimizer(moments1).lambdaX
 
         #1c. GMM --> \tilde{\lambda2}
-        vc1 = get_vc(ols.u,w,lambda1,moments1)
-        lambda2 = optimizer(moments1,vc1)
-
+        vc1 = get_vc(ols.u,w,lambda1,self.moments)
+        lambda2 = Optimizer(moments1,vc1).lambdaX
+        
         for n in range(i): #### Added loop.
             #2a. OLS -->\hat{betas}
             xs,ys = get_spCO(x,w,lambda2),get_spCO(y,w,lambda2)
@@ -32,7 +34,7 @@ class Spatial_Error_Het:
             #2b. GMM --> \hat{\lambda}
             moments2 = GMM.Moments(ols.u,w)
             vc2 = GMM.get_vc(ols.u,w,lambda2,moments2)
-            lambda3 = optimizer(moments2.moments,vc2)
+            lambda3 = Optimizer(moments2,vc2).lambdaX
             lambda2 = lambda3 #### 
 
             #How many times do we want to iterate after 2b.? What should value of i be
@@ -52,12 +54,32 @@ def get_spCO(z,w,lambdaX):
     zs=z-lambdaX*lagz
     return zs
 
-# what do we wan to pass into the optimizer?
+# what do we wan to pass into the Optimizer?
 #          suggestion of Pedrom to do a Cholesky decomposition on the weights 
 #          before computing g and G  
-def optimizer(moments,vc=None):
-    """Minimizes the moments and returns lambda"""
-    return lambdaX
+class Optimizer:
+    def __init__(self, moments_op,vcX=None):
+    
+        """Minimizes the moments and returns lambda"""
+        self.moments_op=moments_op
+        if vcX:
+            """ Cholesky decomposition"""
+            Ec = np.transpose(la.cholesky(la.inv(vcX)))
+            self.moments_op.G = np.dot(Ec,moments_op.G)
+            self.moments_op.g = np.dot(Ec,moments_op.g)
+            
+        lambdaX = op.fmin_l_bfgs_b(self.kpgm,[0.0],approx_grad=True,bounds=[(-1.0,1.0)])
+        self.lambdaX = lambdaX[0]
 
-
+    def kpgm(self,lambdapar):
+        """ Details:
+            Gets the square residuals ready for minimization
+        """
+        par=np.array([float(lambdapar[0]),float(lambdapar[0])**float(2)])
+        vv=np.inner(self.moments_op.G,par)
+        vv2=vv-self.moments_op.g
+        v2=sum(sum(vv2*vv2))
+        argmin=v2
+            
+        return argmin
 
