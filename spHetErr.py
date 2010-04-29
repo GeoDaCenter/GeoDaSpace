@@ -18,7 +18,7 @@ class Spatial_Error_Het:
         vc1 = get_vc(ols.u,w,lambda1,moments1)
         lambda2 = optimizer(moments1,vc1)
 
-        for n in range(i) #### Added loop.
+        for n in range(i): #### Added loop.
             #2a. OLS -->\hat{betas}
             xs,ys = get_spCO(x,w,lambda2),get_spCO(y,w,lambda2)
             
