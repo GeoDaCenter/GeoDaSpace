@@ -132,7 +132,8 @@ def get_A1(S):
 #          before computing g and G  
 class Optimizer:
     """
-    Minimizes the moments and returns lambda
+    Finds the Lambda that minimizes the residuals from the moments conditions.
+    The optimizer used is Scipy's fmin_l_bfgs_b.
 
     NOTE: The way it's built it uses the Cholesky Decomposition.
           We should change this.
