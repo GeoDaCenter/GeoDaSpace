@@ -23,7 +23,7 @@ class Spatial_Error_Het:
         lambda1 = Optimizer(moments1).lambdaX
 
         #1c. GMM --> \tilde{\lambda2}
-        vc1 = get_vc(ols.u,w,lambda1,self.moments)
+        vc1 = get_vc(ols.u,w,lambda1,moments1)
         lambda2 = Optimizer(moments1,vc1).lambdaX
         
         for n in range(i): #### Added loop.
@@ -131,9 +131,31 @@ def get_A1(S):
 #          suggestion of Pedrom to do a Cholesky decomposition on the weights 
 #          before computing g and G  
 class Optimizer:
+    """
+    Minimizes the moments and returns lambda
+
+    NOTE: The way it's built it uses the Cholesky Decomposition.
+          We should change this.
+          We can either find an optimization routine which allows
+          for weights or just do the weighting prior to the optim as Nancy did.
+
+    Parameters
+    ----------
+
+    moments_op : object?
+                 should contain the Big G and the little g as attributes
+    vcX        : PSI matrix for weighting
+                 
+    Attributes
+    ----------
+
+    lambdaX   : number?
+                value of lambda at the minimum
+    """
+
     def __init__(self, moments_op,vcX=None):
     
-        """Minimizes the moments and returns lambda"""
+        
         self.moments_op=moments_op
         if vcX:
             """ Cholesky decomposition"""
@@ -142,7 +164,7 @@ class Optimizer:
             self.moments_op.g = np.dot(Ec,moments_op.g)
             
         lambdaX = op.fmin_l_bfgs_b(self.kpgm,[0.0],approx_grad=True,bounds=[(-1.0,1.0)])
-        self.lambdaX = lambdaX[0]
+        self.lambdaX = lambdaX[0][0]
 
     def kpgm(self,lambdapar):
         """ Details:
