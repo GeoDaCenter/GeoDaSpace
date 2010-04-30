@@ -89,12 +89,33 @@ def get_vc(w, u, l):
     A1t = w.A1.T
     wt = w.S.T
 
-    aPat = w.A1 + A1t
-    wPwt = w.S + wt
+    aPatE = (w.A1 + A1t) * E
+    wPwtE = (w.S + wt) * E
+    #print (wPwt * E).diagonal()
 
-    psi11 = aPat * E * aPat * E
-    psi12 = aPat * E * wPwt * E
-    psi22 = wPwt * E * wPwt * E 
+    psi11 = aPatE * aPatE
+    psi12 = aPatE * wPwtE
+    #print psi12.diagonal()
+    psi22 = wPwtE * wPwtE 
+    psi = map(np.sum, [psi11.diagonal(), psi12.diagonal(), psi22.diagonal()])
+    return np.array([[psi[0], psi[1]], [psi[1], psi[2]]]) / (2 * w.n)
+
+def get_vcF(w, u, l):
+    """
+    Same as get_vc() but implemented with full numpy arrays
+    """
+    e = (u - l * np.dot(w.full()[0], u)) ** 2
+    E = np.eye(w.n) * e
+    A1 = np.dot(w.full()[0].T, w.full()[0])
+    for i in range(w.n):
+        A1[i,i] = 0.
+
+    aPatE = np.dot((A1 + A1.T), E)
+    wPwtE = np.dot((w.full()[0] + w.full()[0].T), E)
+
+    psi11 = np.dot(aPatE, aPatE)
+    psi12 = np.dot(aPatE, wPwtE)
+    psi22 = np.dot(wPwtE, wPwtE)
     psi = map(np.sum, [psi11.diagonal(), psi12.diagonal(), psi22.diagonal()])
     return np.array([[psi[0], psi[1]], [psi[1], psi[2]]]) / (2 * w.n)
 
@@ -103,7 +124,8 @@ if __name__ == "__main__":
     import random
     import pysal
     from spHetErr import get_S, get_A1
-    w=pysal.weights.lat2W(10,10)
+    w=pysal.weights.lat2W(30,30)
+    #w.transform='r'
     w.S = get_S(w)
     w.A1 = get_A1(w.S)
     random.seed(100)
@@ -113,4 +135,5 @@ if __name__ == "__main__":
 
     m=Moments(w,u)
     vc = get_vc(w, u, 0.1)
+    vcF = get_vcF(w, u, 0.1)
 

@@ -123,7 +123,7 @@ def get_A1(S):
                       A1 matrix in scipy sparse format
                 
     """
-    StS = S * S.T
+    StS = S.T * S
     StS.setdiag(np.zeros(S.shape[0]))
     return StS 
 

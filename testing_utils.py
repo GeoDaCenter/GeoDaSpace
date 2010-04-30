@@ -80,8 +80,68 @@ class Test_Data:
                 w_file = None
         if w_file:
             self.w = pysal.open(w_file).read()
-        
 
+def different(a, b):
+    """
+    Gives back 0 if the elements of two arrays of the same shape are equal
+    (rel_err<=0.000001), 1 otherwise.
+    ...
+
+    Parameters
+    ----------
+
+    a           : array
+                  First array to be compared
+    b           : array
+                  Second array to be compared
+
+    Returns
+    -------
+
+    Implicit    : boolean
+                  0 if they are the same, 1 otherwise
+
+    """
+    flag = 0
+    for i,j in zip(a.flat, b.flat):
+        if rel_err(a, b)>0.000001:
+            flag = 1
+            break
+    return flag
+        
+def rel_err(a, b):
+    """
+    Relative error between two scalars. Expression:
+
+    ..math::
+
+        re = \dfrac{|a - b|}{a}
+
+    NOTE: in case 'a' is 0. and 'b' is not, the denominator is set to 'b'
+    ...
+
+    Parameters
+    ----------
+
+    a           : float, integer
+                  First element to be compared
+    b           : float, integer
+                  Second element to be compared
+
+    Returns
+    -------
+
+    Implicit    : float
+                  Relative error of the difference
+    """
+    a, b = map(float, [a, b])
+    if a==b:
+        rel_err = 0.
+    elif a!=0.:
+        rel_err = np.abs(a - b) / np.abs(a)
+    else:
+        rel_err = np.abs(a - b) / np.abs(b)
+    return rel_err
 
 def _test():
     import doctest
