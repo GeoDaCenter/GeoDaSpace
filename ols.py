@@ -48,13 +48,17 @@ class OLS_dev:
     >>> import numpy as np
     >>> import pysal
     >>> db=pysal.open("examples/columbus.dbf","r")
-    >>> var_names=db.header
-    >>> data=np.array(db[:])
-    >>> y=data[:,var_names.index("CRIME")]
-    >>> X=data[:,[var_names.index(v) for v in ["INC","HOVAL"]]]
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
     >>> ols=OLS_dev(X,y)
     >>> ols.betas
-    array([ 68.6189611 ,  -1.59731083,  -0.27393148])
+    array([[ 68.6189611 ],
+           [ -1.59731083],
+           [ -0.27393148]])
     
     """
     def __init__(self,x,y,constant=True):
@@ -68,11 +72,10 @@ class OLS_dev:
         self.xtxi = xtxi
         self.xtx = xtx
         self.xt = xt
-        predy = np.dot(x,betas)
+        predy = np.dot(x,self.betas)
         u = y-predy
         self.u = u
         self.predy = predy
-
 
 def _test():
     import doctest
