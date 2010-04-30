@@ -80,7 +80,8 @@ class Moments():
 
 
 def get_vc(w,u,l,m):
-    """Computes the VC matrix \Psi based on \lambda and returns an array 2x2:
+    """
+    Computes the VC matrix \Psi based on \lambda and returns an array 2x2:
 
         psi = [psi11  psi12]
              [psi21  psi22]

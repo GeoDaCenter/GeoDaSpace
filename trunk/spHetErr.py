@@ -1,13 +1,19 @@
 import numpy as np
 import pysal
-import gmm as GMM
+import gmmS as GMM
 import ols as OLS
 import scipy.optimize as op
 import numpy.linalg as la
+from scipy import sparse as SP
 
 class Spatial_Error_Het:
     """GMM method for a spatial error model with heteroskedasticity"""
     def __init__(self,x,y,w,i): ######Inserted i parameter here for iterations...
+
+        if not w.S:
+            w.S = get_S(w)
+        if not w.A1:
+            w.A1 = get_A1(w.S)
 
         #1a. OLS --> \tilde{betas}
         ols = OLS.OLS_dev(x,y)
@@ -50,9 +56,76 @@ class Spatial_Error_Het:
 #         for each value of lambda; since the spatial lag does
 #         not change, this should be moved out
 def get_spCO(z,w,lambdaX):
-    lagz=pysal.weights.spatial_lag.lag_array(w,z)
-    zs=z-lambdaX*lagz
-    return zs
+    """
+    Spatial Cochrane-Orcut Transf
+
+    ...
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
+    """
+    return z - lambdaX * (w.S * z)
+
+def get_S(w):
+    """
+    Converts pysal W to scipy csr_matrix
+    ...
+
+    Parameters
+    ----------
+
+    w               : W
+                      Spatial weights instance
+
+    Returns
+    -------
+
+    Implicit        : csr_matrix
+                      PySAL W object converted into Scipy sparse matrix
+                
+    """
+    data = []
+    indptr = [0]
+    indices = []
+    for ob in w.id_order:
+        data.extend(w.weights[ob])
+        indptr.append(indptr[-1] + len(w.weights[ob]))
+        indices.extend(w.neighbors[ob])
+    data = np.array(data)
+    indices = np.array(indices)
+    indptr = np.array(indptr)
+    return SP.csr_matrix((data,indices,indptr),shape=(w.n,w.n))
+
+def get_A1(S):
+    """
+    Builds A1 as in Arraiz et al.
+
+    .. math::
+
+        A_1 = W' W - diag(w'_{.i} w_{.i})
+
+    ...
+
+    Parameters
+    ----------
+
+    S               : csr_matrix
+                      PySAL W object converted into Scipy sparse matrix
+
+    Returns
+    -------
+
+    Implicit        : csr_matrix
+                      A1 matrix in scipy sparse format
+                
+    """
+    StS = S * S.T
+    StS.setdiag(np.zeros(S.shape[0]))
+    return StS 
 
 # what do we wan to pass into the Optimizer?
 #          suggestion of Pedrom to do a Cholesky decomposition on the weights 
