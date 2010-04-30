@@ -44,5 +44,5 @@ for mod in mods:
 # Test imports
 '''This section is for unit tests'''
 
-#runner = unittest.TextTestRunner()
-#runner.run(suite)
+runner = unittest.TextTestRunner()
+runner.run(suite)
