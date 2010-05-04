@@ -14,6 +14,8 @@ class OLS_dev:
     OLS class to do all the computations
 
     NOTE: no consistency checks
+    
+    Maximal Complexity: O(n^3)
 
     Parameters
     ----------
