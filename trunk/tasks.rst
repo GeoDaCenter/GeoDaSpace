@@ -46,7 +46,8 @@ Tasks
 +----------------------------------------------------------+-------+--------+
 | Cross-reference class notes with current code            |  em   | done   |
 +----------------------------------------------------------+-------+--------+
-
+| Handling of vectors: nx1 Vs. nxNone arrays               |  rw   | done   |
++----------------------------------------------------------+-------+--------+
 NOTE:
 To edit the file, keep the structure and replace empty spaces by the text to
 be introduced. If your message is longer than the given width, break it up
