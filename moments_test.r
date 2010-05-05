@@ -24,17 +24,20 @@ t1<-proc.time()
 time<-t1-t0
 print('N: 100. Geog: First order rook')
 print(time[[3]])
-print('')
 
 #Small dataset (n=100), 2nd order rook. Note that this uses data imported above.
 gal<-read.gal("w_rook_n100_order2_k10.gal",override.id=TRUE)
 listw<-nb2listw(gal)
 t0<-proc.time()
-res<-gstslshet(varA~varB + varC,data=data,listw=listw,sarar=FALSE)
+m<-Ggfastfast(listw=listw, u, length(data$varA))
 t1<-proc.time()
 time<-t1-t0
 print('N: 100. Geog: Second order rook')
 print(time[[3]])
+
+##########################################################
+# Nick: from here it still runs the whole model, change it.
+##########################################################
 
 #Small dataset (n=100), 3rd order rook.
 gal<-read.gal("w_rook_n100_order3_k19.gal",override.id=TRUE)
