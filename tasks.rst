@@ -24,7 +24,7 @@ Tasks
 +----------------------------------------------------------+-------+--------+
 | Add documentation in `spHetErr.py` similar to `ols.py`   |  em   |        |
 +----------------------------------------------------------+-------+--------+
-| Explore the spatial error het model in R so              |  da   |        |
+| Explore the spatial error het model in R so              | da&nm |        |
 | that we can use it to compare our speed and results      |       |        |
 +----------------------------------------------------------+-------+--------+
 | Outline new structure for spreg                          |  la   |        |
