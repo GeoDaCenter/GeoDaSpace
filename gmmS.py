@@ -42,10 +42,10 @@ class Moments:
         g2 = np.dot(ut, Su)
         self.g = np.array([[g1][0][0],[g2][0][0]]) / w.n
 
-        G11 = -2 * (np.dot(utSt, A1u)) 
-        G12 = np.dot((utSt * w.A1), Su)
+        G11 = 2 * (np.dot(utSt, A1u)) 
+        G12 = -np.dot(utSt * w.A1, Su)
         G21 = np.dot(utSt, ((S + St) * u))
-        G22 = np.dot(utSt, (S * Su))
+        G22 = -np.dot(utSt, (S * Su))
         self.G = np.array([[G11[0][0],G12[0][0]],[G21[0][0],G22[0][0]]]) / w.n
 
 def get_vc(w, u, l):

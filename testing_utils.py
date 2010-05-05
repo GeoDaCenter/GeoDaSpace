@@ -23,6 +23,9 @@ class Test_Data:
                       Sting indicating the average number of neighbors in the
                       weights matrix, where the options are 'small', 'medium',
                       'large'
+    folder          : string
+                      path to the folder of the trunk in your computer.
+                      Default to '' so it assumes you are on the trunk
 
     Attributes
     ----------
@@ -49,7 +52,7 @@ class Test_Data:
     >>>
 
     """
-    def __init__(self, n=100, variables=6, k='small'):
+    def __init__(self, n=100, variables=6, k='small', folder=''):
         np.random.seed(10)
         self.y = np.random.randn(n,)
         self.x = np.random.randn(n, variables-1)
@@ -59,21 +62,21 @@ class Test_Data:
         
         if n==100:
             if k=='small':
-                w_file = 'examples/w_rook_n100_order1_k4.gal'
+                w_file = folder + 'examples/w_rook_n100_order1_k4.gal'
             if k=='medium':
-                w_file = 'examples/w_rook_n100_order2_k10.gal'
+                w_file = folder + 'examples/w_rook_n100_order2_k10.gal'
             if k=='large':
-                w_file = 'examples/w_rook_n100_order3_k19.gal'
+                w_file = folder + 'examples/w_rook_n100_order3_k19.gal'
         if n==10000:
             if k=='small':
-                w_file = 'examples/w_rook_n10000_order1_k4.gal'
+                w_file = folder + 'examples/w_rook_n10000_order1_k4.gal'
             if k=='medium':
-                w_file = 'examples/w_rook_n10000_order2_k12.gal'
+                w_file = folder + 'examples/w_rook_n10000_order2_k12.gal'
             if k=='large':
-                w_file = 'examples/w_rook_n10000_order3_k23.gal'
+                w_file = folder + 'examples/w_rook_n10000_order3_k23.gal'
         if n==1000000:
             if k=='small':
-                w_file = 'examples/w_rook_n1000000_order1_k4.gal'
+                w_file = folder + 'examples/w_rook_n1000000_order1_k4.gal'
             if k=='medium':
                 w_file = None
             if k=='large':
