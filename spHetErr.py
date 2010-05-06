@@ -8,12 +8,14 @@ from scipy import sparse as SP
 
 class Spatial_Error_Het:
     """GMM method for a spatial error model with heteroskedasticity"""
-    def __init__(self,x,y,w,i): ######Inserted i parameter here for iterations...
+    def __init__(self,x,y,w,i=1): ######Inserted i parameter here for iterations...
 
         if not w.S:
             w.S = get_S(w)
         if not w.A1:
             w.A1 = get_A1(w.S)
+        w.S = get_S(w)
+        w.A1 = get_A1(w.S)
 
         #1a. OLS --> \tilde{betas}
         ols = OLS.OLS_dev(x,y)
@@ -124,8 +126,10 @@ def get_A1(S):
                 
     """
     StS = S.T * S
-    StS.setdiag(np.zeros(S.shape[0]))
-    return StS 
+    d = SP.lil_matrix(S.get_shape())
+    d.setdiag(StS.diagonal())
+    d = d.asformat('csr')
+    return StS - d 
 
 # what do we wan to pass into the Optimizer?
 #          suggestion of Pedrom to do a Cholesky decomposition on the weights 
