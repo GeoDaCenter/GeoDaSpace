@@ -83,6 +83,7 @@ def get_vc(w, u, l):
 
     """
     e = (u - l * (w.S * u)) ** 2
+    print w.S * u
     E = SP.lil_matrix(w.S.get_shape())
     E.setdiag(e.flat)
     E = E.asformat('csr')
@@ -91,11 +92,9 @@ def get_vc(w, u, l):
 
     aPatE = (w.A1 + A1t) * E
     wPwtE = (w.S + wt) * E
-    #print (wPwt * E).diagonal()
 
     psi11 = aPatE * aPatE
     psi12 = aPatE * wPwtE
-    #print psi12.diagonal()
     psi22 = wPwtE * wPwtE 
     psi = map(np.sum, [psi11.diagonal(), psi12.diagonal(), psi22.diagonal()])
     return np.array([[psi[0], psi[1]], [psi[1], psi[2]]]) / (2 * w.n)
@@ -124,8 +123,8 @@ if __name__ == "__main__":
     import random
     import pysal
     from spHetErr import get_S, get_A1
-    w=pysal.weights.lat2W(30,30)
-    #w.transform='r'
+    w=pysal.weights.lat2W(7,7, rook=False)
+    w.transform='r'
     w.S = get_S(w)
     w.A1 = get_A1(w.S)
     random.seed(100)
