@@ -169,15 +169,15 @@ class Optimizer:
             self.moments_op.g = np.dot(Ec,moments_op.g)
             
         lambdaX = op.fmin_l_bfgs_b(self.kpgm,[0.0],approx_grad=True,bounds=[(-1.0,1.0)])
-        self.lambdaX = lambdaX
+        self.lambdaX = lambdaX[0][0]
 
-    def kpgm(self,lambdapar):
+def kpgm(lambdapar,moments):
         """ Details:
             Gets the square residuals ready for minimization
         """
         par=np.array([float(lambdapar[0]),float(lambdapar[0])**float(2)])
-        vv=np.inner(self.moments_op.G,par)
-        vv2=vv-self.moments_op.g
+        vv=np.inner(moments.G,par)
+        vv2=vv-moments.g
         v2=sum(sum(vv2*vv2))
         argmin=v2
             
