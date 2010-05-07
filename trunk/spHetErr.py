@@ -5,6 +5,7 @@ import ols as OLS
 import scipy.optimize as op
 import numpy.linalg as la
 from scipy import sparse as SP
+import time
 
 class Spatial_Error_Het:
     """GMM method for a spatial error model with heteroskedasticity"""
@@ -126,10 +127,9 @@ def get_A1(S):
                 
     """
     StS = S.T * S
-    d = SP.lil_matrix(S.get_shape())
-    d.setdiag(StS.diagonal())
+    d = SP.spdiags([StS.diagonal()], [0], S.get_shape()[0], S.get_shape()[1])
     d = d.asformat('csr')
-    return StS - d 
+    return StS - d
 
 # what do we wan to pass into the Optimizer?
 #          suggestion of Pedrom to do a Cholesky decomposition on the weights 
