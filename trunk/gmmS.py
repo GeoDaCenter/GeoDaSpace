@@ -83,7 +83,6 @@ def get_vc(w, u, l):
 
     """
     e = (u - l * (w.S * u)) ** 2
-    print w.S * u
     E = SP.lil_matrix(w.S.get_shape())
     E.setdiag(e.flat)
     E = E.asformat('csr')

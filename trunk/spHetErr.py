@@ -134,52 +134,64 @@ def get_A1(S):
 # what do we wan to pass into the Optimizer?
 #          suggestion of Pedrom to do a Cholesky decomposition on the weights 
 #          before computing g and G  
-class Optimizer:
+def optimizer(moments, vcX=None):
     """
-    Finds the Lambda that minimizes the residuals from the moments conditions.
-    The optimizer used is Scipy's fmin_l_bfgs_b.
-
-    NOTE: The way it's built it uses the Cholesky Decomposition.
-          We should change this.
-          We can either find an optimization routine which allows
-          for weights or just do the weighting prior to the optim as Nancy did.
+    Optimization of moments
+    ...
 
     Parameters
     ----------
 
-    moments_op : object?
-                 should contain the Big G and the little g as attributes
-    vcX        : PSI matrix for weighting
-                 
-    Attributes
+    moments     : Moments
+                  Instance of gmmS.Moments with G and g
+    vcX         : array
+                  Optional. 2x2 array with the Variance-Covariance matrix to be used as
+                  weights in the optimization (applies Cholesky decomposition). Set to None by default.
+
+    Returns
+    -------
+    x, f, d     : tuple
+                  x -- position of the minimum
+                  f -- value of func at the minimum
+                  d -- dictionary of information from routine
+                        d['warnflag'] is
+                            0 if converged
+                            1 if too many function evaluations
+                            2 if stopped for another reason, given in d['task']
+                        d['grad'] is the gradient at the minimum (should be 0 ish)
+                        d['funcalls'] is the number of function calls made
+    """
+    if vcX:
+        Ec = np.transpose(la.cholesky(la.inv(vcX)))
+        self.moments_op.G = np.dot(Ec,moments_op.G)
+        self.moments_op.g = np.dot(Ec,moments_op.g)
+        
+    lambdaX = op.fmin_l_bfgs_b(kpgm,[0.0],args=[moments],approx_grad=True,bounds=[(-1.0,1.0)])
+    return lambdaX
+
+def kpgm(lambdapar,moments):
+    """ 
+    Preparation of moments for minimization
+    ...
+
+    Parameters
     ----------
 
-    lambdaX   : number?
-                value of lambda at the minimum
+    lambdapar       : float
+                      Spatial autoregressive parameter
+    moments         : Moments
+                      Instance of gmmS.Moments with G and g
+
+    Returns
+    -------
+
+    Implicit        : float
+                      sum of square residuals of the equation system 
+                      moments.g + moments.G * lambdapar = 0
     """
+    par=np.array([float(lambdapar[0]),float(lambdapar[0])**float(2)])
+    vv=np.inner(moments.G,par)
+    vv2=vv-moments.g
+    return sum(sum(vv2*vv2))
 
-    def __init__(self, moments_op,vcX=None):
-    
-        
-        self.moments_op=moments_op
-        if vcX:
-            """ Cholesky decomposition"""
-            Ec = np.transpose(la.cholesky(la.inv(vcX)))
-            self.moments_op.G = np.dot(Ec,moments_op.G)
-            self.moments_op.g = np.dot(Ec,moments_op.g)
-            
-        lambdaX = op.fmin_l_bfgs_b(self.kpgm,[0.0],approx_grad=True,bounds=[(-1.0,1.0)])
-        self.lambdaX = lambdaX
-
-    def kpgm(self,lambdapar):
-        """ Details:
-            Gets the square residuals ready for minimization
-        """
-        par=np.array([float(lambdapar[0]),float(lambdapar[0])**float(2)])
-        vv=np.inner(self.moments_op.G,par)
-        vv2=vv-self.moments_op.g
-        v2=sum(sum(vv2*vv2))
-        argmin=v2
-            
-        return argmin
 
