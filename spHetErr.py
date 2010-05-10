@@ -131,9 +131,6 @@ def get_A1(S):
     d = d.asformat('csr')
     return StS - d
 
-# what do we wan to pass into the Optimizer?
-#          suggestion of Pedrom to do a Cholesky decomposition on the weights 
-#          before computing g and G  
 def optimizer(moments, vcX=None):
     """
     Optimization of moments
@@ -186,8 +183,8 @@ def kpgm(lambdapar,moments):
     -------
 
     Implicit        : float
-                      sum of square residuals of the equation system 
-                      moments.g + moments.G * lambdapar = 0
+                      sum of square residuals (e) of the equation system 
+                      moments.g - moments.G * lambdapar = e
     """
     par=np.array([float(lambdapar[0]),float(lambdapar[0])**float(2)])
     vv=np.inner(moments.G,par)
