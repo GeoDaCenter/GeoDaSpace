@@ -3,14 +3,16 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to GeodaSpaceCookbook's documentation!
-==============================================
+Welcome to GeodaSpace's Cookbook!
+=================================
 
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 3
 
+    c0Intro/index
+    cTest/index
 Indices and tables
 ==================
 
