@@ -1,5 +1,5 @@
 .. Put tags here separated by commas
-.. _Nick: 
+.. _nick: 
 
 ===================
 Title of the recipe
