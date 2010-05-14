@@ -31,6 +31,10 @@ class OLS_dev:
     Attributes
     ----------
 
+    x       : array
+              nxk array of independent variables (assumed to be aligned with y)
+    y       : array
+              nx1 array of dependent variable
     betas   : array
               kx1 array with estimated coefficients
     xt      : array
@@ -43,6 +47,16 @@ class OLS_dev:
               nx1 array of residuals
     predy   : array
               nx1 array of predicted values
+    n       : int
+              Number of observations
+    k       : int
+              Number of variables
+    sig2    : float
+              Sigma squared
+
+              .. math::
+                
+                    \sigma^2 = \dfrac{\tilde{u}' \tilde{u}}{N}
 
     Examples
     --------
@@ -78,6 +92,23 @@ class OLS_dev:
         u = y-predy
         self.u = u
         self.predy = predy
+        self.y = y
+        self.x = x
+        self.n, self.k = x.shape
+        self._cache = {}
+
+    @property
+    def sig2(self):
+        if 'sig2' not in self._cache:
+            self._cache['sig2'] = np.sum(self.u**2) / self.n
+        return self._cache['sig2']
+    @property
+    def m(self):
+        if 'm' not in self._cache:
+            xtxixt = np.dot(self.xtxi,self.xt)
+            xxtxixt = np.dot(self.x, xtxixt)
+            self._cache['m'] = np.eye(self.n) - xxtxixt
+        return self._cache['m']
 
 def _test():
     import doctest

@@ -1,0 +1,285 @@
+"""
+Spatial diagnostics module
+"""
+from scipy.stats.stats import chisqprob
+from ols import OLS_dev as OLS
+import numpy as np
+
+class LMtests:
+    """
+    Lagrange Multiplier tests. Implemented as presented in Anselin et al.
+    (1996) [1]_
+    ...
+
+    Attributes
+    ----------
+
+    x           : array
+                  nxk array of independent variables (assumed to be aligned with y)
+    y           : array
+                  nx1 array of dependent variable
+    w           : W
+                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  be row-standardized
+    constant    : boolean
+                  If true it appends a vector of ones to the independent variables
+                  to estimate intercept (set to True by default)
+    tests       : list
+                  Lists of strings with the tests desired to be performed.
+                  Values may be:
+                  
+                  * 'all': runs all the options (default)
+                  * 'lme': LM error test
+                  * 'rlme': Robust LM error test
+                  * 'lml' : LM lag test
+                  * 'rlml': Robust LM lag test
+
+    Parameters
+    ----------
+
+    lme         : tuple
+                  (Only if 'lme' or 'all' was in tests). Pair of statistic and
+                  p-value for the LM error test.
+    lml         : tuple
+                  (Only if 'lml' or 'all' was in tests). Pair of statistic and
+                  p-value for the LM lag test.
+    rlme        : tuple
+                  (Only if 'rlme' or 'all' was in tests). Pair of statistic
+                  and p-value for the Robust LM error test.
+    rlml        : tuple
+                  (Only if 'rlml' or 'all' was in tests). Pair of statistic
+                  and p-value for the Robust LM lag test.
+
+    References
+    ----------
+    .. [1] Anselin, L., Bera, A. K., Florax, R., Yoon, M. J. (1996) "Simple
+       diagnostic tests for spatial dependence". Regional Science and Urban
+       Economics, 26, 77-104.
+    """
+    def __init__(self, x, y, w, constant=True, tests=['all']):
+        ols = OLS(x, y, constant=constant)
+        cache = LMcache(ols, w)
+        if tests == ['all']:
+            tests = ['lme', 'lml','rlme', 'rlml']
+        if 'lme' in tests:
+            self.lme = lmErr(ols, w, cache)
+        if 'lml' in tests:
+            self.lml = lmLag(ols, w, cache)
+        if 'rlme' in tests:
+            self.rlme = rlmErr(ols, w, cache)
+        if 'rlml' in tests:
+            self.rlml = rlmLag(ols, w, cache)
+
+
+def lmErr(ols, w, LMcache):
+    """
+    LM error test. Implemented as presented in eq. (9) of Anselin et al.
+    (1996) [1]_
+    ...
+
+    Attributes
+    ----------
+
+    ols         : OLS_dev
+                  Instance from an OLS_dev regression 
+    w           : W
+                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  be row-standardized
+    LMcache     : LMcache
+                  Instance of LMcache class
+
+    Returns
+    -------
+
+    lme         : tuple
+                  Pair of statistic and p-value for the LM error test.
+
+    References
+    ----------
+    .. [1] Anselin, L., Bera, A. K., Florax, R., Yoon, M. J. (1996) "Simple
+       diagnostic tests for spatial dependence". Regional Science and Urban
+       Economics, 26, 77-104.
+    """
+    lm = LMcache.utwuDs**2 / LMcache.t
+    pval = chisqprob(lm, 1)
+    return (lm[0][0], pval[0][0])
+
+def lmLag(ols, w, LMcache):
+    """
+    LM lag test. Implemented as presented in eq. (13) of Anselin et al.
+    (1996) [1]_
+    ...
+
+    Attributes
+    ----------
+
+    ols         : OLS_dev
+                  Instance from an OLS_dev regression 
+    w           : W
+                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  be row-standardized
+    LMcache     : LMcache
+                  Instance of LMcache class
+
+    Returns
+    -------
+
+    lml         : tuple
+                  Pair of statistic and p-value for the LM lag test.
+
+    References
+    ----------
+    .. [1] Anselin, L., Bera, A. K., Florax, R., Yoon, M. J. (1996) "Simple
+       diagnostic tests for spatial dependence". Regional Science and Urban
+       Economics, 26, 77-104.
+    """
+    lm = LMcache.utwyDs**2 / (ols.n * LMcache.j)
+    pval = chisqprob(lm, 1)
+    return (lm[0][0], pval[0][0])
+
+def rlmErr(ols, w, LMcache):
+    """
+    Robust LM error test. Implemented as presented in eq. (8) of Anselin et al.
+    (1996) [1]_
+    ...
+
+    Attributes
+    ----------
+
+    ols         : OLS_dev
+                  Instance from an OLS_dev regression 
+    w           : W
+                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  be row-standardized
+    LMcache     : LMcache
+                  Instance of LMcache class
+
+    Returns
+    -------
+
+    rlme        : tuple
+                  Pair of statistic and p-value for the Robust LM error test.
+
+    References
+    ----------
+    .. [1] Anselin, L., Bera, A. K., Florax, R., Yoon, M. J. (1996) "Simple
+       diagnostic tests for spatial dependence". Regional Science and Urban
+       Economics, 26, 77-104.
+    """
+    nj = ols.n * LMcache.j
+    num = (LMcache.utwuDs - (LMcache.t * LMcache.utwyDs) / nj)**2
+    den = LMcache.t / (1. - (LMcache.t * nj))
+    lm = num / den
+    pval = chisqprob(lm, 1)
+    return (lm[0][0], pval[0][0])
+
+def rlmLag(ols, w, LMcache):
+    """
+    Robust LM lag test. Implemented as presented in eq. (12) of Anselin et al.
+    (1996) [1]_
+    ...
+
+    Attributes
+    ----------
+
+    ols         : OLS_dev
+                  Instance from an OLS_dev regression 
+    w           : W
+                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  be row-standardized
+    LMcache     : LMcache
+                  Instance of LMcache class
+
+    Returns
+    -------
+
+    rlml        : tuple
+                  Pair of statistic and p-value for the Robust LM lag test.
+
+    References
+    ----------
+    .. [1] Anselin, L., Bera, A. K., Florax, R., Yoon, M. J. (1996) "Simple
+       diagnostic tests for spatial dependence". Regional Science and Urban
+       Economics, 26, 77-104.
+    """
+    lm = (LMcache.utwyDs - LMcache.utwuDs) / ((ols.n * LMcache.j) - LMcache.t)
+    pval = chisqprob(lm, 1)
+    return (lm[0][0], pval[0][0])
+
+class LMcache:
+    """
+    Class to compute reusable pieces in LM tests
+    ...
+
+    Attributes
+    ----------
+
+    ols         : OLS_dev
+                  Instance from an OLS_dev regression 
+    w           : W
+                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  be row-standardized
+
+    Parameters
+    ----------
+
+    j           : array
+                  1x1 array with the result from:
+
+                  .. math::
+
+                        J = \dfrac{1}{[(WX\beta)' M (WX\beta) + T \sigma^2]}
+
+
+    utwuDs      : array
+                  1x1 array with the result from:
+
+                  .. math::
+
+                        utwuDs = \dfrac{u' W u}{\tilde{\sigma^2}}
+
+    utwyDs      : array
+                  1x1 array with the result from:
+
+                  .. math::
+
+                        utwyDs = \dfrac{u' W y}{\tilde{\sigma^2}}
+
+
+    t           : array
+                  1x1 array with the result from :
+
+                  .. math::
+
+                        T = tr[(W' + W) W]
+
+    """
+    def __init__(self,ols, w):
+        self.ols = ols
+        self.w = w
+        self._cache = {}
+    @property
+    def j(self):
+        if 'j' not in self._cache:
+            wxb = self.w.S * self.ols.predy
+            self._cache['j'] = (np.dot(wxb.T, np.dot(self.ols.m, wxb)) + (self.t * self.ols.sig2)) / (self.ols.n * self.ols.sig2)
+        return self._cache['j']
+    @property
+    def utwuDs(self):
+        if 'utwuDs' not in self._cache:
+            res = np.dot(self.ols.u.T, self.w.S * self.ols.u) / self.ols.sig2
+            self._cache['utwuDs'] = res
+        return self._cache['utwuDs']
+    @property
+    def utwyDs(self):
+        if 'utwyDs' not in self._cache:
+            res = np.dot(self.ols.u.T, self.w.S * self.ols.y) / self.ols.sig2
+            self._cache['utwyDs'] = res
+        return self._cache['utwyDs']
+    @property
+    def t(self):
+        if 't' not in self._cache:
+            prod = (self.w.S.T + self.w.S) * self.w.S 
+            self._cache['t'] = np.sum(prod.diagonal())
+        return self._cache['t']
+
