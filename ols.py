@@ -51,6 +51,8 @@ class OLS_dev:
               Number of observations
     k       : int
               Number of variables
+    utu     : float
+              Sum of the squared residuals
     sig2    : float
               Sigma squared
 
@@ -98,9 +100,14 @@ class OLS_dev:
         self._cache = {}
 
     @property
+    def utu(self):
+        if 'utu' not in self._cache:
+            self._cache['utu'] = np.sum(self.u**2)
+        return self._cache['utu']
+    @property
     def sig2(self):
         if 'sig2' not in self._cache:
-            self._cache['sig2'] = np.sum(self.u**2) / self.n
+            self._cache['sig2'] = self.utu / self.n
         return self._cache['sig2']
     @property
     def m(self):
