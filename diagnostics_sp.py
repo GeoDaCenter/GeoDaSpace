@@ -4,6 +4,7 @@ Spatial diagnostics module
 from scipy.stats.stats import chisqprob
 from ols import OLS_dev as OLS
 import numpy as np
+import pysal
 
 class LMtests:
     """
@@ -275,6 +276,10 @@ class spDcache:
     def wu(self):
         if 'wu' not in self._cache:
             self._cache['wu'] = self.w.S * self.ols.u
+            full = np.dot(self.w.full()[0], self.ols.u)
+            pl = pysal.weights.spatial_lag.lag_array(self.w, self.ols.y)
+            print self._cache['wu']
+            print full
         return self._cache['wu']
     @property
     def utwuDs(self):
