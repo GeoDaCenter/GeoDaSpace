@@ -212,8 +212,8 @@ def kpgm(lambdapar,moments):
     """
     par=np.array([float(lambdapar[0]),float(lambdapar[0])**float(2)])
     vv=np.inner(moments.G,par)
-    vv2=vv-moments.g
-    return sum(sum(vv2*vv2))
+    vv2=np.reshape(vv,[2,1])-moments.g
+    return sum(vv2**2)
 
 if __name__ == '__main__':
 
