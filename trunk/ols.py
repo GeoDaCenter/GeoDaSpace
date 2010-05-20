@@ -54,7 +54,9 @@ class OLS_dev:
     utu     : float
               Sum of the squared residuals
     sig2    : float
-              Sigma squared
+              Sigma squared with n in the denominator
+    sig2n_k : float
+              Sigma squared with n-k in the denominator
 
               .. math::
                 
