@@ -118,6 +118,13 @@ class OLS_dev:
             xxtxixt = np.dot(self.x, xtxixt)
             self._cache['m'] = np.eye(self.n) - xxtxixt
         return self._cache['m']
+    @property
+    def vm(self):
+        if 'vm' not in self._cache:
+            estSig2= self.utu / (self.n-self.k)
+            self._cache['vm'] = np.dot(estSig2, self.xtxi)
+        return self._cache['vm']
+    
 
 def _test():
     import doctest
