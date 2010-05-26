@@ -61,6 +61,13 @@ class OLS_dev:
               .. math::
                 
                     \sigma^2 = \dfrac{\tilde{u}' \tilde{u}}{N}
+    m       : array
+              Matrix M
+
+              .. math::
+
+                    M = I - X(X'X)^{-1}X'
+
 
     Examples
     --------
