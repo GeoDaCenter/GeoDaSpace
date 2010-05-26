@@ -1,5 +1,16 @@
 """
 Spatial diagnostics module
+
+ToDo:
+
+    * Checking against R's spdep differs in:
+        * rlme
+        * rlml
+        * Moran's variance
+    * Focus on:
+        * T
+        * np.dot against * for sparse (Moran)
+    * Document Moran
 """
 from scipy.stats.stats import chisqprob
 from ols import OLS_dev as OLS
@@ -270,16 +281,14 @@ class spDcache:
     def j(self):
         if 'j' not in self._cache:
             wxb = self.w.S * self.ols.predy
-            self._cache['j'] = (np.dot(wxb.T, np.dot(self.ols.m, wxb)) + (self.t * self.ols.sig2)) / (self.ols.n * self.ols.sig2)
+            num = np.dot(wxb.T, np.dot(self.ols.m, wxb)) + (self.t * self.ols.sig2)
+            den = self.ols.n * self.ols.sig2
+            self._cache['j'] = num / den
         return self._cache['j']
     @property
     def wu(self):
         if 'wu' not in self._cache:
             self._cache['wu'] = self.w.S * self.ols.u
-            full = np.dot(self.w.full()[0], self.ols.u)
-            pl = pysal.weights.spatial_lag.lag_array(self.w, self.ols.y)
-            print self._cache['wu']
-            print full
         return self._cache['wu']
     @property
     def utwuDs(self):
@@ -290,8 +299,8 @@ class spDcache:
     @property
     def utwyDs(self):
         if 'utwyDs' not in self._cache:
-            res = np.dot(self.ols.u.T, self.w.S * self.ols.y) / self.ols.sig2
-            self._cache['utwyDs'] = res
+            res = np.dot(self.ols.u.T, self.w.S * self.ols.y)
+            self._cache['utwyDs'] = res / self.ols.sig2
         return self._cache['utwyDs']
     @property
     def t(self):
@@ -302,7 +311,7 @@ class spDcache:
     @property
     def mw(self):
         if 'mw' not in self._cache:
-            self._cache['mw'] = ols.m * w.S
+            self._cache['mw'] = self.ols.m * self.w.S
         return self._cache['mw']
     @property
     def trMw(self):
@@ -310,28 +319,28 @@ class spDcache:
             self._cache['trMw'] = np.sum(self.mw.diagonal())
         return self._cache['trMw']
 
-class MoranTest:
+class MoranRes:
     def __init__(self, x, y, w, constant=True):
         ols = OLS(x, y, constant=constant)
         cache = spDcache(ols, w)
         self.I = get_mI(ols, w, cache)
-        self.eI = get_eI(ols, w)
+        self.eI = get_eI(ols, w, cache)
         self.vI = get_vI(ols, w, self.eI, cache)
         self.zI = get_zI(self.I, self.eI, self.vI)
 
 
 def get_mI(ols, w, spDcache):
-    return (w.n * np.dot(ols.u.T, spDcache.wu)) / (w.s0 * spDcache.utu)
+    return (w.n * np.dot(ols.u.T, spDcache.wu)) / (w.s0 * ols.utu)
 
-def get_eI(ols, w):
-    return (w.n * self.trMw) / (w.s0 * (w.n - ols.k))
+def get_eI(ols, w, spDcache):
+    return (w.n * spDcache.trMw) / (w.s0 * (w.n - ols.k))
 
 def get_vI(ols, w, ei, spDcache):
-    trMwmwt = spDcache.mw * (ols.m * w.S.T)
+    trMwmwt = np.dot(spDcache.mw, (ols.m * w.S.T))
     trMwmwt = np.sum(trMwmwt.diagonal())
     mw2 = spDcache.mw**2
-    num = n**2 * (trMwmwt + np.sum(mw2.diagonal()) + spDcache.trMw**2)
-    den = w.s0**2 * (((w.n - ols.k)(w.n - ols.k + 2)) - ei**2)
+    num = w.n**2 * (trMwmwt + np.sum(mw2.diagonal()) + spDcache.trMw**2)
+    den = w.s0**2 * (((w.n - ols.k) * (w.n - ols.k + 2)) - ei**2)
     return num / den
 
 def get_zI(I, ei, vi):

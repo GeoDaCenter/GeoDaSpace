@@ -107,7 +107,7 @@ def different(a, b):
     """
     flag = 0
     for i,j in zip(a.flat, b.flat):
-        if rel_err(a, b)>0.000001:
+        if rel_err(i, j)>0.000001:
             flag = 1
             break
     return flag
