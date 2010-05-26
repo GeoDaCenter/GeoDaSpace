@@ -4,7 +4,7 @@ import numpy.linalg as la
 
 class OLS:
     """
-    OLS class for end-user (gives back only results ans diagnostics)
+    OLS class for end-user (gives back only results and diagnostics)
     """
     def __init__(self):
         pass
@@ -131,6 +131,17 @@ class OLS_dev:
             estSig2= self.utu / (self.n-self.k)
             self._cache['vm'] = np.dot(estSig2, self.xtxi)
         return self._cache['vm']
+    
+    @property
+    def mean_y(self):
+        if 'mean_y' not in self._cache:
+            self._cache['mean_y']=np.mean(self.y)
+        return self._cache['mean_y']
+    @property
+    def std_y(self):
+        if 'std_y' not in self._cache:
+            self._cache['std_y']=np.std(self.y)
+        return self._cache['std_y']
     
 
 def _test():
