@@ -119,6 +119,11 @@ class OLS_dev:
             self._cache['sig2'] = self.utu / self.n
         return self._cache['sig2']
     @property
+    def sig2n_k(self):
+        if 'sig2' not in self._cache:
+            self._cache['sig2n_k'] = self.utu / (self.n-self.k)
+        return self._cache['sig2n_k']
+    @property
     def m(self):
         if 'm' not in self._cache:
             xtxixt = np.dot(self.xtxi,self.xt)
