@@ -9,7 +9,7 @@ class TwoSLS:
     def __init__(self):
         pass
 
-class TwoSLS_dev:
+class TwoSLS_dev(OLS.ols_dev):
     """
     2SLS class to do all the computations
 
@@ -109,16 +109,17 @@ class TwoSLS_dev:
         zpzi_zpx = np.dot(zpzi, zpx)   # k+l x k
         x_hat = np.dot(z, zpzi_zpx)    #   n x k
 
-        ols = OLS.ols_dev(x_hat, y, constant=False)
-        self.betas = ols.betas
+        OLS.ols_dev.__init__(x_hat, y, constant=False)
+        #ols = OLS.ols_dev(x_hat, y, constant=False)
+        #self.betas = ols.betas
         self.predy = np.dot(x,self.betas)  # using original data
         self.u = y-predy                   # using original data
-        self.predy_ols = ols.predy         # using transformed data
-        self.u_ols = ols.u                 # using transformed data
-        self.y = y
+        #self.predy_ols = ols.predy         # using transformed data
+        #self.u_ols = ols.u                 # using transformed data
+        #self.y = y
         self.x = x
         self.h = h
-        self.n, self.k = x.shape
+        #self.n, self.k = x.shape
         self._cache = {}
 
     @property
