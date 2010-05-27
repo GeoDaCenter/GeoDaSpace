@@ -4,11 +4,8 @@ Spatial diagnostics module
 ToDo:
 
     * Checking against R's spdep differs in:
-        * rlme
-        * rlml
         * Moran's variance
     * Focus on:
-        * T
         * np.dot against * for sparse (Moran)
     * Document Moran
 """
@@ -151,8 +148,9 @@ def lmLag(ols, w, spDcache):
 
 def rlmErr(ols, w, spDcache):
     """
-    Robust LM error test. Implemented as presented in eq. (8) of Anselin et al.
-    (1996) [1]_
+    Robust LM error test. Implemented as presented in eq. (8) of Anselin et al. (1996) [1]_ 
+
+    NOTE: eq. (8) has an errata, the power -1 in the denominator should be inside the square bracket.
     ...
 
     Attributes
@@ -180,7 +178,7 @@ def rlmErr(ols, w, spDcache):
     """
     nj = ols.n * spDcache.j
     num = (spDcache.utwuDs - (spDcache.t * spDcache.utwyDs) / nj)**2
-    den = spDcache.t / (1. - (spDcache.t * nj))
+    den = spDcache.t * (1. - (spDcache.t / nj))
     lm = num / den
     pval = chisqprob(lm, 1)
     return (lm[0][0], pval[0][0])
@@ -214,7 +212,7 @@ def rlmLag(ols, w, spDcache):
        diagnostic tests for spatial dependence". Regional Science and Urban
        Economics, 26, 77-104.
     """
-    lm = (spDcache.utwyDs - spDcache.utwuDs) / ((ols.n * spDcache.j) - spDcache.t)
+    lm = (spDcache.utwyDs - spDcache.utwuDs)**2 / ((ols.n * spDcache.j) - spDcache.t)
     pval = chisqprob(lm, 1)
     return (lm[0][0], pval[0][0])
 
@@ -338,7 +336,8 @@ def get_eI(ols, w, spDcache):
 def get_vI(ols, w, ei, spDcache):
     trMwmwt = np.dot(spDcache.mw, (ols.m * w.S.T))
     trMwmwt = np.sum(trMwmwt.diagonal())
-    mw2 = spDcache.mw**2
+    #mw2 = spDcache.mw**2
+    mw2 = np.dot(spDcache.mw, spDcache.mw)
     num = w.n**2 * (trMwmwt + np.sum(mw2.diagonal()) + spDcache.trMw**2)
     den = w.s0**2 * (((w.n - ols.k) * (w.n - ols.k + 2)) - ei**2)
     return num / den
