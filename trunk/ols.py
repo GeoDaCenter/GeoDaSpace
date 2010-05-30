@@ -9,6 +9,84 @@ class OLS:
     def __init__(self):
         pass
 
+def fStat_ols(ols):
+    """
+    return the f statistic and p-value for ols
+    
+    Parameters
+    ----------
+
+    ols     : instance of class OLS
+        
+    Returns
+    ----------
+
+    tuple   : value of F statistic and probability
+    
+    
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> ols=OLS(X,y,('columbus,'CRIME','INC','HOVAL'))
+    >>> print fStat_ols(ols)
+    (28.385629224695027, 9.3407471008459753e-09)
+    
+    """ 
+    U = np.sum((ols.predy-ols.mean_y)**2)
+    Q = ols.utu
+    fStat = (U/(ols.k-1))/(Q/(ols.n-ols.k))
+    pValue = pdf.fprob(ols.k-1,ols.n-ols.k,fStat)
+    
+    return (fStat, pValue)
+
+def tStat_ols(ols):
+    """
+    return the f statistic and p-value for ols
+    
+    Parameters
+    ----------
+
+    ols     : instance of class OLS
+        
+    Returns
+    ----------
+
+    list    : including tuples that contain value of each T statistic and its probability
+    
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> ols=OLS(X,y,('columbus,'CRIME','INC','HOVAL'))
+    >>> print tStat_ols(ols)
+    [(14.490373143689107, 9.2108899890079728e-19), (-4.7804961912965895, 1.8289595064382569e-05), (-2.6544086427177005, 0.010874504645408603)]
+    
+    """ 
+    variance = ols.vm.diagonal()
+    tStat = ols.betas.reshape(len(ols.betas),)/ np.sqrt(variance)
+    rs = {}
+    for i in range(len(ols.betas)):
+        rs[i] = (tStat[i],pdf.tpvalue(tStat[i],ols.n-ols.k))
+    
+    return rs.values()
+
+
+
 class OLS_dev:
     """
     OLS class to do all the computations
