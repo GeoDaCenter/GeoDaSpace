@@ -28,6 +28,7 @@ def fStat_ols(ols):
     --------
     >>> import numpy as np
     >>> import pysal
+    >>> import pdf
     >>> db=pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -49,7 +50,7 @@ def fStat_ols(ols):
 
 def tStat_ols(ols):
     """
-    return the f statistic and p-value for ols
+    return the t statistic and p-value for ols
     
     Parameters
     ----------
@@ -65,6 +66,7 @@ def tStat_ols(ols):
     --------
     >>> import numpy as np
     >>> import pysal
+    >>> import pdf
     >>> db=pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -85,7 +87,70 @@ def tStat_ols(ols):
     
     return rs.values()
 
+def r2_ols(ols):
+    """
+    return the R square value for ols
+    
+    Parameters
+    ----------
 
+    ols     : instance of class OLS
+        
+    Returns
+    ----------
+
+    value   : float  
+    
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> ols=OLS(X,y,('columbus,'CRIME','INC','HOVAL'))
+    >>> print r2_ols(ols)
+    [ 0.55240404]
+    
+    """ 
+    ss_tot = sum((ols.y-ols.mean_y)**2)
+    return 1-ols.utu/ss_tot
+
+def ar2_ols(ols):
+    """
+    return adjusted R square value for ols
+    
+    Parameters
+    ----------
+
+    ols     : instance of class OLS
+        
+    Returns
+    ----------
+
+    value   : float 
+    
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> ols=OLS(X,y,('columbus,'CRIME','INC','HOVAL'))
+    >>> print ar2_ols(ols)
+    [ 0.53294335]
+    
+    """ 
+    return 1-(1-r2_ols(ols))*(ols.n-1)/(ols.n-ols.k)
 
 class OLS_dev:
     """
