@@ -10,9 +10,6 @@ Tasks
 +----------------------------------------------------------+-------+--------+
 | Set up test system                                       | ps&df |        |
 +----------------------------------------------------------+-------+--------+
-| Write function for : Iteration of step 2.a and 2.b       |  nm   | needs  |
-|                                                          |       | check  |
-+----------------------------------------------------------+-------+--------+
 | Add to docstrings estimation of computational burden (O) |  rw   |        |
 +----------------------------------------------------------+-------+--------+
 | Add documentation in `spHetErr.py` similar to `ols.py`   |  em   |        |
@@ -23,7 +20,7 @@ Tasks
 +----------------------------------------------------------+-------+--------+
 | Set up a Sphinx system to create output of documentation |  da   |        |
 +----------------------------------------------------------+-------+--------+
-| OLS diagnostics as functions (can take from pysal)       |  nm   |        |
+| OLS diagnostics as functions (can take from pysal)       |  nm   |  ~33%  |
 +----------------------------------------------------------+-------+--------+
 | OLS user class that runs regression and diagnostics      |  jy   |        |
 +----------------------------------------------------------+-------+--------+
@@ -90,6 +87,10 @@ Tasks
 +----------------------------------------------------------+-------+--------+
 | Handling of vectors: nx1 Vs. nxNone arrays               |  rw   | done   |
 +----------------------------------------------------------+-------+--------+
+| Write function for : Iteration of step 2.a and 2.b       |  nm   |        |
++----------------------------------------------------------+-------+--------+
+
+
 NOTE:
 To edit the file, keep the structure and replace empty spaces by the text to
 be introduced. If your message is longer than the given width, break it up
