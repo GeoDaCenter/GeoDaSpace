@@ -7,9 +7,12 @@ class TwoSLS:
     2SLS class for end-user (gives back only results and diagnostics)
     """
     def __init__(self):
+
+        # Need to check the shape of user input arrays, and report back descriptive
+        # errors when necessary
         pass
 
-class TwoSLS_dev(OLS.ols_dev):
+class TwoSLS_dev(OLS.OLS_dev):
     """
     2SLS class to do all the computations
 
@@ -90,9 +93,11 @@ class TwoSLS_dev(OLS.ols_dev):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> h = db.by_col()
+    >>> h = db.by_col("DISCBD")
+    >>> h = db.by_col("PERIMETER")
     >>> h = np.array(h)
-    >>> reg=TwoSLS_dev(X,y)
+    >>> h = np.reshape(h, (49,1))
+    >>> reg=TwoSLS_dev(X,y,h)
     >>> reg.betas
     array([[ 68.6189611 ],
            [ -1.59731083],
@@ -104,64 +109,30 @@ class TwoSLS_dev(OLS.ols_dev):
             x = np.hstack((np.ones(y.shape),x))
         # x_hat = Z(Z'Z)^-1 Z'X
         z = np.hstack((x, h))
-        zpzi = la.inv(ntp.inner(z,z))  # k+l x k+l 
+        print z
+        print '***********************************************'
+        zpz = np.dot(z.T,z)   # k+l x k+l 
+        print zpz
+        print '***********************************************'
+        zpzi = la.inv(zpz)   # k+l x k+l 
+        print zpzi
+        print '***********************************************'
         zpx = np.dot(z.T, x)           # k+l x k
+        print zpx
+        print '***********************************************'
         zpzi_zpx = np.dot(zpzi, zpx)   # k+l x k
+        print zpzi_zpx
+        print '***********************************************'
         x_hat = np.dot(z, zpzi_zpx)    #   n x k
 
-        OLS.ols_dev.__init__(x_hat, y, constant=False)
-        #ols = OLS.ols_dev(x_hat, y, constant=False)
-        #self.betas = ols.betas
-        self.predy = np.dot(x,self.betas)  # using original data
-        self.u = y-predy                   # using original data
-        #self.predy_ols = ols.predy         # using transformed data
-        #self.u_ols = ols.u                 # using transformed data
-        #self.y = y
+        OLS.OLS_dev.__init__(self, x_hat, y, constant=False)
+        self.predy_ols = self.predy         # using transformed data
+        self.u_ols = self.u                 # using transformed data
+        self.predy = np.dot(x,self.betas)   # using original data
+        self.u = y - self.predy               # using original data
         self.x = x
         self.h = h
-        #self.n, self.k = x.shape
-        self._cache = {}
 
-    @property
-    def utu(self):
-        if 'utu' not in self._cache:
-            self._cache['utu'] = np.sum(self.u**2)
-        return self._cache['utu']
-
-    @property
-    def sig2(self):
-        if 'sig2' not in self._cache:
-            self._cache['sig2'] = self.utu / self.n
-        return self._cache['sig2']
-
-    @property
-    def m(self):
-        if 'm' not in self._cache:
-            xtxixt = np.dot(self.xtxi,self.xt)
-            xxtxixt = np.dot(self.x, xtxixt)
-            self._cache['m'] = np.eye(self.n) - xxtxixt
-        return self._cache['m']
-
-    # check this
-    @property
-    def vm(self):
-        if 'vm' not in self._cache:
-            estSig2= self.utu / (self.n-self.k)
-            self._cache['vm'] = np.dot(estSig2, self.xtxi)
-        return self._cache['vm']
-    
-    @property
-    def mean_y(self):
-        if 'mean_y' not in self._cache:
-            self._cache['mean_y']=np.mean(self.y)
-        return self._cache['mean_y']
-    
-    @property
-    def std_y(self):
-        if 'std_y' not in self._cache:
-            self._cache['std_y']=np.std(self.y)
-        return self._cache['std_y']
-    
 
 def _test():
     import doctest
