@@ -12,7 +12,9 @@ Contents:
     :maxdepth: 3
 
     c0Intro/index
-    cTest/index
+    c1recipes/index
+    appendix/index
+
 Indices and tables
 ==================
 
