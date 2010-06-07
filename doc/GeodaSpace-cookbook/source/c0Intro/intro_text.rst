@@ -1,8 +1,8 @@
 .. _intro_text:
 
-====================
-A cookbook for PySAL
-====================
+=========================
+A cookbook for GeoDaSpace
+=========================
 
 Placeholder for the intro of the Cookbook.
 

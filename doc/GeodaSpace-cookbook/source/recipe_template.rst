@@ -1,4 +1,4 @@
-.. Put tags here separated by commas
+.. Put tags here separated by commas and followed by an underscore (e.g. 'advanced_estimation_models_')
 .. _label: (use the name of the file)
 
 ===================
