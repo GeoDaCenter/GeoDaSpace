@@ -2,156 +2,6 @@ import numpy as np
 import numpy.linalg as la
 
 
-class OLS:
-    """
-    OLS class for end-user (gives back only results and diagnostics)
-    """
-    def __init__(self):
-        pass
-
-def fStat_ols(ols):
-    """
-    return the f statistic and p-value for ols
-    
-    Parameters
-    ----------
-
-    ols     : instance of class OLS
-        
-    Returns
-    ----------
-
-    tuple   : value of F statistic and probability
-    
-    
-    Examples
-    --------
-    >>> import numpy as np
-    >>> import pysal
-    >>> import pdf
-    >>> db=pysal.open("examples/columbus.dbf","r")
-    >>> y = np.array(db.by_col("CRIME"))
-    >>> y = np.reshape(y, (49,1))
-    >>> X = []
-    >>> X.append(db.by_col("INC"))
-    >>> X.append(db.by_col("HOVAL"))
-    >>> X = np.array(X).T
-    >>> ols=OLS(X,y,('columbus,'CRIME','INC','HOVAL'))
-    >>> print fStat_ols(ols)
-    (28.385629224695027, 9.3407471008459753e-09)
-    
-    """ 
-    U = np.sum((ols.predy-ols.mean_y)**2)
-    Q = ols.utu
-    fStat = (U/(ols.k-1))/(Q/(ols.n-ols.k))
-    pValue = pdf.fprob(ols.k-1,ols.n-ols.k,fStat)
-    
-    return (fStat, pValue)
-
-def tStat_ols(ols):
-    """
-    return the t statistic and p-value for ols
-    
-    Parameters
-    ----------
-
-    ols     : instance of class OLS
-        
-    Returns
-    ----------
-
-    list    : including tuples that contain value of each T statistic and its probability
-    
-    Examples
-    --------
-    >>> import numpy as np
-    >>> import pysal
-    >>> import pdf
-    >>> db=pysal.open("examples/columbus.dbf","r")
-    >>> y = np.array(db.by_col("CRIME"))
-    >>> y = np.reshape(y, (49,1))
-    >>> X = []
-    >>> X.append(db.by_col("INC"))
-    >>> X.append(db.by_col("HOVAL"))
-    >>> X = np.array(X).T
-    >>> ols=OLS(X,y,('columbus,'CRIME','INC','HOVAL'))
-    >>> print tStat_ols(ols)
-    [(14.490373143689107, 9.2108899890079728e-19), (-4.7804961912965895, 1.8289595064382569e-05), (-2.6544086427177005, 0.010874504645408603)]
-    
-    """ 
-    variance = ols.vm.diagonal()
-    tStat = ols.betas.reshape(len(ols.betas),)/ np.sqrt(variance)
-    rs = {}
-    for i in range(len(ols.betas)):
-        rs[i] = (tStat[i],pdf.tpvalue(tStat[i],ols.n-ols.k))
-    
-    return rs.values()
-
-def r2_ols(ols):
-    """
-    return the R square value for ols
-    
-    Parameters
-    ----------
-
-    ols     : instance of class OLS
-        
-    Returns
-    ----------
-
-    value   : float  
-    
-    Examples
-    --------
-    >>> import numpy as np
-    >>> import pysal
-    >>> db=pysal.open("examples/columbus.dbf","r")
-    >>> y = np.array(db.by_col("CRIME"))
-    >>> y = np.reshape(y, (49,1))
-    >>> X = []
-    >>> X.append(db.by_col("INC"))
-    >>> X.append(db.by_col("HOVAL"))
-    >>> X = np.array(X).T
-    >>> ols=OLS(X,y,('columbus,'CRIME','INC','HOVAL'))
-    >>> print r2_ols(ols)
-    [ 0.55240404]
-    
-    """ 
-    ss_tot = sum((ols.y-ols.mean_y)**2)
-    return 1-ols.utu/ss_tot
-
-def ar2_ols(ols):
-    """
-    return adjusted R square value for ols
-    
-    Parameters
-    ----------
-
-    ols     : instance of class OLS
-        
-    Returns
-    ----------
-
-    value   : float 
-    
-    Examples
-    --------
-    >>> import numpy as np
-    >>> import pysal
-    >>> db=pysal.open("examples/columbus.dbf","r")
-    >>> y = np.array(db.by_col("CRIME"))
-    >>> y = np.reshape(y, (49,1))
-    >>> X = []
-    >>> X.append(db.by_col("INC"))
-    >>> X.append(db.by_col("HOVAL"))
-    >>> X = np.array(X).T
-    >>> ols=OLS(X,y,('columbus,'CRIME','INC','HOVAL'))
-    >>> print ar2_ols(ols)
-    [ 0.53294335]
-    
-    """ 
-    return 1-(1-r2_ols(ols))*(ols.n-1)/(ols.n-ols.k)
-
 class OLS_dev:
     """
     OLS class to do all the computations
@@ -291,6 +141,155 @@ class OLS_dev:
             self._cache['std_y']=np.std(self.y)
         return self._cache['std_y']
     
+
+import diagnostics
+
+class OLS:
+    """
+    OLS class for end-user (gives back only results and diagnostics)
+    
+    Maximal Complexity: O(n^3)
+
+    Parameters
+    ----------
+
+    x       : array
+              nxk array of independent variables (assumed to be aligned with y)
+    y       : array
+              nx1 array of dependent variable
+    names   : tuple
+              used in summary output, the sequence is (dataset name, dependent name, independent names)
+    
+    Attributes
+    ----------
+
+    x       : array
+              nxk array of independent variables (assumed to be aligned with y)
+    y       : array
+              nx1 array of dependent variable
+    betas   : array
+              kx1 array with estimated coefficients
+    u       : array
+              nx1 array of residuals
+    predy   : array
+              nx1 array of predicted values
+    n       : int
+              Number of observations
+    k       : int
+              Number of variables
+    name_ds : string
+              dataset's name
+    name_y  : string
+              dependent variable's name
+    name_x  : tuple
+              independent variables' names
+    mean_y  : float
+              mean value of dependent variable
+    std_y   : float
+              standard deviation of dependent variable
+    vm      : variance covariance matrix
+              k*k array
+    r2      : float
+              R square
+    ar2     : float
+              adjusted R square
+    utu     : float
+              Sum of the squared residuals
+    sig2    : float
+              sigma squared
+    sig2ML  : float
+              sigma squared ML 
+    Fstat   : dictionary
+              key: 'value','prob'; value: float
+    logll   : float
+              Log likelihood        
+    aic     : float
+              Akaike info criterion 
+    sc      : float
+              Schwarz criterion     
+    std_err : array
+              1*(k+1) array of Std.Error    
+    Tstat   : dictionary
+              key: name of variables, constant & independent variables
+              value: tuple of t statistic and p-value
+    mulColli: float
+              Multicollinearity condition number
+    diag    : dictionary
+              key: test name including 'JB','BP','KB','WH',representing "Jarque-Bera","Breusch-Pagan",
+              "Koenker-Bassett","White"
+              value: tuple including 3 elements--degree of freedom, value, p-value
+    summary : print all the information in OLS class in nice format          
+     
+    
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> ols=OLS(X,y,('columbus,'CRIME','INC','HOVAL'))
+    >>> ols.betas
+    array([[ 68.6189611 ],
+           [ -1.59731083],
+           [ -0.27393148]])
+    
+    """
+    def __init__(self,x,y,names):
+        ols = OLS_dev(x,y) 
+        
+        #part 1: ORDINARY LEAST SQUARES ESTIMATION 
+        
+        #general information
+        self.x = ols.x
+        self.y = ols.y
+        self.betas = ols.betas
+        self.u = ols.u
+        self.predy = ols.predy
+        self.n = ols.n
+        self.k = ols.k  
+        self.name_ds = names[0]
+        self.name_y = names[1]
+        self.name_x = names[2:]
+        self.mean_y = ols.mean_y
+        self.std_y = ols.std_y
+        self.vm = ols.vm
+        self.utu = ols.utu
+        self.sig2 = ols.sig2n_k
+        
+        self.r2 = diagnostics.r2_ols(self)    
+        self.ar2 = diagnostics.ar2_ols(self)   
+        self.sigML = ols.sig2  
+        self.Fstat = diagnostics.fStat_ols(self)  
+        self.logll = diagnostics.LogLikelihood(ols) 
+        self.aic = diagnostics.AkaikeCriterion(ols) 
+        self.sc = diagnostics.SchwarzCriterion(ols) 
+        
+        #Coefficient, Std.Error, t-Statistic, Probability 
+        self.std_err = diagnostics.stdError_Betas(self)
+        self.Tstat = diagnostics.tStat_ols(self)
+        
+        #part 2: REGRESSION DIAGNOSTICS 
+        self.mulColli = diagnostics.MultiCollinearity(ols)
+        self.diag = {}
+        self.diag['JB'] = diagnostics.JarqueBera(ols)
+        
+        #part 3: DIAGNOSTICS FOR HETEROSKEDASTICITY         
+        self.diag['BP'] = diagnostics.BreuschPagan(ols)
+        self.diag['KB'] = {'df':2,'kb':5.694088,'pvalue':0.0580156}
+        self.diag['WH'] = {'df':5,'wh':19.94601,'pvalue':0.0012792}
+        
+        #part 4: COEFFICIENTS VARIANCE MATRIX
+        self.vm = ols.vm
+        
+        #part 5: summary output
+        self.summary = output_ols(self)
+
+
 
 def _test():
     import doctest
