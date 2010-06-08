@@ -289,6 +289,98 @@ class OLS:
         #part 5: summary output
         self.summary = output_ols(self)
 
+def output_ols(ols,vm = False, pred = False):
+    """
+    nice output for ols
+    
+    Parameters
+    ----------
+
+    ols     : instance of class OLS
+    vm      : if vm = True, print out variance matrix
+    pred    : if pred = True, print out y, predicted values and residuals
+    
+    Returns
+    ----------
+
+    strSummary   : string
+                   include all the information in class OLS
+    """     
+    strSummary = ""
+    
+    # general information 1
+    strSummary = strSummary + "REGRESSION\n"
+    strSummary = strSummary + "----------\n"
+    strSummary = strSummary + "SUMMARY OF OUTPUT: ORDINARY LEAST SQUARES ESTIMATION\n"
+    strSummary = strSummary + "----------------------------------------------------\n"
+    strSummary = strSummary + "%-20s:%12s\n" % ('Data set',ols.name_ds)
+    strSummary = strSummary + "%-20s:%12s  %-22s:%12d\n" % ('Dependent Variable',ols.name_y,'Number of Observations',ols.n)
+    strSummary = strSummary + "%-20s:%12.4f  %-22s:%12d\n" % ('Mean dependent var',ols.mean_y,'Number of Variables',ols.k)
+    strSummary = strSummary + "%-20s:%12.4f  %-22s:%12d\n\n" % ('S.D. dependent var',ols.std_y,'Degrees of Freedom',ols.n-ols.k)
+    
+    # general information 2
+    strSummary = strSummary + "%-20s:%12.6f  %-22s:%12.4f\n" % ('R-squared',ols.r2,'F-statistic',ols.Fstat[0])
+    strSummary = strSummary + "%-20s:%12.6f  %-22s:%12.8g\n" % ('Adjusted R-squared',ols.ar2,'Prob(F-statistic)',ols.Fstat[1])
+    strSummary = strSummary + "%-20s:%12.3f  %-22s:%12.3f\n" % ('Sum squared residual',ols.utu,'Log likelihood',ols.logll)
+    strSummary = strSummary + "%-20s:%12.3f  %-22s:%12.3f\n" % ('Sigma-square',ols.sig2,'Akaike info criterion',ols.aic)
+    strSummary = strSummary + "%-20s:%12.3f  %-22s:%12.3f\n" % ('S.E. of regression',np.sqrt(ols.sig2),'Schwarz criterion',ols.sc)
+    strSummary = strSummary + "%-20s:%12.3f\n%-20s:%12.4f\n" % ('Sigma-square ML',ols.sigML,'S.E of regression ML',np.sqrt(ols.sigML))
+    
+    # Variable    Coefficient     Std.Error    t-Statistic   Probability 
+    strSummary = strSummary + "----------------------------------------------------------------------------\n"
+    strSummary = strSummary + "    Variable     Coefficient       Std.Error     t-Statistic     Probability\n"
+    strSummary = strSummary + "----------------------------------------------------------------------------\n"
+    strSummary = strSummary + "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % ('CONSTANT',ols.betas[0][0],ols.std_err[0],ols.Tstat[0][0],ols.Tstat[0][1])
+    i=1
+    for name in ols.name_x:        
+        strSummary = strSummary + "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,ols.betas[i][0],ols.std_err[i],ols.Tstat[i][0],ols.Tstat[i][1])
+        i+=1
+    strSummary = strSummary + "----------------------------------------------------------------------------\n"
+    
+    # diagonostics
+    strSummary = strSummary + "\n\nREGRESSION DIAGNOSTICS\n"
+    strSummary = strSummary + "MULTICOLLINEARITY CONDITION NUMBER%12.6f\n" % (ols.mulColli)
+    strSummary = strSummary + "TEST ON NORMALITY OF ERRORS\n"
+    strSummary = strSummary + "TEST                  DF          VALUE            PROB\n"
+    strSummary = strSummary + "%-22s%2d       %12.6f        %9.7f\n\n" % ('Jarque-Bera',ols.diag['JB']['df'],ols.diag['JB']['jb'],ols.diag['JB']['pvalue'])
+    strSummary = strSummary + "DIAGNOSTICS FOR HETEROSKEDASTICITY\n"
+    strSummary = strSummary + "RANDOM COEFFICIENTS\n"
+    strSummary = strSummary + "TEST                  DF          VALUE            PROB\n"
+    strSummary = strSummary + "%-22s%2d       %12.6f        %9.7f\n" % ('Breusch-Pagan test',ols.diag['BP']['df'],ols.diag['BP']['bp'],ols.diag['BP']['pvalue'])
+    strSummary = strSummary + "%-22s%2d       %12.6f        %9.7f\n" % ('Koenker-Bassett test',ols.diag['KB']['df'],ols.diag['KB']['kb'],ols.diag['KB']['pvalue'])
+    strSummary = strSummary + "SPECIFICATION ROBUST TEST\n"
+    strSummary = strSummary + "TEST                  DF          VALUE            PROB\n"
+    strSummary = strSummary + "%-22s%2d       %12.6f        %9.7f\n\n" % ('White',ols.diag['WH']['df'],ols.diag['WH']['wh'],ols.diag['WH']['pvalue'])
+
+    # variance matrix
+    if vm == True:
+        strVM = ""
+        strVM = strVM + "COEFFICIENTS VARIANCE MATRIX\n"
+        strVM = strVM + "----------------------------\n"
+        strVM = strVM + "%12s" % ('CONSTANT')
+        for name in ols.name_x:
+            strVM = strVM + "%12s" % (name)
+        strVM = strVM + "\n"
+        nrow = ols.vm.shape[0]
+        ncol = ols.vm.shape[1]
+        for i in range(nrow):
+            for j in range(ncol):
+                strVM = strVM + "%12.6f" % (ols.vm[i][j]) 
+            strVM = strVM + "\n"
+        strSummary = strSummary + strVM
+        
+    # y, PREDICTED, RESIDUAL 
+    if pred == True:
+        strPred = "\n\n"
+        strPred = strPred + "%16s%16s%16s%16s\n" % ('OBS',ols.name_y,'PREDICTED','RESIDUAL')
+        for i in range(ols.n):
+            strPred = strPred + "%16d%16.5f%16.5f%16.5f\n" % (i+1,ols.y[i][0],ols.predy[i][0],ols.u[i][0])
+        strSummary = strSummary + strPred
+            
+    # end of report
+    strSummary = strSummary + "========================= END OF REPORT =============================="
+        
+    return strSummary
 
 
 def _test():
