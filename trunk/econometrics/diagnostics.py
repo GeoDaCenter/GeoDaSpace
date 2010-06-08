@@ -15,6 +15,260 @@ import pysal
 from pysal.common import *
 from math import sqrt
 
+def fStat_ols(ols):
+
+    """
+    Calculates the f-statistic and associated p-value of the regression. 
+    
+    Parameters
+    ----------
+
+    ols             : OLS_dev
+                      instance from an OLS_dev regression
+        
+    Returns
+    ----------
+
+    fs_result       : tuple
+                      includes value of F statistic and associated p-value
+
+    References
+    ----------
+
+    [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
+    
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> from econometrics.ols import OLS_dev as OLS
+    >>> from econometrics import diagnostics as diagnostics
+    >>> db = pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> ols = OLS(X,y)
+    >>> testresult = diagnostics.fStat_ols(ols)
+    >>> testresult
+    (28.385629224694853, 9.3407471005108332e-09)
+    
+    """ 
+    
+    k = ols.k                   # (scalar) number of independent variables (includes constant)
+    n = ols.n                   # (scalar) number of observations
+    utu = ols.utu               # (scalar) residual sum of squares
+    predy = ols.predy           # (array) vector of predicted values (n x 1)
+    mean_y = ols.mean_y         # (scalar) mean of dependent observations
+    U = np.sum((predy-mean_y)**2)
+    Q = utu
+    fStat = (U/(k-1))/(Q/(n-k))
+    pValue = stats.f.sf(fStat,k-1,n-k)
+    fs_result = (fStat, pValue)
+    return fs_result
+
+
+def tStat_ols(ols):
+    """
+    Calculates the t-statistics and associated p-values.
+    
+    Parameters
+    ----------
+
+    ols             : OLS_dev
+                      instance from an OLS_dev regression
+        
+    Returns
+    -------    
+
+    ts_result       : list of tuples
+                      each tuple includes value of t statistic and associated p-value
+
+    References
+    ----------
+
+    [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> from econometrics.ols import OLS_dev as OLS
+    >>> from econometrics import diagnostics as diagnostics
+    >>> db = pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> ols = OLS(X,y)
+    >>> testresult = diagnostics.tStat_ols(ols)
+    >>> testresult
+    [(14.490373143689094, 9.2108899889173982e-19), (-4.7804961912965762, 1.8289595070843232e-05), (-2.6544086427176916, 0.010874504909754612)]
+    
+    """ 
+    
+    k = ols.k                   # (scalar) number of independent variables (includes constant)
+    n = ols.n                   # (scalar) number of observations
+    vm = ols.vm                 # (array) coefficients of variance matrix (k x k)
+    betas = ols.betas           # (array) coefficients of the regressors (1 x k) 
+    variance = vm.diagonal()
+    tStat = betas.reshape(len(betas),)/ np.sqrt(variance)
+    rs = {}
+    for i in range(len(betas)):
+        rs[i] = (tStat[i],stats.t.sf(abs(tStat[i]),n-k)*2)
+    ts_result  = rs.values()
+    return ts_result
+
+def r2_ols(ols):
+
+    """
+    Calculates the R^2 value for the regression. 
+    
+    Parameters
+    ----------
+
+    ols             : OLS_dev
+                      instance from an OLS_dev regression
+        
+    Returns
+    ----------
+
+    r2_result       : float
+                      value of the coefficient of determination for the regression 
+
+    References
+    ----------
+
+    [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
+    
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> from econometrics.ols import OLS_dev as OLS
+    >>> from econometrics import diagnostics as diagnostics
+    >>> db = pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> ols = OLS(X,y)
+    >>> testresult = diagnostics.r2_ols(ols)
+    >>> testresult
+    0.55240404083742334
+    
+    """ 
+
+    y = ols.y                   # (array) vector of dependent observations (n x 1)
+    mean_y = ols.mean_y         # (scalar) mean of dependent observations
+    utu = ols.utu               # (scalar) residual sum of squares
+    ss_tot = sum((y-mean_y)**2)
+    r2 = 1-utu/ss_tot
+    r2_result = r2[0]
+    return r2_result
+
+
+def ar2_ols(ols):
+
+    """
+    Calculates the adjusted R^2 value for the regression. 
+    
+    Parameters
+    ----------
+
+    ols             : OLS_dev
+                      instance from an OLS_dev regression
+        
+    Returns
+    ----------
+
+    ar2_result      : float
+                      value of R^2 adjusted for the number of explanatory variables.
+
+    References
+    ----------
+
+    [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
+    
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> from econometrics.ols import OLS_dev as OLS
+    >>> from econometrics import diagnostics as diagnostics
+    >>> db = pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> ols = OLS(X,y)
+    >>> testresult = diagnostics.ar2_ols(ols)
+    >>> testresult
+    0.5329433469607896
+
+    """ 
+
+    k = ols.k                   # (scalar) number of independent variables (includes constant)
+    n = ols.n                   # (scalar) number of observations
+    ar2_result =  1-(1-r2_ols(ols))*(n-1)/(n-k)
+    return ar2_result
+
+
+def stdError_Betas(ols):
+
+    """
+    Calculates the standard error of the regression coefficients.
+    
+    Parameters
+    ----------
+
+    ols             : OLS_dev
+                      instance from an OLS_dev regression
+        
+    Returns
+    ----------
+
+    se_result       : array
+                      includes standard errors of each regression coefficient (1 x k)
+    
+    References
+    ----------
+
+    [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
+    
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> from econometrics.ols import OLS_dev as OLS
+    >>> from econometrics import diagnostics as diagnostics
+    >>> db = pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> ols = OLS(X,y)
+    >>> testresult = diagnostics.stdError_Betas(ols)
+    >>> testresult
+    array([ 4.73548613,  0.33413076,  0.10319868])
+    
+    """ 
+
+    vm = ols.vm                 # (array) coefficients of variance matrix (k x k)  
+    variance = vm.diagonal()
+    se_result = np.sqrt(variance)
+    return se_result
+
 
 def LogLikelihood(ols):
 
@@ -30,8 +284,8 @@ def LogLikelihood(ols):
     Returns
     -------
 
-    ll_result      : float
-                     value for the log-likelihood of the regression.
+    ll_result       : float
+                      value for the log-likelihood of the regression.
 
     References
     ----------
