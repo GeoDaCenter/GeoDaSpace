@@ -6,13 +6,11 @@ Tasks
 +----------------------------------------------------------+-------+--------+
 |                      Current tasks                       | Owner | Status |
 +==========================================================+=======+========+
-| Check step 2a. and estimation procedure (ols Vs. FGLS)   |  la   |        |
-+----------------------------------------------------------+-------+--------+
 | Set up test system                                       | ps&df |        |
 +----------------------------------------------------------+-------+--------+
 | Add to docstrings estimation of computational burden (O) |  rw   |        |
 +----------------------------------------------------------+-------+--------+
-| Add documentation in `spHetErr.py` similar to `ols.py`   |  em   |        |
+| Add documentation in `spHetErr.py` similar to `ols.py`   |       |        |
 +----------------------------------------------------------+-------+--------+
 | Outline new structure for spreg (code base)              |  la   |        |
 +----------------------------------------------------------+-------+--------+
@@ -22,13 +20,7 @@ Tasks
 +----------------------------------------------------------+-------+--------+
 | Set up a Sphinx system to create output of documentation |  da   |        |
 +----------------------------------------------------------+-------+--------+
-| OLS diagnostics as functions (can take from pysal)       |  nm   |  ~33%  |
-+----------------------------------------------------------+-------+--------+
-| OLS user class that runs regression and diagnostics      |  jy   |        |
-+----------------------------------------------------------+-------+--------+
-| OLS nice formated print out (in spreg gui code)          |  jy   |        |
-+----------------------------------------------------------+-------+--------+
-| OLS t-tests and p-values                                 |  jy   |        |
+| OLS diagnostics as functions (can take from pysal)       |  nm   |  ~66%  |
 +----------------------------------------------------------+-------+--------+
 | 2SLS developer level function                            |  df   |        |
 +----------------------------------------------------------+-------+--------+
@@ -36,13 +28,13 @@ Tasks
 +----------------------------------------------------------+-------+--------+
 | Test sp het error                                        |       |        |
 +----------------------------------------------------------+-------+--------+
-| 2SLS variance matrix                                     |       |        |
+| 2SLS variance matrix                                     | df&jy |        |
 +----------------------------------------------------------+-------+--------+
 | 2SLS diagnostics as functions (can take from pysal)      |       |        |
 +----------------------------------------------------------+-------+--------+
-| 2SLS user class that runs regression and diagnostics     |       |        |
+| 2SLS user class that runs regression and diagnostics     |  df   |        |
 +----------------------------------------------------------+-------+--------+
-| 2SLS nice formated print out (in spreg gui code)         |       |        |
+| 2SLS nice formated print out (in spreg gui code)         |  jy   |        |
 +----------------------------------------------------------+-------+--------+
 | Document and fix Moran                                   |  da   |        |
 +----------------------------------------------------------+-------+--------+
@@ -52,11 +44,9 @@ Tasks
 +----------------------------------------------------------+-------+--------+
 | Performance testing RAM and speed                        |       |        |
 +----------------------------------------------------------+-------+--------+
-| Reorganize spreg for importing                           |  df   |        |
-+----------------------------------------------------------+-------+--------+
 | Write recipe stubs                                       |  lm   |        |
 +----------------------------------------------------------+-------+--------+
-| Build empty GeoDaSpace Cookbook                          |  da   |        |
+| Geary's c for residuals                                  |  rw   |        |
 +----------------------------------------------------------+-------+--------+
 
 
@@ -67,11 +57,23 @@ Tasks
 | Comparison of PySAL sparse weights & algebra tricks Vs.  |  da   | done   |
 | Scipy sparse & brute force                               |       |        |
 +----------------------------------------------------------+-------+--------+
+| Check step 2a. and estimation procedure (ols Vs. FGLS)   |  la   |        |
++----------------------------------------------------------+-------+--------+
 | OLS variance matrix                                      |  rw   |        |
++----------------------------------------------------------+-------+--------+
+| OLS user class that runs regression and diagnostics      |  jy   |        |
 +----------------------------------------------------------+-------+--------+
 | Debug LM tests                                           |  da   |        |
 +----------------------------------------------------------+-------+--------+
+| OLS nice formated print out (in spreg gui code)          |  jy   |        |
++----------------------------------------------------------+-------+--------+
+| OLS t-tests and p-values                                 |  jy   |        |
++----------------------------------------------------------+-------+--------+
+| Build empty GeoDaSpace Cookbook                          |  da   |        |
++----------------------------------------------------------+-------+--------+
 | Check LM test equations                                  |  da   |        |
++----------------------------------------------------------+-------+--------+
+| Reorganize spreg for importing                           |  df   |        |
 +----------------------------------------------------------+-------+--------+
 | Research other optimizers available in Python that are   |  em   |        |
 | better than old spreg version (or roll our own)          |       |        |
