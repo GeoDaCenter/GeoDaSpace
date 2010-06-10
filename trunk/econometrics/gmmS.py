@@ -10,7 +10,7 @@ class Moments:
 
     Scipy sparse matrix version. It implements eqs. A.1 in Appendix A of
     Arraiz et al. (2007) by using all matrix manipulation
-
+    
     [g1] + [G11 G12] *  [\lambda]    = [0]
     [g2]   [G21 G22]    [\lambda^2]    [0]
 
