@@ -342,6 +342,20 @@ def get_vI(ols, w, ei, spDcache):
     den = w.s0**2 * (((w.n - ols.k) * (w.n - ols.k + 2)) - ei**2)
     return num / den
 
+def get_vIr(ols, w, ei, spDcache):
+    z = w.S * ols.x
+    c1 = np.dot(ols.x.T, z)
+    c2 = np.dot(z.T, z)
+    c3 = np.dot(ols.xtxi, c1)
+    trA = np.sum(c3.diagonal())
+    trA2 = np.dot(c3, c3)
+    trA2 = np.sum(trA2.diagonal())
+    trB = 4 * np.dot(ols.xtxi, c2)
+    trB = np.sum(trB.diagonal())
+    vi = ((w.n**2 / (w.s0**2 * (w.n - ols.k) * (w.n - ols.k + 2))) * \
+            (w.s1 + 2 * trA2 - trB - ((2 * (trA**2)) / (w.n - ols.k))))
+    return vi
+
 def get_zI(I, ei, vi):
     return (I - ei) / np.sqrt(vi)
 
