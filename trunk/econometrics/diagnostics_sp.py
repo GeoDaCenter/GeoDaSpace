@@ -58,6 +58,9 @@ class LMtests:
     rlml        : tuple
                   (Only if 'rlml' or 'all' was in tests). Pair of statistic
                   and p-value for the Robust LM lag test.
+    sarma       : tuple
+                  (Only if 'rlml' or 'all' was in tests). Pair of statistic
+                  and p-value for the SARMA test.
 
     References
     ----------
@@ -69,7 +72,7 @@ class LMtests:
         ols = OLS(x, y, constant=constant)
         cache = spDcache(ols, w)
         if tests == ['all']:
-            tests = ['lme', 'lml','rlme', 'rlml']
+            tests = ['lme', 'lml','rlme', 'rlml', 'sarma']
         if 'lme' in tests:
             self.lme = lmErr(ols, w, cache)
         if 'lml' in tests:
@@ -78,6 +81,8 @@ class LMtests:
             self.rlme = rlmErr(ols, w, cache)
         if 'rlml' in tests:
             self.rlml = rlmLag(ols, w, cache)
+        if 'sarma' in tests:
+            self.sarma = lmSarma(ols, w, cache)
 
 
 def lmErr(ols, w, spDcache):
@@ -214,6 +219,42 @@ def rlmLag(ols, w, spDcache):
     """
     lm = (spDcache.utwyDs - spDcache.utwuDs)**2 / ((ols.n * spDcache.j) - spDcache.t)
     pval = chisqprob(lm, 1)
+    return (lm[0][0], pval[0][0])
+
+def lmSarma(ols, w, spDcache):
+    """
+    LM error test. Implemented as presented in eq. (15) of Anselin et al.
+    (1996) [1]_
+    ...
+
+    Attributes
+    ----------
+
+    ols         : OLS_dev
+                  Instance from an OLS_dev regression 
+    w           : W
+                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  be row-standardized
+    spDcache     : spDcache
+                  Instance of spDcache class
+
+    Returns
+    -------
+
+    sarma       : tuple
+                  Pair of statistic and p-value for the LM sarma test.
+
+    References
+    ----------
+    .. [1] Anselin, L., Bera, A. K., Florax, R., Yoon, M. J. (1996) "Simple
+       diagnostic tests for spatial dependence". Regional Science and Urban
+       Economics, 26, 77-104.
+    """
+
+    first = (spDcache.utwyDs - spDcache.utwuDs)**2 / (w.n * spDcache.j - spDcache.t)
+    secnd = spDcache.utwuDs**2 / spDcache.t
+    lm = first + secnd
+    pval = chisqprob(lm, 2)
     return (lm[0][0], pval[0][0])
 
 class spDcache:
