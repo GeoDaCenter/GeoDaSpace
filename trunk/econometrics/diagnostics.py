@@ -1,21 +1,20 @@
 """
-Diagnostics for OLS estimation. 
+Diagnostics for regression estimations. 
 
 To Do List:
 
     * Resolve conflict between GeoDa and R in the Breusch-Pagan test.
-    * Ask questions regarding White/Breusch/Koenker tests & auxiliary regressions. 
     * Complete White and Koenker-Bassett diagnostics.
-    * Import other diagnostic tests from OLS class to consolidate diagnostics.
-    * Will these diagnostics be used for the 2SLS regression as well? 
-    
+    * Add variance inflation factor (more complicated than originally expected). 
+
+        
 """
 
 import pysal
 from pysal.common import *
 from math import sqrt
 
-def fStat_ols(ols):
+def f_stat(reg):
 
     """
     Calculates the f-statistic and associated p-value of the regression. 
@@ -23,8 +22,8 @@ def fStat_ols(ols):
     Parameters
     ----------
 
-    ols             : OLS_dev
-                      instance from an OLS_dev regression
+    reg             : regression object
+                      output instance from a regression model
         
     Returns
     ----------
@@ -50,18 +49,18 @@ def fStat_ols(ols):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> ols = OLS(X,y)
-    >>> testresult = diagnostics.fStat_ols(ols)
+    >>> reg = OLS(X,y)
+    >>> testresult = diagnostics.f_stat(reg)
     >>> testresult
     (28.385629224694853, 9.3407471005108332e-09)
     
     """ 
     
-    k = ols.k                   # (scalar) number of independent variables (includes constant)
-    n = ols.n                   # (scalar) number of observations
-    utu = ols.utu               # (scalar) residual sum of squares
-    predy = ols.predy           # (array) vector of predicted values (n x 1)
-    mean_y = ols.mean_y         # (scalar) mean of dependent observations
+    k = reg.k                   # (scalar) number of independent variables (includes constant)
+    n = reg.n                   # (scalar) number of observations
+    utu = reg.utu               # (scalar) residual sum of squares
+    predy = reg.predy           # (array) vector of predicted values (n x 1)
+    mean_y = reg.mean_y         # (scalar) mean of dependent observations
     U = np.sum((predy-mean_y)**2)
     Q = utu
     fStat = (U/(k-1))/(Q/(n-k))
@@ -70,15 +69,15 @@ def fStat_ols(ols):
     return fs_result
 
 
-def tStat_ols(ols):
+def t_stat(reg):
     """
     Calculates the t-statistics and associated p-values.
     
     Parameters
     ----------
 
-    ols             : OLS_dev
-                      instance from an OLS_dev regression
+    reg             : regression object
+                      output instance from a regression model
         
     Returns
     -------    
@@ -104,17 +103,17 @@ def tStat_ols(ols):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> ols = OLS(X,y)
-    >>> testresult = diagnostics.tStat_ols(ols)
+    >>> reg = OLS(X,y)
+    >>> testresult = diagnostics.t_stat(reg)
     >>> testresult
     [(14.490373143689094, 9.2108899889173982e-19), (-4.7804961912965762, 1.8289595070843232e-05), (-2.6544086427176916, 0.010874504909754612)]
     
     """ 
     
-    k = ols.k                   # (scalar) number of independent variables (includes constant)
-    n = ols.n                   # (scalar) number of observations
-    vm = ols.vm                 # (array) coefficients of variance matrix (k x k)
-    betas = ols.betas           # (array) coefficients of the regressors (1 x k) 
+    k = reg.k                   # (scalar) number of independent variables (includes constant)
+    n = reg.n                   # (scalar) number of observations
+    vm = reg.vm                 # (array) coefficients of variance matrix (k x k)
+    betas = reg.betas           # (array) coefficients of the regressors (1 x k) 
     variance = vm.diagonal()
     tStat = betas.reshape(len(betas),)/ np.sqrt(variance)
     rs = {}
@@ -123,7 +122,7 @@ def tStat_ols(ols):
     ts_result  = rs.values()
     return ts_result
 
-def r2_ols(ols):
+def r2(reg):
 
     """
     Calculates the R^2 value for the regression. 
@@ -131,8 +130,8 @@ def r2_ols(ols):
     Parameters
     ----------
 
-    ols             : OLS_dev
-                      instance from an OLS_dev regression
+    reg             : regression object
+                      output instance from a regression model
         
     Returns
     ----------
@@ -158,23 +157,23 @@ def r2_ols(ols):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> ols = OLS(X,y)
-    >>> testresult = diagnostics.r2_ols(ols)
+    >>> reg = OLS(X,y)
+    >>> testresult = diagnostics.r2(reg)
     >>> testresult
     0.55240404083742334
     
     """ 
 
-    y = ols.y                   # (array) vector of dependent observations (n x 1)
-    mean_y = ols.mean_y         # (scalar) mean of dependent observations
-    utu = ols.utu               # (scalar) residual sum of squares
+    y = reg.y                   # (array) vector of dependent observations (n x 1)
+    mean_y = reg.mean_y         # (scalar) mean of dependent observations
+    utu = reg.utu               # (scalar) residual sum of squares
     ss_tot = sum((y-mean_y)**2)
     r2 = 1-utu/ss_tot
     r2_result = r2[0]
     return r2_result
 
 
-def ar2_ols(ols):
+def ar2(reg):
 
     """
     Calculates the adjusted R^2 value for the regression. 
@@ -182,8 +181,8 @@ def ar2_ols(ols):
     Parameters
     ----------
 
-    ols             : OLS_dev
-                      instance from an OLS_dev regression
+    reg             : regression object
+                      output instance from a regression model
         
     Returns
     ----------
@@ -209,20 +208,20 @@ def ar2_ols(ols):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> ols = OLS(X,y)
-    >>> testresult = diagnostics.ar2_ols(ols)
+    >>> reg = OLS(X,y)
+    >>> testresult = diagnostics.ar2(reg)
     >>> testresult
     0.5329433469607896
 
     """ 
 
-    k = ols.k                   # (scalar) number of independent variables (includes constant)
-    n = ols.n                   # (scalar) number of observations
-    ar2_result =  1-(1-r2_ols(ols))*(n-1)/(n-k)
+    k = reg.k                   # (scalar) number of independent variables (includes constant)
+    n = reg.n                   # (scalar) number of observations
+    ar2_result =  1-(1-r2(reg))*(n-1)/(n-k)
     return ar2_result
 
 
-def stdError_Betas(ols):
+def se_betas(reg):
 
     """
     Calculates the standard error of the regression coefficients.
@@ -230,8 +229,8 @@ def stdError_Betas(ols):
     Parameters
     ----------
 
-    ols             : OLS_dev
-                      instance from an OLS_dev regression
+    reg             : regression object
+                      output instance from a regression model
         
     Returns
     ----------
@@ -257,20 +256,20 @@ def stdError_Betas(ols):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> ols = OLS(X,y)
-    >>> testresult = diagnostics.stdError_Betas(ols)
+    >>> reg = OLS(X,y)
+    >>> testresult = diagnostics.se_betas(reg)
     >>> testresult
     array([ 4.73548613,  0.33413076,  0.10319868])
     
     """ 
 
-    vm = ols.vm                 # (array) coefficients of variance matrix (k x k)  
+    vm = reg.vm                 # (array) coefficients of variance matrix (k x k)  
     variance = vm.diagonal()
     se_result = np.sqrt(variance)
     return se_result
 
 
-def LogLikelihood(ols):
+def log_likelihood(reg):
 
     """
     Calculates the log-likelihood value for the regression. 
@@ -278,8 +277,8 @@ def LogLikelihood(ols):
     Parameters
     ----------
 
-    ols             : OLS_dev
-                      instance from an OLS_dev regression
+    reg             : regression object
+                      output instance from a regression model
 
     Returns
     -------
@@ -306,20 +305,20 @@ def LogLikelihood(ols):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> ols = OLS(X,y)
-    >>> testresult = diagnostics.LogLikelihood(ols)
+    >>> reg = OLS(X,y)
+    >>> testresult = diagnostics.log_likelihood(reg)
     >>> testresult
     -187.3772388121491
 
     """
 
-    n = ols.n       # (scalar) number of observations
-    utu = ols.utu   # (scalar) residual sum of squares
+    n = reg.n       # (scalar) number of observations
+    utu = reg.utu   # (scalar) residual sum of squares
     ll_result = -0.5*(n*(np.log(2*math.pi))+n*np.log(utu/n)+(utu/(utu/n)))
     return ll_result   
 
 
-def AkaikeCriterion(ols):
+def akaike(reg):
 
     """
     Calculates the Akaike Information Criterion
@@ -327,8 +326,8 @@ def AkaikeCriterion(ols):
     Parameters
     ----------
 
-    ols             : OLS_dev
-                      instance from an OLS_dev regression
+    reg             : regression object
+                      output instance from a regression model
 
     Returns
     -------
@@ -355,21 +354,21 @@ def AkaikeCriterion(ols):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> ols = OLS(X,y)
-    >>> testresult = diagnostics.AkaikeCriterion(ols)
+    >>> reg = OLS(X,y)
+    >>> testresult = diagnostics.akaike(reg)
     >>> testresult
     380.7544776242982
 
     """
 
-    n = ols.n       # (scalar) number of observations
-    k = ols.k       # (scalar) number of independent variables (including constant)
-    utu = ols.utu   # (scalar) residual sum of squares
+    n = reg.n       # (scalar) number of observations
+    k = reg.k       # (scalar) number of independent variables (including constant)
+    utu = reg.utu   # (scalar) residual sum of squares
     aic_result = 2*k + n*(np.log((2*np.pi*utu)/n)+1)
     return aic_result
 
 
-def SchwarzCriterion(ols):
+def schwarz(reg):
 
     """
     Calculates the Schwarz Information Criterion
@@ -377,8 +376,8 @@ def SchwarzCriterion(ols):
     Parameters
     ----------
 
-    ols             : OLS_dev
-                      instance from an OLS_dev regression
+    reg             : regression object
+                      output instance from a regression model
 
     Returns
     -------
@@ -405,21 +404,21 @@ def SchwarzCriterion(ols):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> ols = OLS(X,y)
-    >>> testresult = diagnostics.SchwarzCriterion(ols)
+    >>> reg = OLS(X,y)
+    >>> testresult = diagnostics.schwarz(reg)
     >>> testresult
     386.42993851863008
 
     """
 
-    n = ols.n       # (scalar) number of observations
-    k = ols.k       # (scalar) number of independent variables (including constant)
-    utu = ols.utu   # (scalar) residual sum of squares
+    n = reg.n       # (scalar) number of observations
+    k = reg.k       # (scalar) number of independent variables (including constant)
+    utu = reg.utu   # (scalar) residual sum of squares
     sc_result = k*np.log(n) + n*(np.log((2*np.pi*utu)/n)+1)
     return sc_result
 
 
-def MultiCollinearity(ols):
+def condition_index(reg):
 
     """
     Calculates the multicollinearity condition index according to Belsey, Kuh and Welsh (1980)
@@ -427,8 +426,8 @@ def MultiCollinearity(ols):
     Parameters
     ----------
 
-    ols             : OLS_dev
-                      instance from an OLS_dev regression 
+    reg             : regression object
+                      output instance from a regression model
 
     Returns
     -------
@@ -455,14 +454,14 @@ def MultiCollinearity(ols):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> ols = OLS(X,y)
-    >>> testresult = diagnostics.MultiCollinearity(ols)
+    >>> reg = OLS(X,y)
+    >>> testresult = diagnostics.condition_index(reg)
     >>> testresult
     6.5418277514438046
 
     """
 
-    xtx = ols.xtx   # (array) k x k projection matrix (includes constant)
+    xtx = reg.xtx   # (array) k x k projection matrix (includes constant)
     diag = np.diagonal(xtx)
     scale = xtx/diag    
     eigval = np.linalg.eigvals(scale)
@@ -472,7 +471,7 @@ def MultiCollinearity(ols):
     return ci_result
 
 
-def JarqueBera(ols):
+def jarque_bera(reg):
 
     """
     Jarque-Bera test for normality in the residuals. 
@@ -480,8 +479,8 @@ def JarqueBera(ols):
     Parameters
     ----------
 
-    ols             : OLS_dev
-                      instance from an OLS_dev regression 
+    reg             : regression object
+                      output instance from a regression model
 
     Returns
     ------- 
@@ -517,8 +516,8 @@ def JarqueBera(ols):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> ols = OLS(X,y)
-    >>> testresult = diagnostics.JarqueBera(ols)
+    >>> reg = OLS(X,y)
+    >>> testresult = diagnostics.jarque_bera(reg)
     >>> testresult['df']
     2
     >>> testresult['jb']
@@ -528,8 +527,8 @@ def JarqueBera(ols):
 
     """
     
-    n = ols.n               # (scalar) number of observations
-    u = ols.u               # (array) residuals from ols estimation. 
+    n = reg.n               # (scalar) number of observations
+    u = reg.u               # (array) residuals from regression 
     u2 = u**2                          
     u3 = u**3                          
     u4 = u**4                           
@@ -544,7 +543,7 @@ def JarqueBera(ols):
     return jb_result 
 
 
-def BreuschPagan(ols):
+def breusch_pagan(reg):
 
     """
     Calculates the Breusch-Pagan test statistic to check for heteroskedasticity. 
@@ -552,8 +551,8 @@ def BreuschPagan(ols):
     Parameters
     ----------
 
-    ols             : OLS_dev
-                      instance from an OLS_dev regression 
+    reg             : regression object
+                      output instance from a regression model 
 
     Returns
     -------
@@ -589,8 +588,8 @@ def BreuschPagan(ols):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> ols = OLS(X,y)
-    >>> testresult = diagnostics.BreuschPagan(ols)
+    >>> reg = OLS(X,y)
+    >>> testresult = diagnostics.breusch_pagan(reg)
     >>> testresult['df']
     2
     >>> testresult['bp']
@@ -600,15 +599,15 @@ def BreuschPagan(ols):
     
     """
  
-    k = ols.k           # (scalar) number of independent variables (including constant)
-    n = ols.n           # (scalar) number of observations in the regression
-    u = ols.u           # (array) residuals from the regression
-    x = ols.x           # (array) independent variables in the regression
-    xt = ols.xt         # (array) transposed vector of independent variables
-    xtxi = ols.xtxi     # (array) k x k projection matrix (includes constant)
+    k = reg.k           # (scalar) number of independent variables (including constant)
+    n = reg.n           # (scalar) number of observations in the regression
+    u = reg.u           # (array) residuals from the regression
+    x = reg.x           # (array) independent variables in the regression
+    xt = reg.xt         # (array) transposed vector of independent variables
+    xtxi = reg.xtxi     # (array) k x k projection matrix (includes constant)
     e = u**2            # (array) squared residuals become dependent for auxiliary regression
     xte = np.dot(xt, e)
-    g = np.dot(xtxi, xte)   # SHOULD I CONDUCT THIS REGRESSION USING THE OLS CLASS????
+    g = np.dot(xtxi, xte)   
     prede = np.dot(x, g)
     q = e - prede
     qtq = np.dot(np.transpose(q), q)
@@ -623,10 +622,18 @@ def BreuschPagan(ols):
     bp_result={'df':df,'bp':bp, 'pvalue':pvalue}
     return bp_result 
 
-#def KoenkerBassett(parameters):
+
+#def koenker_bassett(parameters):
 
 
-#def White(parameters):
+
+#def white(parameters):
+
+
+
+#def variance_inflation(reg)
+
+
 
 
 
