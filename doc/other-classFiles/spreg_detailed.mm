@@ -59,9 +59,6 @@
 <font BOLD="true" NAME="Dialog" SIZE="12"/>
 <icon BUILTIN="button_ok"/>
 </node>
-<node COLOR="#000000" CREATED="1275585472585" MODIFIED="1275585472585" TEXT="BIC">
-<font BOLD="true" NAME="Dialog" SIZE="12"/>
-</node>
 <node COLOR="#000000" CREATED="1275585472585" ID="Freemind_Link_1589353041" MODIFIED="1276186735515" TEXT="SIC">
 <font BOLD="true" NAME="Dialog" SIZE="12"/>
 <icon BUILTIN="button_ok"/>
