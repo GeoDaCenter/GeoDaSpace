@@ -218,7 +218,8 @@ class OLS:
               key: test name including 'JB','BP','KB','WH',representing "Jarque-Bera","Breusch-Pagan",
               "Koenker-Bassett","White"
               value: tuple including 3 elements--degree of freedom, value, p-value
-    summary : print all the information in OLS class in nice format          
+    summary : string
+              including all the information in OLS class in nice format          
      
     
     Examples
@@ -232,7 +233,7 @@ class OLS:
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> ols=OLS(X,y,('columbus,'CRIME','INC','HOVAL'))
+    >>> ols=OLS(X,y,('columbus','CRIME','INC','HOVAL'))
     >>> ols.betas
     array([[ 68.6189611 ],
            [ -1.59731083],
@@ -261,25 +262,25 @@ class OLS:
         self.utu = ols.utu
         self.sig2 = ols.sig2n_k
         
-        self.r2 = diagnostics.r2_ols(self)    
-        self.ar2 = diagnostics.ar2_ols(self)   
+        self.r2 = diagnostics.r2(self)    
+        self.ar2 = diagnostics.ar2(self)   
         self.sigML = ols.sig2  
-        self.Fstat = diagnostics.fStat_ols(self)  
-        self.logll = diagnostics.LogLikelihood(ols) 
-        self.aic = diagnostics.AkaikeCriterion(ols) 
-        self.sc = diagnostics.SchwarzCriterion(ols) 
+        self.Fstat = diagnostics.f_stat(self)  
+        self.logll = diagnostics.log_likelihood(ols) 
+        self.aic = diagnostics.akaike(ols) 
+        self.sc = diagnostics.schwarz(ols) 
         
         #Coefficient, Std.Error, t-Statistic, Probability 
-        self.std_err = diagnostics.stdError_Betas(self)
-        self.Tstat = diagnostics.tStat_ols(self)
+        self.std_err = diagnostics.se_betas(self)
+        self.Tstat = diagnostics.t_stat(self)
         
         #part 2: REGRESSION DIAGNOSTICS 
-        self.mulColli = diagnostics.MultiCollinearity(ols)
+        self.mulColli = diagnostics.condition_index(ols)
         self.diag = {}
-        self.diag['JB'] = diagnostics.JarqueBera(ols)
+        self.diag['JB'] = diagnostics.jarque_bera(ols)
         
         #part 3: DIAGNOSTICS FOR HETEROSKEDASTICITY         
-        self.diag['BP'] = diagnostics.BreuschPagan(ols)
+        self.diag['BP'] = diagnostics.breusch_pagan(ols)
         self.diag['KB'] = {'df':2,'kb':5.694088,'pvalue':0.0580156}
         self.diag['WH'] = {'df':5,'wh':19.94601,'pvalue':0.0012792}
         
