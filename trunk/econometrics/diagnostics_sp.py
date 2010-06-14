@@ -67,6 +67,33 @@ class LMtests:
     .. [1] Anselin, L., Bera, A. K., Florax, R., Yoon, M. J. (1996) "Simple
        diagnostic tests for spatial dependence". Regional Science and Urban
        Economics, 26, 77-104.
+
+    Examples
+    --------
+
+    >>> import numpy as np
+    >>> import pysal
+    >>> from spHetErr import get_S
+    >>> csv = pysal.open('examples/columbus.dbf','r')
+    >>> y = np.array([csv.by_col('HOVAL')]).T
+    >>> x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
+    >>> w = pysal.open('examples/columbus.gal', 'r').read()
+    >>> w.transform='r'
+    >>> w.S = get_S(w)
+    >>> from ols import OLS_dev as OLS
+    >>> wy = w.S * y
+    >>> ols = OLS(x, y)
+    >>> lms = LMtests(x, y, w)
+    >>> lms.lme
+    (3.992947267432295, 0.045691076106858394)
+    >>> lms.lml
+    (1.8194874340454195, 0.17737430099228549)
+    >>> lms.rlme
+    (2.8712886542421709, 0.090172642054033358)
+    >>> lms.rlml
+    (0.69782882085529507, 0.4035142049850427)
+    >>> lms.sarma
+    (4.6907760882875902, 0.095810016400331821)
     """
     def __init__(self, x, y, w, constant=True, tests=['all']):
         if w.transform != 'R':
@@ -467,4 +494,11 @@ def get_zI(I, ei, vi):
     Standardized I
     """
     return (I - ei) / np.sqrt(vi)
+
+def _test():
+    import doctest
+    doctest.testmod()
+
+if __name__ == '__main__':
+    _test()
 
