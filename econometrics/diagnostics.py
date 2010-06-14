@@ -3,8 +3,8 @@ Diagnostics for regression estimations.
 
 To Do List:
 
-    * Resolve conflict between GeoDa and R in the Breusch-Pagan test.
-    * Complete White and Koenker-Bassett diagnostics.
+    * Resolve conflict between GeoDa/R/Stata/SpaceStat in the Breusch-Pagan test.
+    * Complete Koenker-Bassett diagnostics.
     * Add variance inflation factor (more complicated than originally expected). 
 
         
@@ -598,7 +598,6 @@ def breusch_pagan(reg):
     0.027098355486469678
     
     """
- 
     k = reg.k           # (scalar) number of independent variables (including constant)
     n = reg.n           # (scalar) number of observations in the regression
     u = reg.u           # (array) residuals from the regression
@@ -623,17 +622,114 @@ def breusch_pagan(reg):
     return bp_result 
 
 
+def white(reg, constant):
+
+    """
+    Calculates the White test to check for heteroskedasticity. 
+
+    Parameters
+    ----------
+
+    reg             : regression object
+                      output instance from a regression model
+
+    constant        : boolean
+                      if true the original regression includes a constant, set to "True" by default
+
+    Returns
+    -------
+
+    white_result    : dictionary
+                      contains the statistic (white), degrees of freedom (df) and the associated p-value (pvalue) for the White test. 
+
+    white           : float
+                      scalar value for the White test statistic.
+
+    df              : integer
+                      degrees of freedom associated with the test
+
+    pvalue          : float
+                      p-value associated with the statistic (chi^2 distributed with k df)
+
+    References
+    ----------
+
+    [1] H. White. 1980. A heteroskedasticity-consistent covariance matrix estimator and a direct test for heteroskdasticity. Econometrica. 48(4) 817-838. 
+
+
+    Examples
+    --------
+
+    >>> import numpy as np
+    >>> import pysal
+    >>> from econometrics.ols import OLS_dev as OLS
+    >>> from econometrics import diagnostics as diagnostics
+    >>> db = pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> reg = OLS(X,y)
+    >>> testresult = diagnostics.white(reg, 1)
+    >>> testresult['df']
+    5
+    >>> testresult['wh']
+    19.946008239903257
+    >>> testresult['pvalue']
+    0.0012792228173925788
+
+    """
+    if constant == 1:
+        X = np.delete(reg.x,0,1)    # (array) matrix of independent variables (no constant)
+    elif constant == 0:
+        X = reg.x
+    e = reg.u**2                    # (array) vector of squared residuals from original regression
+    k = reg.k                       # (scalar) number of independent variables (including constant)
+    n = reg.n                       # (scalar) number of observations in the regression
+    y = reg.y                       # (array) vector of dependent variables from original regression
+
+    A = []
+    for i in range(k-2):
+        for j in range(i+1,k-1):
+            v = X[:,i]*X[:,j]
+            A.append(v)
+
+    for i in range(k-1):
+        v = X[:,i]**2
+        A.append(v)
+
+    A = np.array(A).T
+    A = np.hstack((X,A))
+    a = np.hstack((np.ones(y.shape),A))
+    an, ak = np.shape(a)
+    at = np.transpose(a)
+    ata = np.dot(at, a)
+    atai = la.inv(ata)
+    ate = np.dot(at,e)
+    betas = np.dot(atai,ate)
+    prede = np.dot(a, betas)
+    u = e-prede
+    utu = np.dot(np.transpose(u),u)
+    mean_e = np.mean(e) 
+    ss_tot = sum((e-mean_e)**2)
+    r2 = 1-utu/ss_tot
+    aux_r2 = r2[0]
+    wh = aux_r2*n
+    wh = wh[0]
+    df = ak-1
+    pvalue = stats.chisqprob(wh,df)
+    white_result={'df':df,'wh':wh, 'pvalue':pvalue}
+    return white_result 
+
+
+
 #def koenker_bassett(parameters):
 
 
 
-#def white(parameters):
-
-
-
 #def variance_inflation(reg)
-
-
 
 
 
