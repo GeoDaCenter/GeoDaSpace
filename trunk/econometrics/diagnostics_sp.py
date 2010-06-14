@@ -69,6 +69,9 @@ class LMtests:
        Economics, 26, 77-104.
     """
     def __init__(self, x, y, w, constant=True, tests=['all']):
+        if w.transform != 'R':
+            w.transform = 'r'
+            print '\nYour W object has been row-standardized\n'
         ols = OLS(x, y, constant=constant)
         cache = spDcache(ols, w)
         if tests == ['all']:
@@ -84,6 +87,166 @@ class LMtests:
         if 'sarma' in tests:
             self.sarma = lmSarma(ols, w, cache)
 
+class AKtest:
+    """
+    Moran's I test of spatial autocorrelation for IV estimation.
+    Implemented following the original reference Anselin and Kelejian
+    (1997) [1]_
+    ...
+
+    Attributes
+    ----------
+    x           : array
+                  nxk array of independent variables, including endogenous
+                  variables (assumed to be aligned with y)
+    y           : array
+                  nx1 array of dependent variable
+    h           : array
+                  nxl array of instruments; typically this includes all
+                  exogenous variables from x and instruments
+    constant    : boolean
+                  If true it appends a vector of ones to the independent variables
+                  to estimate intercept (set to True by default)
+    w           : W
+                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  be row-standardized
+    case        : int
+                  Flag for special cases (default to 0):
+                    * 0: General case
+                    * 1: No endogenous regressors
+                    * 2: No spatial lag
+
+    References
+    ----------
+    .. [1] Anselin, L., Kelejian, H. (1997) "Testing for spatial error
+    autocorrelation in the presence of endogenous regressors". Interregional
+    Regional Science Review, 20, 1.
+            """
+
+    def __init__(self, iv, w, case=0):
+        if case == 0:
+            pass
+        elif case == 1:
+            pass
+        elif case ==2:
+            pass
+        else:
+            print """\n
+            Fix the optional argument 'case' to match the requirements:
+                * 0: General case
+                * 1: No endogenous regressors
+                * 2: No spatial lag
+            \n"""
+
+class MoranRes:
+    def __init__(self, x, y, w, constant=True):
+        ols = OLS(x, y, constant=constant)
+        cache = spDcache(ols, w)
+        self.I = get_mI(ols, w, cache)
+        self.eI = get_eI(ols, w, cache)
+        self.vI = get_vI(ols, w, self.eI, cache)
+        self.zI = get_zI(self.I, self.eI, self.vI)
+
+class spDcache:
+    """
+    Class to compute reusable pieces in the spatial diagnostics module
+    ...
+
+    Attributes
+    ----------
+
+    ols         : OLS_dev
+                  Instance from an OLS_dev regression 
+    w           : W
+                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  be row-standardized
+
+    Parameters
+    ----------
+
+    j           : array
+                  1x1 array with the result from:
+
+                  .. math::
+
+                        J = \dfrac{1}{[(WX\beta)' M (WX\beta) + T \sigma^2]}
+
+    wu          : array
+                  nx1 array with spatial lag of the residuals
+
+    utwuDs      : array
+                  1x1 array with the result from:
+
+                  .. math::
+
+                        utwuDs = \dfrac{u' W u}{\tilde{\sigma^2}}
+
+    utwyDs      : array
+                  1x1 array with the result from:
+
+                  .. math::
+
+                        utwyDs = \dfrac{u' W y}{\tilde{\sigma^2}}
+
+
+    t           : array
+                  1x1 array with the result from :
+
+                  .. math::
+
+                        T = tr[(W' + W) W]
+
+    mw          : csr_matrix
+                  scipy sparse matrix results of multiplying ols.M and W
+    trMw        : float
+                  Trace of mw
+
+    """
+    def __init__(self,ols, w):
+        self.ols = ols
+        self.w = w
+        self._cache = {}
+    @property
+    def j(self):
+        if 'j' not in self._cache:
+            wxb = self.w.S * self.ols.predy
+            num = np.dot(wxb.T, np.dot(self.ols.m, wxb)) + (self.t * self.ols.sig2)
+            den = self.ols.n * self.ols.sig2
+            self._cache['j'] = num / den
+        return self._cache['j']
+    @property
+    def wu(self):
+        if 'wu' not in self._cache:
+            self._cache['wu'] = self.w.S * self.ols.u
+        return self._cache['wu']
+    @property
+    def utwuDs(self):
+        if 'utwuDs' not in self._cache:
+            res = np.dot(self.ols.u.T, self.wu) / self.ols.sig2
+            self._cache['utwuDs'] = res
+        return self._cache['utwuDs']
+    @property
+    def utwyDs(self):
+        if 'utwyDs' not in self._cache:
+            res = np.dot(self.ols.u.T, self.w.S * self.ols.y)
+            self._cache['utwyDs'] = res / self.ols.sig2
+        return self._cache['utwyDs']
+    @property
+    def t(self):
+        if 't' not in self._cache:
+            prod = (self.w.S.T + self.w.S) * self.w.S 
+            self._cache['t'] = np.sum(prod.diagonal())
+        return self._cache['t']
+    @property
+    def mw(self):
+        if 'mw' not in self._cache:
+            self._cache['mw'] = self.ols.m * self.w.S
+        return self._cache['mw']
+    @property
+    def trMw(self):
+        if 'trMw' not in self._cache:
+            self._cache['trMw'] = np.sum(self.mw.diagonal())
+        return self._cache['trMw']
 
 def lmErr(ols, w, spDcache):
     """
@@ -257,124 +420,23 @@ def lmSarma(ols, w, spDcache):
     pval = chisqprob(lm, 2)
     return (lm[0][0], pval[0][0])
 
-class spDcache:
-    """
-    Class to compute reusable pieces in LM tests
-    ...
-
-    Attributes
-    ----------
-
-    ols         : OLS_dev
-                  Instance from an OLS_dev regression 
-    w           : W
-                  Spatial weights instance (requires 'S' and 'A1') assumed to
-                  be row-standardized
-
-    Parameters
-    ----------
-
-    j           : array
-                  1x1 array with the result from:
-
-                  .. math::
-
-                        J = \dfrac{1}{[(WX\beta)' M (WX\beta) + T \sigma^2]}
-
-    wu          : array
-                  nx1 array with spatial lag of the residuals
-
-    utwuDs      : array
-                  1x1 array with the result from:
-
-                  .. math::
-
-                        utwuDs = \dfrac{u' W u}{\tilde{\sigma^2}}
-
-    utwyDs      : array
-                  1x1 array with the result from:
-
-                  .. math::
-
-                        utwyDs = \dfrac{u' W y}{\tilde{\sigma^2}}
-
-
-    t           : array
-                  1x1 array with the result from :
-
-                  .. math::
-
-                        T = tr[(W' + W) W]
-
-    mw          : csr_matrix
-                  scipy sparse matrix results of multiplying ols.M and W
-    trMw        : float
-                  Trace of mw
-
-    """
-    def __init__(self,ols, w):
-        self.ols = ols
-        self.w = w
-        self._cache = {}
-    @property
-    def j(self):
-        if 'j' not in self._cache:
-            wxb = self.w.S * self.ols.predy
-            num = np.dot(wxb.T, np.dot(self.ols.m, wxb)) + (self.t * self.ols.sig2)
-            den = self.ols.n * self.ols.sig2
-            self._cache['j'] = num / den
-        return self._cache['j']
-    @property
-    def wu(self):
-        if 'wu' not in self._cache:
-            self._cache['wu'] = self.w.S * self.ols.u
-        return self._cache['wu']
-    @property
-    def utwuDs(self):
-        if 'utwuDs' not in self._cache:
-            res = np.dot(self.ols.u.T, self.wu) / self.ols.sig2
-            self._cache['utwuDs'] = res
-        return self._cache['utwuDs']
-    @property
-    def utwyDs(self):
-        if 'utwyDs' not in self._cache:
-            res = np.dot(self.ols.u.T, self.w.S * self.ols.y)
-            self._cache['utwyDs'] = res / self.ols.sig2
-        return self._cache['utwyDs']
-    @property
-    def t(self):
-        if 't' not in self._cache:
-            prod = (self.w.S.T + self.w.S) * self.w.S 
-            self._cache['t'] = np.sum(prod.diagonal())
-        return self._cache['t']
-    @property
-    def mw(self):
-        if 'mw' not in self._cache:
-            self._cache['mw'] = self.ols.m * self.w.S
-        return self._cache['mw']
-    @property
-    def trMw(self):
-        if 'trMw' not in self._cache:
-            self._cache['trMw'] = np.sum(self.mw.diagonal())
-        return self._cache['trMw']
-
-class MoranRes:
-    def __init__(self, x, y, w, constant=True):
-        ols = OLS(x, y, constant=constant)
-        cache = spDcache(ols, w)
-        self.I = get_mI(ols, w, cache)
-        self.eI = get_eI(ols, w, cache)
-        self.vI = get_vI(ols, w, self.eI, cache)
-        self.zI = get_zI(self.I, self.eI, self.vI)
-
 
 def get_mI(ols, w, spDcache):
+    """
+    Moran's I statistic of spatial autocorrelation
+    """
     return (w.n * np.dot(ols.u.T, spDcache.wu)) / (w.s0 * ols.utu)
 
 def get_eI(ols, w, spDcache):
+    """
+    Moran's I expectation
+    """
     return (w.n * spDcache.trMw) / (w.s0 * (w.n - ols.k))
 
 def get_vI(ols, w, ei, spDcache):
+    """
+    Moran's I variance
+    """
     trMwmwt = np.dot(spDcache.mw, (ols.m * w.S.T))
     trMwmwt = np.sum(trMwmwt.diagonal())
     #mw2 = spDcache.mw**2
@@ -384,6 +446,9 @@ def get_vI(ols, w, ei, spDcache):
     return num / den
 
 def get_vIr(ols, w, ei, spDcache):
+    """
+    Moran's I variance coded as in R's spded
+    """
     z = w.S * ols.x
     c1 = np.dot(ols.x.T, z)
     c2 = np.dot(z.T, z)
@@ -398,5 +463,8 @@ def get_vIr(ols, w, ei, spDcache):
     return vi
 
 def get_zI(I, ei, vi):
+    """
+    Standardized I
+    """
     return (I - ei) / np.sqrt(vi)
 
