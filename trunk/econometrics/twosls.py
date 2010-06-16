@@ -116,6 +116,9 @@ class TwoSLS_dev(OLS.OLS_dev):
         # properties also need to be checked for appropriatness for 2SLS.
         # Currently, self.vm matches R output and dignostics.stdError_Betas
         # matches R output.
+        #
+        # However, self.utu, standard errors and z-stats don't not match
+        # Stata.
 
 
 def _test():
