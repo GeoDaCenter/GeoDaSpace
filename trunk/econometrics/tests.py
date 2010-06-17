@@ -31,11 +31,11 @@ import unittest
 import doctest
 
 # module imports
-import ols, spHetErr
+import ols, spHetErr, twosls
 import testing_utils
 
 #add modules to include in tests
-mods='ols', 'spHetErr', 'testing_utils'
+mods='ols', 'spHetErr', 'testing_utilsa', 'twosls'
 
 suite = unittest.TestSuite()
 for mod in mods:

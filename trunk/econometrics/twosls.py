@@ -98,6 +98,8 @@ class TwoSLS_dev(OLS.OLS_dev):
         if constant:
             x = np.hstack((np.ones(y.shape),x))
             z = np.hstack((np.ones(y.shape),h))
+        else:
+            z = h
         # x_hat = Z(Z'Z)^-1 Z'X
         zpz = np.dot(z.T,z)
         zpzi = la.inv(zpz)
@@ -117,7 +119,8 @@ class TwoSLS_dev(OLS.OLS_dev):
         # Currently, self.vm matches R output and dignostics.stdError_Betas
         # matches R output.
         #
-        # However, self.utu, standard errors and z-stats don't not match
+        # However, self.utu is different at 7th or 8th significant dig.,
+        # standard errors and z-stats don't not match (by a lot) with
         # Stata.
 
 
