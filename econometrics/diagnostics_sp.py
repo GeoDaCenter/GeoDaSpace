@@ -469,8 +469,8 @@ def get_vI(ols, w, ei, spDcache):
     #mw2 = spDcache.mw**2
     mw2 = np.dot(spDcache.mw, spDcache.mw)
     num = w.n**2 * (trMwmwt + np.sum(mw2.diagonal()) + spDcache.trMw**2)
-    den = w.s0**2 * (((w.n - ols.k) * (w.n - ols.k + 2)) - ei**2)
-    return num / den
+    den = w.s0**2 * (((w.n - ols.k) * (w.n - ols.k + 2)) )
+    return (num / den) - ei**2
 
 def get_vIr(ols, w, ei, spDcache):
     """
