@@ -274,6 +274,27 @@ class spDcache:
         if 'trMw' not in self._cache:
             self._cache['trMw'] = np.sum(self.mw.diagonal())
         return self._cache['trMw']
+    @property
+    def AB(self):
+        """
+        Computes A and B matrices as in Cliff-Ord 1981, p. 203
+        """
+        if 'AB' not in self._cache:
+            U = (self.w.S + self.w.S.T) / 2.
+            z = U * self.ols.x
+            c1 = np.dot(self.ols.x.T, z)
+            c2 = np.dot(z.T, z)
+            G = self.ols.xtxi
+            A = np.dot(G, c1)
+            B = np.dot(G, c2)
+            self._cache['AB'] = [A, B]
+        return self._cache['AB']
+    @property
+    def trA(self):
+        if 'trA' not in self._cache:
+            self._cache['trA'] = np.sum(self.AB[0].diagonal())
+        return self._cache['trA']
+
 
 def lmErr(ols, w, spDcache):
     """
@@ -387,19 +408,19 @@ def rlmLag(ols, w, spDcache):
     Attributes
     ----------
 
-    ols         : OLS_dev
-                  Instance from an OLS_dev regression 
-    w           : W
-                  Spatial weights instance (requires 'S' and 'A1') assumed to
-                  be row-standardized
-    spDcache     : spDcache
-                  Instance of spDcache class
+    ols             : OLS_dev
+                      Instance from an OLS_dev regression 
+    w               : W
+                      Spatial weights instance (requires 'S' and 'A1') assumed to
+                      be row-standardized
+    spDcache        : spDcache
+                      Instance of spDcache class
 
     Returns
     -------
 
-    rlml        : tuple
-                  Pair of statistic and p-value for the Robust LM lag test.
+    rlml            : tuple
+                      Pair of statistic and p-value for the Robust LM lag test.
 
     References
     ----------
@@ -450,19 +471,64 @@ def lmSarma(ols, w, spDcache):
 
 def get_mI(ols, w, spDcache):
     """
-    Moran's I statistic of spatial autocorrelation
+    Moran's I statistic of spatial autocorrelation as showed in Cliff & Ord
+    (1981) [1], p. 201-203
+    ...
+
+    Attributes
+    ----------
+
+    ols             : OLS_dev
+                      Instance from an OLS_dev regression 
+    w               : W
+                      Spatial weights instance (requires 'S' and 'A1') assumed to
+                      be row-standardized
+    spDcache        : spDcache
+                      Instance of spDcache class
+
+    Returns
+    -------
+
+    moran           : float
+                      Statistic Moran's I test.
+
+    References
+    ----------
+    .. [1] Cliff, AD., Ord, JK. (1981) "Spatial processes: models & applications".
+       Pion London
     """
-    return (w.n * np.dot(ols.u.T, spDcache.wu)) / (w.s0 * ols.utu)
+    mi = (w.n * np.dot(ols.u.T, spDcache.wu)) / (w.s0 * ols.utu)
+    return mi[0][0]
 
 def get_eI(ols, w, spDcache):
     """
-    Moran's I expectation
+    Moran's I expectation as in Cliff & Ord 1981 (p. 201-203)
     """
-    return (w.n * spDcache.trMw) / (w.s0 * (w.n - ols.k))
+    return -(w.n * spDcache.trA) / (w.s0 * (w.n - ols.k))
 
 def get_vI(ols, w, ei, spDcache):
     """
-    Moran's I variance
+    Moran's I variance coded as in Cliff & Ord 1981 (p. 201-203) and R's spdep
+    """
+    A = spDcache.AB[0]
+    trA2 = np.dot(A, A)
+    trA2 = np.sum(trA2.diagonal())
+
+    B = spDcache.AB[1]
+    trB = np.sum(B.diagonal()) * 4
+    vi = (w.n**2 / (w.s0**2 * (w.n - ols.k) * (w.n - ols.k + 2))) * \
+            (w.s1 + 2 * trA2 - trB - ((2 * (spDcache.trA**2)) / (w.n - ols.k)))
+    return vi
+
+def get_eI_m(ols, w, spDcache):
+    """
+    Moran's I expectation using matrix M
+    """
+    return (w.n * spDcache.trMw) / (w.s0 * (w.n - ols.k))
+
+def get_vI_m(ols, w, ei, spDcache):
+    """
+    Moran's I variance using matrix M
     """
     trMwmwt = np.dot(spDcache.mw, (ols.m * w.S.T))
     trMwmwt = np.sum(trMwmwt.diagonal())
@@ -471,23 +537,6 @@ def get_vI(ols, w, ei, spDcache):
     num = w.n**2 * (trMwmwt + np.sum(mw2.diagonal()) + spDcache.trMw**2)
     den = w.s0**2 * (((w.n - ols.k) * (w.n - ols.k + 2)) )
     return (num / den) - ei**2
-
-def get_vIr(ols, w, ei, spDcache):
-    """
-    Moran's I variance coded as in R's spded
-    """
-    z = w.S * ols.x
-    c1 = np.dot(ols.x.T, z)
-    c2 = np.dot(z.T, z)
-    c3 = np.dot(ols.xtxi, c1)
-    trA = np.sum(c3.diagonal())
-    trA2 = np.dot(c3, c3)
-    trA2 = np.sum(trA2.diagonal())
-    trB = 4 * np.dot(ols.xtxi, c2)
-    trB = np.sum(trB.diagonal())
-    vi = ((w.n**2 / (w.s0**2 * (w.n - ols.k) * (w.n - ols.k + 2))) * \
-            (w.s1 + 2 * trA2 - trB - ((2 * (trA**2)) / (w.n - ols.k))))
-    return vi
 
 def get_zI(I, ei, vi):
     """
