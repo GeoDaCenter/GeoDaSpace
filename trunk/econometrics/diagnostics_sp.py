@@ -10,6 +10,7 @@ ToDo:
     * Document Moran
 """
 from scipy.stats.stats import chisqprob
+from scipy.stats import norm
 from ols import OLS_dev as OLS
 import numpy as np
 import pysal
@@ -172,7 +173,7 @@ class MoranRes:
         self.I = get_mI(ols, w, cache)
         self.eI = get_eI(ols, w, cache)
         self.vI = get_vI(ols, w, self.eI, cache)
-        self.zI = get_zI(self.I, self.eI, self.vI)
+        self.zI, self.p-norm = get_zI(self.I, self.eI, self.vI)
 
 class spDcache:
     """
@@ -541,8 +542,12 @@ def get_vI_m(ols, w, ei, spDcache):
 def get_zI(I, ei, vi):
     """
     Standardized I
+
+    Returns two-sided p-values as provided in the GeoDa family
     """
-    return (I - ei) / np.sqrt(vi)
+    z = (I - ei) / np.sqrt(vi)
+    pval = norm.sf(z) * 2.
+    return (z, pval)
 
 def _test():
     import doctest
