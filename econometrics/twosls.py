@@ -68,6 +68,12 @@ class TwoSLS_dev(OLS.OLS_dev):
                   Sigma squared with n in the denominator
     sig2n_k     : float
                   Sigma squared with n-k in the denominator
+    vm          : array
+                  Variance-covariance matrix (kxk)
+    mean_y      : float
+                  Mean of the dependent variable
+    std_y       : float
+                  Standard deviation of the dependent variable
 
 
     Examples
@@ -100,29 +106,25 @@ class TwoSLS_dev(OLS.OLS_dev):
             z = np.hstack((np.ones(y.shape),h))
         else:
             z = h
-        # x_hat = Z(Z'Z)^-1 Z'X
-        zpz = np.dot(z.T,z)
-        zpzi = la.inv(zpz)
-        zpx = np.dot(z.T, x)
-        zpzi_zpx = np.dot(zpzi, zpx)
-        x_hat = np.dot(z, zpzi_zpx)
-
+        ztz = np.dot(z.T,z)
+        ztzi = la.inv(ztz)
+        ztx = np.dot(z.T, x)
+        ztzi_ztx = np.dot(ztzi, ztx)
+        x_hat = np.dot(z, ztzi_ztx)          # x_hat = Z(Z'Z)^-1 Z'X
         OLS.OLS_dev.__init__(self, x_hat, y, constant=False)
+        self.xptxpi = self.xtxi              # using predicted x (xp)
+        self.set_x(x)  # reset x, xtx and xtxi attributes to use original data
         self.predy = np.dot(x, self.betas)   # using original data
-        self.u = y - self.predy             # using original data
-        self.x = x
+        self.u = y - self.predy              # using original data
         self.h = h
 
-        # Currently self.xtxi, self.xtx, and self.xt are still based on the
-        # transformed information matrix passed into OLS_dev. The OLS_dev
-        # properties also need to be checked for appropriatness for 2SLS.
-        # Currently, self.vm matches R output and dignostics.stdError_Betas
-        # matches R output.
-        #
-        # However, self.utu is different at 7th or 8th significant dig.,
-        # standard errors and z-stats don't not match (by a lot) with
-        # Stata.
-
+    @property
+    def vm(self):
+        if 'vm' not in self._cache:
+            self._cache['vm'] = np.dot(self.sig2, self.xtxi)
+        return self._cache['vm']
+    
+    
 
 def _test():
     import doctest
