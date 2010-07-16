@@ -1,5 +1,6 @@
 import numpy as np
 import numpy.linalg as la
+import diagnostics
 
 
 class OLS_dev:
@@ -50,6 +51,12 @@ class OLS_dev:
               Sigma squared with n in the denominator
     sig2n_k : float
               Sigma squared with n-k in the denominator
+    vm      : array
+              Variance-covariance matrix (kxk)
+    mean_y  : float
+              Mean of the dependent variable
+    std_y   : float
+              Standard deviation of the dependent variable
 
               .. math::
                 
@@ -84,22 +91,22 @@ class OLS_dev:
     def __init__(self,x,y,constant=True):
         if constant:
             x = np.hstack((np.ones(y.shape),x))
-        xt = np.transpose(x)
-        xtx = np.dot(xt,x)
-        xtxi = la.inv(xtx)
-        xty = np.dot(xt,y)
-        self.betas = np.dot(xtxi,xty)
-        self.xtxi = xtxi
-        self.xtx = xtx
-        self.xt = xt
+        self.set_x(x)
+        xty = np.dot(x.T,y)
+        self.betas = np.dot(self.xtxi,xty)
         predy = np.dot(x,self.betas)
         u = y-predy
         self.u = u
         self.predy = predy
         self.y = y
-        self.x = x
         self.n, self.k = x.shape
         self._cache = {}
+
+    def set_x(self, x):
+        self.x = x
+        self.xt = x.T
+        self.xtx = np.dot(self.x.T,self.x)
+        self.xtxi = la.inv(self.xtx)
 
     @property
     def utu(self):
@@ -126,8 +133,7 @@ class OLS_dev:
     @property
     def vm(self):
         if 'vm' not in self._cache:
-            estSig2= self.utu / (self.n-self.k)
-            self._cache['vm'] = np.dot(estSig2, self.xtxi)
+            self._cache['vm'] = np.dot(self.sig2n_k, self.xtxi)
         return self._cache['vm']
     
     @property
@@ -142,9 +148,8 @@ class OLS_dev:
         return self._cache['std_y']
     
 
-import diagnostics
 
-class OLS:
+class OLS(OLS_dev):
     """
     OLS class for end-user (gives back only results and diagnostics)
     
@@ -159,6 +164,10 @@ class OLS:
               nx1 array of dependent variable
     names   : tuple
               used in summary output, the sequence is (dataset name, dependent name, independent names)
+    constant: boolean
+              If true it appends a vector of ones to the independent variables
+              to estimate intercept (set to True by default)
+
     
     Attributes
     ----------
@@ -187,8 +196,8 @@ class OLS:
               mean value of dependent variable
     std_y   : float
               standard deviation of dependent variable
-    vm      : variance covariance matrix
-              k*k array
+    vm      : array
+              variance covariance matrix (kxk)
     r2      : float
               R square
     ar2     : float
@@ -240,54 +249,40 @@ class OLS:
            [ -0.27393148]])
     
     """
-    def __init__(self,x,y,names):
-        ols = OLS_dev(x,y) 
+    def __init__(self, x, y, names, constant=True):
+        ols = OLS_dev.__init__(self, x, y, constant) 
         
         #part 1: ORDINARY LEAST SQUARES ESTIMATION 
         
         #general information
-        self.x = ols.x
-        self.y = ols.y
-        self.betas = ols.betas
-        self.u = ols.u
-        self.predy = ols.predy
-        self.n = ols.n
-        self.k = ols.k  
         self.name_ds = names[0]
         self.name_y = names[1]
         self.name_x = names[2:]
-        self.mean_y = ols.mean_y
-        self.std_y = ols.std_y
-        self.vm = ols.vm
-        self.utu = ols.utu
-        self.sig2 = ols.sig2n_k
+        self.sig2 = self.sig2n_k
         
         self.r2 = diagnostics.r2(self)    
         self.ar2 = diagnostics.ar2(self)   
-        self.sigML = ols.sig2  
+        self.sigML = self.sig2  
         self.Fstat = diagnostics.f_stat(self)  
-        self.logll = diagnostics.log_likelihood(ols) 
-        self.aic = diagnostics.akaike(ols) 
-        self.sc = diagnostics.schwarz(ols) 
+        self.logll = diagnostics.log_likelihood(self) 
+        self.aic = diagnostics.akaike(self) 
+        self.sc = diagnostics.schwarz(self) 
         
         #Coefficient, Std.Error, t-Statistic, Probability 
         self.std_err = diagnostics.se_betas(self)
         self.Tstat = diagnostics.t_stat(self)
         
         #part 2: REGRESSION DIAGNOSTICS 
-        self.mulColli = diagnostics.condition_index(ols)
+        self.mulColli = diagnostics.condition_index(self)
         self.diag = {}
-        self.diag['JB'] = diagnostics.jarque_bera(ols)
+        self.diag['JB'] = diagnostics.jarque_bera(self)
         
         #part 3: DIAGNOSTICS FOR HETEROSKEDASTICITY         
-        self.diag['BP'] = diagnostics.breusch_pagan(ols)
+        self.diag['BP'] = diagnostics.breusch_pagan(self)
         self.diag['KB'] = {'df':2,'kb':5.694088,'pvalue':0.0580156}
         self.diag['WH'] = {'df':5,'wh':19.94601,'pvalue':0.0012792}
         
-        #part 4: COEFFICIENTS VARIANCE MATRIX
-        self.vm = ols.vm
-        
-        #part 5: summary output
+        #part 4: summary output
         self.summary = output_ols(self)
 
 def output_ols(ols,vm = False, pred = False):
