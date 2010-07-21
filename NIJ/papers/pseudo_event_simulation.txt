@@ -1,0 +1,65 @@
+Code for simulating crime events holding the characteristics of the street network constant.
+
+Part A:
+1. Assign street segments a unique identifier
+   ###This will be used to order the street segments in a later step.
+
+2. Add up the length of all the edges on the street network
+   ###The length of the streets can be calculated in ArcGIS via calculate geometry.
+   ###Do we know if we will subset the Mesa street segments for 
+   
+2. Divide each edge by the total length of all of the edges. This will be called proportional length
+   ###This will give us a probability for each link based on the length of its edges.
+
+3. Would it be best to create a dictionary here that contains the unique identifier of the line segments and each line segment's proportionallength?
+
+4. Assign a probability to each of the line segments on the street network based on its proportion length calculated in step 2 (maybe this step is good for a  
+   loop?):
+   4a. Assign the first line segment a probability equal to its proportion of the total length of all the line segments. Do we want to append the probability to
+       the dictionary of street segments?
+   4b. Beginning with the line segment with unique identifier 2, iteratively add the street segments end to end according to their unique identifier specified in
+       step 1. After each addition of a street segment, calculate the total probability of that line based on its cumulative proportional length. Append values
+       to dictionary of street segment information? 
+  This should end the street segment portion of the code...
+
+
+### Part B: Distribution of crime events under the null hypothesis. The null distribution is a random distribution of crimes.
+1. Generate 1,600 random numbers between 0 and 1 (this is based on the number of crime thefts in 2009 for Mesa. We could modify this so it is based on the
+   average of vehicle thefts from 2006-2009. 2006 thefts=3,581 2007 thefts=2,952 2008 thefts=2,009 2009 vehicle thefts=1,278)   
+
+2. Assign the random numbers to the edges on the network based on their probability match with the edges on the network
+
+3. After mapping the point to the appropriate street segment in step 2. Distribute the points along the original street segment in proportion to their distance on the imaginary 0 to 1 line in step 2a.
+
+3. Obtain a count of the number of crime events on each of the edges in the street network.
+  
+
+### Part C: Distribution of crime events under the alternative hypothesis. 
+1. Identify 4 streets that will serve as the cluster centers
+   a. Divide the spatial extent of the street network into 4 quadrants
+   b. Select the street nearest the quadrant center to be the cluster center
+
+2. Create a separate set of streets that does not include these 4 streets.
+3. Renumber the streets in #2 with new unique identifiers
+4. Repeat all of part A to get new probabilities for these streets
+5. Select 90% of the points generated in part B. 
+6. Repeat all of part B to randomly assign these points to the revised
+
+
+
+These four streets will be the recipients of some percentage of the 1600 points. To start, 10\% of the 1600 points, will be assigned to these segments. Before assigning points to these clusters however, 90\% of the points, or 1,440 points, are randomly assigned to the set of remaining street segments. This step essentially replicates the random assignment of points to the network per the process described for the null hypothesis. The one addition to the process is that unique ids are reassigned to the streets so that they may be ordered properly after the removal of the streets serving as cluster centers. Once the random assignment of points is made, the remaining 10\% of points, or 160 points are allocated evenly amongst the four clusters. 
+
+Modifications to the locations of the four clusters and the strengths of the four clusters are considered for the alternative hypothesis. The locations of the four clusters are varied so that four scenarios are considered:
+
+\emph{Scenario 1}: One cluster per quadrant.
+
+\emph{Scenario 2}: One cluster per quadrant and two clusters in quadrant I.
+
+\emph{Scenario 3}: Two clusters in quadrants I and III.
+
+\emph{Scenario 4}: Three clusters in quadrant II and one cluster in quadrant III.
+%How many different scenarios do we want to consider here? %Is this enough or do we want to consider all possible configurations?
+%JK: Why don't we start with this and check the results
+%JK: Let's present this in Figure format and then say, "so that four scenarios are considered as in Figure x"
+
+In addition to considering each of the four scenarios detailed above, five different cluster strengths will be considered for each of the scenarios. The cluster strength in the alternative hypothesis corresponds to the percent of all observations assigned to clusters, where the larger the proportion of observations assigned to the clusters corresponds to stronger clusters. Proportions of 10\%, 20\%, 30\%, 40\%, and 50\% will be considered for each of the four scenarios for a total of 20 different combinations of cluster locations and cluster strengths. These 20 combinations will be applied to each of the five street networks of interest to see how the power of the three statistics of interest also varies with different street network characteristics.  
