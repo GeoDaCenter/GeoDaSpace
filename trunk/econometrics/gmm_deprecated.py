@@ -1,3 +1,9 @@
+"""
+Tools for different GMM procedure estimations using full numpy arrays and
+PySAL original weights structures
+
+NOTE: its use is deprecated
+"""
 
 from pysal.weights.spatial_lag import lag_array
 import numpy as np
@@ -78,36 +84,84 @@ class Moments():
         self.ulltull=ulltull
         self.d=d
 
-
-def get_vc(w,u,l,m):
+def get_S(w):
     """
-    Computes the VC matrix \Psi based on \lambda and returns an array 2x2:
-
-        psi = [psi11  psi12]
-             [psi21  psi22]
-
-    NOTE: psi12=psi21
+    Converts pysal W to scipy csr_matrix
+    ...
 
     Parameters
     ----------
+
+    w               : W
+                      Spatial weights instance
+
+    Returns
+    -------
+
+    Implicit        : csr_matrix
+                      PySAL W object converted into Scipy sparse matrix
+                
+    """
+    data = []
+    indptr = [0]
+    indices = []
+    for ob in w.id_order:
+        data.extend(w.weights[ob])
+        indptr.append(indptr[-1] + len(w.weights[ob]))
+        indices.extend(w.neighbors[ob])
+    data = np.array(data)
+    indices = np.array(indices)
+    indptr = np.array(indptr)
+    return SP.csr_matrix((data,indices,indptr),shape=(w.n,w.n))
+
+def get_vcF(w, u, l):
+    """
+    Computes the VC matrix Psi based on lambda using full numpy arrays:
+
+    ..math::
+
+        \tilde{Psi} = \left(\begin{array}{c c}
+                            \psi_{11} & \psi_{12} \\
+                            \psi_{21} & \psi_{22} \\
+                      \end{array} \right)
+
+    NOTE: psi12=psi21
+
+    ...
+
+    Parameters
+    ----------
+
     w           : W
-                  Spatial weights instance
+                  Spatial weights instance (requires 'S' and 'A1')
+
     u           : array
                   Residuals. nx1 array assumed to be aligned with w
+
     l           : float
-                  LambdaX. Spatial error coefficient.
-    m           : Moments
-                  Moments instance
-                  """
-    psi11=None
-    psi12=None
-    psi22=None
+                  Lambda parameter estimate
+ 
+    Returns
+    -------
 
-    psi=np.array([[psi11,psi12],[psi12,psi22]])
+    Implicit    : array
+                  2x2 array with estimator of the variance-covariance matrix
 
-    return psi
+    """
+    e = (u - l * np.dot(w.full()[0], u)) ** 2
+    E = np.eye(w.n) * e
+    A1 = np.dot(w.full()[0].T, w.full()[0])
+    for i in range(w.n):
+        A1[i,i] = 0.
 
+    aPatE = np.dot((A1 + A1.T), E)
+    wPwtE = np.dot((w.full()[0] + w.full()[0].T), E)
 
+    psi11 = np.dot(aPatE, aPatE)
+    psi12 = np.dot(aPatE, wPwtE)
+    psi22 = np.dot(wPwtE, wPwtE)
+    psi = map(np.sum, [psi11.diagonal(), psi12.diagonal(), psi22.diagonal()])
+    return np.array([[psi[0], psi[1]], [psi[1], psi[2]]]) / (2 * w.n)
 
 if __name__ == "__main__":
 
