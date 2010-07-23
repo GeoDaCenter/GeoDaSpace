@@ -1,8 +1,9 @@
 import numpy as np
 import numpy.linalg as la
 import ols as OLS
+import robust as ROBUST
 
-class TwoSLS(OLS.OLS):
+class TSLS(OLS.OLS):
     """
     2SLS class for end-user (gives back only results and diagnostics)
     """
@@ -14,7 +15,7 @@ class TwoSLS(OLS.OLS):
         # errors when necessary
         pass
 
-class TwoSLS_dev(OLS.OLS_dev):
+class TSLS_dev(OLS.OLS_dev):
     """
     2SLS class to do all the computations
 
@@ -36,6 +37,13 @@ class TwoSLS_dev(OLS.OLS_dev):
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
+
+    robust      : string
+                  If 'white' then a White consistent estimator of the
+                  variance-covariance matrix is given. If 'gls' then
+                  generalized least squares is performed resulting in new
+                  coefficient estimates along with a new variance-covariance
+                  matrix. 
 
     Attributes
     ----------
@@ -93,14 +101,15 @@ class TwoSLS_dev(OLS.OLS_dev):
     >>> h.append(db.by_col("INC"))
     >>> h.append(db.by_col("DISCBD"))
     >>> h = np.array(h).T
-    >>> reg=TwoSLS_dev(X,y,h)
+    >>> reg=TSLS_dev(X,y,h)
     >>> reg.betas
     array([[ 88.46579584],
            [  0.5200379 ],
            [ -1.58216593]])
     
     """
-    def __init__(self, x, y, h, constant=True):
+    def __init__(self, x, y, h, constant=True, robust=None):
+        self.h = h
         if constant:
             x = np.hstack((np.ones(y.shape),x))
             z = np.hstack((np.ones(y.shape),h))
@@ -116,7 +125,17 @@ class TwoSLS_dev(OLS.OLS_dev):
         self.set_x(x)  # reset x, xtx and xtxi attributes to use original data
         self.predy = np.dot(x, self.betas)   # using original data
         self.u = y - self.predy              # using original data
-        self.h = h
+        if robust == 'gls':
+            self.betas, self.xptxpi = ROBUST.gls_dev(x, y, z, self.u)
+            self.predy = np.dot(x, self.betas)   # using original data and GLS betas
+            self.u = y - self.predy              # using original data and GLS betas
+            ### need to verify the VM for the non-spatial case
+
+
+        #### GLS and White robust 2SLS was implemented for the spatial case,
+        #### and results match there.  I have not tested the robust results
+        #### for the non-spatial case.
+
 
     @property
     def vm(self):
