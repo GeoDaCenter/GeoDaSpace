@@ -1,4 +1,4 @@
-<map version="0.8.1">
+<map version="0.8.0">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
 <node COLOR="#000000" CREATED="1275585472581" ID="Freemind_Link_1621692918" MODIFIED="1275585472581" TEXT="spreg_detailed">
 <font BOLD="true" NAME="Dialog" SIZE="12"/>
@@ -156,15 +156,6 @@
 </node>
 <node COLOR="#000000" CREATED="1275585472589" ID="Freemind_Link_9188443" MODIFIED="1275585472589" TEXT="Spatial Lag">
 <font BOLD="true" NAME="Dialog" SIZE="12"/>
-<node COLOR="#000000" CREATED="1275585472589" ID="Freemind_Link_460555745" MODIFIED="1275585472589" TEXT="Panel">
-<font BOLD="true" NAME="Dialog" SIZE="12"/>
-<node COLOR="#000000" CREATED="1275585472589" MODIFIED="1275585472589" TEXT="ML">
-<font BOLD="true" NAME="Dialog" SIZE="12"/>
-</node>
-<node COLOR="#000000" CREATED="1275585472589" MODIFIED="1275585472589" TEXT="GMM">
-<font BOLD="true" NAME="Dialog" SIZE="12"/>
-</node>
-</node>
 <node COLOR="#000000" CREATED="1275585472589" ID="Freemind_Link_1312363065" MODIFIED="1275585472589" TEXT="Cross-sectional">
 <font BOLD="true" NAME="Dialog" SIZE="12"/>
 <node COLOR="#000000" CREATED="1275585472590" MODIFIED="1275585472590" TEXT="ML">
@@ -174,6 +165,15 @@
 <font BOLD="true" NAME="Dialog" SIZE="12"/>
 </node>
 <node COLOR="#000000" CREATED="1275585472590" MODIFIED="1275585472590" TEXT="HAC">
+<font BOLD="true" NAME="Dialog" SIZE="12"/>
+</node>
+</node>
+<node COLOR="#000000" CREATED="1275585472589" ID="Freemind_Link_460555745" MODIFIED="1275585472589" TEXT="Panel">
+<font BOLD="true" NAME="Dialog" SIZE="12"/>
+<node COLOR="#000000" CREATED="1275585472589" MODIFIED="1275585472589" TEXT="ML">
+<font BOLD="true" NAME="Dialog" SIZE="12"/>
+</node>
+<node COLOR="#000000" CREATED="1275585472589" MODIFIED="1275585472589" TEXT="GMM">
 <font BOLD="true" NAME="Dialog" SIZE="12"/>
 </node>
 </node>
@@ -204,15 +204,6 @@
 </node>
 <node COLOR="#000000" CREATED="1275585472590" ID="Freemind_Link_1807666665" MODIFIED="1275585472590" TEXT="Spatial Error">
 <font BOLD="true" NAME="Dialog" SIZE="12"/>
-<node COLOR="#000000" CREATED="1275585472590" ID="Freemind_Link_987165246" MODIFIED="1275585472590" TEXT="SUR">
-<font BOLD="true" NAME="Dialog" SIZE="12"/>
-<node COLOR="#000000" CREATED="1275585472590" MODIFIED="1275585472590" TEXT="ML">
-<font BOLD="true" NAME="Dialog" SIZE="12"/>
-</node>
-<node COLOR="#000000" CREATED="1275585472591" MODIFIED="1275585472591" TEXT="IV">
-<font BOLD="true" NAME="Dialog" SIZE="12"/>
-</node>
-</node>
 <node COLOR="#000000" CREATED="1275585472591" ID="Freemind_Link_787893276" MODIFIED="1275585472591" TEXT="Cross-sectional">
 <font BOLD="true" NAME="Dialog" SIZE="12"/>
 <node COLOR="#000000" CREATED="1275585472591" MODIFIED="1275585472591" TEXT="ML">
@@ -222,6 +213,15 @@
 <font BOLD="true" NAME="Dialog" SIZE="12"/>
 </node>
 <node COLOR="#000000" CREATED="1275585472591" MODIFIED="1275585472591" TEXT="KP HET">
+<font BOLD="true" NAME="Dialog" SIZE="12"/>
+</node>
+</node>
+<node COLOR="#000000" CREATED="1275585472590" ID="Freemind_Link_987165246" MODIFIED="1275585472590" TEXT="SUR">
+<font BOLD="true" NAME="Dialog" SIZE="12"/>
+<node COLOR="#000000" CREATED="1275585472590" MODIFIED="1275585472590" TEXT="ML">
+<font BOLD="true" NAME="Dialog" SIZE="12"/>
+</node>
+<node COLOR="#000000" CREATED="1275585472591" MODIFIED="1275585472591" TEXT="IV">
 <font BOLD="true" NAME="Dialog" SIZE="12"/>
 </node>
 </node>
