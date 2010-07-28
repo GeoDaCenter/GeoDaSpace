@@ -74,15 +74,13 @@ class LMtests:
 
     >>> import numpy as np
     >>> import pysal
-    >>> from spHetErr import get_S
     >>> csv = pysal.open('examples/columbus.dbf','r')
     >>> y = np.array([csv.by_col('HOVAL')]).T
     >>> x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
     >>> w = pysal.open('examples/columbus.gal', 'r').read()
     >>> w.transform='r'
-    >>> w.S = get_S(w)
     >>> from ols import OLS_dev as OLS
-    >>> wy = w.S * y
+    >>> wy = w.sparse * y
     >>> ols = OLS(x, y)
     >>> lms = LMtests(x, y, w)
     >>> lms.lme
@@ -173,7 +171,7 @@ class MoranRes:
         self.I = get_mI(ols, w, cache)
         self.eI = get_eI(ols, w, cache)
         self.vI = get_vI(ols, w, self.eI, cache)
-        self.zI, self.p-norm = get_zI(self.I, self.eI, self.vI)
+        self.zI, self.p_norm = get_zI(self.I, self.eI, self.vI)
 
 class spDcache:
     """
@@ -237,7 +235,7 @@ class spDcache:
     @property
     def j(self):
         if 'j' not in self._cache:
-            wxb = self.w.S * self.ols.predy
+            wxb = self.w.sparse * self.ols.predy
             num = np.dot(wxb.T, np.dot(self.ols.m, wxb)) + (self.t * self.ols.sig2)
             den = self.ols.n * self.ols.sig2
             self._cache['j'] = num / den
@@ -245,7 +243,7 @@ class spDcache:
     @property
     def wu(self):
         if 'wu' not in self._cache:
-            self._cache['wu'] = self.w.S * self.ols.u
+            self._cache['wu'] = self.w.sparse * self.ols.u
         return self._cache['wu']
     @property
     def utwuDs(self):
@@ -256,19 +254,19 @@ class spDcache:
     @property
     def utwyDs(self):
         if 'utwyDs' not in self._cache:
-            res = np.dot(self.ols.u.T, self.w.S * self.ols.y)
+            res = np.dot(self.ols.u.T, self.w.sparse * self.ols.y)
             self._cache['utwyDs'] = res / self.ols.sig2
         return self._cache['utwyDs']
     @property
     def t(self):
         if 't' not in self._cache:
-            prod = (self.w.S.T + self.w.S) * self.w.S 
+            prod = (self.w.sparse.T + self.w.sparse) * self.w.sparse 
             self._cache['t'] = np.sum(prod.diagonal())
         return self._cache['t']
     @property
     def mw(self):
         if 'mw' not in self._cache:
-            self._cache['mw'] = self.ols.m * self.w.S
+            self._cache['mw'] = self.ols.m * self.w.sparse
         return self._cache['mw']
     @property
     def trMw(self):
@@ -281,7 +279,7 @@ class spDcache:
         Computes A and B matrices as in Cliff-Ord 1981, p. 203
         """
         if 'AB' not in self._cache:
-            U = (self.w.S + self.w.S.T) / 2.
+            U = (self.w.sparse + self.w.sparse.T) / 2.
             z = U * self.ols.x
             c1 = np.dot(self.ols.x.T, z)
             c2 = np.dot(z.T, z)
@@ -531,7 +529,7 @@ def get_vI_m(ols, w, ei, spDcache):
     """
     Moran's I variance using matrix M
     """
-    trMwmwt = np.dot(spDcache.mw, (ols.m * w.S.T))
+    trMwmwt = np.dot(spDcache.mw, (ols.m * w.sparse.T))
     trMwmwt = np.sum(trMwmwt.diagonal())
     #mw2 = spDcache.mw**2
     mw2 = np.dot(spDcache.mw, spDcache.mw)
