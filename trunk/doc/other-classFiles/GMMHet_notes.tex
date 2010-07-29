@@ -21,10 +21,10 @@ be moved into the spatial econometrics text.
 The model we consider is the mixed regressive spatial autoregressive model with
 a spatial autoregressive error term, or so-called SAR-SAR model. Using the notation from \cite{Anselin:88}, this
 is expressed as:
-\begin{equation}
+\begin{equation*}
     \mathbf{y} = \rho \mathbf{Wy} + \mathbf{X} \beta + \mathbf{u}.
     \label{model1}
-\end{equation}
+\end{equation*}
 
 The notation is standard, with $\mathbf{y}$ as a $n \times 1$ vector of observations
 on the dependent variable, $\mathbf{W}$ as a $n \times n$ spatial lag operator and
@@ -35,17 +35,17 @@ $n \times 1$ vector of errors $\mathbf{u}$. The specification is general, in the
 sense that $\mathbf{X}$ can contain both exogenous as well as endogenous variables.
 In the latter case, a $n \times p$ matrix of instruments $\mathbf{H}$ will be needed.
 An alternative way to express the model is as:
-\begin{equation}
+\begin{equation}\label{eq:generic}
 \mathbf{y} = \mathbf{Z} \delta + \mathbf{u},
 \end{equation}
 where $\mathbf{Z} = [ \mathbf{X}, \mathbf{Wy} ]$ and the $k \times 1$ coefficient
 vector is rearranged as $\delta = [\beta' \rho ]'$ (i.e., a column vector).
 
 The error vector $\mathbf{u}$ follows a spatial autoregressive process:
-\begin{equation}
+\begin{equation*}
     \mathbf{u} = \lambda \mathbf{W u} + \varepsilon
     \label{model2}
-\end{equation}
+\end{equation*}
 where $\lambda$ is the spatial autoregressive parameter, and with heteroskedastic 
 innovations, such that $\mbox{E}[\varepsilon_i^2] = \sigma_i^2$. All other assumptions
 are standard.
@@ -78,7 +78,7 @@ for a parameter and its estimate. In practice, an estimate is always used, since
 parameter value is unknown.
 
 The spatially filtered variables are then:
-\begin{eqnarray}
+\begin{eqnarray*}
 \mathbf{y}_s &=& \mathbf{y} - \lambda \mathbf{Wy}\\
                     &=& \mathbf{y} - \lambda \mathbf{y}_L\\
  &=& (\mathbf{I} - \lambda \mathbf{W}) \mathbf{y}\\
@@ -91,7 +91,7 @@ The spatially filtered variables are then:
 \mathbf{Z}_s &=& \mathbf{Z} - \lambda \mathbf{WZ}\\
                     &=& \mathbf{Z} - \lambda \mathbf{Z}_L\\
  &=& (\mathbf{I} - \lambda \mathbf{W}) \mathbf{Z}
-\end{eqnarray}
+\end{eqnarray*}
 
 
 \section{Outline of the GMM Estimation Procedure}
@@ -142,24 +142,24 @@ The point of departure for K-P's estimation procedure are two
 moment conditions, expressed as functions of the innovation terms
 $\varepsilon$. They are:
 \begin{eqnarray}
- n^{-1} \mbox{E} [\varepsilon_L'\varepsilon_L] &=& n^{-1} \mbox{tr} [ \mathbf{W} \mbox{diag}[E(\varepsilon_i^2)] \mathbf{W'} ]\\
+ n^{-1} \mbox{E} [\varepsilon_L'\varepsilon_L] &=& n^{-1} \mbox{tr} [ \mathbf{W} \mbox{diag}[E(\varepsilon_i^2)] \mathbf{W'} ] \label{eq:firstmoment}\\ 
  n^{-1} \mbox{E} [\varepsilon_L'\varepsilon] &=& 0,
 \end{eqnarray}
 where $\varepsilon_L$ is the spatially lagged innovation vector and tr stands for the
 matrix trace operator. The main difference
 with the moment equations in \cite{KelejianPrucha:99a} is that the innovation vector
 is allowed to be heteroskedastic of general form, hence the inclusion of the 
-term $\mbox{diag}[E(\varepsilon_i^2)]$. In the absence of heteroskedasticity, this
+term $\mbox{diag}[E(\varepsilon_i^2)]$ in Equation~\ref{eq:firstmoment}. In the absence of heteroskedasticity, the
 RHS of the first condition simplifies to $\sigma^2 n^{-1} \mbox{tr} [\mathbf{WW'}]$. However, to carry out the
 GM estimation in this case, an additional equation is needed for $\sigma^2$.
 
 \subsection{Simplifying Notation}
 K-P introduce a number of simplifying notations that allow the moment conditions to
 be written in a very concise form. Specifically, they define
-\begin{eqnarray}
+\begin{eqnarray*}
 \mathbf{A}_1 &=& \mathbf{W'W} - \mbox{diag} (\mathbf{w}_{.i}'\mathbf{w}_{.i})\\
 \mathbf{A}_2 &=& \mathbf{W},
-\end{eqnarray}
+\end{eqnarray*}
 where $\mathbf{w_{.i}}$ is the i-th column of the weights matrix $\mathbf{W}$. Upon
 further inspection, we see that each element $i$ of the diagonal matrix 
 $\mbox{diag} (\mathbf{w}_{.i}'\mathbf{w}_{.i})$ consists of the sum of squares of the
@@ -167,10 +167,10 @@ weights in the i-th column. In what follows, we will designate this diagonal mat
 as $\mathbf{D}$.
 
 Using the new notation, the moment conditions become:
-\begin{eqnarray}
+\begin{eqnarray*}
 n^{-1} \mbox{E} [ \varepsilon ' \mathbf{A_1} \varepsilon ] &=& 0\\
 n^{-1} \mbox{E} [ \varepsilon ' \mathbf{A_2} \varepsilon ] &=& 0
-\end{eqnarray}
+\end{eqnarray*}
 
 In order to operationalize these equations, the (unobservable) innovation terms
 $\varepsilon$ are replaced by their counterpart expressed as a function of regression
@@ -179,13 +179,13 @@ $\varepsilon = \mathbf{u} - \lambda \mathbf{u}_L = \mathbf{u}_s$, the spatially
 filtered residuals. The operational form of the moment conditions is
 then:
 \begin{eqnarray}
-n^{-1} \mbox{E} [ \mathbf{u}_s ' \mathbf{A_1} \mathbf{u}_s ] &=& 0\\
-n^{-1} \mbox{E} [ \mathbf{u}_s ' \mathbf{A_2} \mathbf{u}_s ] &=& 0
+n^{-1} \mbox{E} [ \mathbf{u}_s ' \mathbf{A_1} \mathbf{u}_s ] &=& 0 \label{eq:firstmoment1}\\
+n^{-1} \mbox{E} [ \mathbf{u}_s ' \mathbf{A_2} \mathbf{u}_s ] &=& 0 \label{eq:secondmoment1}
 \end{eqnarray}
 
-\subsection{Nonlinear Least Squares}
+\subsection{Nonlinear Least Squares}\label{ss:nonlinearls}
 The initial consistent estimate for $\lambda$ is obtained by solving the moment
-conditions for this parameter, which is contained within $\mathbf{u}_s$. The parameter
+conditions in Equations~\ref{eq:firstmoment1} and \ref{eq:secondmoment1} for this parameter, which is contained within $\mathbf{u}_s$. The parameter
 enters both linearly and in a quadratic form. Since there are two equations,
 there is no solution that actually sets the results to zero for both equations.
 Consequently, we try to get as close to this as possible and use a least squares
@@ -194,7 +194,7 @@ from zero, we try to minimize the sum of squared deviations.
 
 In order to implement this in practice, K-P reorganize the equations as 
 explicit functions of $\lambda$ and $\lambda^2$. This takes on the general form:
-\begin{equation}
+\begin{equation*}
 \mathbf{m} = \mathbf{g} - \mathbf{G}
 \left[
 \begin{matrix}
@@ -202,35 +202,36 @@ explicit functions of $\lambda$ and $\lambda^2$. This takes on the general form:
 \lambda^2
 \end{matrix}
 \right] = 0,
-\end{equation}
+\end{equation*}
 such that an initial estimate of $\lambda$ is obtained as a nonlinear least
 squares solution to these equations, $\mbox{argmin}_\lambda (\mathbf{m'm})$.
 
 The vector $\mathbf{g}$ is a $2 \times 1$ vector with the following elements,
 as given by K-P:
-\begin{eqnarray}
+\begin{eqnarray*}
  \mathbf{g}_1 &=& n^{-1} \mathbf{u}' \mathbf{A}_1 \mathbf{u}\\
   \mathbf{g}_2 &=& n^{-1} \mathbf{u}' \mathbf{A}_2 \mathbf{u},
-\end{eqnarray}
+\end{eqnarray*}
 with the $\mathbf{A}_{1,2}$ as defined above, and $\mathbf{u}$ is a vector
-of residuals.
+of residuals. Note that there is actually no gain in using the notation $\mathbf{A}_2$,
+since it is the same as $\mathbf{W}$.
 
 For computational purposes, it is useful to work out these
 expressions and express them as cross products of the residuals and their
 spatial lags. This yields:
-\begin{eqnarray}
+\begin{eqnarray*}
  \mathbf{g}_1 &=& n^{-1} [ \mathbf{u}_L' \mathbf{u}_L - \mathbf{u}' \mathbf{D} \mathbf{u} ]\\
   \mathbf{g}_2 &=& n^{-1} \mathbf{u}' \mathbf{u}_L,
-\end{eqnarray}
+\end{eqnarray*}
 
 The matrix $\mathbf{G}$ is a $2 \times 2$ matrix with the following elements,
 as given by K-P:
-\begin{eqnarray}
+\begin{eqnarray*}
 \mathbf{G}_{11} &=& 2n^{-1} \mathbf{u}' \mathbf{W'} \mathbf{A}_1 \mathbf{u}\\
 \mathbf{G}_{12} &=& - n^{-1} \mathbf{u}' \mathbf{W'} \mathbf{A}_1 \mathbf{W} \mathbf{u}\\
 \mathbf{G}_{21} &=& n^{-1} \mathbf{u}' \mathbf{W'} ( \mathbf{A}_2 + \mathbf{A}_2 ' ) \mathbf{u}\\
 \mathbf{G}_{22} &=& - n^{-1} \mathbf{u}' \mathbf{W'} \mathbf{A}_2 \mathbf{W} \mathbf{u}
-\end{eqnarray}
+\end{eqnarray*}
 
 As before, this simplifies into a number of expressions consisting of cross products
 of the residuals and their spatial lags. Specifically, note that $\mathbf{Wu} = \mathbf{u}_L$,
@@ -238,25 +239,25 @@ and $\mathbf{WWu} = \mathbf{u}_{LL}$, and, similarly, $\mathbf{u'W'} = \mathbf{u
 and $\mathbf{u'W'W'} = \mathbf{u'}_{LL}$.
 
 Considering each expression in turn, we find:
-\begin{eqnarray}
+\begin{eqnarray*}
 \mathbf{G}_{11} &=& 2 n^{-1} \mathbf{u'}_L \mathbf{A}_1 \mathbf{u}\\
     &=& 2 n^{-1} [ \mathbf{u'}_{LL} \mathbf{u}_L - \mathbf{u'}_L \mathbf{D} \mathbf{u} ]
-\end{eqnarray}
+\end{eqnarray*}
 
-\begin{eqnarray}
+\begin{eqnarray*}
 \mathbf{G}_{12} &=& - n^{-1} \mathbf{u'}_L \mathbf{A_1} \mathbf{u}_L\\
    &=& - n^{-1} [ \mathbf{u'}_{LL} \mathbf{u}_{LL} - \mathbf{u'}_L \mathbf{D} \mathbf{u}_L ]
-\end{eqnarray}
+\end{eqnarray*}
 
-\begin{eqnarray}
+\begin{eqnarray*}
  \mathbf{G}_{21} &=& n^{-1} \mathbf{u'}_L (\mathbf{W} + \mathbf{W'}) \mathbf{u}\\
    &=& n^{-1} [ \mathbf{u'}_L \mathbf{u}_L + \mathbf{u'}_{LL} \mathbf{u} ]
-\end{eqnarray}
+\end{eqnarray*}
 
-\begin{eqnarray}
+\begin{eqnarray*}
  \mathbf{G}_{22} &=& - n^{-1} \mathbf{u'}_L \mathbf{W} \mathbf{u}_L\\
     &=& - n^{-1} \mathbf{u'}_L \mathbf{u}_{LL}
-\end{eqnarray}
+\end{eqnarray*}
 
 So, in summary, in order to compute the six elements of $\mathbf{g}$ and $\mathbf{G}$,
 we need five cross product terms: $\mathbf{u'} \mathbf{u}_L$, $\mathbf{u'} \mathbf{u}_{LL}$,
@@ -278,12 +279,13 @@ The optimal weights correspond to the inverse variance of the moment conditions.
 
 K-P show the general expression for the elements of the $2 \times 2$ matrix $\Psi$ to
 be of the form:
-\begin{equation}
+\begin{equation}\label{eq:psiqr}
 \psi_{q,r} = (2n)^{-1} \mbox{tr} [ (\mathbf{A}_q + \mathbf{A'}_q ) \Sigma  (\mathbf{A}_r + \mathbf{A'}_r ) \Sigma ] + n^{-1} \mathbf{a'}_q \Sigma \mathbf{a}_r,
 \end{equation}
 for $q, r = 1,2$ and with $\Sigma$ as a diagonal matrix with as elements 
 $(u_i - \lambda u_{L_i})^2 = u_{s_i}^2$, i.e., the squares of the spatially filtered residuals.
-The second term in this expression is quite complex, and will be examined more closely below.
+The second term in this expression is quite complex, and will be examined more closely 
+in Sections~\ref{ss:weightsstandard} and \ref{ss:weightsfilter} below.
 However, it is important to note that this term becomes zero when there are only exogenous
 explanatory variables in the model (i.e., when OLS is applicable). The term derives from the
 expected value of a cross
@@ -299,15 +301,15 @@ Also, $\mathbf{A}_2 = \mathbf{W}$ so that we don't need the extra notation at th
 point.
 
 Consequently, we obtain the following results:
-\begin{eqnarray}
+\begin{eqnarray*}
  \psi_{11} &=& (2n)^{-1} \mbox{tr} [ (2 \mathbf{A}_1 ) \Sigma  (2 \mathbf{A}_1 ) \Sigma ]\\
         &=&  2 n^{-1} \mbox{tr} [ \mathbf{A}_1 \Sigma \mathbf{A}_1 \Sigma ],\\
   \psi_{12} &=& (2n)^{-1} \mbox{tr} [ (2 \mathbf{A}_1 ) \Sigma (\mathbf{W} + \mathbf{W'} ) \Sigma ]\\
        &=& n^{-1} \mbox{tr} [  \mathbf{A}_1 \Sigma (\mathbf{W} + \mathbf{W'} ) \Sigma ],\\
    \psi_{21} &=& \psi_{12},\\
    \psi_{22} &=& (2n)^{-1} \mbox{tr} [ (\mathbf{W} + \mathbf{W'}) \Sigma 
-   (\mathbf{W} + \mathbf{W'})\Sigma
-\end{eqnarray}
+   (\mathbf{W} + \mathbf{W'})\Sigma ]
+\end{eqnarray*}
 
 For computational purposes, it is important to keep in mind that while the matrices
 $\mathbf{A}_{1,2}$ are of dimension $n \times n$, they are typically very sparse.
@@ -315,22 +317,22 @@ Furthermore, the matrix $\Sigma$ is a diagonal matrix, such that post-multiplyin
 $\Sigma$ amounts to re-scaling the columns of that matrix by the elements on the diagonal
 of $\Sigma$.
 
-\subsubsection{Standard 2SLS Estimation}
+\subsubsection{Standard 2SLS Estimation}\label{ss:weightsstandard}
 The expression for $\mathbf{a}_r$, with $r = 1,2$, for the case where the estimates
 are obtained from 2SLS is given in K-P as follows:
-\begin{equation}
+\begin{equation}\label{eq:arstandard}
 \mathbf{a}_r = (\mathbf{I} - \lambda \mathbf{W'} )^{-1} \mathbf{HP} \alpha_r,
 \end{equation}
 with $\mathbf{H}$ as a $n \times p$ matrix of instruments, 
-\begin{equation}
+\begin{equation}\label{eq:Pstandard}
 \mathbf{P} = (n^{-1}\mathbf{H'H})^{-1} ( n^{-1} \mathbf{H'Z} ) 
         [ (n^{-1} \mathbf{Z'H} ) (n^{-1} \mathbf{H'H} )^{-1} (n^{-1} \mathbf{H'Z}) ]^{-1},
 \end{equation}
 as a matrix of dimension $p \times k$, and
-\begin{equation}
+\begin{equation*}
 \alpha_r = - n^{-1} [ \mathbf{Z'} (\mathbf{I} - \lambda \mathbf{W'}) (\mathbf{A}_r + \mathbf{A'}_r) 
  ( \mathbf{I} - \lambda \mathbf{W} ) \mathbf{u} ],
-\end{equation}
+\end{equation*}
 where $\alpha_r$ is a vector of dimension $k \times 1$. As a result, $\mathbf{a}_r$ is of
 dimension $n \times 1$.
 
@@ -339,17 +341,17 @@ $ ( \mathbf{I} - \lambda \mathbf{W} ) \mathbf{u}$ is $\mathbf{u}_s$. For both fi
 we use the value of $\lambda$ from the unweighted nonlinear least squares.
 
 For $\alpha_1$, since $\mathbf{A}_1$ is symmetric, $\mathbf{A}_1 + \mathbf{A'}_1 = 2 \mathbf{A}_1$, and the corresponding expression can be written as:
-\begin{eqnarray}
+\begin{eqnarray*}
 \alpha_1 &=& - 2 n^{-1} [ \mathbf{Z'}_s \mathbf{A}_1 \mathbf{u}_s ]\\
     &=& -2 n^{-1} [ \mathbf{Z'}_{s_L} \mathbf{u}_{s_L} - \mathbf{Z'}_s \mathbf{D} \mathbf{u}_s ],
-\end{eqnarray}
+\end{eqnarray*}
 where $\mathbf{Z'}_{s_L}$ and $\mathbf{u}_{s_L}$ are the spatial lags (using weights
 matrix $\mathbf{W}$) of respectively the spatially filtered $\mathbf{Z}$ and the spatially
 filtered $\mathbf{u}$. For $\alpha_2$, the expression is:
-\begin{eqnarray}
+\begin{eqnarray*}
  \alpha_2 &=& - n^{-1} [ \mathbf{Z'}_s (\mathbf{W} + \mathbf{W'} ) \mathbf{u}_s ] \\
     &=& - n^{-1} [ \mathbf{Z'}_s \mathbf{u}_{s_L} + \mathbf{Z'}_{s_L} \mathbf{u}_s ]
-\end{eqnarray}
+\end{eqnarray*}
 For easy computation, we will need $\mathbf{Z}_s$ and $\mathbf{u}_s$, as well as their
 spatial lags, $\mathbf{Z}_{s_L}$ and $\mathbf{u}_{s_L}$, and the three cross products
 $ \mathbf{Z'}_s \mathbf{A}_1 \mathbf{u}_s$, $\mathbf{Z'}_s \mathbf{u}_{s_L} $
@@ -360,9 +362,9 @@ matrix $\mathbf{P}$ yields a vector of dimension $p \times 1$ ($p$ is the number
 instruments). At first sight, the presence of the inverse matrix $( \mathbf{I} - \lambda \mathbf{W})^{-1}$ in the expression for $\mathbf{a}_r$ for $r = 1,2$ would seem to preclude large data
 analysis. However, we can exploit the approach outlined in \cite{Smirnov:05}. The typical
 power expansion (Leontief expansion) of the inverse matrix yields:
-\begin{equation}
+\begin{equation*}
  ( \mathbf{I} - \lambda \mathbf{W})^{-1} = \mathbf{I} + \lambda \mathbf{W} + \lambda^2 \mathbf{WW} + \dots
-\end{equation}
+\end{equation*}
 As such, this does not help in computation, since the weights matrices involved are still
 of dimension $n \times n$. However, since $( \mathbf{I} - \lambda \mathbf{W})^{-1}$
 pre-multiplies $\mathbf{H}$, we see that the multiplication of each term in the expansion with
@@ -383,8 +385,161 @@ With these elements in hand, we obtain the terms $\mathbf{a}_1$ and $\mathbf{a}_
 in the expression $\mathbf{a'}_q \Sigma \mathbf{a}_r$, which, together with the trace
 terms, yield the four elements of the matrix $\Psi$.
 
-\subsubsection{Spatially Weighted Estimation}
+\subsubsection{Spatially Weighted Estimation}\label{ss:weightsfilter}
+When the residuals used in the GMM estimation for $\lambda$ are not the result of a standard
+procedure (such as OLS or 2SLS), but instead of a spatially weighted regression (such as
+SWLS or GS2SLS), the expressions for the optimal weighting matrix are different in two
+respects. The main difference is that the inverse term is no longer present in
+Equation~\ref{eq:arstandard} for $\mathbf{a}_r$, which now becomes:
+\begin{equation*}
+\mathbf{a}_r = \mathbf{HP} \alpha_r
+\end{equation*}
+The second difference is that the spatially filtered $\mathbf{Z}_s$ are used in the
+expression for $\mathbf{P}$ instead of $\mathbf{Z}$. The expression for $\mathbf{P}$
+thus becomes:
+\begin{equation*}
+\mathbf{P} = (n^{-1}\mathbf{H'H})^{-1} ( n^{-1} \mathbf{H'Z}_s ) 
+        [ (n^{-1} \mathbf{Z'}_s \mathbf{H} ) (n^{-1} \mathbf{H'H} )^{-1} (n^{-1} \mathbf{H'Z}_s) ]^{-1}
+\end{equation*}
 
+\section{Estimation Steps}
+For the purposes of this discussion, we will express the model in a generic form as
+in Equation~\ref{eq:generic}, which we repeat here:
+\begin{equation*}
+\mathbf{y} = \mathbf{Z} \delta + \mathbf{u}.
+\end{equation*}
+This encompasses the two main cases. In the first, no endogenous variables
+are present (and thus also no spatially lagged dependent variable) and 
+$\mathbf{Z} = \mathbf{X}$ in the usual notation. In the second case, endogenous
+variables are present. By convention, we will sort the variables such that the
+exogenous variables come first and the endogenous second. In the special
+case of a mixed regressive spatial autoregressive model, $\mathbf{Z} = [ \mathbf{X}, \mathbf{Wy} ]$,
+and $\delta = [ \beta', \rho]'$.
+
+The actual estimation proceeds in several steps, which are detailed in what follows.
+
+\subsection{Step 1 -- Initial Estimates}
+The initial set of estimates, which we will denote as $\delta_1$, are obtained from
+either OLS or 2SLS estimation of the model. In case of OLS, this yields:
+\begin{equation*}
+\delta_{1,OLS} = (\mathbf{Z'Z})^{-1} \mathbf{Z'y},
+\end{equation*}
+When endogenous variables are present (including the case of a spatially lagged
+dependent variable), a matrix of instruments $\mathbf{H}$ is needed and 
+estimation follows from:
+\begin{equation*}
+\delta_{1,2SLS} = (\hat{\mathbf{Z'}} \hat{\mathbf{Z}} )^{-1} \hat{\mathbf{Z'}} \mathbf{y},
+\end{equation*}
+with $\hat{\mathbf{Z}} = (\mathbf{H'H} )^{-1} \mathbf{H'Z}$, or, in one expression, as:
+\begin{equation*}
+\delta_{1,2SLS} = [ \mathbf{Z'H} (\mathbf{H'H})^{-1} \mathbf{H'Z} ]^{-1} \mathbf{Z'H} (\mathbf{H'H})^{-1} \mathbf{y}.
+\end{equation*}
+
+In the presence of a spatially lagged dependent variable, the instruments should 
+include multiple orders of spatial lags of the exogenous explanatory variables.
+In practice, up to two orders may be sufficient, such that $\mathbf{H} = [ \mathbf{X},
+\mathbf{X}_L, \mathbf{X}_{LL} ]$. As always, care must be taken to avoid multicollinear
+instruments. For examples, this may be a problem when indicator variables are
+included in the model.
+
+The estimates $\delta_1$ yield an initial vector of residuals, $\mathbf{u}_1$ as:
+\begin{equation*}
+\mathbf{u}_1 = \mathbf{y} - \mathbf{Z} \delta_1.
+\end{equation*}
+
+\subsection{Step 2 -- Consistent Estimation of $\lambda$}
+A first consistent estimate for $\lambda$, say $\lambda_1$ is obtained
+by substituting $\mathbf{u}_1$ into the moment equations of Section~\ref{ss:nonlinearls}
+and finding a solution by means of nonlinear least squares.
+
+\subsection{Step 3 -- Efficient and Consistent Estimation of $\lambda$}
+An efficient estimate of $\lambda$ is obtained by substituting the values
+of $\lambda_1$ and $\mathbf{u}_1$ into the elements of
+Equation~\ref{eq:psiqr} as specified in Section~\ref{ss:weightsstandard}.
+This yields the weighting matrix $\Psi(\lambda_1)$, which then allows for a 
+weighted nonlinear least squares solution to the moments equations.
+This results in the estimate $\lambda_2$.
+
+At this point, we could stop and move to the construction of the asymptotic
+variance matrix of the estimates, as outlined in Section~\ref{ss:asyvarstandard}.
+For example, this would be relevant if we were only interested in testing
+the null hypothesis $\mbox{H}_0: \lambda = 0$.
+
+Typically, however, one does not stop here and moves on to a spatially weighted
+estimation of the regression coefficients, which takes into account the consistent
+and efficient estimate $\lambda_2$ of the nuisance parameter. Note that only 
+consistency of $\lambda$ is required to obtain consistent estimates of the 
+$\delta$ coefficients. The use of the more efficient $\lambda_2$ should result in
+more efficient estimates of $\delta$ as well, but consistency is not affected by this.
+
+\subsection{Step 4 -- Spatially Weighted Estimation}
+The rationale behind spatially weighted estimation is that a simple transformation
+(the so-called spatial Cochrane-Orcutt) removes the spatial dependence from
+the error term in the regression equation:
+\begin{eqnarray*}
+(\mathbf{I} - \lambda \mathbf{W})y &=& (\mathbf{I} - \lambda \mathbf{W}) \mathbf{Z} \delta
++ (\mathbf{I} - \lambda \mathbf{W})\mathbf{u}\\
+\mathbf{y}_s &=& \mathbf{Z}_s \delta + \varepsilon,
+\end{eqnarray*}
+where $\mathbf{y}_s$ and $\mathbf{Z}_s$ are filtered variables,
+and $\varepsilon$ is a heteroskedastic, but not spatially correlated innovation term.
+
+We distinguish between two situations. In one, there are only exogenous
+variables in the regression, so that Spatially Weighted Least Squares (SWLS) is
+an appropriate estimation method. In the other, the presence of endogenous
+variables requires the use of 2SLS. The special case of a regression with a
+spatially lagged dependent variable also falls in this category.
+
+\subsubsection{Spatially Weighted Least Squares -- SWLS}
+Spatially Weighted Least Squares is simply OLS applied to the spatially filtered
+variables:
+\begin{equation*}
+\delta_{2,SWLS} = ( \mathbf{Z'}_s \mathbf{Z}_s )^{-1} \mathbf{Z'}_s \mathbf{y}_s.
+\end{equation*}
+
+\subsubsection{Generalized Spatial Two Stage Least Squares - GS2SLS}
+Similarly, Generalized Spatial Two Stage Least Squares is 2SLS applied to the
+spatially filtered variables:
+\begin{equation*}
+\delta_{2,GS2SLS} = [ \mathbf{Z'}_s \mathbf{H} (\mathbf{H'H})^{-1} \mathbf{H'} \mathbf{Z}_s ]^{-1} \mathbf{Z'}_s \mathbf{H} (\mathbf{H'H})^{-1} \mathbf{y}_s.
+\end{equation*}
+Note that the instrument matrix $\mathbf{H}$ is the same as in Step 1.
+
+\subsubsection{Residuals}
+The new estimate coefficient vector $\delta_2$ yields an updated vector of residuals as:
+\begin{equation*}
+\mathbf{u}_2 = \mathbf{y} - \mathbf{Z} \delta_2.
+\end{equation*}
+Note that the residuals are computed using the original variables and not the spatially
+filtered variables.
+
+\subsection{Step 5 -- Iteration}
+The updated residual vector $\mathbf{u}_2$ can now be used to obtain a new
+estimate for $\lambda$. Since this is based on a spatially weighted regression,
+the proper elements of the weighting matrix $\Psi$ are given in 
+Section~\ref{ss:weightsfilter}, with $\lambda_2$ and $\mathbf{u}_2$ substituted
+in the expressions. The solution by means of weighted nonlinear least squares yields
+the consistent and efficient estimate $\lambda_3$.
+
+At this point, the value of $\lambda_3$ can be used together with $\delta_2$
+to construct an asymptotic variance matrix, as outlined in Section~\ref{ss:asyvarweighted}.
+This allows for joint inference on the coefficients $\delta$ and the spatial autoregressive
+term $\lambda$.
+
+Alternatively, the new value of $\lambda_3$ could be used in an updated spatially
+weighted estimation to yield a new set of estimates for $\delta$ and an associated
+residual vector $\mathbf{u}$. These can then be substituted in the moment equations
+and in $\Psi$ to result in a new estimate for $\lambda$. This iteration can be continued
+until a suitable stopping criterion is met. To date, there is no evidence as to the 
+benefits of iteration beyond $\lambda_3$, but this remains a subject for further investigation.
+
+\section{Asymptotic Variance Matrix}
+
+\subsection{Standard Estimation}\label{ss:asyvarstandard}
+
+\subsection{Spatially Weighted Estimation}\label{ss:asyvarweighted}
+
+\section{Accounting for Heteroskedasticity in FGLS}
 
 \bibliography{/users/luc/Papers/lucbibs/papers,/users/luc/Papers/lucbibs/luc}
 \bibliographystyle{apalike}
