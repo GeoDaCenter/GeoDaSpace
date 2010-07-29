@@ -10,7 +10,7 @@
 \section{Background}
 This note documents the steps needed for an efficient GMM estimation of the
 regression parameters and autoregressive parameters using the moment conditions
-spelled out in \cite{KelejianPrucha:09} and \cite{Arraizetal:10} (referred to in what
+spelled out in \cite{KelejianPrucha:09} and \cite{Arraizetal:10} (jointly referred to in what
 follows as K-P). Theoretical details are
 provided in those articles. The focus here is on the practical steps to carry out estimation
 in a number of special cases. I will be using ``we'' below since all this should eventually
@@ -101,7 +101,7 @@ for the model coefficients. For example, in a model with only exogenous explanat
 variables, this would be based on ordinary least squares (OLS). In the presence of
 endogenous explanatory variables, two stage least squares (2SLS) would be necessary.
 This is also the case when a spatially lagged dependent variable is present. In the latter
-case, a number of papers have discussed the use of optimal weights
+case, a number of papers have discussed the use of optimal insturments
 \cite[e.g.,][]{Lee:03,Dasetal:03,Kelejianetal:04,Lee:07}. In practice, the instruments
 consist of the exogenous variables and spatial lags of these, e.g., 
 $\mathbf{H} = [ \mathbf{X}, \mathbf{X}_L, \mathbf{X}_{LL}, \dots ]$.
@@ -134,6 +134,7 @@ consistent in the presence of general heteroskedasticity. The initial GM estimat
 in \cite{KelejianPrucha:98,KelejianPrucha:99a} is only consistent under the assumption
 of absence of heteroskedasticity. We will need to further consider if the incorporation of
 both spatial autoregressive and heteroskedastic structures for the error variance 
+in a feasible generalized least squares procedure (FGLS)
 improves the efficiency of the regression coefficients.
 
 \section{General Moment Equations}
@@ -149,7 +150,7 @@ matrix trace operator. The main difference
 with the moment equations in \cite{KelejianPrucha:99a} is that the innovation vector
 is allowed to be heteroskedastic of general form, hence the inclusion of the 
 term $\mbox{diag}[E(\varepsilon_i^2)]$. In the absence of heteroskedasticity, this
-term simplifies to $\sigma^2 n^{-1} \mbox{tr} [\mathbf{WW'}]$. However, to carry out the
+RHS of the first condition simplifies to $\sigma^2 n^{-1} \mbox{tr} [\mathbf{WW'}]$. However, to carry out the
 GM estimation in this case, an additional equation is needed for $\sigma^2$.
 
 \subsection{Simplifying Notation}
@@ -200,7 +201,7 @@ explicit functions of $\lambda$ and $\lambda^2$. This takes on the general form:
 \lambda\\
 \lambda^2
 \end{matrix}
-\right],
+\right] = 0,
 \end{equation}
 such that an initial estimate of $\lambda$ is obtained as a nonlinear least
 squares solution to these equations, $\mbox{argmin}_\lambda (\mathbf{m'm})$.
@@ -214,8 +215,8 @@ as given by K-P:
 with the $\mathbf{A}_{1,2}$ as defined above, and $\mathbf{u}$ is a vector
 of residuals.
 
-For computational purposes, it is actually more effective to work out these
-expressions and turn them into cross products of the residuals and their
+For computational purposes, it is useful to work out these
+expressions and express them as cross products of the residuals and their
 spatial lags. This yields:
 \begin{eqnarray}
  \mathbf{g}_1 &=& n^{-1} [ \mathbf{u}_L' \mathbf{u}_L - \mathbf{u}' \mathbf{D} \mathbf{u} ]\\
@@ -263,7 +264,8 @@ $\mathbf{u'}_L \mathbf{u}_L$, $\mathbf{u'}_L \mathbf{u}_{LL}$, and
 $\mathbf{u'}_{LL} \mathbf{u}_{LL}$. In addition, we need three weighted cross products:
 $\mathbf{u'} \mathbf{D} \mathbf{u}$, $\mathbf{u'}_L \mathbf{D} \mathbf{u}$, and
 $\mathbf{u'}_L \mathbf{D} \mathbf{u}_L$ (note that $\mathbf{Du}$ only needs to be
-computed once).
+computed once). Alternatively, if the matrix $\mathbf{A}_1$ is stored efficiently in sparse form,
+we can use the cross products $\mathbf{u'}\mathbf{A}_1 \mathbf{u}$, $\mathbf{u'}_L \mathbf{A}_1 \mathbf{u}$ and $\mathbf{u'}_L \mathbf{A}_1 \mathbf{u}_L$.
 
 Given a vector of residuals (from OLS, 2SLS or even Generalized Spatial 2SLS), the expression
 for $\mathbf{g}$ and $\mathbf{G}$ give us a way to obtain a consistent estimate for $\lambda$.
@@ -348,6 +350,10 @@ filtered $\mathbf{u}$. For $\alpha_2$, the expression is:
  \alpha_2 &=& - n^{-1} [ \mathbf{Z'}_s (\mathbf{W} + \mathbf{W'} ) \mathbf{u}_s ] \\
     &=& - n^{-1} [ \mathbf{Z'}_s \mathbf{u}_{s_L} + \mathbf{Z'}_{s_L} \mathbf{u}_s ]
 \end{eqnarray}
+For easy computation, we will need $\mathbf{Z}_s$ and $\mathbf{u}_s$, as well as their
+spatial lags, $\mathbf{Z}_{s_L}$ and $\mathbf{u}_{s_L}$, and the three cross products
+$ \mathbf{Z'}_s \mathbf{A}_1 \mathbf{u}_s$, $\mathbf{Z'}_s \mathbf{u}_{s_L} $
+and $\mathbf{Z'}_{s_L} \mathbf{u}_s$.
 
 Pre-multiplying the respective expressions for $\alpha_1$ and $\alpha_2$ with the
 matrix $\mathbf{P}$ yields a vector of dimension $p \times 1$ ($p$ is the number of
@@ -357,11 +363,12 @@ power expansion (Leontief expansion) of the inverse matrix yields:
 \begin{equation}
  ( \mathbf{I} - \lambda \mathbf{W})^{-1} = \mathbf{I} + \lambda \mathbf{W} + \lambda^2 \mathbf{WW} + \dots
 \end{equation}
-As such, this does not help the computational aspect, since the weights matrices involved are still
+As such, this does not help in computation, since the weights matrices involved are still
 of dimension $n \times n$. However, since $( \mathbf{I} - \lambda \mathbf{W})^{-1}$
 pre-multiplies $\mathbf{H}$, we see that the multiplication of each term in the expansion with
 $\mathbf{H}$ amounts to no more than a series of spatial lag operations, such
-as $\lambda \mathbf{WH}$, $\lambda^2 \mathbf{W(WH)}$, etc. Depending on the
+as $\lambda \mathbf{WH}$, or $\lambda \mathbf{H}_L$, $\lambda^2 \mathbf{W(WH)}$, 
+or $\lambda^2 \mathbf{H}_{LL}$, etc. Depending on the
 value of $\lambda$, a reasonable approximation is readily obtained for a
 relatively low power in the expansion.
 For example, a value of $\lambda$ of 0.5 (which is relatively large in practice) reduces to
