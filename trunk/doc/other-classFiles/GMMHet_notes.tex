@@ -474,8 +474,7 @@ weighted nonlinear least squares solution to the moments equations.
 This results in the estimate $\lambda_2$.
 
 At this point, we could stop and move to the construction of the asymptotic
-variance matrix of the estimates, as outlined in Sections~\ref{ss:asyvarstandard}
-and \ref{ss:asyvar2sls}.
+variance matrix of the estimates, as outlined in Section~\ref{ss:asyvarstandard}.
 For example, this would be relevant if we were only interested in testing
 the null hypothesis $\mbox{H}_0: \lambda = 0$.
 
@@ -724,7 +723,8 @@ and the spatial parameter is $\lambda_3$.
 The estimation equations for the weighted spatial regression in 
 \cite{KelejianPrucha:09} and \cite{Arraizetal:10}  implement the
 spatial Cochrane-Orcutt transformation, but do not correct for the
-presence of unspecified heteroskedasticity. As shown in \citet[p. 931]{Anselin:06}, the latter could be
+presence of unspecified heteroskedasticity. As shown in \citet[p. 931]{Anselin:06},
+among others, the latter could be
 implemented by exploiting the
 classic result of \cite{White:80} and including a consistent estimate
 for $\mathbf{X' \Sigma X}$ or $\mathbf{H' \Sigma H}$ in the second stage
