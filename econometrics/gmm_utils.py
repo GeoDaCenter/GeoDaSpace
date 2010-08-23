@@ -122,7 +122,31 @@ def moments_het(w, u):
 
     return [G, g]
 
-def get_vc_het(w, u, l):
+def get_psi_sigma(w, u, l):
+    """
+    Computes the Sigma matrix needed to compute Psi
+
+    Parameters
+    ----------
+    w           : W
+                  Spatial weights instance (requires 'S' and 'A1')
+
+    u           : array
+                  nx1 vector of residuals
+
+    l           : float
+                  Lambda
+
+    """
+
+    e = (u - l * (w.sparse * u)) ** 2
+    E = SP.lil_matrix(w.sparse.get_shape())
+    E.setdiag(e.flat)
+    E = E.asformat('csr')
+    return E
+
+
+def get_vc_het(w, E):
     """
     Computes the VC matrix Psi based on lambda as in Arraiz et al [1]_:
 
@@ -143,11 +167,8 @@ def get_vc_het(w, u, l):
     w           : W
                   Spatial weights instance (requires 'S' and 'A1')
 
-    u           : array
-                  Residuals. nx1 array assumed to be aligned with w
-
-    l           : float
-                  Lambda parameter estimate
+    E           : sparse matrix
+                  Sigma
  
     Returns
     -------
@@ -164,10 +185,7 @@ def get_vc_het(w, u, l):
     592-614.
 
     """
-    e = (u - l * (w.sparse * u)) ** 2
-    E = SP.lil_matrix(w.sparse.get_shape())
-    E.setdiag(e.flat)
-    E = E.asformat('csr')
+    
     A1t = w.A1.T
     wt = w.sparse.T
 

@@ -59,7 +59,8 @@ class Spatial_Error_Het:
         lambda1 = GMM.optimizer_het(moments)[0][0]
 
         #1c. GMM --> \tilde{\lambda2}
-        vc1 = GMM.get_vc_het(w, ols.u, lambda1)
+        sigma = GMM.get_psi_sigma(w, ols.u, lambda1)
+        vc1 = GMM.get_vc_het(w, sigma)
         lambda2 = GMM.optimizer_het(moments,vc1)[0][0]
         
         for n in range(cycles): #### Added loop.
