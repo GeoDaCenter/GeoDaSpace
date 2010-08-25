@@ -40,7 +40,7 @@ def f_stat(reg):
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> import diagnostics as diagnostics
+    >>> import diagnostics
     >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
@@ -94,7 +94,7 @@ def t_stat(reg):
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> import diagnostics as diagnostics
+    >>> import diagnostics
     >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
@@ -148,7 +148,7 @@ def r2(reg):
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> import diagnostics as diagnostics
+    >>> import diagnostics
     >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
@@ -199,7 +199,7 @@ def ar2(reg):
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> import diagnostics as diagnostics
+    >>> import diagnostics
     >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
@@ -247,7 +247,7 @@ def se_betas(reg):
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> import diagnostics as diagnostics
+    >>> import diagnostics
     >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
@@ -296,7 +296,7 @@ def log_likelihood(reg):
 
     >>> import numpy as np
     >>> import pysal
-    >>> import diagnostics as diagnostics
+    >>> import diagnostics
     >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
@@ -345,7 +345,7 @@ def akaike(reg):
 
     >>> import numpy as np
     >>> import pysal
-    >>> import diagnostics as diagnostics
+    >>> import diagnostics
     >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
@@ -395,7 +395,7 @@ def schwarz(reg):
 
     >>> import numpy as np
     >>> import pysal
-    >>> import diagnostics as diagnostics
+    >>> import diagnostics
     >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
@@ -445,7 +445,7 @@ def condition_index(reg):
 
     >>> import numpy as np
     >>> import pysal
-    >>> import diagnostics as diagnostics
+    >>> import diagnostics
     >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
@@ -507,7 +507,7 @@ def jarque_bera(reg):
 
     >>> import numpy as np
     >>> import pysal
-    >>> import diagnostics as diagnostics
+    >>> import diagnostics
     >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
@@ -579,7 +579,7 @@ def breusch_pagan(reg):
 
     >>> import numpy as np
     >>> import pysal
-    >>> import diagnostics as diagnostics
+    >>> import diagnostics
     >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
@@ -662,7 +662,7 @@ def white(reg, constant):
 
     >>> import numpy as np
     >>> import pysal
-    >>> import diagnostics as diagnostics
+    >>> import diagnostics
     >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
