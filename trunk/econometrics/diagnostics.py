@@ -40,8 +40,8 @@ def f_stat(reg):
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> from econometrics.ols import OLS_dev as OLS
-    >>> from econometrics import diagnostics as diagnostics
+    >>> import diagnostics as diagnostics
+    >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -94,8 +94,8 @@ def t_stat(reg):
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> from econometrics.ols import OLS_dev as OLS
-    >>> from econometrics import diagnostics as diagnostics
+    >>> import diagnostics as diagnostics
+    >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -148,8 +148,8 @@ def r2(reg):
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> from econometrics.ols import OLS_dev as OLS
-    >>> from econometrics import diagnostics as diagnostics
+    >>> import diagnostics as diagnostics
+    >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -199,8 +199,8 @@ def ar2(reg):
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> from econometrics.ols import OLS_dev as OLS
-    >>> from econometrics import diagnostics as diagnostics
+    >>> import diagnostics as diagnostics
+    >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -247,8 +247,8 @@ def se_betas(reg):
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> from econometrics.ols import OLS_dev as OLS
-    >>> from econometrics import diagnostics as diagnostics
+    >>> import diagnostics as diagnostics
+    >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -296,8 +296,8 @@ def log_likelihood(reg):
 
     >>> import numpy as np
     >>> import pysal
-    >>> from econometrics.ols import OLS_dev as OLS
-    >>> from econometrics import diagnostics as diagnostics
+    >>> import diagnostics as diagnostics
+    >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -345,8 +345,8 @@ def akaike(reg):
 
     >>> import numpy as np
     >>> import pysal
-    >>> from econometrics.ols import OLS_dev as OLS
-    >>> from econometrics import diagnostics as diagnostics
+    >>> import diagnostics as diagnostics
+    >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -395,8 +395,8 @@ def schwarz(reg):
 
     >>> import numpy as np
     >>> import pysal
-    >>> from econometrics.ols import OLS_dev as OLS
-    >>> from econometrics import diagnostics as diagnostics
+    >>> import diagnostics as diagnostics
+    >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -445,8 +445,8 @@ def condition_index(reg):
 
     >>> import numpy as np
     >>> import pysal
-    >>> from econometrics.ols import OLS_dev as OLS
-    >>> from econometrics import diagnostics as diagnostics
+    >>> import diagnostics as diagnostics
+    >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -507,8 +507,8 @@ def jarque_bera(reg):
 
     >>> import numpy as np
     >>> import pysal
-    >>> from econometrics.ols import OLS_dev as OLS
-    >>> from econometrics import diagnostics as diagnostics
+    >>> import diagnostics as diagnostics
+    >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -579,8 +579,8 @@ def breusch_pagan(reg):
 
     >>> import numpy as np
     >>> import pysal
-    >>> from econometrics.ols import OLS_dev as OLS
-    >>> from econometrics import diagnostics as diagnostics
+    >>> import diagnostics as diagnostics
+    >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -662,8 +662,8 @@ def white(reg, constant):
 
     >>> import numpy as np
     >>> import pysal
-    >>> from econometrics.ols import OLS_dev as OLS
-    >>> from econometrics import diagnostics as diagnostics
+    >>> import diagnostics as diagnostics
+    >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
