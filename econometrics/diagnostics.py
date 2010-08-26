@@ -51,9 +51,9 @@ def f_stat(reg):
     >>> X = np.array(X).T
     >>> reg = OLS(X,y)
     >>> testresult = diagnostics.f_stat(reg)
-    >>> testresult
-    (28.385629224694853, 9.3407471005108332e-09)
-    
+    >>> print("%12.12f"%testresult[0],"%12.12f"%testresult[1])
+    ('28.385629224695', '0.000000009341')
+
     """ 
     
     k = reg.k                   # (scalar) number of independent variables (includes constant)
@@ -105,8 +105,8 @@ def t_stat(reg):
     >>> X = np.array(X).T
     >>> reg = OLS(X,y)
     >>> testresult = diagnostics.t_stat(reg)
-    >>> testresult
-    [(14.490373143689094, 9.2108899889173982e-19), (-4.7804961912965762, 1.8289595070843232e-05), (-2.6544086427176916, 0.010874504909754612)]
+    >>> print("%12.12f"%testresult[0][0], "%12.12f"%testresult[0][1], "%12.12f"%testresult[1][0], "%12.12f"%testresult[1][1], "%12.12f"%testresult[2][0], "%12.12f"%testresult[2][1])
+    ('14.490373143689', '0.000000000000', '-4.780496191297', '0.000018289595', '-2.654408642718', '0.010874504910')
     
     """ 
     
@@ -456,8 +456,8 @@ def condition_index(reg):
     >>> X = np.array(X).T
     >>> reg = OLS(X,y)
     >>> testresult = diagnostics.condition_index(reg)
-    >>> testresult
-    6.5418277514438046
+    >>> print("%12.12f"%testresult)
+    6.541827751444
 
     """
 
@@ -520,10 +520,10 @@ def jarque_bera(reg):
     >>> testresult = diagnostics.jarque_bera(reg)
     >>> testresult['df']
     2
-    >>> testresult['jb']
-    1.835752520075947
-    >>> testresult['pvalue']
-    0.39936629124876566
+    >>> print("%12.12f"%testresult['jb'])
+    1.835752520076
+    >>> print("%12.12f"%testresult['pvalue'])
+    0.399366291249
 
     """
     
@@ -592,10 +592,10 @@ def breusch_pagan(reg):
     >>> testresult = diagnostics.breusch_pagan(reg)
     >>> testresult['df']
     2
-    >>> testresult['bp']
-    7.2165644721877591
-    >>> testresult['pvalue']
-    0.027098355486469678
+    >>> print("%12.12f"%testresult['bp'])
+    7.216564472188
+    >>> print("%12.12f"%testresult['pvalue'])
+    0.027098355486
     
     """
     k = reg.k           # (scalar) number of independent variables (including constant)
@@ -675,10 +675,10 @@ def white(reg, constant):
     >>> testresult = diagnostics.white(reg, 1)
     >>> testresult['df']
     5
-    >>> testresult['wh']
-    19.946008239903257
-    >>> testresult['pvalue']
-    0.0012792228173925788
+    >>> print("%12.12f"%testresult['wh'])
+    19.946008239903
+    >>> print("%12.12f"%testresult['pvalue'])
+    0.001279222817
 
     """
     if constant == 1:
