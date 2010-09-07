@@ -390,7 +390,7 @@ def get_spFilter(w,lamb,sf):
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
     >>> w=pysal.open("examples/columbus.GAL").read()  
-    >>> solu = get_spFilter(X,y,w,0.5)
+    >>> solu = get_spFilter(w,0.5,y)
     >>> print solu.ys 
     >>>
     [[ -15.7812905]
