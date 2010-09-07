@@ -185,37 +185,4 @@ def _test():
     
 if __name__ == '__main__':
     _test()
-    '''
-    x = [[1,2,3,4],
-         [1,2,3,4],
-         [1,2,3,4],
-         [1,2,3,4]]
-    x = np.array(x)
-    y = [[1],
-         [2],
-         [3],
-         [4]]
-    y = np.array(y)
-    neighbors = {0:[0,2,3],1:[1,3],2:[0,2],3:[0,1,3]}
-    w = pysal.W(neighbors)
-    #w=pysal.open("../examples/columbus.GAL").read()  
-    solu = spFilter(x,y,w,0.5)
-    '''
-    '''
-    db=pysal.open("examples/columbus.dbf","r")
-    y = np.array(db.by_col("CRIME"))
-    y = np.reshape(y, (49,1))
-    X = []
-    X.append(db.by_col("INC"))
-    X.append(db.by_col("HOVAL"))
-    X = np.array(X).T
-    w=pysal.open("examples/columbus.GAL").read()  
-    solu = spFilter(X,y,w,0.5)
-    print solu.ys
-    print solu.ys.shape
-    #print solu.xs
-    #print solu.wys
-    #print solu.zs
-    '''
-        
     
