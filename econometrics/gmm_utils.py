@@ -270,6 +270,58 @@ def gm_het(lambdapar,moments):
     vv2=np.reshape(vv,[2,1])-moments[1]
     return sum(vv2**2)
 
+def get_vm_het(G, lamb, reg, u, w, psi):
+    """
+    Computes the variance-covariance matrix Omega as in Arraiz et al [1]_:
+    ...
+
+    Parameters
+    ----------
+
+    G           : array
+                  G from moments equations
+
+    lamb        : float
+                  Final lambda from spHetErr estimation
+
+    reg         : regression object
+                  output instance from a regression model
+
+    u           : array
+                  nx1 vector of residuals
+
+    w           : W
+                  Spatial weights instance
+
+    psi         : array
+                  2x2 array with the variance-covariance matrix of the moment equations
+ 
+    Returns
+    -------
+
+    vm          : array
+                  (k+1)x(k+1) array with the variance-covariance matrix of the parameters
+
+    References
+    ----------
+
+    .. [1] Arraiz, I., Drukker, D. M., Kelejian, H., Prucha, I. R. (2010) "A
+    Spatial Cliff-Ord-Type Model with Heteroskedastic Innovations: Small and
+    Large Sample Results". Journal of Regional Science, Vol. 60, No. 2, pp.
+    592-614.
+
+    """
+
+    J = np.dot(G, np.array([[1],[2 * lamb]]))
+    Zs = get_spCO(reg.x,w,lamb)
+    ZstEZs = np.dot((Zs.T * get_psi_sigma(w, u, lamb)), Zs)
+    ZsZsi = la.inv(np.dot(Zs.T,Zs))
+    omega11 = w.n * np.dot(np.dot(ZsZsi,ZstEZs),ZsZsi)
+    omega22 = la.inv(np.dot(np.dot(J.T,la.inv(psi)),J))
+    zero = np.zeros((reg.k,1),float)
+    vm = np.vstack((np.hstack((omega11, zero)),np.hstack((zero.T, omega22)))) / w.n
+    return vm
+
 # GSLS
 
 def momentsGSLS(w, u):
