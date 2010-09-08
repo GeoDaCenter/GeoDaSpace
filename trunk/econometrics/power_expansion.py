@@ -43,6 +43,9 @@ def power_expansion(w, data, scalar, transpose=False, threshold=0.0000001, max_i
                       Maximum number of iterations for the expansion
 
 
+    Examples
+    --------
+
     >>> import numpy, pysal
     >>> import numpy.linalg as la
     >>> np.random.seed(10)
@@ -102,11 +105,20 @@ def rev_lag_spatial(w, y):
     yw : array
          array of numeric values
 
+    Examples
+    --------
+    Tests for this function are in power_expansion()
+
     """
     return y * w.sparse
 
 
 def regular_inverse(w, data, scalar, transpose=False):
+    """
+    Temporary function for testing purposes. Will be deleted once the main
+    functions work.
+    """
+    
     matrix = np.eye(w.n) - (scalar * w.full()[0])
     matrix = la.pinv(matrix)
     if transpose:
