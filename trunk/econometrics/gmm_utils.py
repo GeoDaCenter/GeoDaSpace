@@ -385,7 +385,9 @@ def gm_gsls(lambdapar, moments):
     return sum(vv**2)
 
 # copy from spHetErr.py
+def get_a1a2(w, h, u, z, lambdapar):
 def get_S(w):
+    """
     """
     Converts pysal W to scipy csr_matrix
     ...
@@ -440,8 +442,63 @@ def get_spFilter(w,lamb,sf):
     >>> import pysal
     >>> db=pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
+    Computes the a1 in psi equation:
+    ...
+
+    Parameters
+    ----------
+
+    w           : W
+                  Spatial weights instance 
+
+    h           : matrix
+                  nxp matrix of Instruments
+                  
+    u           : array
+                  nx1 array of residuals
+                  
+    z           : matrix
+                  nx(k+1) matrix of Instruments
+                  
+    lambdapar   : float
+                  Spatial autoregressive parameter
+ 
+    Returns
+    -------
+
+    [a1, a2]    : list
+                  a1 and a2 are two nx1 array in psi equation
+
+    References
+    ----------
+
+    .. [1] Anselin, L. GMM Estimation of Spatial Error Autocorrelation with Heteroskedasticity
+
+    """    
+    
+    hth = h.T * h
+    htz = h.T * z
+    zth = htz.T
+    hthI = w.n * hth.I 
+    p = hthI * ((1.0/w.n) * htz) * (((1.0/w.n) * zth) * hthI * ((1.0/w.n) * htz)).I
+    zst = get_spfil(w,z,lambdapar).T
+    us = get_spfil(w,u,lambdapar)
+    alpha1 = -2 * (1.0/w.n) * (zst * get_A1(w.sparse) * us)
+    alpha2 = (-1.0/w.n) * (zst * (w + w.T).sparse * us)
+    v1t = (h * p * alpha1).T
+    v2t = (h * p * alpha2).T
+    a1t = 0
+    a2t = 0
+    pe = 0
+    while (lambdapar**pe > 1e-10):
+        a1t = a1t + (lambdapar**pe) * v1t * (w.sparse**pe)
+        a2t = a2t + (lambdapar**pe) * v2t * (w.sparse**pe)
+        pe = pe + 1
+    return [alt.T, a2t.T]
     >>> y = np.reshape(y, (49,1))
     >>> w=pysal.open("examples/columbus.GAL").read()  
+
+        
     >>> solu = get_spFilter(w,0.5,y)
     >>> print solu.ys 
     >>>
