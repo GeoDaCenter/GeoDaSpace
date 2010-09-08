@@ -5,8 +5,6 @@ from gmm_utils import get_A1, get_spCO
 import ols as OLS
 from scipy import sparse as SP
 import time
-import numpy.linalg as la
-
 
 class Spatial_Error_Het:
     """
@@ -91,7 +89,7 @@ class Spatial_Error_Het:
         #Will lambda be stacked to the betas? If not, the var-cov matrix should not contain the var of lambda.
         self.betas = np.vstack((ols_i.betas,lambda3))
         self.u = u
-	self.vm = GMM.get_vm_het(moments_i[0],lambda3,ols,u,w,vc2)
+        self.vm = GMM.get_vm_het(moments_i[0],lambda3,ols,u,w,vc2)
         
         
 # LA - note: as written, requires recomputation of spatial lag
