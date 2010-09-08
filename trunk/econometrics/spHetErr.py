@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/Users/pedroamaral/Documents/academico/geodacenter/python/svn/')
+sys.path.append('/Users/pedroamaral/Documents/academico/geodacenter/python/svn/spreg/trunk/econometrics/')
 import numpy as np
 import pysal
 import gmm_utils as GMM
@@ -5,6 +8,8 @@ from gmm_utils import get_A1, get_spCO
 import ols as OLS
 from scipy import sparse as SP
 import time
+import numpy.linalg as la
+
 
 class Spatial_Error_Het:
     """
@@ -65,29 +70,32 @@ class Spatial_Error_Het:
         
         for n in range(cycles): #### Added loop.
             #2a. OLS -->\hat{betas}
-            xs,ys = get_spCO(x,w,lambda2),get_spCO(y,w,lambda2)
+            xs,ys = get_spCO(ols.x,w,lambda2),get_spCO(y,w,lambda2)
             
             #This step assumes away heteroskedasticity, we are taking into account
             #   spatial dependence (I-lambdaW), but not heteroskedasticity
             #   GM lambda is only consistent in the absence of heteroskedasticity
             #   so do we need to do FGLS here instead of OLS?
             
-            ols = OLS.OLS_dev(xs,ys)
+            ols_i = OLS.OLS_dev(xs,ys,constant=False)
 
             #2b. GMM --> \hat{\lambda}
-            moments = GMM.moments_het(w, ols.u)
-            vc2 = GMM.get_vc_het(w, ols.u, lambda2)
-            lambda3 = GMM.optimizer_het(moments,vc2)[0][0]
+            u = y - np.dot(ols.x,ols_i.betas)
+            moments_i = GMM.moments_het(w, u)
+            sigma_i =  GMM.get_psi_sigma(w, u, lambda2)
+            vc2 = GMM.get_vc_het(w, sigma_i)
+            lambda3 = GMM.optimizer_het(moments_i,vc2)[0][0]
             lambda2 = lambda3 #### 
 
             #How many times do we want to iterate after 2b.? What should value of i be
             #   in loop?
         
         #Output
-        self.betas = ols.betas
-        self.lamb = lambda3
-        self.u = ols.u
-
+        #Will lambda be stacked to the betas? If not, the var-cov matrix should not contain the var of lambda.
+        self.betas = np.vstack((ols_i.betas,lambda3))
+        self.u = u
+	self.vm = GMM.get_vm_het(moments_i[0],lambda3,ols,u,w,vc2)
+        
         
 # LA - note: as written, requires recomputation of spatial lag
 #         for each value of lambda; since the spatial lag does
@@ -101,4 +109,5 @@ if __name__ == '__main__':
     y = np.array([y]).T
     w.A1 = get_A1(w.sparse)
     sp = Spatial_Error_Het(x, y, w)
+    print np.hstack((sp.betas,np.reshape(np.array(np.sqrt(sp.vm.diagonal())),(7,1))))
 
