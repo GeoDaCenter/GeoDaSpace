@@ -1,6 +1,3 @@
-import sys
-sys.path.append('/Users/pedroamaral/Documents/academico/geodacenter/python/svn/')
-sys.path.append('/Users/pedroamaral/Documents/academico/geodacenter/python/svn/spreg/trunk/econometrics/')
 import numpy as np
 import pysal
 import gmm_utils as GMM
