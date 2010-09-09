@@ -3,9 +3,9 @@ Diagnostics for regression estimations.
 
 To Do List:
 
-    * Resolve conflict between GeoDa/R/Stata/SpaceStat in the Breusch-Pagan test.
-    * Complete Koenker-Bassett diagnostics.
-    * Add variance inflation factor (more complicated than originally expected). 
+    * Resolve conflict between GeoDa/R/Stata/SpaceStat in the Breusch-Pagan and Koenker-Bassett tests.
+    * Add variance inflation factor (more complicated than originally expected).
+    * Get feedback on dependence check in White Test. 
 
         
 """
@@ -623,7 +623,6 @@ def breusch_pagan(reg):
 
 
 def white(reg, constant):
-
     """
     Calculates the White test to check for heteroskedasticity. 
 
@@ -702,6 +701,10 @@ def white(reg, constant):
 
     A = np.array(A).T
     A = np.hstack((X,A))
+    dependence = la.svd(A,0,0)
+    test = dependence.min()
+    white_result = 'SINGULAR'
+    if test<9.99999999e-14: return white_result
     a = np.hstack((np.ones(y.shape),A))
     an, ak = np.shape(a)
     at = np.transpose(a)
@@ -725,8 +728,98 @@ def white(reg, constant):
 
 
 
-#def koenker_bassett(parameters):
+def koenker_bassett(reg):
+    """
+    Calculates the Koenker-Bassett test statistic to check for heteroskedasticity. 
 
+    Parameters
+    ----------
+
+    reg             : regression output
+                      output from an instance of a regression class
+
+    Returns
+    -------
+
+    kb              : float
+                      scalar value for the Koenker-Bassett test statistic.
+
+    df              : integer
+                      degrees of freedom associated with the test
+
+    pvalue          : float
+                      p-value associated with the statistic (chi^2 distributed)
+
+    Reference
+    ---------
+    
+    [1] R. Koenker and G. Bassett. 1982. Robust tests for heteroscedasticity based on regression quantiles. Econometrica, 50(1):43-61. 
+
+    [2] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
+
+
+    Examples
+    --------
+
+    >>> import numpy as np
+    >>> import pysal
+    >>> from econometrics.ols import OLS_dev as OLS
+    >>> from econometrics import diagnostics as diagnostics
+    >>> db = pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> reg = OLS(X,y)
+    >>> testresult = diagnostics.koenker_bassett(reg)
+    >>> testresult['df']
+    2
+    >>> testresult['kb']
+    7.2165644721877449
+    >>> testresult['pvalue']
+    0.027098355486469869
+
+    """
+
+    #The notation here deliberately matches that of Greene (2003).
+    u = reg.u**2
+    e = reg.u
+    n = reg.n
+    k = reg.k
+    x = reg.x
+    ete = reg.utu
+    constant = 1 #reg.constant
+
+    ubar = ete/n
+    ubari = ubar*np.ones((n,1))
+    g = u-ubari
+    v = (1.0/n)*np.sum((u-ubar)**2)
+
+    #This is required because the first column of z must be a constant.
+    if constant == 0: 
+        z = x.append(np.ones((n,1)))
+        df = k
+    else:
+        z = x
+        df = k-1
+
+    zt = np.transpose(z)
+    gt = np.transpose(g)
+    gtz = np.dot(gt,z)
+    ztg = np.dot(zt,g)
+    ztz = np.dot(zt,z)
+    ztzi = la.inv(ztz)
+
+    part1 = np.dot(gtz, ztzi)
+    part2 = np.dot(part1,ztg)
+    kb_array = (1.0/v)*part2
+    kb = kb_array[0,0]
+    
+    pvalue=stats.chisqprob(kb,df)
+    kb_result = {'kb':kb,'df':df,'pvalue':pvalue}
+    return kb_result
 
 
 #def variance_inflation(reg)
