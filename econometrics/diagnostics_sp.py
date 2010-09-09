@@ -543,7 +543,7 @@ def get_zI(I, ei, vi):
 
     Returns two-sided p-values as provided in the GeoDa family
     """
-    z = (I - ei) / np.sqrt(vi)
+    z = abs((I - ei) / np.sqrt(vi))
     pval = norm.sf(z) * 2.
     return (z, pval)
 
