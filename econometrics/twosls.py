@@ -2,18 +2,8 @@ import numpy as np
 import numpy.linalg as la
 import ols as OLS
 import robust as ROBUST
+import user_output as USER
 
-class TSLS(OLS.OLS):
-    """
-    2SLS class for end-user (gives back only results and diagnostics)
-    """
-    def __init__(self):
-
-
-
-        # Need to check the shape of user input arrays, and report back descriptive
-        # errors when necessary
-        pass
 
 class TSLS_dev(OLS.OLS_dev):
     """
@@ -101,7 +91,7 @@ class TSLS_dev(OLS.OLS_dev):
     >>> h.append(db.by_col("INC"))
     >>> h.append(db.by_col("DISCBD"))
     >>> h = np.array(h).T
-    >>> reg=TSLS_dev(X,y,h)
+    >>> reg = TSLS_dev(X, y, h)
     >>> reg.betas
     array([[ 88.46579584],
            [  0.5200379 ],
@@ -140,10 +130,53 @@ class TSLS_dev(OLS.OLS_dev):
     @property
     def vm(self):
         if 'vm' not in self._cache:
-            self._cache['vm'] = np.dot(self.sig2, self.xtxi)
+            self._cache['vm'] = np.dot(self.sig2, self.xptxpi)
         return self._cache['vm']
     
     
+class TSLS(TSLS_dev, OLS.OLS):
+    """
+    2SLS class for end-user (gives back only results and diagnostics)
+
+        # Need to check the shape of user input arrays, and report back descriptive
+        # errors when necessary
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> # instrument for HOVAL with DISCBD
+    >>> h = []
+    >>> h.append(db.by_col("INC"))
+    >>> h.append(db.by_col("DISCBD"))
+    >>> h = np.array(h).T
+    >>> reg = TSLS(X, y, h, name_x=['INC','HOVAL'], name_y='CRIME', name_h=['INC','DISCBD'], name_ds='columbus')
+    >>> reg.betas
+    array([[ 88.46579584],
+           [  0.5200379 ],
+           [ -1.58216593]])
+    
+    """
+    def __init__(self, x, y, h, constant=True, robust=None, name_x=None,\
+                        name_y=None, name_h=None, name_ds=None, vm=False,\
+                        pred=False):
+        TSLS_dev.__init__(self, x, y, h, constant)
+        self.title = "TWO STAGE LEAST SQUARES"
+        self.name_ds = name_ds
+        self.name_y = name_y
+        self.name_x = name_x
+        self.name_h = name_h
+        USER.Diagnostic_Builder.__init__(self, constant=constant, vm=vm,\
+                                            pred=pred, instruments=True)
+
+
 
 def _test():
     import doctest
