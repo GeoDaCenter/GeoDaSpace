@@ -67,6 +67,7 @@ def summary_results(reg, constant=True, vm = False, pred = False, instruments=Fa
     strSummary += "%-20s:%12s  %-22s:%12d\n" % ('Dependent Variable',reg.name_y,'Number of Observations',reg.n)
     strSummary += "%-20s:%12.4f  %-22s:%12d\n" % ('Mean dependent var',reg.mean_y,'Number of Variables',reg.k)
     strSummary += "%-20s:%12.4f  %-22s:%12d\n" % ('S.D. dependent var',reg.std_y,'Degrees of Freedom',reg.n-reg.k)
+    strSummary += '\n'
 
     # general information 2
     strSummary += "%-20s:%12.6f  %-22s:%12.4f\n" % ('R-squared',reg.r2,'F-statistic',reg.Fstat[0])
@@ -75,6 +76,7 @@ def summary_results(reg, constant=True, vm = False, pred = False, instruments=Fa
     strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('Sigma-square',reg.sig2,'Akaike info criterion',reg.aic)
     strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('S.E. of regression',np.sqrt(reg.sig2),'Schwarz criterion',reg.sc)
     strSummary += "%-20s:%12.3f\n%-20s:%12.4f\n" % ('Sigma-square ML',reg.sigML,'S.E of regression ML',np.sqrt(reg.sigML))
+    strSummary += '\n'
     
     # Variable    Coefficient     Std.Error    t-Statistic   Probability 
     strSummary += "----------------------------------------------------------------------------\n"
@@ -96,7 +98,6 @@ def summary_results(reg, constant=True, vm = False, pred = False, instruments=Fa
         text_wrapper = TW.TextWrapper(width=76, subsequent_indent="             ")
         insts = text_wrapper.fill(insts[:-2])
         strSummary += insts + "\n"
-    strSummary += "\n"
     
     # diagonostics
     strSummary += "\n\nREGRESSION DIAGNOSTICS\n"

@@ -112,6 +112,7 @@ class TSLS_dev(OLS.OLS_dev):
         x_hat = np.dot(z, ztzi_ztx)          # x_hat = Z(Z'Z)^-1 Z'X
         OLS.OLS_dev.__init__(self, x_hat, y, constant=False)
         self.xptxpi = self.xtxi              # using predicted x (xp)
+        self.u_2nd_stage = self.u
         self.set_x(x)  # reset x, xtx and xtxi attributes to use original data
         self.predy = np.dot(x, self.betas)   # using original data
         self.u = y - self.predy              # using original data
