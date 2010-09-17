@@ -13,8 +13,9 @@ To Do List:
 import pysal
 from pysal.common import *
 from math import sqrt
+import ols as OLS
 
-def f_stat(reg):
+def f_stat(reg, tsls=False):
 
     """
     Calculates the f-statistic and associated p-value of the regression. 
@@ -24,6 +25,10 @@ def f_stat(reg):
 
     reg             : regression object
                       output instance from a regression model
+
+    tsls            : boolean
+                      If True adjusts the f_stat accounting for two stage
+                      least squares regression.
         
     Returns
     ----------
@@ -35,7 +40,10 @@ def f_stat(reg):
     ----------
 
     [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
+    [2] J.M. Wooldridge. 1990. A note on the Lagrange multiplier and F-statistics 
+        for two stage least squares regressions. Economics Letters 34, 151-155.
     
+
     Examples
     --------
     >>> import numpy as np
@@ -53,6 +61,16 @@ def f_stat(reg):
     >>> testresult = diagnostics.f_stat(reg)
     >>> print("%12.12f"%testresult[0],"%12.12f"%testresult[1])
     ('28.385629224695', '0.000000009341')
+    >>> # test 2SLS
+    >>> from twosls import TSLS_dev as TSLS
+    >>> h = []
+    >>> h.append(db.by_col("INC"))
+    >>> h.append(db.by_col("DISCBD"))
+    >>> h = np.array(h).T
+    >>> reg = TSLS(X, y, h)
+    >>> testresult = diagnostics.f_stat(reg, True)
+    >>> print("%12.12f"%testresult[0],"%12.12f"%testresult[1])
+    ('7.400584184601', '0.001634766980')
 
     """ 
     
@@ -61,8 +79,13 @@ def f_stat(reg):
     utu = reg.utu               # (scalar) residual sum of squares
     predy = reg.predy           # (array) vector of predicted values (n x 1)
     mean_y = reg.mean_y         # (scalar) mean of dependent observations
-    U = np.sum((predy-mean_y)**2)
     Q = utu
+    if tsls:
+        ssr_intercept = OLS.OLS_dev(np.ones(reg.y.shape), reg.y, False).utu
+        ssr_2nd_stage = np.sum(reg.u_2nd_stage**2)
+        U = ssr_intercept - ssr_2nd_stage
+    else:
+        U = np.sum((predy-mean_y)**2)
     fStat = (U/(k-1))/(Q/(n-k))
     pValue = stats.f.sf(fStat,k-1,n-k)
     fs_result = (fStat, pValue)
