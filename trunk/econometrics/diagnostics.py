@@ -69,8 +69,8 @@ def f_stat(reg, tsls=False):
     >>> h = np.array(h).T
     >>> reg = TSLS(X, y, h)
     >>> testresult = diagnostics.f_stat(reg, True)
-    >>> print("%12.12f"%testresult[0],"%12.12f"%testresult[1])
-    ('7.400584184601', '0.001634766980')
+    >>> print("%12.11f"%testresult[0],"%12.11f"%testresult[1])
+    ('7.40058418460', '0.00163476698')
 
     """ 
     
