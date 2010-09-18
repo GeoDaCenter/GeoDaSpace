@@ -51,7 +51,7 @@ class STSLS_dev(TSLS.TSLS_dev):
                   None then only spatial lagged 
     w_lags      : integer
                   Number of spatial lags of the exogenous variables. Kelejian
-                  et al. (2004) recommends w_lags=2, which is the default.
+                  et al. (2004) [1]_ recommends w_lags=2, which is the default.
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
@@ -147,6 +147,14 @@ class STSLS_dev(TSLS.TSLS_dev):
     >>> D.se_betas(reg)
     array([ 7.2237932 ,  0.13208009,  0.4297434 ,  0.15201063])
     >>> reg=STSLS_dev(X, y, w, h)
+
+    References
+    ----------
+
+    .. [1] Kelejian, H.H., Prucha, I.R. and Yuzefovich, Y. (2004)
+    "Instrumental variable estimation of a spatial autorgressive model with
+    autoregressive disturbances: large and small sample results". Advances in
+    Econometrics, 18, 163-198.
     """
 
     def __init__(self, x, y, w, h=None, w_lags=2, constant=True, robust=None):

@@ -9,9 +9,12 @@ ToDo:
         * np.dot against * for sparse (Moran)
     * Document Moran
 """
+
 from scipy.stats.stats import chisqprob
 from scipy.stats import norm
 from ols import OLS_dev as OLS
+from twosls import TSLS_dev
+from twosls_sp import STSLS_dev
 import numpy as np
 import pysal
 
@@ -120,8 +123,9 @@ class AKtest:
     (1997) [1]_
     ...
 
-    Attributes
+    Parameters
     ----------
+
     x           : array
                   nxk array of independent variables, including endogenous
                   variables (assumed to be aligned with y)
@@ -129,7 +133,8 @@ class AKtest:
                   nx1 array of dependent variable
     h           : array
                   nxl array of instruments; typically this includes all
-                  exogenous variables from x and instruments
+                  exogenous variables from x and instruments. If case=0 and set
+                  to None then only spatial lagged 
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
@@ -137,31 +142,58 @@ class AKtest:
                   Spatial weights instance (requires 'S' and 'A1') assumed to
                   be row-standardized
     case        : int
-                  Flag for special cases (default to 0):
-                    * 0: General case
-                    * 1: No endogenous regressors
-                    * 2: No spatial lag
+                  Flag for special cases (default to 1):
+                    * 0: General case (spatial lag + end. reg.)
+                    * 1: Only NO spatial end. reg.
+    w_lags      : int
+                  [Only if case=0] Number of spatial lags of the exogenous
+                  variables. Kelejian et al. (2004) [2]_ recommends w_lags=2, which
+                  is the default.
+    constant    : boolean
+                  [Only if case=0] If true it appends a vector of ones to the
+                  independent variables to estimate intercept (set to True by
+                  default)
+
+    robust      : string
+                  [Only if case=0] If 'white' then a White consistent
+                  estimator of the variance-covariance matrix is given. If 'gls' then
+                  generalized least squares is performed resulting in new
+                  coefficient estimates along with a new variance-covariance
+                  matrix. 
+
+
+    Attributes
+    ----------
+
+    ak          : tuple
+                  Pair of statistic and p-value for the AK test
 
     References
     ----------
+
     .. [1] Anselin, L., Kelejian, H. (1997) "Testing for spatial error
     autocorrelation in the presence of endogenous regressors". Interregional
     Regional Science Review, 20, 1.
+
+    .. [2] Kelejian, H.H., Prucha, I.R. and Yuzefovich, Y. (2004)
+    "Instrumental variable estimation of a spatial autorgressive model with
+    autoregressive disturbances: large and small sample results". Advances in
+    Econometrics, 18, 163-198.
             """
 
-    def __init__(self, iv, w, case=0):
+    def __init__(self, x, y, h, w, case=1, w_lags=2, constant=constant, robust=robust):
         if case == 0:
-            pass
+            iv = STSLS_dev(x, y, w, h, w_lags=2, constant=constant, robust=robust)
+            cache = spDcache(iv, w)
         elif case == 1:
-            pass
-        elif case ==2:
-            pass
+            iv = TSLS_dev(x, y, h, constant=constant)
+            cache = spDcache(iv, w)
+            self.ak = lmErr(iv, w, cache)
         else:
             print """\n
             Fix the optional argument 'case' to match the requirements:
-                * 0: General case
-                * 1: No endogenous regressors
-                * 2: No spatial lag
+                * 0: General case (spatial lag + end. reg.)
+                * 1: No spatial end. reg.
             \n"""
 
 class MoranRes:
@@ -178,16 +210,16 @@ class spDcache:
     Class to compute reusable pieces in the spatial diagnostics module
     ...
 
-    Attributes
+    Parameters
     ----------
 
-    ols         : OLS_dev
-                  Instance from an OLS_dev regression 
+    reg         : OLS_dev, TSLS_dev, STSLS_dev
+                  Instance from a regression class
     w           : W
                   Spatial weights instance (requires 'S' and 'A1') assumed to
                   be row-standardized
 
-    Parameters
+    Attributes
     ----------
 
     j           : array
@@ -223,39 +255,39 @@ class spDcache:
                         T = tr[(W' + W) W]
 
     mw          : csr_matrix
-                  scipy sparse matrix results of multiplying ols.M and W
+                  scipy sparse matrix results of multiplying reg.M and W
     trMw        : float
                   Trace of mw
 
     """
-    def __init__(self,ols, w):
-        self.ols = ols
+    def __init__(self,reg, w):
+        self.reg = reg
         self.w = w
         self._cache = {}
     @property
     def j(self):
         if 'j' not in self._cache:
-            wxb = self.w.sparse * self.ols.predy
-            num = np.dot(wxb.T, np.dot(self.ols.m, wxb)) + (self.t * self.ols.sig2)
-            den = self.ols.n * self.ols.sig2
+            wxb = self.w.sparse * self.reg.predy
+            num = np.dot(wxb.T, np.dot(self.reg.m, wxb)) + (self.t * self.reg.sig2)
+            den = self.reg.n * self.reg.sig2
             self._cache['j'] = num / den
         return self._cache['j']
     @property
     def wu(self):
         if 'wu' not in self._cache:
-            self._cache['wu'] = self.w.sparse * self.ols.u
+            self._cache['wu'] = self.w.sparse * self.reg.u
         return self._cache['wu']
     @property
     def utwuDs(self):
         if 'utwuDs' not in self._cache:
-            res = np.dot(self.ols.u.T, self.wu) / self.ols.sig2
+            res = np.dot(self.reg.u.T, self.wu) / self.reg.sig2
             self._cache['utwuDs'] = res
         return self._cache['utwuDs']
     @property
     def utwyDs(self):
         if 'utwyDs' not in self._cache:
-            res = np.dot(self.ols.u.T, self.w.sparse * self.ols.y)
-            self._cache['utwyDs'] = res / self.ols.sig2
+            res = np.dot(self.reg.u.T, self.w.sparse * self.reg.y)
+            self._cache['utwyDs'] = res / self.reg.sig2
         return self._cache['utwyDs']
     @property
     def t(self):
@@ -266,7 +298,7 @@ class spDcache:
     @property
     def mw(self):
         if 'mw' not in self._cache:
-            self._cache['mw'] = self.ols.m * self.w.sparse
+            self._cache['mw'] = self.reg.m * self.w.sparse
         return self._cache['mw']
     @property
     def trMw(self):
@@ -280,10 +312,10 @@ class spDcache:
         """
         if 'AB' not in self._cache:
             U = (self.w.sparse + self.w.sparse.T) / 2.
-            z = U * self.ols.x
-            c1 = np.dot(self.ols.x.T, z)
+            z = U * self.reg.x
+            c1 = np.dot(self.reg.x.T, z)
             c2 = np.dot(z.T, z)
-            G = self.ols.xtxi
+            G = self.reg.xtxi
             A = np.dot(G, c1)
             B = np.dot(G, c2)
             self._cache['AB'] = [A, B]
@@ -295,7 +327,7 @@ class spDcache:
         return self._cache['trA']
 
 
-def lmErr(ols, w, spDcache):
+def lmErr(reg, w, spDcache):
     """
     LM error test. Implemented as presented in eq. (9) of Anselin et al.
     (1996) [1]_
@@ -304,8 +336,8 @@ def lmErr(ols, w, spDcache):
     Attributes
     ----------
 
-    ols         : OLS_dev
-                  Instance from an OLS_dev regression 
+    reg         : OLS_dev, TSLS_dev, STSLS_dev
+                  Instance from a regression class
     w           : W
                   Spatial weights instance (requires 'S' and 'A1') assumed to
                   be row-standardized
@@ -467,8 +499,35 @@ def lmSarma(ols, w, spDcache):
     pval = chisqprob(lm, 2)
     return (lm[0][0], pval[0][0])
 
+def akTest(iv, w, spDcache):
+    """
+    Computes AK-test for the general case (end. reg. + sp. lag)
+    ...
 
-def get_mI(ols, w, spDcache):
+    Parameters
+    ----------
+
+    iv          : STSLS_dev
+                  Instance from spatial 2SLS regression
+    w           : W
+                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  be row-standardized
+   spDcache     : spDcache
+                  Instance of spDcache class
+
+    Attributes
+    ----------
+    ak          : tuple
+                  Pair of statistic and p-value for the AK test
+    """
+    mi = get_mI(iv, w, spDcache)
+    s1
+    phi2 = (s2 / 2. * (w.s0 / w.n)**2) + (4. / 
+    ak = w.n * mi**2 / phi2**2
+    pval = chisqprob(ak, 1)
+    return (ak[0][0], pval[0][0])
+
+def get_mI(reg, w, spDcache):
     """
     Moran's I statistic of spatial autocorrelation as showed in Cliff & Ord
     (1981) [1], p. 201-203
@@ -477,8 +536,8 @@ def get_mI(ols, w, spDcache):
     Attributes
     ----------
 
-    ols             : OLS_dev
-                      Instance from an OLS_dev regression 
+    reg             : OLS_dev, TSLS_dev, STSLS_dev
+                      Instance from a regression class
     w               : W
                       Spatial weights instance (requires 'S' and 'A1') assumed to
                       be row-standardized
@@ -496,7 +555,7 @@ def get_mI(ols, w, spDcache):
     .. [1] Cliff, AD., Ord, JK. (1981) "Spatial processes: models & applications".
        Pion London
     """
-    mi = (w.n * np.dot(ols.u.T, spDcache.wu)) / (w.s0 * ols.utu)
+    mi = (w.n * np.dot(reg.u.T, spDcache.wu)) / (w.s0 * reg.utu)
     return mi[0][0]
 
 def get_eI(ols, w, spDcache):
