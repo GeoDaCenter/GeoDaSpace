@@ -72,6 +72,8 @@ class STSLS_dev(TSLS.TSLS_dev):
                   nx1 array of dependent variable
     h           : array
                   nxl array of instruments
+    z           : array
+                  array of x and instruments appended
     betas       : array
                   kx1 array with estimated coefficients
     xt          : array
