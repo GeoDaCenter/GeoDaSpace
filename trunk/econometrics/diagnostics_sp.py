@@ -16,6 +16,7 @@ from ols import OLS_dev as OLS
 from twosls import TSLS_dev
 from twosls_sp import STSLS_dev
 import numpy as np
+import numpy.linalg as la
 import pysal
 
 class LMtests:
@@ -181,7 +182,8 @@ class AKtest:
     Econometrics, 18, 163-198.
             """
 
-    def __init__(self, x, y, h, w, case=1, w_lags=2, constant=constant, robust=robust):
+    def __init__(self, x, y, h, w, case=1, w_lags=2, constant=True,
+            robust=None):
         if case == 0:
             iv = STSLS_dev(x, y, w, h, w_lags=2, constant=constant, robust=robust)
             cache = spDcache(iv, w)
@@ -521,8 +523,13 @@ def akTest(iv, w, spDcache):
                   Pair of statistic and p-value for the AK test
     """
     mi = get_mI(iv, w, spDcache)
-    s1
-    phi2 = (s2 / 2. * (w.s0 / w.n)**2) + (4. / 
+    etwz = np.dot(iv.u.T, (w.sparse * iv.z))
+    p = np.dot(x, np.dot(iv.xtxi, x.T))
+    ztpz = np.dot(iv.z.T, np.dot(p, iv.z))
+    nztpzi = w.n * la.inv(nztpz)
+    a = np.dot((etwz / w.n), np.dot(nztpzi, (etwz.T / w.n)))
+    s12 = (w.s0 / w.n)**2
+    phi2 = (s2 / 2. * s12) + (4. / (s12 * iv.sig2)) * a
     ak = w.n * mi**2 / phi2**2
     pval = chisqprob(ak, 1)
     return (ak[0][0], pval[0][0])
@@ -611,5 +618,18 @@ def _test():
     doctest.testmod()
 
 if __name__ == '__main__':
-    _test()
+    #_test()
+
+    import numpy as np
+    import pysal
+    csv = pysal.open('examples/columbus.dbf','r')
+    y = np.array([csv.by_col('HOVAL')]).T
+    x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
+    print x.shape
+    w = pysal.open('examples/columbus.gal', 'r').read()
+    w.transform='r'
+    iv = STSLS_dev(x, y, w, h=None, w_lags=2, constant=True, robust=None)
+    print iv.x.shape
+    cache = spDcache(iv, w)
+    ak = akTest(iv, w, cache)
 

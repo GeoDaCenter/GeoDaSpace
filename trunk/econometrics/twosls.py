@@ -44,6 +44,8 @@ class TSLS_dev(OLS.OLS_dev):
                   nx1 array of dependent variable
     h           : array
                   nxl array of instruments
+    z           : array
+                  array of x and instruments appended
     betas       : array
                   kx1 array with estimated coefficients
     xt          : array
@@ -105,6 +107,7 @@ class TSLS_dev(OLS.OLS_dev):
             z = np.hstack((np.ones(y.shape),h))
         else:
             z = h
+        self.z = z
         ztz = np.dot(z.T,z)
         ztzi = la.inv(ztz)
         ztx = np.dot(z.T, x)
