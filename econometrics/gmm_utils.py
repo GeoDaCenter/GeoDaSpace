@@ -387,7 +387,7 @@ def get_a1a2(w, h, u, z, lambdapar):
                   nx1 array of residuals
                   
     z           : matrix
-                  nx(k+1) matrix of Instruments
+                  nxk matrix of exogenous variables
                   
     lambdapar   : float
                   Spatial autoregressive parameter
@@ -405,17 +405,19 @@ def get_a1a2(w, h, u, z, lambdapar):
 
     """    
     
-    hth = h.T * h
-    htz = h.T * z
+    hth = np.dot(h.T, h)
+    htz = np.dot(h.T, z)
     zth = htz.T
-    hthI = w.n * hth.I 
-    p = hthI * ((1.0/w.n) * htz) * (((1.0/w.n) * zth) * hthI * ((1.0/w.n) * htz)).I
-    zst = get_spfil(w,z,lambdapar).T
-    us = get_spfil(w,u,lambdapar)
-    alpha1 = -2 * (1.0/w.n) * (zst * get_A1(w.sparse) * us)
-    alpha2 = (-1.0/w.n) * (zst * (w + w.T).sparse * us)
-    v1t = (h * p * alpha1).T
-    v2t = (h * p * alpha2).T
+    hthI = hth.I
+    p1 = np.dot(hthI, htz)
+    p2 = np.dot(((1.0/w.n) * zth), p1)
+    p = np.dot(p1, p2.I)
+    zst = get_spFilter(w,lambdapar, z).T
+    us = get_spFilter(w,lambdapar, u)
+    alpha1 = (-2.0/w.n) * (np.dot((zst * get_A1(w.sparse)), us))
+    alpha2 = (-1.0/w.n) * (np.dot((zst * (w.sparse + w.sparse.T)), us))
+    v1t = np.dot(np.dot(h, p), alpha1).T
+    v2t = np.dot(np.dot(h, p), alpha2).T
     a1t = 0
     a2t = 0
     pe = 0
@@ -423,7 +425,7 @@ def get_a1a2(w, h, u, z, lambdapar):
         a1t = a1t + (lambdapar**pe) * v1t * (w.sparse**pe)
         a2t = a2t + (lambdapar**pe) * v2t * (w.sparse**pe)
         pe = pe + 1
-    return [alt.T, a2t.T]
+    return [a1t.T, a2t.T]
 
 def get_spFilter(w,lamb,sf):
     '''
@@ -518,14 +520,21 @@ if __name__ == "__main__":
     import pysal
     from spHetErr import get_A1
  
-    w=pysal.weights.lat2W(7,7, rook=False)
-    w.transform='r'
-    w.A1 = get_A1(w.sparse)
-    random.seed(100)
-    np.random.seed(100)
-    u=np.random.normal(0,1,(w.n,1))
-    u = np.random.randn(w.n,1) * (200*np.random.randn(w.n,1))
+    #w=pysal.weights.lat2W(7,7, rook=False)
+    #w.transform='r'
+    #w.A1 = get_A1(w.sparse)
+    #random.seed(100)
+    #np.random.seed(100)
+    #u=np.random.normal(0,1,(w.n,1))
+    #u = np.random.randn(w.n,1) * (200*np.random.randn(w.n,1))
 
-    m=moments_het(w,u)
-    vc = get_vc_het(w, u, 0.1)
+    #m=moments_het(w,u)
+    #vc = get_vc_het(w, u, 0.1)
+    w=pysal.weights.lat2W(2,2)
+    z=np.matrix([[1,6], [2,3], [5,7], [4,9]])
+    u=np.array([[3], [7], [8], [4]])
+    zl=w.sparse * z
+    h=np.hstack((z, zl))
+    a1,a2=get_a1a2(w,h,u, z, 0.1)
+    print a1,a2
 
