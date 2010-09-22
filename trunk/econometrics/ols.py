@@ -45,6 +45,8 @@ class OLS_dev:
               Number of observations
     k       : int
               Number of variables
+    const   : int
+              Denotes if a constant is included in the regression
     utu     : float
               Sum of the squared residuals
     sig2    : float
@@ -91,6 +93,9 @@ class OLS_dev:
     def __init__(self,x,y,constant=True):
         if constant:
             x = np.hstack((np.ones(y.shape),x))
+            self.const = 1
+        else:
+            self.const = 0
         self.set_x(x)
         xty = np.dot(x.T,y)
         self.betas = np.dot(self.xtxi,xty)
