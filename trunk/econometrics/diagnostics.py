@@ -3,9 +3,8 @@ Diagnostics for regression estimations.
 
 To Do List:
 
-    * Resolve conflict between GeoDa/R/Stata/SpaceStat in the Breusch-Pagan and Koenker-Bassett tests.
     * Add variance inflation factor (more complicated than originally expected).
-    * Get feedback on dependence check in White Test. 
+    * Get feedback on dependence check in White Test.
 
         
 """
@@ -616,33 +615,44 @@ def breusch_pagan(reg):
     >>> testresult['df']
     2
     >>> print("%12.12f"%testresult['bp'])
-    7.216564472188
+    10.012849713094
     >>> print("%12.12f"%testresult['pvalue'])
-    0.027098355486
-    
+    0.006694795426
+
     """
-    k = reg.k           # (scalar) number of independent variables (including constant)
-    n = reg.n           # (scalar) number of observations in the regression
-    u = reg.u           # (array) residuals from the regression
-    x = reg.x           # (array) independent variables in the regression
-    xt = reg.xt         # (array) transposed vector of independent variables
-    xtxi = reg.xtxi     # (array) k x k projection matrix (includes constant)
-    e = u**2            # (array) squared residuals become dependent for auxiliary regression
-    xte = np.dot(xt, e)
-    g = np.dot(xtxi, xte)   
-    prede = np.dot(x, g)
-    q = e - prede
-    qtq = np.dot(np.transpose(q), q)
-    part1 = e - np.mean(e)
-    part2 = part1**2
-    part3 = sum(part2)
-    r2 = 1 - (qtq/part3) 
-    bp_array = n*r2
+    e2 = reg.u**2
+    e = reg.u
+    n = reg.n
+    x = reg.x
+    k = reg.k
+    constant = 1 #reg.constant
+    ete = reg.utu
+
+    den = ete/n
+    g = e2/den - 1.0
+
+    if constant == 0: 
+        z = x.append(np.ones((n,1)))
+        df = k
+    else:
+        z = x
+        df = k-1
+
+    zt = np.transpose(z)
+    gt = np.transpose(g)
+    gtz = np.dot(gt,z)
+    ztg = np.dot(zt,g)
+    ztz = np.dot(zt,z)
+    ztzi = la.inv(ztz)
+
+    part1 = np.dot(gtz, ztzi)
+    part2 = np.dot(part1,ztg)
+    bp_array = 0.5*part2
     bp = bp_array[0,0]
-    df = k-1
+
     pvalue=stats.chisqprob(bp,df)
     bp_result={'df':df,'bp':bp, 'pvalue':pvalue}
-    return bp_result 
+    return bp_result
 
 
 def white(reg, constant):
