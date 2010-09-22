@@ -6,7 +6,7 @@ import copy
 import scipy.sparse as SP
 
 
-def power_expansion(w, data, scalar, transpose=False, threshold=0.0000001, max_iterations=100):
+def power_expansion(w, data, scalar, transpose=False, threshold=0.0000000001, max_iterations=None):
     """
     Compute the inverse of a matrix using the power expansion (Leontief
     expansion).  General form is:
@@ -40,7 +40,7 @@ def power_expansion(w, data, scalar, transpose=False, threshold=0.0000001, max_i
                       iteration.
 
     max_iterations  : integer
-                      Maximum number of iterations for the expansion
+                      Maximum number of iterations for the expansion. 
 
 
     Examples
@@ -61,11 +61,13 @@ def power_expansion(w, data, scalar, transpose=False, threshold=0.0000001, max_i
     >>> inv_reg = np.dot(matrix, data)
     >>> np.allclose(inv_pow, inv_reg, atol=0.0001)
     True
+    >>> inv_cg = inverse_cg(w, data, rho)
     >>> # test the transpose version
     >>> inv_pow = power_expansion(w, data, rho, transpose=True)
     >>> inv_reg = np.dot(data.T, matrix)
     >>> np.allclose(inv_pow, inv_reg, atol=0.0001)
     True
+
 
     """
     if transpose:
@@ -76,6 +78,8 @@ def power_expansion(w, data, scalar, transpose=False, threshold=0.0000001, max_i
     running_total = copy.copy(data)
     count = 1
     test = 10000000
+    if max_iterations == None:
+        max_iterations = 1000000
     while test > threshold and count <= max_iterations:
         vector = (scalar**count) * data
         increment = lag(w, vector)
@@ -113,7 +117,31 @@ def rev_lag_spatial(w, y):
     return y * w.sparse
 
 
-def inverse_cg(w, data, scalar, transpose=False, symmetric=False\
+def inverse_scg(w, data, scalar, transpose=False, symmetric=False,\
+               threshold=0.001,\
+               max_iterations=None):
+    
+    multiplier = SP.identity(w.n) - (scalar*w.sparse)       # A      n x n   
+    count = 0                                               # k      scalar (step 1)
+    run_tot = copy.copy(data)                               # z_k    n x 1  (step 1)
+    residuals = data - multiplier * run_tot                 # r_k    n x 1  (step 2)
+    test1 = la.norm(residuals)                              # G_k    scalar (step 3)
+    directions = copy.copy(residuals)                       # d_k    n x 1  (step 6)
+    while test1 > threshold:                                #               (step 4)
+        count += 1                                          #               (step 5)
+        changes = multiplier * directions                   # t      n x 1  (step 7)
+        intensity = test1 / (np.dot(directions.T, changes)) # alpha  scalar (step 8)
+        int_dir = intensity * directions                    #               (step 8)
+        run_tot += int_dir                                  #               (step 8)
+        residuals -= int_dir                                #               (step 8)
+        test2 = la.norm(residuals)                          #               (step 3)
+        directions = residuals + ((test1/test2)*directions) #               (step 6)
+        test1 = test2
+        print test1
+    return run_tot
+
+
+def inverse_cg(w, data, scalar, transpose=False, symmetric=False,\
                threshold=1.0000000000000001e-05,\
                max_iterations=None):
     """
@@ -133,7 +161,7 @@ def inverse_cg(w, data, scalar, transpose=False, symmetric=False\
                       Scalar value (typically rho or lambda)
 
     transpose       : boolean
-                      If True then transposes the data vector.
+                      If True then transposes the weights object.
 
     symmetric       : boolean
                       Boolean indicating if the weights matrix is symmetric. 
@@ -171,21 +199,20 @@ def inverse_cg(w, data, scalar, transpose=False, symmetric=False\
     >>> # test the transpose version
     >>> inv_pow = inverse_cg(w, data, rho, transpose=True)
     >>> inv_reg = np.dot(data.T, matrix)
-    >>> np.allclose(inv_pow, inv_reg, atol=0.0001)
+    >>> np.allclose(inv_pow, inv_reg.T, atol=0.0001)
     True
 
     """
-    multiplier = SP.identity(w.n) - (scalar*w.sparse)
+    identity = SP.identity(w.n)
     if transpose:
-        data = data.T
+        multiplier = identity - (scalar*w.sparse.transpose())
+    else:
+        multiplier = identity - (scalar*w.sparse)
     if symmetric:
-        cg_result =  SP.linalg.cg(multiplier, data, threshold, max_iterations)[0]
+        cg_result =  SP.linalg.cg(multiplier, data, tol=threshold, maxiter=max_iterations)[0]
     else:
-        cg_result =  SP.linalg.bicgstab(multiplier, data, threshold, max_iterations)[0]
-    if transpose:
-        cg_result.shape = (w.n, 1)
-    else:
-        cg_result.shape = (1, w.n)
+        cg_result =  SP.linalg.bicgstab(multiplier, data, tol=threshold, maxiter=max_iterations)[0]
+    cg_result.shape = (w.n, 1)
     return cg_result
 
 def regular_inverse(w, data, scalar, inv_type, transpose=False):
@@ -207,19 +234,24 @@ def regular_inverse(w, data, scalar, inv_type, transpose=False):
 
 if __name__ == '__main__':
     import doctest
-    #doctest.testmod()
-
+    doctest.testmod()
+    
     import time
-    shape = 1000
+    shape = 5
     w = pysal.lat2W(shape, shape)
-    #w.transform = 'r'
+    w.transform = 'r'
     d = np.random.randn(w.n)
+    #d = np.random.randn(10)
+    #d = np.append(d, [0]*15)
+    #d = np.random.permutation(d)
+    d.shape = (w.n, 1)
     time1 = time.time()
-    inverse = inverse_cg(w, d, 0.4)
-    #inverse = power_expansion(w, d, 0.4)
+    #i_pe = power_expansion(w, d, 0.4)
+    #i_cg = inverse_cg(w, d, 0.4)
+    #i_cg = inverse_cg(w, d, 0.4, symmetric=True)
     t2 = time.time() - time1
-    print w.n, w.transform, t2
-
+    #print w.n, w.transform, t2
+    
 
 
 
