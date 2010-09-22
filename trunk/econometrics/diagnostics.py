@@ -625,14 +625,14 @@ def breusch_pagan(reg):
     n = reg.n
     x = reg.x
     k = reg.k
-    constant = 1 #reg.constant
+    constant = reg.constant
     ete = reg.utu
 
     den = ete/n
     g = e2/den - 1.0
 
-    if constant == 0: 
-        z = x.append(np.ones((n,1)))
+    if constant == False: 
+        z = np.hstack((np.ones((n,1)),x))
         df = k
     else:
         z = x
@@ -823,7 +823,7 @@ def koenker_bassett(reg):
     k = reg.k
     x = reg.x
     ete = reg.utu
-    constant = 1 #reg.constant
+    constant = reg.constant
 
     ubar = ete/n
     ubari = ubar*np.ones((n,1))
@@ -831,8 +831,8 @@ def koenker_bassett(reg):
     v = (1.0/n)*np.sum((u-ubar)**2)
 
     #This is required because the first column of z must be a constant.
-    if constant == 0: 
-        z = x.append(np.ones((n,1)))
+    if constant == False: 
+        z = np.hstack((np.ones((n,1)),x))
         df = k
     else:
         z = x
