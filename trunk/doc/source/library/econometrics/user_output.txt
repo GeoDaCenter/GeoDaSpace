@@ -1,0 +1,12 @@
+:mod:`econometrics.user_output` --- user_output
+===============================
+
+The :mod:`econometrics.user_output` module provides ....
+
+.. versionadded:: 0.1
+
+
+.. automodule:: econometrics.user_output
+    :synopsis: Diagnostic code for spReg: Python Spatial Regression Analysis Library
+    :members:
+

@@ -1,0 +1,21 @@
+:mod:`econometrics` --- Core Module
+=================================================
+
+.. toctree::
+
+    diagnostics
+    diagnostics_sp
+    gmm_deprecated
+    gmm_utils
+    ols
+    pdf
+    power_expansion
+    robust
+    spError
+    spHetErr
+    testing_utils
+    tests
+    twosls
+    twosls_sp
+    user_output
+
