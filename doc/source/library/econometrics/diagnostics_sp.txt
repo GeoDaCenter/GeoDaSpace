@@ -1,0 +1,12 @@
+:mod:`econometrics.diagnostics_sp` --- Diagnostics_spatial
+===============================
+
+The :mod:`econometrics.diagnostics_sp` module provides ....
+
+.. versionadded:: 0.1
+
+
+.. automodule:: econometrics.diagnostics_sp
+    :synopsis: Diagnostic code for spReg: Python Spatial Regression Analysis Library
+    :members:
+

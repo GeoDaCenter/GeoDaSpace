@@ -1,0 +1,12 @@
+:mod:`econometrics.gmm_deprecated` --- gmm_deprecated
+===============================
+
+The :mod:`econometrics.gmm_deprecated` module provides ....
+
+.. versionadded:: 0.1
+
+
+.. automodule:: econometrics.gmm_deprecated
+    :synopsis: Diagnostic code for spReg: Python Spatial Regression Analysis Library
+    :members:
+
