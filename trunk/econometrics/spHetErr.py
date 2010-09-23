@@ -1,7 +1,7 @@
 import numpy as np
 import pysal
 import gmm_utils as GMM
-from gmm_utils import get_A1, get_spCO
+from gmm_utils import get_A1, get_spFilter
 import ols as OLS
 from scipy import sparse as SP
 import time
@@ -73,7 +73,7 @@ class Spatial_Error_Het:
 
         for n in range(cycles): #### Added loop.
             #2a. OLS -->\hat{betas}
-            xs,ys = get_spCO(ols.x,w,lambda2),get_spCO(ols.y,w,lambda2)
+            xs,ys = get_spFilter(w,lambda2,ols.x),get_spFilter(w,lambda2,ols.y)
             
             #This step assumes away heteroskedasticity, we are taking into account
             #   spatial dependence (I-lambdaW), but not heteroskedasticity
