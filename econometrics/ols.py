@@ -93,7 +93,6 @@ class OLS_dev:
     def __init__(self,x,y,constant=True):
         if constant:
             x = np.hstack((np.ones(y.shape),x))
-        self.constant = constant
         self.set_x(x)
         xty = np.dot(x.T,y)
         self.betas = np.dot(self.xtxi,xty)
