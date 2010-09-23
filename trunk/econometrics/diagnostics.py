@@ -5,7 +5,6 @@ To Do List:
 
     * Add variance inflation factor (more complicated than originally expected).
     * Get feedback on dependence check in White Test.
-
         
 """
 
@@ -14,8 +13,9 @@ from pysal.common import *
 from math import sqrt
 import ols as OLS
 
-def f_stat(reg, tsls=False):
 
+
+def f_stat(reg, tsls=False):
     """
     Calculates the f-statistic and associated p-value of the regression. 
     
@@ -91,6 +91,7 @@ def f_stat(reg, tsls=False):
     return fs_result
 
 
+
 def t_stat(reg):
     """
     Calculates the t-statistics and associated p-values.
@@ -144,8 +145,9 @@ def t_stat(reg):
     ts_result  = rs.values()
     return ts_result
 
-def r2(reg):
 
+
+def r2(reg):
     """
     Calculates the R^2 value for the regression. 
     
@@ -195,8 +197,8 @@ def r2(reg):
     return r2_result
 
 
-def ar2(reg):
 
+def ar2(reg):
     """
     Calculates the adjusted R^2 value for the regression. 
     
@@ -243,8 +245,8 @@ def ar2(reg):
     return ar2_result
 
 
-def se_betas(reg):
 
+def se_betas(reg):
     """
     Calculates the standard error of the regression coefficients.
     
@@ -291,8 +293,8 @@ def se_betas(reg):
     return se_result
 
 
-def log_likelihood(reg):
 
+def log_likelihood(reg):
     """
     Calculates the log-likelihood value for the regression. 
     
@@ -340,8 +342,8 @@ def log_likelihood(reg):
     return ll_result   
 
 
-def akaike(reg):
 
+def akaike(reg):
     """
     Calculates the Akaike Information Criterion
 
@@ -390,8 +392,8 @@ def akaike(reg):
     return aic_result
 
 
-def schwarz(reg):
 
+def schwarz(reg):
     """
     Calculates the Schwarz Information Criterion
 
@@ -440,8 +442,8 @@ def schwarz(reg):
     return sc_result
 
 
-def condition_index(reg):
 
+def condition_index(reg):
     """
     Calculates the multicollinearity condition index according to Belsey, Kuh and Welsh (1980)
 
@@ -493,8 +495,8 @@ def condition_index(reg):
     return ci_result
 
 
-def jarque_bera(reg):
 
+def jarque_bera(reg):
     """
     Jarque-Bera test for normality in the residuals. 
 
@@ -565,8 +567,8 @@ def jarque_bera(reg):
     return jb_result 
 
 
-def breusch_pagan(reg):
 
+def breusch_pagan(reg):
     """
     Calculates the Breusch-Pagan test statistic to check for heteroskedasticity. 
 
@@ -655,7 +657,8 @@ def breusch_pagan(reg):
     return bp_result
 
 
-def white(reg, constant):
+
+def white(reg):
     """
     Calculates the White test to check for heteroskedasticity. 
 
@@ -704,7 +707,7 @@ def white(reg, constant):
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
     >>> reg = OLS(X,y)
-    >>> testresult = diagnostics.white(reg, 1)
+    >>> testresult = diagnostics.white(reg)
     >>> testresult['df']
     5
     >>> print("%12.12f"%testresult['wh'])
@@ -713,48 +716,66 @@ def white(reg, constant):
     0.001279222817
 
     """
-    if constant == 1:
-        X = np.delete(reg.x,0,1)    # (array) matrix of independent variables (no constant)
-    elif constant == 0:
-        X = reg.x
-    e = reg.u**2                    # (array) vector of squared residuals from original regression
-    k = reg.k                       # (scalar) number of independent variables (including constant)
-    n = reg.n                       # (scalar) number of observations in the regression
-    y = reg.y                       # (array) vector of dependent variables from original regression
 
+    e = reg.u**2
+    k = reg.k
+    n = reg.n
+    y = reg.y
+    X = reg.x
+    constant = reg.constant
+    
+    # Check for constant, if none add one, see Greene 2003, pg. 222
+    if constant == False: 
+        X = np.hstack((np.ones((n,1)),X))
+
+    # Check for multicollinearity in the X matrix
+    ci = condition_index(reg)
+    if ci > 30:
+        white_result = "MULTICOLLINEAR"
+        return white_result
+
+    # Compute cross-products of the regression variables
     A = []
-    for i in range(k-2):
-        for j in range(i+1,k-1):
+    for i in range(k-1):
+        for j in range(i+1,k):
             v = X[:,i]*X[:,j]
             A.append(v)
-
-    for i in range(k-1):
+    
+    # Square the regression variables
+    for i in range(k):
         v = X[:,i]**2
         A.append(v)
 
+    # Convert to an array with the proper dimensions and append the original non-binary variables
     A = np.array(A).T
     A = np.hstack((X,A))
-    dependence = la.svd(A,0,0)
-    test = dependence.min()
-    white_result = 'SINGULAR'
-    if test<9.99999999e-14: return white_result
-    a = np.hstack((np.ones(y.shape),A))
-    an, ak = np.shape(a)
-    at = np.transpose(a)
-    ata = np.dot(at, a)
-    atai = la.inv(ata)
-    ate = np.dot(at,e)
-    betas = np.dot(atai,ate)
-    prede = np.dot(a, betas)
-    u = e-prede
-    utu = np.dot(np.transpose(u),u)
-    mean_e = np.mean(e) 
-    ss_tot = sum((e-mean_e)**2)
-    r2 = 1-utu/ss_tot
-    aux_r2 = r2[0]
+    n,k = A.shape
+
+    # Check to identify any duplicate columns in A
+    omitcolumn = []
+    for i in range(k):
+        current = A[:,i]
+        for j in range(k):
+            check = A[:,j]
+            if i < j:
+                test = (current - check).sum()
+                if test == 0:
+                    omitcolumn.append(j)
+
+    uniqueomit = set(omitcolumn)
+    omitcolumn = list(uniqueomit)
+
+    # Now the identified columns must be removed (done in reverse to prevent renumbering)
+    omitcolumn.reverse()
+    for c in omitcolumn:
+        A = np.delete(A,c,1)
+    n,k = A.shape
+
+    # Conduct the auxiliary regression and calculate the statistic
+    aux_reg = OLS.OLS_dev(A,e,constant=False)
+    aux_r2 = r2(aux_reg)
     wh = aux_r2*n
-    wh = wh[0]
-    df = ak-1
+    df = k-1
     pvalue = stats.chisqprob(wh,df)
     white_result={'df':df,'wh':wh, 'pvalue':pvalue}
     return white_result 
@@ -816,7 +837,7 @@ def koenker_bassett(reg):
 
     """
 
-    #The notation here deliberately matches that of Greene (2003).
+    # The notation here deliberately matches that of Greene (2003).
     u = reg.u**2
     e = reg.u
     n = reg.n
@@ -830,7 +851,7 @@ def koenker_bassett(reg):
     g = u-ubari
     v = (1.0/n)*np.sum((u-ubar)**2)
 
-    #This is required because the first column of z must be a constant.
+    # This is required because the first column of z must be a constant.
     if constant == False: 
         z = np.hstack((np.ones((n,1)),x))
         df = k
@@ -838,6 +859,7 @@ def koenker_bassett(reg):
         z = x
         df = k-1
 
+    # Conduct the auxiliary regression.
     zt = np.transpose(z)
     gt = np.transpose(g)
     gtz = np.dot(gt,z)
