@@ -731,7 +731,7 @@ def white(reg):
     # Check for multicollinearity in the X matrix
     ci = condition_index(reg)
     if ci > 30:
-        white_result = "MULTICOLLINEAR"
+        white_result = "N/A"
         return white_result
 
     # Compute cross-products of the regression variables
@@ -758,7 +758,8 @@ def white(reg):
         for j in range(k):
             check = A[:,j]
             if i < j:
-                test = (current - check).sum()
+                test = abs(current - check)
+                test = test.sum
                 if test == 0:
                     omitcolumn.append(j)
 
@@ -817,8 +818,8 @@ def koenker_bassett(reg):
 
     >>> import numpy as np
     >>> import pysal
-    >>> from econometrics.ols import OLS_dev as OLS
-    >>> from econometrics import diagnostics as diagnostics
+    >>> import diagnostics
+    >>> from ols import OLS_dev as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
