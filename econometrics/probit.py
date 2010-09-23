@@ -1,6 +1,3 @@
-import sys
-sys.path.append('C:/Users/Pedro/Documents/Academico/GeodaCenter/SVN/')
-sys.path.append('C:/Users/Pedro/Documents/Academico/GeodaCenter/SVN/spreg/')
 import pysal as pysal
 import numpy as np
 import numpy.linalg as la
