@@ -105,6 +105,7 @@ class TSLS_dev(OLS.OLS_dev):
         if constant:
             x = np.hstack((np.ones(y.shape),x))
             z = np.hstack((np.ones(y.shape),h))
+            # h = np.hstack((np.ones(y.shape),h)) # jy
         else:
             z = h
         self.z = z
@@ -129,8 +130,25 @@ class TSLS_dev(OLS.OLS_dev):
         #### GLS and White robust 2SLS was implemented for the spatial case,
         #### and results match there.  I have not tested the robust results
         #### for the non-spatial case.
-
-
+        '''
+        ## 2SLS in one step: jy
+        z = x
+        zt = z.T
+        ht = h.T
+        hth = np.dot(ht,h)
+        hthi = la.inv(hth)
+        zth = np.dot(zt,h)
+        ztht = zth.T
+        
+        factor_1 = np.dot(zth,hthi)
+        factor_2 = np.dot(factor_1,ht)
+        factor_2 = np.dot(factor_2,z)
+        factor_2 = la.inv(factor_2)        
+        factor_2 = np.dot(factor_2,factor_1)        
+        factor_2 = np.dot(factor_2,ht)       
+        rs = np.dot(factor_2,y)
+        '''
+        
     @property
     def vm(self):
         if 'vm' not in self._cache:
