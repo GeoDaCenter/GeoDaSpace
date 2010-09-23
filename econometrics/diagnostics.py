@@ -4,7 +4,7 @@ Diagnostics for regression estimations.
 To Do List:
 
     * Add variance inflation factor (more complicated than originally expected).
-    * Get feedback on dependence check in White Test.
+    * Add  a constant check function. 
         
 """
 
@@ -627,8 +627,8 @@ def breusch_pagan(reg):
     n = reg.n
     x = reg.x
     k = reg.k
-    constant = reg.constant
     ete = reg.utu
+    constant = constant_check(x)
 
     den = ete/n
     g = e2/den - 1.0
@@ -722,7 +722,7 @@ def white(reg):
     n = reg.n
     y = reg.y
     X = reg.x
-    constant = reg.constant
+    constant = constant_check(X)
     
     # Check for constant, if none add one, see Greene 2003, pg. 222
     if constant == False: 
@@ -844,7 +844,7 @@ def koenker_bassett(reg):
     k = reg.k
     x = reg.x
     ete = reg.utu
-    constant = reg.constant
+    constant = constant_check(x)
 
     ubar = ete/n
     ubari = ubar*np.ones((n,1))
@@ -878,6 +878,36 @@ def koenker_bassett(reg):
 
 
 #def variance_inflation(reg)
+
+def constant_check(array):
+    """
+    Checks to see numpy array includes a constant.
+
+    Parameters
+    ----------
+
+    array           : array
+                      an array of variables to be inspected 
+
+    Returns
+    -------
+
+    constant        : boolean
+                      true signifies the presence of a constant
+
+    """
+    n,k = array.shape
+    constant = False
+    for j in range(k):
+        variable = array[:,j]
+        variable = variable.ravel()
+        test = set(variable)
+        test = list(test)
+        if len(test) == 1:
+            constant = True
+            break
+    return constant
+        
 
 
 
