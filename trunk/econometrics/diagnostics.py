@@ -758,8 +758,7 @@ def white(reg):
         for j in range(k):
             check = A[:,j]
             if i < j:
-                test = abs(current - check)
-                test = test.sum
+                test = abs(current - check).sum()
                 if test == 0:
                     omitcolumn.append(j)
 
@@ -831,10 +830,10 @@ def koenker_bassett(reg):
     >>> testresult = diagnostics.koenker_bassett(reg)
     >>> testresult['df']
     2
-    >>> testresult['kb']
-    7.2165644721877449
-    >>> testresult['pvalue']
-    0.027098355486469869
+    >>> print("%12.12f"%testresult['kb'])
+    7.216564472188
+    >>> print("%12.12f"%testresult['pvalue'])
+    0.027098355486
 
     """
 
