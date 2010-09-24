@@ -877,7 +877,68 @@ def koenker_bassett(reg):
     return kb_result
 
 
-#def variance_inflation(reg)
+
+def vif(reg):
+    """
+    Calculates the variance inflation factor for each independent variable. For the ease of indexing the results, the constant is currently included. This should be omitted when reporting the results to the output text.
+    
+    Parameters
+    ----------
+
+    reg             : regression object
+                      output instance from a regression model
+        
+    Returns
+    -------    
+
+    vif_result      : list
+                      the order of the VIFs correspond to the order of the variables in the reg.x matrix 
+
+    References
+    ----------
+
+    [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> import diagnostics
+    >>> from ols import OLS_dev as OLS
+    >>> db = pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> reg = OLS(X,y)
+    >>> testresult = diagnostics.vif(reg)
+    >>> print("%12.12f"%testresult[1])
+    1.333117497189
+    >>> print("%12.12f"%testresult[2])
+    1.333117497189
+
+    """
+
+    X = reg.x
+    n,k = X.shape
+    vif_result = []
+
+    for j in range(k):
+        Z = X.copy()
+        Z = np.delete(Z,j,1)
+        y  = X[:,j]
+        aux = OLS.OLS_dev(Z,y,constant=False)
+        mean_y = aux.mean_y
+        utu = aux.utu
+        ss_tot = sum((y-mean_y)**2)
+        r2aux = 1-utu/ss_tot
+        vifj = 1/(1-r2aux)
+        vif_result.append(vifj)
+    return vif_result
+
+
 
 def constant_check(array):
     """
