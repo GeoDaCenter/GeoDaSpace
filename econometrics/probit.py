@@ -3,7 +3,6 @@ import numpy as np
 import numpy.linalg as la
 import scipy.optimize as op
 import scipy.stats as stats
-import diagnostics as diagnostics
 import scipy.sparse as SP
 
 class probit: #DEV class required.
@@ -27,8 +26,8 @@ class probit: #DEV class required.
                   Optimization method.
                   Default: 'newton' (Newton-Raphson).
                   Alternative: 'bhhh' (yet to be coded)
-    slope       : string
-                  Method to calculate the marginal effects.
+    scalem      : string
+                  Method to calculate the scale of the marginal effects.
                   Default: 'phimean' (Mean of individual marginal effects)
                   Alternative: 'xmean' (Marginal effects at variables mean)
               
@@ -41,8 +40,6 @@ class probit: #DEV class required.
                   nx1 array of dependent variable
     betas       : array
                   kx1 array with estimated coefficients
-    *u           : array
-                  nx1 array of residuals (Yet to be coded!)
     predy       : array
                   nx1 array of predicted values
     n           : int
@@ -62,8 +59,10 @@ class probit: #DEV class required.
     *Tstat       : dictionary
                   key: name of variables, constant & independent variables (Yet to be coded!)
                   value: tuple of t statistic and p-value
+    scalem      : string
+                  Method to calculate the scale of the marginal effects.
     scale       : float
-                  Scale of the marginal effects
+                  Scale of the marginal effects.
     slopes      : array
                   Marginal effects of the independent variables (k-1x1)
     slopes_vm   : array
@@ -77,8 +76,6 @@ class probit: #DEV class required.
     moran       : float
                   Moran's I type test against spatial error correlation.
                   Implemented as presented in Kelejian and Prucha (2001)
-    scale       : float
-                  Scale of the marginal effects
 
     References
     ----------
@@ -87,10 +84,21 @@ class probit: #DEV class required.
 
     Examples
     --------
-
+    >>> import numpy as np
+    >>> import pysal
+    >>> spec = {}
+    >>> spec['data'] = pysal.open("examples/greene21_1.csv",'r')
+    >>> spec['x_label'] = ['GPA','TUCE','PSI']
+    >>> spec['y_label'] = ['GRADE']
+    >>> probit1=probit(spec,scalem='xmean')
+    >>> np.around(probit1.betas, decimals=3)
+    array([[-7.452],
+           [ 1.626],
+           [ 0.052],
+           [ 1.426]])
    
     """
-    def __init__(self,spec,constant=True,w=None,optim='newton',slope='phimean'):
+    def __init__(self,spec,constant=True,w=None,optim='newton',scalem='phimean'):
         db = spec['data']
         xname = spec['x_label']
         yname = spec['y_label']
@@ -105,36 +113,128 @@ class probit: #DEV class required.
         self.constant = constant
         self.x = x
         self.n, self.k = x.shape
-        par_est = self.par_est(optim)
+        self.optim = optim
+        self.scalem = scalem
+        self.w = w
+        par_est = self.par_est()
         self.betas = np.reshape(par_est[0],(self.k,1))
         self.logll = float(par_est[1])
-        self.vm = self.cov_matrix(self.betas)
-        #self.Tstat = diagnostics.t_stat(self) #For Probit the normal stand. dist. should be used instead of the t.
-        self.Tstat = self.z_stat()
-        self.xmean = np.reshape(sum(self.x)/self.n,(self.k,1))
-        self.predy = stats.norm.cdf(np.dot(self.x,self.betas))
-        self.predpc = float(self.get_predpc())
-        phi = np.reshape(np.array(stats.norm.pdf(self.predy)),(self.n,1))
-        if slope == 'phimean':
-            self.scale = 1.0 * sum(phi)/self.n
-        if slope == 'xmean':
-            self.scale = stats.norm.pdf(np.dot(self.xmean.T,self.betas))
-        self.slopes = self.betas[1:] * self.scale #Disregard the presence of dummies.
-        self.slopes_vm = self.get_slopes_vm(self.xmean)
-        P = 1.0 * sum(self.y)[0] / self.n
-        LR = float(-2 * (self.n*(P * np.log(P) + (1 - P) * np.log(1 - P)) - self.logll))  #Likeliood ratio test on all betas = zero.
-        self.LR = (LR,stats.chisqprob(LR,self.k))
-        if w: 
-            self.LM_error, self.moran = self.get_spatial_tests(w,phi)
+        self._cache = {}
 
-    def par_est(self,optim):
+    @property
+    def vm(self):
+        if 'vm' not in self._cache:
+            H = self.hessian(self.betas,final=1)
+            self._cache['vm'] = -la.inv(H)
+        return self._cache['vm']
+    @property
+    def Zstat(self):
+        if 'Zstat' not in self._cache:
+            variance = self.vm.diagonal()
+            zStat = self.betas.reshape(len(self.betas),)/ np.sqrt(variance)
+            rs = {}
+            for i in range(len(self.betas)):
+                rs[i] = (zStat[i],stats.norm.sf(abs(zStat[i]))*2)
+            self._cache['Zstat'] = rs.values()
+        return self._cache['Zstat']
+    @property
+    def xmean(self):
+        if 'xmean' not in self._cache:
+            self._cache['xmean'] = np.reshape(sum(self.x)/self.n,(self.k,1))
+        return self._cache['xmean']
+    @property
+    def predy(self):
+        if 'predy' not in self._cache:
+            self._cache['predy'] = stats.norm.cdf(np.dot(self.x,self.betas))
+        return self._cache['predy']
+    @property
+    def predpc(self):
+        if 'predpc' not in self._cache:
+            predpc = abs(self.y-self.predy)
+            for i in range(len(predpc)):
+                if predpc[i]>0.5:
+                    predpc[i]=0
+                else:
+                    predpc[i]=1
+            self._cache['predpc'] = float(100* sum(predpc) / self.n)
+        return self._cache['predpc']
+    @property
+    def phiy(self):
+        if 'phiy' not in self._cache:    
+            self._cache['phiy'] = np.reshape(np.array(stats.norm.pdf(self.predy)),(self.n,1))
+        return self._cache['phiy']
+    @property
+    def scale(self):
+        if 'scale' not in self._cache:
+            if self.scalem == 'phimean':
+                self._cache['scale'] = 1.0 * sum(phi)/self.n
+            if self.scalem == 'xmean':
+                self._cache['scale'] = stats.norm.pdf(np.dot(self.xmean.T,self.betas))
+        return self._cache['scale']
+    @property
+    def slopes(self):
+        if 'slopes' not in self._cache:
+            self._cache['slopes'] = self.betas[1:] * self.scale #Disregard the presence of dummies.
+        return self._cache['slopes']
+    @property
+    def slopes_vm(self):
+        if 'slopes_vm' not in self._cache:
+            x = self.xmean
+            b = self.betas
+            dfdb = np.eye(self.k) - np.dot(b.T,x)*np.dot(b,x.T)
+            slopes_vm = (self.scale**2)*np.dot(np.dot(dfdb,self.vm),dfdb.T)
+            self._cache['slopes_vm'] = slopes_vm[1:,1:]
+        return self._cache['slopes_vm']
+    @property
+    def LR(self):
+        if 'LR' not in self._cache:    
+            P = 1.0 * sum(self.y)[0] / self.n
+            LR = float(-2 * (self.n*(P * np.log(P) + (1 - P) * np.log(1 - P)) - self.logll))  #Likeliood ratio test on all betas = zero.
+            self._cache['LR'] = (LR,stats.chisqprob(LR,self.k))
+        return self._cache['LR']
+    @property
+    def LM_error(self): #LM error and Moran's I tests are calculated together.
+        if 'LM_error' not in self._cache: 
+            if self.w:
+                w = self.w
+                phi = self.phiy
+                Phi = np.reshape(np.array(stats.norm.cdf(self.predy)),(self.n,1))
+                #LM_error:
+                Phi_prod = Phi * (1 - Phi)
+                u_naive = self.y - Phi
+                u = phi * (u_naive / Phi_prod)
+                sig2 = sum((phi * phi) / Phi_prod) / self.n
+                LM_err_num = np.dot((u.T * w.sparse), u)**2
+                LM_err_den = sig2**2 * np.sum(((w.sparse*w.sparse)+(w.sparse.T*w.sparse)).diagonal())
+                LM_err = float(LM_err_num / LM_err_den)
+                LM_err = np.array([LM_err,stats.chisqprob(LM_err,1)])
+                #Moran's I:
+                E = SP.lil_matrix(w.sparse.get_shape()) #There's a similar code in gmm_utils to create the Sigma matrix for the Psi.
+                E.setdiag(Phi.flat)
+                E = E.asformat('csr')
+                WE = w.sparse*E
+                moran_den = np.sqrt(np.sum((WE*WE + (w.sparse.T*E)*WE).diagonal()))
+                moran = float(np.dot((u_naive.T * w.sparse), u_naive))
+                moran = np.array([moran,stats.norm.sf(abs(moran)) * 2.])
+                self._cache['LM_error'] = LM_err
+                self._cache['moran'] = moran
+            else:
+                print "W not specified."
+        return self._cache['LM_error']
+    @property
+    def moran(self): #LM error and Moran's I tests are calculated together.
+        if 'moran' not in self._cache:
+            self.LM_error()
+        return self._cache['moran']
+
+    def par_est(self):
         start = []
         for i in range(self.x.shape[1]):
             start.append(0.01)
         flogl = lambda par: -self.ll(par)
         fgrad = lambda par: -self.gradient(par)
         fhess = lambda par: -self.hessian(par)
-        if optim == 'newton':
+        if self.optim == 'newton':
             iteration = 0
             start = np.array(start)
             history = [np.inf, start]
@@ -142,17 +242,12 @@ class probit: #DEV class required.
                 H = self.hessian(history[-1])
                 par_hat0 = history[-1] - np.dot(np.linalg.inv(H),self.gradient(history[-1]))
                 history.append(par_hat0)
-                iteration += 1
+                iteration = iteration + 1
             logl = self.ll(par_hat0,final=1)
             par_hat = [] #Coded like this to comply with most of the scipy optimizers.
             par_hat.append(par_hat0)
             par_hat.append(logl)            
         return par_hat
-
-    def cov_matrix(self,par):
-        H = self.hessian(par,final=1)
-        Hinv = -la.inv(H)
-        return Hinv
 
     def ll(self,par,final=None):
         if final:
@@ -193,49 +288,6 @@ class probit: #DEV class required.
         hessian = np.dot((self.x.T),(-lamb * (lamb + xb) * self.x ))
         return hessian
 
-    def get_spatial_tests(self,w,phi):
-        Phi = np.reshape(np.array(stats.norm.cdf(self.predy)),(self.n,1))
-        Phi_prod = Phi * (1 - Phi)
-        u_naive = self.y - Phi
-        u = phi * (u_naive / Phi_prod)
-        sig2 = sum((phi * phi) / Phi_prod) / self.n
-        LM_err_num = np.dot((u.T * w.sparse), u)**2
-        LM_err_den = sig2**2 * np.sum(((w.sparse*w.sparse)+(w.sparse.T*w.sparse)).diagonal())
-        LM_err = float(LM_err_num / LM_err_den)
-        LM_err = np.array([LM_err,stats.chisqprob(LM_err,1)])
-        E = SP.lil_matrix(w.sparse.get_shape()) #There's a similar code in gmm_utils to create the Sigma matrix for the Psi.
-        E.setdiag(Phi.flat)
-        E = E.asformat('csr')
-        WE = w.sparse*E
-        moran_den =  np.sqrt(np.sum((WE*WE + (w.sparse.T*E)*WE).diagonal()))
-        moran = float(np.dot((u_naive.T * w.sparse), u_naive))
-        moran = np.array([moran,stats.norm.sf(abs(moran)) * 2.])
-        return LM_err, moran
-
-    def z_stat(self): #Should be in spreg.diagnostics
-        variance = self.vm.diagonal()
-        zStat = self.betas.reshape(len(self.betas),)/ np.sqrt(variance)
-        rs = {}
-        for i in range(len(self.betas)):
-            rs[i] = (zStat[i],stats.norm.sf(abs(zStat[i]))*2)
-        ts_result  = rs.values()
-        return ts_result
-
-    def get_slopes_vm(self,x):
-        b = self.betas
-        dfdb = np.eye(self.k) - np.dot(b.T,x)*np.dot(b,x.T)
-        slopes_vm = (self.scale**2)*np.dot(np.dot(dfdb,self.vm),dfdb.T)
-        return slopes_vm[1:,1:]
-
-    def get_predpc(self):
-        predpc = abs(self.y-self.predy)
-        for i in range(len(predpc)):
-            if predpc[i]>0.5:
-                predpc[i]=0
-            else:
-                predpc[i]=1
-        return 100* sum(predpc) / self.n
-
     def slope_graph(self,pos,k,sample='actual',std=2):
         if sample=='actual':
             assert k<=self.n, "k must not be more than the number of observations."            
@@ -257,10 +309,15 @@ class probit: #DEV class required.
             cumu = stats.norm.cdf(float(x0*self.betas[pos] + pred))
             curves.append([x0,marg,cumu])
         return curves
-    
+
+def _test():
+    import doctest
+    doctest.testmod()
+
 if __name__ == '__main__':
-    # Must be transformed in an example.
-                
+    _test()
+'''    
+if __name__ == '__main__':
     spec = {}
     spec['data'] = pysal.open("examples/greene21_1.csv",'r')
     spec['x_label'] = ['GPA','TUCE','PSI']
@@ -268,13 +325,13 @@ if __name__ == '__main__':
     #w = pysal.open('fake.gal', 'r').read()
     #w.transform='r'
     #probit1=probit(spec,w=w)
-    probit1=probit(spec,slope='xmean')
+    probit1=probit(spec,scalem='xmean')
     print "Parameters:"
     print probit1.betas
     print "Std-Dev:"
     print np.sqrt(probit1.vm.diagonal())
     print "Z stat:" 
-    print probit1.Tstat
+    print probit1.Zstat
     print "Slopes:" 
     print probit1.slopes
     print "Slopes_SD:" 
@@ -285,9 +342,10 @@ if __name__ == '__main__':
     print probit1.LR
     print "% correctly predicted:" 
     print probit1.predpc
-    #curve = np.reshape(np.array(probit1.slope_graph(1,10,sample='actual')),(10,3))
-    #print curve
+    curve = np.reshape(np.array(probit1.slope_graph(1,10,sample='actual')),(10,3))
+    print curve
     #print "LM Error - Pinkse (1999):"
     #print probit1.LM_error
     #print "Moran's I - KP (2001):"
     #print probit1.moran
+'''
