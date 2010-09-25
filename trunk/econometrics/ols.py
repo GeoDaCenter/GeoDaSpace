@@ -13,14 +13,13 @@ class OLS_dev:
 
     Parameters
     ----------
-
-    x       : array
-              nxk array of independent variables (assumed to be aligned with y)
-    y       : array
-              nx1 array of dependent variable
-    constant: boolean
-              If true it appends a vector of ones to the independent variables
-              to estimate intercept (set to True by default)
+    x        : array
+               nxk array of independent variables (assumed to be aligned with y)
+    y        : array
+               nx1 array of dependent variable
+    constant : boolean
+               If true it appends a vector of ones to the independent variables
+               to estimate intercept (set to True by default)
 
     Attributes
     ----------
@@ -45,8 +44,6 @@ class OLS_dev:
               Number of observations
     k       : int
               Number of variables
-    constant: boolean
-              Denotes if a constant is included in the regression
     utu     : float
               Sum of the squared residuals
     sig2    : float
@@ -59,18 +56,7 @@ class OLS_dev:
               Mean of the dependent variable
     std_y   : float
               Standard deviation of the dependent variable
-
-              .. math::
-                
-                    \sigma^2 = \dfrac{\tilde{u}' \tilde{u}}{N}
-    m       : array
-              Matrix M
-
-              .. math::
-
-                    M = I - X(X'X)^{-1}X'
-
-
+              
     Examples
     --------
 
@@ -160,86 +146,88 @@ class OLS(OLS_dev, USER.Diagnostic_Builder):
     Parameters
     ----------
 
-    x       : array
-              nxk array of independent variables (assumed to be aligned with y)
+    x        : array
+               nxk array of independent variables (assumed to be aligned with y)
 
-    y       : array
-              nx1 array of dependent variable
+    y        : array
+               nx1 array of dependent variable
 
-    names   : tuple
-              used in summary output, the sequence is (dataset name, dependent name, independent names)
+    names    : tuple
+               used in summary output, the sequence is (dataset name, dependent name, independent names)
     
-    constant: boolean
-              If true it appends a vector of ones to the independent variables
-              to estimate intercept (set to True by default)
+    constant : boolean
+               If true it appends a vector of ones to the independent variables
+               to estimate intercept (set to True by default)
 
-    vm      : boolean
-              if True, include variance matrix in summary results
+    vm       : boolean
+               if True, include variance matrix in summary results
 
-    pred    : boolean
-              if True, include y, predicted values and residuals in summary results
+    pred     : boolean
+               if True, include y, predicted values and residuals in summary results
 
     
     Attributes
     ----------
 
-    x       : array
-              nxk array of independent variables (assumed to be aligned with y)
-    y       : array
-              nx1 array of dependent variable
-    betas   : array
-              kx1 array with estimated coefficients
-    u       : array
-              nx1 array of residuals
-    predy   : array
-              nx1 array of predicted values
-    n       : int
-              Number of observations
-    k       : int
-              Number of variables
-    name_ds : string
-              dataset's name
-    name_y  : string
-              dependent variable's name
-    name_x  : tuple
-              independent variables' names
-    mean_y  : float
-              mean value of dependent variable
-    std_y   : float
-              standard deviation of dependent variable
-    vm      : array
-              variance covariance matrix (kxk)
-    r2      : float
-              R square
-    ar2     : float
-              adjusted R square
-    utu     : float
-              Sum of the squared residuals
-    sig2    : float
-              sigma squared
-    sig2ML  : float
-              sigma squared ML 
-    Fstat   : dictionary
-              key: 'value','prob'; value: float
-    logll   : float
-              Log likelihood        
-    aic     : float
-              Akaike info criterion 
-    sc      : float
-              Schwarz criterion     
-    std_err : array
-              1*(k+1) array of Std.Error    
-    Tstat   : dictionary
-              key: name of variables, constant & independent variables
-              value: tuple of t statistic and p-value
-    mulColli: float
-              Multicollinearity condition number
-    diag    : dictionary
-              key: test name including 'JB','BP','KB','WH',representing "Jarque-Bera","Breusch-Pagan",
-              "Koenker-Bassett","White"
-              value: tuple including 3 elements--degree of freedom, value, p-value
-    summary : string
-              including all the information in OLS class in nice format          
+    x        : array
+               nxk array of independent variables (assumed to be aligned with y)
+    y        : array
+               nx1 array of dependent variable
+    betas    : array
+               kx1 array with estimated coefficients
+    u        : array
+               nx1 array of residuals
+    predy    : array
+               nx1 array of predicted values
+    n        : int
+               Number of observations
+    k        : int
+               Number of variables
+    name_ds  : string
+               dataset's name
+    name_y   : string
+               dependent variable's name
+    mean_y   : float
+               mean value of dependent variable
+    name_x   : tuple
+               independent variables' names
+    mean_y   : float
+               mean value of dependent variable
+    std_y    : float
+               standard deviation of dependent variable
+    vm       : array
+               variance covariance matrix (kxk)
+    r2       : float
+               R square
+    ar2      : float
+               adjusted R square
+    utu      : float
+               Sum of the squared residuals
+    sig2     : float
+               sigma squared
+    sig2ML   : float
+               sigma squared ML 
+    Fstat    : dictionary
+               key: 'value','prob'; value: float
+    logll    : float
+               Log likelihood        
+    aic      : float
+               Akaike info criterion 
+    sc       : float
+               Schwarz criterion     
+    std_err  : array
+               1*(k+1) array of Std.Error    
+    Tstat    : dictionary
+               key: name of variables, constant & independent variables
+               value: tuple of t statistic and p-value
+    mulColli : float
+               Multicollinearity condition number
+    diag     : dictionary
+               key: test name including 'JB', 'BP', 'KB', 'WH', representing 
+               'Jarque-Bera', 'Breusch-Pagan', 'Koenker-Bassett', 'White'
+               value: tuple including 3 elements--degree of freedom, value, p-value
+    summary  : string
+               including all the information in OLS class in nice format          
      
     
     Examples
