@@ -33,9 +33,10 @@ import doctest
 # module imports
 import ols, spHetErr, twosls
 import twosls_sp, diagnostics
+import probit
 
 #add modules to include in tests
-mods='ols', 'spHetErr', 'twosls', 'twosls_sp', 'diagnostics'
+mods='ols', 'spHetErr', 'twosls', 'twosls_sp', 'diagnostics', 'probit'
 
 suite = unittest.TestSuite()
 for mod in mods:
