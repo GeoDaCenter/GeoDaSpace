@@ -86,11 +86,15 @@ class probit: #DEV class required.
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> spec = {}
-    >>> spec['data'] = pysal.open("examples/greene21_1.csv",'r')
-    >>> spec['x_label'] = ['GPA','TUCE','PSI']
-    >>> spec['y_label'] = ['GRADE']
-    >>> probit1=probit(spec,scalem='xmean')
+    >>> db = pysal.open("examples/greene21_1.csv",'r')
+    >>> y = np.array(db.by_col("GRADE"))
+    >>> y = np.reshape(y, (y.shape[0],1))
+    >>> X = []
+    >>> X.append(db.by_col("GPA"))
+    >>> X.append(db.by_col("TUCE"))
+    >>> X.append(db.by_col("PSI"))
+    >>> X = np.array(X).T
+    >>> probit1=probit(X,y,scalem='xmean')
     >>> np.around(probit1.betas, decimals=3)
     array([[-7.452],
            [ 1.626],
@@ -98,18 +102,10 @@ class probit: #DEV class required.
            [ 1.426]])
    
     """
-    def __init__(self,spec,constant=True,w=None,optim='newton',scalem='phimean'):
-        db = spec['data']
-        xname = spec['x_label']
-        yname = spec['y_label']
-        x = []
-        for i in xname:
-            x.append(db.by_col(i))
-        x = np.array(x).T
-        y = np.array(db.by_col(yname[0]))
-        self.y = np.reshape(y, (y.shape[0],1))
+    def __init__(self,x,y,constant=True,w=None,optim='newton',scalem='phimean'):
+        self.y = y        
         if constant:
-            x = np.hstack((np.ones(self.y.shape),x))
+            x = np.hstack((np.ones(y.shape),x))
         self.constant = constant
         self.x = x
         self.n, self.k = x.shape
@@ -143,9 +139,14 @@ class probit: #DEV class required.
             self._cache['xmean'] = np.reshape(sum(self.x)/self.n,(self.k,1))
         return self._cache['xmean']
     @property
+    def xb(self):
+        if 'xb' not in self._cache:
+            self._cache['xb'] = np.dot(self.x,self.betas)
+        return self._cache['xb']
+    @property
     def predy(self):
         if 'predy' not in self._cache:
-            self._cache['predy'] = stats.norm.cdf(np.dot(self.x,self.betas))
+            self._cache['predy'] = stats.norm.cdf(self.xb)
         return self._cache['predy']
     @property
     def predpc(self):
@@ -156,20 +157,20 @@ class probit: #DEV class required.
                     predpc[i]=0
                 else:
                     predpc[i]=1
-            self._cache['predpc'] = float(100* sum(predpc) / self.n)
+            self._cache['predpc'] = float(100* np.sum(predpc) / self.n)
         return self._cache['predpc']
     @property
     def phiy(self):
-        if 'phiy' not in self._cache:    
-            self._cache['phiy'] = np.reshape(np.array(stats.norm.pdf(self.predy)),(self.n,1))
+        if 'phiy' not in self._cache:
+            self._cache['phiy'] = stats.norm.pdf(self.xb)
         return self._cache['phiy']
     @property
     def scale(self):
         if 'scale' not in self._cache:
             if self.scalem == 'phimean':
-                self._cache['scale'] = 1.0 * sum(phi)/self.n
+                self._cache['scale'] = float(1.0 * np.sum(self.phiy)/self.n)
             if self.scalem == 'xmean':
-                self._cache['scale'] = stats.norm.pdf(np.dot(self.xmean.T,self.betas))
+                self._cache['scale'] = float(stats.norm.pdf(np.dot(self.xmean.T,self.betas)))
         return self._cache['scale']
     @property
     def slopes(self):
@@ -188,7 +189,7 @@ class probit: #DEV class required.
     @property
     def LR(self):
         if 'LR' not in self._cache:    
-            P = 1.0 * sum(self.y)[0] / self.n
+            P = 1.0 * np.sum(self.y)[0] / self.n
             LR = float(-2 * (self.n*(P * np.log(P) + (1 - P) * np.log(1 - P)) - self.logll))  #Likeliood ratio test on all betas = zero.
             self._cache['LR'] = (LR,stats.chisqprob(LR,self.k))
         return self._cache['LR']
@@ -198,23 +199,24 @@ class probit: #DEV class required.
             if self.w:
                 w = self.w
                 phi = self.phiy
-                Phi = np.reshape(np.array(stats.norm.cdf(self.predy)),(self.n,1))
+                Phi = self.predy
                 #LM_error:
                 Phi_prod = Phi * (1 - Phi)
                 u_naive = self.y - Phi
-                u = phi * (u_naive / Phi_prod)
-                sig2 = sum((phi * phi) / Phi_prod) / self.n
-                LM_err_num = np.dot((u.T * w.sparse), u)**2
+                u_gen = phi * (u_naive / Phi_prod)
+                sig2 = np.sum((phi * phi) / Phi_prod) / self.n
+                LM_err_num = np.dot(u_gen.T,(w.sparse * u_gen))**2
                 LM_err_den = sig2**2 * np.sum(((w.sparse*w.sparse)+(w.sparse.T*w.sparse)).diagonal())
-                LM_err = float(LM_err_num / LM_err_den)
+                LM_err = float(1.0 * LM_err_num / LM_err_den)
                 LM_err = np.array([LM_err,stats.chisqprob(LM_err,1)])
                 #Moran's I:
                 E = SP.lil_matrix(w.sparse.get_shape()) #There's a similar code in gmm_utils to create the Sigma matrix for the Psi.
-                E.setdiag(Phi.flat)
+                E.setdiag(Phi_prod.flat)
                 E = E.asformat('csr')
                 WE = w.sparse*E
                 moran_den = np.sqrt(np.sum((WE*WE + (w.sparse.T*E)*WE).diagonal()))
-                moran = float(np.dot((u_naive.T * w.sparse), u_naive))
+                moran_num = np.dot(u_naive.T, (w.sparse * u_naive))
+                moran = float(1.0*moran_num / moran_den)
                 moran = np.array([moran,stats.norm.sf(abs(moran)) * 2.])
                 self._cache['LM_error'] = LM_err
                 self._cache['moran'] = moran
@@ -224,7 +226,8 @@ class probit: #DEV class required.
     @property
     def moran(self): #LM error and Moran's I tests are calculated together.
         if 'moran' not in self._cache:
-            self.LM_error()
+            self._cache['LM_error'] = self.LM_error
+            self._cache['moran'] = self.moran
         return self._cache['moran']
 
     def par_est(self):
@@ -316,36 +319,3 @@ def _test():
 
 if __name__ == '__main__':
     _test()
-'''    
-if __name__ == '__main__':
-    spec = {}
-    spec['data'] = pysal.open("examples/greene21_1.csv",'r')
-    spec['x_label'] = ['GPA','TUCE','PSI']
-    spec['y_label'] = ['GRADE']
-    #w = pysal.open('fake.gal', 'r').read()
-    #w.transform='r'
-    #probit1=probit(spec,w=w)
-    probit1=probit(spec,scalem='xmean')
-    print "Parameters:"
-    print probit1.betas
-    print "Std-Dev:"
-    print np.sqrt(probit1.vm.diagonal())
-    print "Z stat:" 
-    print probit1.Zstat
-    print "Slopes:" 
-    print probit1.slopes
-    print "Slopes_SD:" 
-    print np.sqrt(probit1.slopes_vm.diagonal())
-    print "Log-Likelihood:" 
-    print probit1.logll
-    print "LR test:" 
-    print probit1.LR
-    print "% correctly predicted:" 
-    print probit1.predpc
-    curve = np.reshape(np.array(probit1.slope_graph(1,10,sample='actual')),(10,3))
-    print curve
-    #print "LM Error - Pinkse (1999):"
-    #print probit1.LM_error
-    #print "Moran's I - KP (2001):"
-    #print probit1.moran
-'''
