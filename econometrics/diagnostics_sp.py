@@ -142,10 +142,10 @@ class AKtest:
     w           : W
                   Spatial weights instance (requires 'S' and 'A1') assumed to
                   be row-standardized
-    case        : int
-                  Flag for special cases (default to 1):
-                    * 0: General case (spatial lag + end. reg.)
-                    * 1: Only NO spatial end. reg.
+    case        : string
+                  Flag for special cases (default to 'nosp'):
+                    * 'nsp': Only NO spatial end. reg.
+                    * 'gen': General case (spatial lag + end. reg.)
     w_lags      : int
                   [Only if case=0] Number of spatial lags of the exogenous
                   variables. Kelejian et al. (2004) [2]_ recommends w_lags=2, which
@@ -182,12 +182,12 @@ class AKtest:
     Econometrics, 18, 163-198.
             """
 
-    def __init__(self, x, y, h, w, case=1, w_lags=2, constant=True,
+    def __init__(self, x, y, h, w, case='nosp', w_lags=2, constant=True,
             robust=None):
-        if case == 0:
+        if case == 'gen':
             iv = STSLS_dev(x, y, w, h, w_lags=2, constant=constant, robust=robust)
             cache = spDcache(iv, w)
-        elif case == 1:
+        elif case == 'nsp':
             iv = TSLS_dev(x, y, h, constant=constant)
             cache = spDcache(iv, w)
             self.ak = lmErr(iv, w, cache)
@@ -521,14 +521,19 @@ def akTest(iv, w, spDcache):
     ----------
     ak          : tuple
                   Pair of statistic and p-value for the AK test
+
+    ToDo:
+        * Code in as Nancy
+        * Compare both
     """
     mi = get_mI(iv, w, spDcache)
     etwz = np.dot(iv.u.T, (w.sparse * iv.z))
-    p = np.dot(x, np.dot(iv.xtxi, x.T))
+    p = np.dot(iv.x, np.dot(iv.xtxi, iv.x.T))
     ztpz = np.dot(iv.z.T, np.dot(p, iv.z))
-    nztpzi = w.n * la.inv(nztpz)
+    nztpzi = w.n * la.inv(ztpz)
     a = np.dot((etwz / w.n), np.dot(nztpzi, (etwz.T / w.n)))
     s12 = (w.s0 / w.n)**2
+    s2 = 2. * w.trcW2 + w.trcWtW
     phi2 = (s2 / 2. * s12) + (4. / (s12 * iv.sig2)) * a
     ak = w.n * mi**2 / phi2**2
     pval = chisqprob(ak, 1)
@@ -625,11 +630,9 @@ if __name__ == '__main__':
     csv = pysal.open('examples/columbus.dbf','r')
     y = np.array([csv.by_col('HOVAL')]).T
     x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
-    print x.shape
     w = pysal.open('examples/columbus.gal', 'r').read()
     w.transform='r'
     iv = STSLS_dev(x, y, w, h=None, w_lags=2, constant=True, robust=None)
-    print iv.x.shape
     cache = spDcache(iv, w)
     ak = akTest(iv, w, cache)
 
