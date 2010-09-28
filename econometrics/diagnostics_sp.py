@@ -539,6 +539,52 @@ def akTest(iv, w, spDcache):
     pval = chisqprob(ak, 1)
     return (ak[0][0], pval[0][0])
 
+def akTest_legacy(iv, w, spDcache):
+    """
+    Computes AK-test for the general case (end. reg. + sp. lag) coded as in
+    GeoDaSpace legacy (Nancy's code)
+    ...
+
+    Parameters
+    ----------
+
+    iv          : STSLS_dev
+                  Instance from spatial 2SLS regression
+    w           : W
+                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  be row-standardized
+   spDcache     : spDcache
+                  Instance of spDcache class
+
+    Attributes
+    ----------
+    ak          : tuple
+                  Pair of statistic and p-value for the AK test
+
+
+    """
+    ewe = np.dot(iv.u.T, spDcache.wu)
+    mi1 = w.n * ewe / iv.utu
+    mi = mi1 / w.s0
+    t = w.trcWtW_WW
+    wz = w.sparse * iv.z
+    ZWe = np.dot(wz.T, iv.utu)
+
+    hph = np.dot(iv.h.T, iv.h)
+    ihph = la.inv(hph)
+    zph = np.dot(iv.z.T, iv.h)
+    z1 = np.dot(zph, ihph)
+    hpz = np.transpose(zph)
+    zhpzh = np.dot(z1,nm.transpose(zph))
+    izhpzh = la.inv(zhpzh)
+
+    dZWe = np.dot(izhpzh, ZWe)
+    eWZdZWe = np.dot(np.transpose(ZWe),dZWe)
+    denom = 4.0 * w.n * eWZdZWe[0][0] / iv.utu
+    mchi = mi1**2 / (t + denom)
+    pmchi = pdf1.chicdf(mchi,1)
+    return (mchi, pmchi)
+
 def get_mI(reg, w, spDcache):
     """
     Moran's I statistic of spatial autocorrelation as showed in Cliff & Ord
@@ -635,4 +681,6 @@ if __name__ == '__main__':
     iv = STSLS_dev(x, y, w, h=None, w_lags=2, constant=True, robust=None)
     cache = spDcache(iv, w)
     ak = akTest(iv, w, cache)
+    akn = akTest_legacy(iv, w, spDcache)
+    print 'AK: %.4f\tAK_legacy: %.4f'%(ak, akn)
 
