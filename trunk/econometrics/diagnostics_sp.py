@@ -127,6 +127,9 @@ class AKtest:
     Parameters
     ----------
 
+    w           : W
+                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  be row-standardized
     x           : array
                   nxk array of independent variables, including endogenous
                   variables (assumed to be aligned with y)
@@ -134,14 +137,11 @@ class AKtest:
                   nx1 array of dependent variable
     h           : array
                   nxl array of instruments; typically this includes all
-                  exogenous variables from x and instruments. If case=0 and set
+                  exogenous variables from x and instruments. If case='gen' and set
                   to None then only spatial lagged 
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
-    w           : W
-                  Spatial weights instance (requires 'S' and 'A1') assumed to
-                  be row-standardized
     case        : string
                   Flag for special cases (default to 'nosp'):
                     * 'nsp': Only NO spatial end. reg.
@@ -166,8 +166,19 @@ class AKtest:
     Attributes
     ----------
 
-    ak          : tuple
-                  Pair of statistic and p-value for the AK test
+    mi          : float
+                  Moran's I statistic for IV residuals
+    ak          : float
+                  Square of corrected Moran's I for residuals::
+                    
+                  .. math::
+
+                        ak = \dfrac{N \times I^*}{\phi^2}
+
+                  Note: if case='nsp' then it simplifies to the LMerror
+
+    p           : float
+                  P-value of the test
 
     References
     ----------
@@ -182,15 +193,17 @@ class AKtest:
     Econometrics, 18, 163-198.
             """
 
-    def __init__(self, x, y, h, w, case='nosp', w_lags=2, constant=True,
+    def __init__(self, w, x, y, h=None, case='nosp', w_lags=2, constant=True,
             robust=None):
         if case == 'gen':
             iv = STSLS_dev(x, y, w, h, w_lags=2, constant=constant, robust=robust)
             cache = spDcache(iv, w)
+            self.mi, self.ak, self.p = akTest(iv, w, cache)
         elif case == 'nsp':
             iv = TSLS_dev(x, y, h, constant=constant)
             cache = spDcache(iv, w)
-            self.ak = lmErr(iv, w, cache)
+            self.mi = get_mI(iv, w, cache)
+            self.ak, self.p = lmErr(iv, w, cache)
         else:
             print """\n
             Fix the optional argument 'case' to match the requirements:
@@ -519,25 +532,35 @@ def akTest(iv, w, spDcache):
 
     Attributes
     ----------
-    ak          : tuple
-                  Pair of statistic and p-value for the AK test
+    mi          : float
+                  Moran's I statistic for IV residuals
+    ak          : float
+                  Square of corrected Moran's I for residuals::
+                    
+                  .. math::
+
+                        ak = \dfrac{N \times I^*}{\phi^2}
+
+    p           : float
+                  P-value of the test
 
     ToDo:
         * Code in as Nancy
         * Compare both
     """
     mi = get_mI(iv, w, spDcache)
+    # Phi2
     etwz = np.dot(iv.u.T, (w.sparse * iv.z))
     p = np.dot(iv.x, np.dot(iv.xtxi, iv.x.T))
     ztpz = np.dot(iv.z.T, np.dot(p, iv.z))
     nztpzi = w.n * la.inv(ztpz)
     a = np.dot((etwz / w.n), np.dot(nztpzi, (etwz.T / w.n)))
     s12 = (w.s0 / w.n)**2
-    s2 = 2. * w.trcW2 + w.trcWtW
+    s2 = (2. * w.trcW2 + w.trcWtW) / w.n
     phi2 = (s2 / 2. * s12) + (4. / (s12 * iv.sig2)) * a
-    ak = w.n * mi**2 / phi2**2
+    ak = w.n * mi**2 / phi2 # ak = (N^{1/2} * I* / phi)^2
     pval = chisqprob(ak, 1)
-    return (ak[0][0], pval[0][0])
+    return (mi, ak[0][0], pval[0][0])
 
 def akTest_legacy(iv, w, spDcache):
     """
@@ -575,15 +598,15 @@ def akTest_legacy(iv, w, spDcache):
     zph = np.dot(iv.z.T, iv.h)
     z1 = np.dot(zph, ihph)
     hpz = np.transpose(zph)
-    zhpzh = np.dot(z1,nm.transpose(zph))
+    zhpzh = np.dot(z1,np.transpose(zph))
     izhpzh = la.inv(zhpzh)
 
     dZWe = np.dot(izhpzh, ZWe)
     eWZdZWe = np.dot(np.transpose(ZWe),dZWe)
     denom = 4.0 * w.n * eWZdZWe[0][0] / iv.utu
     mchi = mi1**2 / (t + denom)
-    pmchi = pdf1.chicdf(mchi,1)
-    return (mchi, pmchi)
+    pmchi = chisqprob(mchi,1)
+    return (mchi[0][0], pmchi[0][0])
 
 def get_mI(reg, w, spDcache):
     """
@@ -680,7 +703,8 @@ if __name__ == '__main__':
     w.transform='r'
     iv = STSLS_dev(x, y, w, h=None, w_lags=2, constant=True, robust=None)
     cache = spDcache(iv, w)
-    ak = akTest(iv, w, cache)
-    akn = akTest_legacy(iv, w, spDcache)
-    print 'AK: %.4f\tAK_legacy: %.4f'%(ak, akn)
+    ak = akTest(iv, w, cache)[1]
+    #AK = AKtest(w, x, y, h=iv.h, case='nsp')
+    akl = akTest_legacy(iv, w, cache)[0]
+    #print 'AK: %f\tAK_legacy: %f'%(ak, akl)
 
