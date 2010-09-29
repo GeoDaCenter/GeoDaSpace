@@ -891,8 +891,8 @@ def vif(reg):
     Returns
     -------    
 
-    vif_result      : list
-                      the order of the VIFs correspond to the order of the variables in the reg.x matrix 
+    vif_result      : list of tuples
+                      each tuple includes the vif and the tolerance, the order of the variables corresponds to their order in the reg.x matrix
 
     References
     ----------
@@ -914,10 +914,18 @@ def vif(reg):
     >>> X = np.array(X).T
     >>> reg = OLS(X,y)
     >>> testresult = diagnostics.vif(reg)
-    >>> print("%12.12f"%testresult[1])
+    >>> incvif = testresult[1]
+    >>> print("%12.12f"%incvif[0])
     1.333117497189
-    >>> print("%12.12f"%testresult[2])
+    >>> print("%12.12f"%incvif[1])
+    0.750121427487
+    >>> hovalvif = testresult[1]
+    >>> print("%12.12f"%hovalvif[0])
     1.333117497189
+    >>> print("%12.12f"%hovalvif[1])
+    0.750121427487
+
+
 
     """
 
@@ -934,8 +942,10 @@ def vif(reg):
         utu = aux.utu
         ss_tot = sum((y-mean_y)**2)
         r2aux = 1-utu/ss_tot
-        vifj = 1/(1-r2aux)
-        vif_result.append(vifj)
+        tolj = 1 - r2aux
+        vifj = 1 / tolj
+        resj = (vifj,tolj)
+        vif_result.append(resj)
     return vif_result
 
 
