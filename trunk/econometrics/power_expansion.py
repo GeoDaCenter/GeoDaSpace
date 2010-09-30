@@ -76,13 +76,13 @@ def power_expansion(w, data, scalar, transpose=False, threshold=0.0000000001, ma
     else:
         lag = pysal.lag_spatial
     running_total = copy.copy(data)
+    increment = copy.copy(data)
     count = 1
     test = 10000000
     if max_iterations == None:
-        max_iterations = 1000000
+        max_iterations = 10000000
     while test > threshold and count <= max_iterations:
-        vector = (scalar**count) * data
-        increment = lag(w, vector)
+        increment = lag(w, scalar*increment)
         running_total += increment
         test = la.norm(increment)
         count += 1
@@ -116,28 +116,35 @@ def rev_lag_spatial(w, y):
     """
     return y * w.sparse
 
+def norm(y):
+    return sum(y**2)
 
 def inverse_scg(w, data, scalar, transpose=False, symmetric=False,\
-               threshold=0.001,\
+               threshold=0.00001,\
                max_iterations=None):
     
-    multiplier = SP.identity(w.n) - (scalar*w.sparse)       # A      n x n   
+    #multiplier = SP.identity(w.n) - (scalar*w.sparse)       # A      n x n   
     count = 0                                               # k      scalar (step 1)
     run_tot = copy.copy(data)                               # z_k    n x 1  (step 1)
-    residuals = data - multiplier * run_tot                 # r_k    n x 1  (step 2)
-    test1 = la.norm(residuals)                              # G_k    scalar (step 3)
+    #residuals = data - run_tot * multiplier                 # r_k    n x 1  (step 2)
+    residuals = data - pysal.lag_spatial(w, scalar*data)
+    #test1 = la.norm(residuals)                              # G_k    scalar (step 3)
+    test1 = norm(residuals)
     directions = copy.copy(residuals)                       # d_k    n x 1  (step 6)
     while test1 > threshold:                                #               (step 4)
         count += 1                                          #               (step 5)
-        changes = multiplier * directions                   # t      n x 1  (step 7)
+        #changes = multiplier * directions                   # t      n x 1  (step 7)
+        changes = directions - pysal.lag_spatial(w, scalar*directions)
         intensity = test1 / (np.dot(directions.T, changes)) # alpha  scalar (step 8)
-        int_dir = intensity * directions                    #               (step 8)
-        run_tot += int_dir                                  #               (step 8)
-        residuals -= int_dir                                #               (step 8)
-        test2 = la.norm(residuals)                          #               (step 3)
-        directions = residuals + ((test1/test2)*directions) #               (step 6)
+        #int_dir = intensity * directions                    #               (step 8)
+        run_tot += intensity * directions
+        #run_tot += int_dir                                  #               (step 8)
+        #residuals -= int_dir                                #               (step 8)
+        residuals -= intensity * changes
+        #test2 = la.norm(residuals)                          #               (step 3)
+        test2 = norm(residuals)
+        directions = residuals + ((test2/test1)*directions) #               (step 6)
         test1 = test2
-        print test1
     return run_tot
 
 
@@ -237,21 +244,41 @@ if __name__ == '__main__':
     doctest.testmod()
     
     import time
-    shape = 5
+    
+    shape = 3000
     w = pysal.lat2W(shape, shape)
     w.transform = 'r'
-    d = np.random.randn(w.n)
-    #d = np.random.randn(10)
-    #d = np.append(d, [0]*15)
-    #d = np.random.permutation(d)
-    d.shape = (w.n, 1)
-    time1 = time.time()
-    #i_pe = power_expansion(w, d, 0.4)
-    #i_cg = inverse_cg(w, d, 0.4)
-    #i_cg = inverse_cg(w, d, 0.4, symmetric=True)
-    t2 = time.time() - time1
-    #print w.n, w.transform, t2
-    
 
+    d = np.random.randn(w.n)
+    d.shape = (w.n, 1)
+    '''
+    time1 = time.time()
+    i_pe = power_expansion(w, d, 0.4)
+    t2 = time.time() - time1
+    print 'power exp:', t2
+    '''
+    '''
+    time1 = time.time()
+    i_cg = inverse_cg(w, d, 0.4)
+    t2 = time.time() - time1
+    print 'conj grad:', t2
+    '''
+    time1 = time.time()
+    i_cg_symm = inverse_cg(w, d, 0.4, symmetric=True)
+    t2 = time.time() - time1
+    print 'conj grad:', t2
+    '''
+    time1 = time.time()
+    i_scg = inverse_scg(w, d, 0.4)
+    t2 = time.time() - time1
+    print 'sparse conj grad:', t2
+    '''
+    '''
+    time1 = time.time()
+    i_re = regular_inverse(w, d, 0.4, 'inv')
+    t2 = time.time() - time1
+    print 'regular:', t2
+    '''
+    #print np.allclose(i_re, i_cg, atol=0.0001)
 
 

@@ -5,7 +5,7 @@ import robust as ROBUST
 import user_output as USER
 
 
-class TSLS_dev(OLS.OLS_dev):
+class TSLS_dev(OLS.OLS_dev, OLS.Regression_Props):
     """
     2SLS class to do all the computations
 
@@ -125,6 +125,7 @@ class TSLS_dev(OLS.OLS_dev):
             self.predy = np.dot(x, self.betas)   # using original data and GLS betas
             self.u = y - self.predy              # using original data and GLS betas
             ### need to verify the VM for the non-spatial case
+        OLS.Regression_Props()
 
 
         #### GLS and White robust 2SLS was implemented for the spatial case,
@@ -156,7 +157,7 @@ class TSLS_dev(OLS.OLS_dev):
         return self._cache['vm']
     
     
-class TSLS(TSLS_dev, OLS.OLS):
+class TSLS(TSLS_dev, USER.Diagnostic_Builder):
     """
     2SLS class for end-user (gives back only results and diagnostics)
 
