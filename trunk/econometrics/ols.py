@@ -3,6 +3,31 @@ import numpy.linalg as la
 import user_output as USER
 
 class Regression_Props:
+    """
+    Helper class that adds common regression properties to any regression
+    class that inherits it.  It takes no parameters.  See OLS_dev for example
+    usage.
+
+    Parameters
+    ----------
+
+    Attributes
+    ----------
+    utu     : float
+              Sum of the squared residuals
+    sig2    : float
+              Sigma squared with n in the denominator
+    sig2n_k : float
+              Sigma squared with n-k in the denominator
+    vm      : array
+              Variance-covariance matrix (kxk)
+    mean_y  : float
+              Mean of the dependent variable
+    std_y   : float
+              Standard deviation of the dependent variable
+              
+    """
+
     @property
     def utu(self):
         if 'utu' not in self._cache:
