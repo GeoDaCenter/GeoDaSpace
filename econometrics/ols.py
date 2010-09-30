@@ -2,8 +2,49 @@ import numpy as np
 import numpy.linalg as la
 import user_output as USER
 
+class Regression_Props:
+    @property
+    def utu(self):
+        if 'utu' not in self._cache:
+            self._cache['utu'] = np.sum(self.u**2)
+        return self._cache['utu']
+    @property
+    def sig2(self):
+        if 'sig2' not in self._cache:
+            self._cache['sig2'] = self.utu / self.n
+        return self._cache['sig2']
+    @property
+    def sig2n_k(self):
+        if 'sig2n_k' not in self._cache:
+            self._cache['sig2n_k'] = self.utu / (self.n-self.k)
+        return self._cache['sig2n_k']
+    @property
+    def m(self):
+        if 'm' not in self._cache:
+            xtxixt = np.dot(self.xtxi,self.xt)
+            xxtxixt = np.dot(self.x, xtxixt)
+            self._cache['m'] = np.eye(self.n) - xxtxixt
+        return self._cache['m']
+    @property
+    def vm(self):
+        if 'vm' not in self._cache:
+            self._cache['vm'] = np.dot(self.sig2n_k, self.xtxi)
+        return self._cache['vm']
+    
+    @property
+    def mean_y(self):
+        if 'mean_y' not in self._cache:
+            self._cache['mean_y']=np.mean(self.y)
+        return self._cache['mean_y']
+    @property
+    def std_y(self):
+        if 'std_y' not in self._cache:
+            self._cache['std_y']=np.std(self.y)
+        return self._cache['std_y']
+    
 
-class OLS_dev:
+
+class OLS_dev(Regression_Props):
     """
     OLS class to do all the computations
 
@@ -88,6 +129,7 @@ class OLS_dev:
         self.predy = predy
         self.y = y
         self.n, self.k = x.shape
+        Regression_Props()
         self._cache = {}
 
     def set_x(self, x):
@@ -96,48 +138,8 @@ class OLS_dev:
         self.xtx = np.dot(self.x.T,self.x)
         self.xtxi = la.inv(self.xtx)
 
-    @property
-    def utu(self):
-        if 'utu' not in self._cache:
-            self._cache['utu'] = np.sum(self.u**2)
-        return self._cache['utu']
-    @property
-    def sig2(self):
-        if 'sig2' not in self._cache:
-            self._cache['sig2'] = self.utu / self.n
-        return self._cache['sig2']
-    @property
-    def sig2n_k(self):
-        if 'sig2n_k' not in self._cache:
-            self._cache['sig2n_k'] = self.utu / (self.n-self.k)
-        return self._cache['sig2n_k']
-    @property
-    def m(self):
-        if 'm' not in self._cache:
-            xtxixt = np.dot(self.xtxi,self.xt)
-            xxtxixt = np.dot(self.x, xtxixt)
-            self._cache['m'] = np.eye(self.n) - xxtxixt
-        return self._cache['m']
-    @property
-    def vm(self):
-        if 'vm' not in self._cache:
-            self._cache['vm'] = np.dot(self.sig2n_k, self.xtxi)
-        return self._cache['vm']
-    
-    @property
-    def mean_y(self):
-        if 'mean_y' not in self._cache:
-            self._cache['mean_y']=np.mean(self.y)
-        return self._cache['mean_y']
-    @property
-    def std_y(self):
-        if 'std_y' not in self._cache:
-            self._cache['std_y']=np.std(self.y)
-        return self._cache['std_y']
-    
-
-
-class OLS(OLS_dev, USER.Diagnostic_Builder):
+#class OLS(OLS_dev, USER.Diagnostic_Builder):
+class OLS(OLS_dev):
     """
     OLS class for end-user (gives back only results and diagnostics)
     
@@ -256,7 +258,7 @@ class OLS(OLS_dev, USER.Diagnostic_Builder):
         self.name_y = name_y
         self.name_x = name_x
         self.sig2 = self.sig2n_k        
-        USER.Diagnostic_Builder.__init__(self, constant=constant, vm=vm, pred=pred)
+        #USER.Diagnostic_Builder.__init__(self, constant=constant, vm=vm, pred=pred)
 
 
 def _test():
