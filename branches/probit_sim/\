@@ -1,0 +1,47 @@
+"""
+Example of a simulation split into several cores
+
+In this case, we are obtaining the average value for several draws of a random
+distribution
+"""
+
+import multiprocessing as mp
+import numpy as np
+
+def sim_draw(n):
+    x = np.random.randn(n)
+    return np.mean(x)
+
+def worker_task(cycles):
+    """
+    Example of function to be run by one core
+
+    Parameters
+    ----------
+
+    cycles  : int
+              Number of cycles to repeat the task
+    """
+    values_core = np.zeros((cycles, 1))
+    for i in xrange(cycles):
+        values_core[i] = sim_draw(10)
+    return values_core
+
+def output_paster(values_cores):
+    """
+    Merges output from different cores in one object
+
+    Parameters
+    ----------
+
+    values_cores    : list
+                      List of arrays out of different cores
+    """
+    return map(vstack, values_cores)
+
+if __name__ == '__main__':
+
+    cores = mp.cpu_count()
+    pool = mp.Pool(cores)
+    parts = pool.map(worker_task, [cycles_pc] * cores)
+
