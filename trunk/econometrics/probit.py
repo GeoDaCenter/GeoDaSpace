@@ -16,7 +16,7 @@ class probit: #DEV class required.
     x           : array
                   nxk array of independent variables (assumed to be aligned with y)
     y           : array
-                  nx1 array of dependent variable
+                  nx1 array of dependent binary variable
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
@@ -54,7 +54,7 @@ class probit: #DEV class required.
                   Mean of the independent variables (kx1)
     predpc      : float
                   Percent of y correctly predicted
-    logll       : float
+    logl        : float
                   Log-Likelihhod of the estimation
     *Tstat       : dictionary
                   key: name of variables, constant & independent variables (Yet to be coded!)
@@ -76,11 +76,15 @@ class probit: #DEV class required.
     moran       : float
                   Moran's I type test against spatial error correlation.
                   Implemented as presented in Kelejian and Prucha (2001)
+    pinkse_slade: float
+                  Lagrange Multiplier test against spatial error correlation.
+                  Implemented as presented in Pinkse and Slade (1998)
 
     References
     ----------
     .. [1] Pinkse (2009)
     .. [2] Kelejian and Prucha (2001)
+    .. [3] Pinkse and Slade (1998)
 
     Examples
     --------
@@ -114,7 +118,7 @@ class probit: #DEV class required.
         self.w = w
         par_est = self.par_est()
         self.betas = np.reshape(par_est[0],(self.k,1))
-        self.logll = float(par_est[1])
+        self.logl = float(par_est[1])
         self._cache = {}
 
     @property
@@ -189,8 +193,8 @@ class probit: #DEV class required.
     @property
     def LR(self):
         if 'LR' not in self._cache:    
-            P = 1.0 * np.sum(self.y)[0] / self.n
-            LR = float(-2 * (self.n*(P * np.log(P) + (1 - P) * np.log(1 - P)) - self.logll))  #Likeliood ratio test on all betas = zero.
+            P = 1.0 * np.sum(self.y) / self.n
+            LR = float(-2 * (self.n*(P * np.log(P) + (1 - P) * np.log(1 - P)) - self.logl))  #Likeliood ratio test on all betas = zero.
             self._cache['LR'] = (LR,stats.chisqprob(LR,self.k))
         return self._cache['LR']
     @property
@@ -206,8 +210,8 @@ class probit: #DEV class required.
                 u_gen = phi * (u_naive / Phi_prod)
                 sig2 = np.sum((phi * phi) / Phi_prod) / self.n
                 LM_err_num = np.dot(u_gen.T,(w.sparse * u_gen))**2
-                LM_err_den = sig2**2 * np.sum(((w.sparse*w.sparse)+(w.sparse.T*w.sparse)).diagonal())
-                LM_err = float(1.0 * LM_err_num / LM_err_den)
+                trWW_WpW = np.sum(((w.sparse*w.sparse)+(w.sparse.T*w.sparse)).diagonal())
+                LM_err = float(1.0 * LM_err_num / (sig2**2 * trWW_WpW))
                 LM_err = np.array([LM_err,stats.chisqprob(LM_err,1)])
                 #Moran's I:
                 E = SP.lil_matrix(w.sparse.get_shape()) #There's a similar code in gmm_utils to create the Sigma matrix for the Psi.
@@ -218,17 +222,27 @@ class probit: #DEV class required.
                 moran_num = np.dot(u_naive.T, (w.sparse * u_naive))
                 moran = float(1.0*moran_num / moran_den)
                 moran = np.array([moran,stats.norm.sf(abs(moran)) * 2.])
+                #Pinkse-Slade:
+                u_std = u_naive / np.sqrt(Phi_prod)
+                ps_num = np.dot(u_std.T, (w.sparse * u_std))**2
+                ps = float(ps_num / trWW_WpW)
+                ps = np.array([ps,stats.chisqprob(ps,1)]) #chi-square instead of bootstrap.
                 self._cache['LM_error'] = LM_err
                 self._cache['moran'] = moran
+                self._cache['pinkse_slade'] = ps
             else:
                 print "W not specified."
         return self._cache['LM_error']
     @property
-    def moran(self): #LM error and Moran's I tests are calculated together.
+    def moran(self): #All tests for spatial error correlation are calculated together.
         if 'moran' not in self._cache:
             self._cache['LM_error'] = self.LM_error
-            self._cache['moran'] = self.moran
         return self._cache['moran']
+    @property
+    def pinkse_slade(self): #All tests for spatial error correlation are calculated together.
+        if 'pinkse_slade' not in self._cache:
+            self._cache['LM_error'] = self.LM_error
+        return self._cache['pinkse_slade']
 
     def par_est(self):
         start = []
