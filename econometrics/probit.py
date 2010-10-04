@@ -245,9 +245,7 @@ class probit: #DEV class required.
         return self._cache['pinkse_slade']
 
     def par_est(self):
-        start = []
-        for i in range(self.x.shape[1]):
-            start.append(0.01)
+        start = [0.01] * self.x.shape[1]
         flogl = lambda par: -self.ll(par)
         fgrad = lambda par: -self.gradient(par)
         fhess = lambda par: -self.hessian(par)
@@ -259,11 +257,9 @@ class probit: #DEV class required.
                 H = self.hessian(history[-1])
                 par_hat0 = history[-1] - np.dot(np.linalg.inv(H),self.gradient(history[-1]))
                 history.append(par_hat0)
-                iteration = iteration + 1
+                iteration += 1
             logl = self.ll(par_hat0,final=1)
-            par_hat = [] #Coded like this to comply with most of the scipy optimizers.
-            par_hat.append(par_hat0)
-            par_hat.append(logl)            
+            par_hat = [par_hat0, logl] #Coded like this to comply with most of the scipy optimizers.
         return par_hat
 
     def ll(self,par,final=None):
