@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/Users/pedroamaral/Documents/academico/geodacenter/python/svn/')
+sys.path.append('/Users/pedroamaral/Documents/academico/geodacenter/python/svn/spreg/trunk/econometrics/')
 import pysal
 import probit_dev as pb
 import numpy as np
@@ -47,7 +50,7 @@ def run_probit(att): #att = [x,I,lambd,w,n,b,R]. Since it seemed from mp.Pool.ma
     pinkse = np.zeros((cycles, 2),float) #Pinkse's LM test statistic and rejection rate from each run
     pslade = np.zeros((cycles, 2),float) #Pinkse and Slade's LM test statistic and rejection rate from each run
     for r in range(cycles):
-        e = (I-lambd*w.sparse) * np.random.normal(0,1,(n,1)) #Buld residuals vector
+        e = (I-lambd*w) * np.random.normal(0,1,(n,1)) #Buld residuals vector
         ys = np.dot(x,b) + e #Build y_{star}
         y = np.zeros((n,1),float) #Binary y
         for yi in range(len(y)):
@@ -112,10 +115,10 @@ class probit_simu:
             for l in range(ll): #Run the estimation for each sample set and each lambda
                 lamb = lambd[l]
                 if core == 'multi':
-                    parts = pool.map(run_probit, [x,I,lamb,w,n,b,R/cores] * cores)
+                    parts = pool.map(run_probit, [(x,I,lamb,w.sparse,n,b,R/cores)] * cores)
                     output = map(output_paster,parts)
                 if core == 'single':
-                    output = run_probit([x,I,lamb,w,n,b,R/cores*cores]) #Run the probit estimation
+                    output = run_probit([x,I,lamb,w.sparse,n,b,R/cores*cores]) #Run the probit estimation
                 t2 = time.time()
                 print "N:", n, "Lambda:", lamb, "Time:", t2-t1 #Prints follow-up messages
                 self.get_results(output,counter,ll,l,lamb,x.shape[1],t2-t1) #Stores the results in the result array
@@ -175,9 +178,9 @@ class probit_simu:
 
 if __name__ == '__main__':
     b = np.reshape(np.array([-1,0.5]),(2,1)) #set value for \betas
-    R = 20 #set the number of runs. If not divisible by the number of cores, it will be changed to the biggest divisible lesser than the amount provided.
+    R = 3000 #set the number of runs. If not divisible by the number of cores, it will be changed to the biggest divisible lesser than the amount provided.
     x0 = np.random.normal(2,1,(25,1)) #set the X0
     x0 = np.hstack((np.ones(x0.shape),x0)) #Add constant to X0
-    N = 2 #Number of sets of sample size. The samples sizes are n_i = 5**{N_i*2}
+    N = 5 #Number of sets of sample size. The samples sizes are n_i = 5**{N_i*2}
     lambd = [-0.8,-0.5,-0.3,-0.1,-0.01,0,0.01,0.1,0.3,0.5,0.8] #set values for \lambda
-    simu = probit_simu(b,R,N,x0,lambd)
+    simu = probit_simu(b,R,N,x0,lambd,core='multi')

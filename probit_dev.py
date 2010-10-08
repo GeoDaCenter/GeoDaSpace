@@ -202,38 +202,38 @@ class probit: #DEV class required.
     @property
     def LM_error(self): #LM error and Moran's I tests are calculated together.
         if 'LM_error' not in self._cache: 
-            if self.w:
-                w = self.w
-                phi = self.phiy
-                Phi = self.predy
-                #LM_error:
-                Phi_prod = Phi * (1 - Phi)
-                u_naive = self.y - Phi
-                u_gen = phi * (u_naive / Phi_prod)
-                sig2 = np.sum((phi * phi) / Phi_prod) / self.n
-                LM_err_num = np.dot(u_gen.T,(w.sparse * u_gen))**2
-                trWW_WpW = np.sum(((w.sparse*w.sparse)+(w.sparse.T*w.sparse)).diagonal())
-                LM_err = float(1.0 * LM_err_num / (sig2**2 * trWW_WpW))
-                #LM_err = np.array([LM_err,stats.chisqprob(LM_err,1)])
-                #Moran's I:
-                E = SP.lil_matrix(w.sparse.get_shape()) #There's a similar code in gmm_utils to create the Sigma matrix for the Psi.
-                E.setdiag(Phi_prod.flat)
-                E = E.asformat('csr')
-                WE = w.sparse*E
-                moran_den = np.sqrt(np.sum((WE*WE + (w.sparse.T*E)*WE).diagonal()))
-                moran_num = np.dot(u_naive.T, (w.sparse * u_naive))
-                moran = float(1.0*moran_num / moran_den)
-                #moran = np.array([moran,stats.norm.sf(abs(moran)) * 2.])
-                #Pinkse-Slade:
-                u_std = u_naive / np.sqrt(Phi_prod)
-                ps_num = np.dot(u_std.T, (w.sparse * u_std))**2
-                ps = float(ps_num / trWW_WpW)
-                #ps = np.array([ps,stats.chisqprob(ps,1)]) #chi-square instead of bootstrap.
-                self._cache['LM_error'] = LM_err
-                self._cache['moran'] = moran
-                self._cache['pinkse_slade'] = ps
-            else:
-                print "W not specified."
+            #if self.w:
+            w = self.w
+            phi = self.phiy
+            Phi = self.predy
+            #LM_error:
+            Phi_prod = Phi * (1 - Phi)
+            u_naive = self.y - Phi
+            u_gen = phi * (u_naive / Phi_prod)
+            sig2 = np.sum((phi * phi) / Phi_prod) / self.n
+            LM_err_num = np.dot(u_gen.T,(w * u_gen))**2
+            trWW_WpW = np.sum(((w*w)+(w.T*w)).diagonal())
+            LM_err = float(1.0 * LM_err_num / (sig2**2 * trWW_WpW))
+            #LM_err = np.array([LM_err,stats.chisqprob(LM_err,1)])
+            #Moran's I:
+            E = SP.lil_matrix(w.get_shape()) #There's a similar code in gmm_utils to create the Sigma matrix for the Psi.
+            E.setdiag(Phi_prod.flat)
+            E = E.asformat('csr')
+            WE = w*E
+            moran_den = np.sqrt(np.sum((WE*WE + (w.T*E)*WE).diagonal()))
+            moran_num = np.dot(u_naive.T, (w * u_naive))
+            moran = float(1.0*moran_num / moran_den)
+            #moran = np.array([moran,stats.norm.sf(abs(moran)) * 2.])
+            #Pinkse-Slade:
+            u_std = u_naive / np.sqrt(Phi_prod)
+            ps_num = np.dot(u_std.T, (w * u_std))**2
+            ps = float(ps_num / trWW_WpW)
+            #ps = np.array([ps,stats.chisqprob(ps,1)]) #chi-square instead of bootstrap.
+            self._cache['LM_error'] = LM_err
+            self._cache['moran'] = moran
+            self._cache['pinkse_slade'] = ps
+            #else:
+            #print "W not specified."
         return self._cache['LM_error']
     @property
     def moran(self): #All tests for spatial error correlation are calculated together.
@@ -247,9 +247,7 @@ class probit: #DEV class required.
         return self._cache['pinkse_slade']
 
     def par_est(self):
-        start = []
-        for i in range(self.x.shape[1]):
-            start.append(0.01)
+        start = [0.01] * self.x.shape[1]
         flogl = lambda par: -self.ll(par)
         fgrad = lambda par: -self.gradient(par)
         fhess = lambda par: -self.hessian(par)
@@ -261,11 +259,9 @@ class probit: #DEV class required.
                 H = self.hessian(history[-1])
                 par_hat0 = history[-1] - np.dot(np.linalg.inv(H),self.gradient(history[-1]))
                 history.append(par_hat0)
-                iteration = iteration + 1
+                iteration += 1
             logl = self.ll(par_hat0,final=1)
-            par_hat = [] #Coded like this to comply with most of the scipy optimizers.
-            par_hat.append(par_hat0)
-            par_hat.append(logl)            
+            par_hat = [par_hat0, logl] #Coded like this to comply with most of the scipy optimizers.            
         return par_hat
 
     def ll(self,par,final=None):
