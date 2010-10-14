@@ -163,8 +163,7 @@ class OLS_dev(Regression_Props):
         self.xtx = np.dot(self.x.T,self.x)
         self.xtxi = la.inv(self.xtx)
 
-#class OLS(OLS_dev, USER.Diagnostic_Builder):
-class OLS(OLS_dev):
+class OLS(OLS_dev, USER.Diagnostic_Builder):
     """
     OLS class for end-user (gives back only results and diagnostics)
     
@@ -283,7 +282,7 @@ class OLS(OLS_dev):
         self.name_y = name_y
         self.name_x = name_x
         self.sig2 = self.sig2n_k        
-        #USER.Diagnostic_Builder.__init__(self, constant=constant, vm=vm, pred=pred)
+        USER.Diagnostic_Builder.__init__(self, constant=constant, vm=vm, pred=pred)
 
 
 def _test():

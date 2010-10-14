@@ -1,0 +1,31 @@
+
+
+Inverse with the conjugate gradient method
+
+Symmetry
+--------
+-If symmetric  --> classic CG method
+-If asymmetric --> BiCGstab method (includes row standardized)
+
+Speed
+-----
+-Very fast for row standardized
+--Row standardized (BiCGstab)
+---~9.0 seconds for 1,000,000 observations
+
+-Classic CG is much faster than BiCGstab
+--Symmetric binary (classic CG)
+---~ 2.5 seconds for 10,000 observations
+---~46.2 seconds for 20,000 observations
+
+
+            |-----------|------------|
+            | symmetric | asymmetric |
+------------|-----------|------------|
+w_ij < 1.0  |   many    |  millions  |
+            | millions  |            |
+------------|-----------|------------|
+w_ij >= 1.0 |  ~20,000  |  ~10,000   |
+------------|-----------|------------|
+
+

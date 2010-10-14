@@ -11,13 +11,14 @@ To Do List:
 import pysal
 from pysal.common import *
 from math import sqrt
-import ols as OLS
+#import ols as OLS
 
 
 
-def f_stat(reg, tsls=False):
+def f_stat(reg):
     """
-    Calculates the f-statistic and associated p-value of the regression. 
+    Calculates the f-statistic and associated p-value of the regression. (For
+    two stage least squares see f_stat_tsls)
     
     Parameters
     ----------
@@ -25,10 +26,6 @@ def f_stat(reg, tsls=False):
     reg             : regression object
                       output instance from a regression model
 
-    tsls            : boolean
-                      If True adjusts the f_stat accounting for two stage
-                      least squares regression.
-        
     Returns
     ----------
 
@@ -39,8 +36,6 @@ def f_stat(reg, tsls=False):
     ----------
 
     [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
-    [2] J.M. Wooldridge. 1990. A note on the Lagrange multiplier and F-statistics 
-        for two stage least squares regressions. Economics Letters 34, 151-155.
     
 
     Examples
@@ -60,14 +55,66 @@ def f_stat(reg, tsls=False):
     >>> testresult = diagnostics.f_stat(reg)
     >>> print("%12.12f"%testresult[0],"%12.12f"%testresult[1])
     ('28.385629224695', '0.000000009341')
-    >>> # test 2SLS
+
+    """ 
+    
+    k = reg.k                   # (scalar) number of independent variables (includes constant)
+    n = reg.n                   # (scalar) number of observations
+    utu = reg.utu               # (scalar) residual sum of squares
+    predy = reg.predy           # (array) vector of predicted values (n x 1)
+    mean_y = reg.mean_y         # (scalar) mean of dependent observations
+    Q = utu
+    U = np.sum((predy-mean_y)**2)
+    fStat = (U/(k-1))/(Q/(n-k))
+    pValue = stats.f.sf(fStat,k-1,n-k)
+    fs_result = (fStat, pValue)
+    return fs_result
+
+
+
+def f_stat_tsls(reg):
+    """
+    Calculates the f-statistic and associated p-value for a two stage least
+    squares regression. 
+    
+    Parameters
+    ----------
+
+    reg             : TSLS regression object
+                      output instance from a regression model
+
+    Returns
+    ----------
+
+    fs_result       : tuple
+                      includes value of F statistic and associated p-value
+
+    References
+    ----------
+
+    [1] J.M. Wooldridge. 1990. A note on the Lagrange multiplier and F-statistics 
+        for two stage least squares regressions. Economics Letters 34, 151-155.
+    
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> import diagnostics
     >>> from twosls import TSLS_dev as TSLS
+    >>> db = pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
     >>> h = []
     >>> h.append(db.by_col("INC"))
     >>> h.append(db.by_col("DISCBD"))
     >>> h = np.array(h).T
     >>> reg = TSLS(X, y, h)
-    >>> testresult = diagnostics.f_stat(reg, True)
+    >>> testresult = diagnostics.f_stat_tsls(reg)
     >>> print("%12.11f"%testresult[0],"%12.11f"%testresult[1])
     ('7.40058418460', '0.00163476698')
 
@@ -79,12 +126,10 @@ def f_stat(reg, tsls=False):
     predy = reg.predy           # (array) vector of predicted values (n x 1)
     mean_y = reg.mean_y         # (scalar) mean of dependent observations
     Q = utu
-    if tsls:
-        ssr_intercept = OLS.OLS_dev(np.ones(reg.y.shape), reg.y, False).utu
-        ssr_2nd_stage = np.sum(reg.u_2nd_stage**2)
-        U = ssr_intercept - ssr_2nd_stage
-    else:
-        U = np.sum((predy-mean_y)**2)
+    import ols as OLS
+    ssr_intercept = OLS.OLS_dev(np.ones(reg.y.shape), reg.y, False).utu
+    ssr_2nd_stage = np.sum(reg.u_2nd_stage**2)
+    U = ssr_intercept - ssr_2nd_stage
     fStat = (U/(k-1))/(Q/(n-k))
     pValue = stats.f.sf(fStat,k-1,n-k)
     fs_result = (fStat, pValue)
@@ -772,6 +817,7 @@ def white(reg):
     n,k = A.shape
 
     # Conduct the auxiliary regression and calculate the statistic
+    import ols as OLS
     aux_reg = OLS.OLS_dev(A,e,constant=False)
     aux_r2 = r2(aux_reg)
     wh = aux_r2*n
@@ -937,6 +983,7 @@ def vif(reg):
         Z = X.copy()
         Z = np.delete(Z,j,1)
         y  = X[:,j]
+        import ols as OLS
         aux = OLS.OLS_dev(Z,y,constant=False)
         mean_y = aux.mean_y
         utu = aux.utu
