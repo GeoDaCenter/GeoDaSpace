@@ -1,76 +1,11 @@
-import sys
-sys.path.append('/Users/pedroamaral/Documents/academico/geodacenter/python/svn/')
-sys.path.append('/Users/pedroamaral/Documents/academico/geodacenter/python/svn/spreg/trunk/econometrics/')
 import pysal
+import struct
+import os
 import probit_dev as pb
 import numpy as np
 import scipy.sparse as SP
 import time
 import multiprocessing as mp
-
-def output_paster(values_cores):
-    """
-    Merges output from different cores in one object
-
-    Parameters
-    ----------
-
-    values_cores    : list
-                      List of arrays out of different cores
-    """
-    return np.vstack([i for i in values_cores])
-
-def run_probit(att): #att = [x,I,lambd,w,n,b,R]. Since it seemed from mp.Pool.map that only one attribute could be passed, all were saved in the same list
-    """
-    Runs the probit estimation of each set of sample sizes and lambda
-
-    Parameters
-    ----------
-
-    att   : list
-            List of all attributes required.
-            x = array: values of X (nxk)
-            I = sparse: identity matrix (nxn)
-            lambd = float: value of lambda
-            w = w: weights matrix
-            n = float: number of obs
-            b = array: value of betas (kx1)
-            cycles = float: number of runs
-    """
-    x = att[0]
-    I = att[1]
-    lambd = att[2]
-    w = att[3]
-    n = att[4]
-    b = att[5]
-    cycles = att[6]
-    betas = np.zeros((cycles, x.shape[1]),float) #To store the estimated betas from each run
-    sd = np.zeros((cycles, x.shape[1]),float) #To store the estimated standard deviation of the betas from each run 
-    morans = np.zeros((cycles, 2),float) #KP Moran's I test statistic and rejection rate from each run
-    pinkse = np.zeros((cycles, 2),float) #Pinkse's LM test statistic and rejection rate from each run
-    pslade = np.zeros((cycles, 2),float) #Pinkse and Slade's LM test statistic and rejection rate from each run
-    for r in range(cycles):
-        e = (I-lambd*w) * np.random.normal(0,1,(n,1)) #Buld residuals vector
-        ys = np.dot(x,b) + e #Build y_{star}
-        y = np.zeros((n,1),float) #Binary y
-        for yi in range(len(y)):
-            if ys[yi]>0:
-                y[yi] = 1
-        probit1 = pb.probit(x,y,constant=False,w=w)
-        sd0 = np.sqrt(probit1.vm.diagonal()) #Get estimated standard deviation from the VC matrix
-        for k in range(betas.shape[1]):
-            betas[r,k] = probit1.betas[k]
-            sd[r,k] = sd0[k]
-        morans[r,0] = probit1.moran
-        pinkse[r,0] = probit1.LM_error
-        pslade[r,0] = probit1.pinkse_slade
-        if abs(morans[r,0])>1.96: #Critical value for normal distribution (5%)
-            morans[r,1] = 1
-        if abs(pinkse[r,0])>3.841: #Critical value for chi-square distribution (5%)
-            pinkse[r,1] = 1
-        if abs(pslade[r,0])>3.841: #Critical value for chi-square distribution (5%)
-            pslade[r,1] = 1
-    return [betas, sd, morans, pinkse, pslade]
 
 class probit_simu:
     """
@@ -116,7 +51,10 @@ class probit_simu:
                 lamb = lambd[l]
                 if core == 'multi':
                     parts = pool.map(run_probit, [(x,I,lamb,w.sparse,n,b,R/cores)] * cores)
-                    output = map(output_paster,parts)
+                    output = output_paster(parts)
+                    if lamb == 0:
+                        self.partes = parts
+                        self.out = output
                 if core == 'single':
                     output = run_probit([x,I,lamb,w.sparse,n,b,R/cores*cores]) #Run the probit estimation
                 t2 = time.time()
@@ -175,11 +113,94 @@ class probit_simu:
             self.result[counter*ll+l,9+k*3] = np.std(output[0][:,k]) #Standard deviation of the estimated betas
             self.result[counter*ll+l,10+k*3] = np.mean(output[1][:,k]) #Average of the estimated standard deviation of beta
 
+def output_paster(values_cores):
+    """
+    Merges output from different cores in one object
+
+    Parameters
+    ----------
+
+    values_cores    : list
+                      List of arrays out of different cores
+    """
+    betas = []
+    sd = []
+    morans = []
+    pinkse = []
+    pslade = []
+    for i in range(len(values_cores)):
+        betas.append(values_cores[i][0])
+        sd.append(values_cores[i][1])
+        morans.append(values_cores[i][2])
+        pinkse.append(values_cores[i][3])
+        pslade.append(values_cores[i][4])
+    betas = np.vstack([i for i in betas])
+    sd = np.vstack([i for i in sd])
+    morans = np.vstack([i for i in morans])
+    pinkse = np.vstack([i for i in pinkse])
+    pslade = np.vstack([i for i in pslade])
+    return (betas, sd, morans, pinkse, pslade)
+
+def run_probit(att):
+    """
+    Runs the probit estimation of each set of sample sizes and lambda
+
+    Parameters
+    ----------
+
+    att   : list
+            List of all attributes required.
+            x = array: values of X (nxk)
+            I = sparse: identity matrix (nxn)
+            lambd = float: value of lambda
+            w = w: weights matrix
+            n = float: number of obs
+            b = array: value of betas (kx1)
+            cycles = float: number of runs
+    """
+    x = att[0]
+    I = att[1]
+    lambd = att[2]
+    w = att[3]
+    n = att[4]
+    b = att[5]
+    cycles = att[6]
+    betas = np.zeros((cycles, x.shape[1]),float) #To store the estimated betas from each run
+    sd = np.zeros((cycles, x.shape[1]),float) #To store the estimated standard deviation of the betas from each run 
+    morans = np.zeros((cycles, 2),float) #KP Moran's I test statistic and rejection rate from each run
+    pinkse = np.zeros((cycles, 2),float) #Pinkse's LM test statistic and rejection rate from each run
+    pslade = np.zeros((cycles, 2),float) #Pinkse and Slade's LM test statistic and rejection rate from each run
+    for r in range(cycles):
+        seed = abs(struct.unpack('i',os.urandom(4))[0])
+        np.random.seed(seed)
+        e = (I-lambd*w) * np.random.normal(0,1,(n,1)) #Build residuals vector
+        ys = np.dot(x,b) + e #Build y_{star}
+        y = np.zeros((n,1),float) #Binary y
+        for yi in range(len(y)):
+            if ys[yi]>0:
+                y[yi] = 1
+        probit1 = pb.probit(x,y,constant=False,w=w)
+        sd0 = np.sqrt(probit1.vm.diagonal()) #Get estimated standard deviation from the VC matrix
+        for k in range(betas.shape[1]):
+            betas[r,k] = probit1.betas[k]
+            sd[r,k] = sd0[k]
+        morans[r,0] = probit1.moran
+        pinkse[r,0] = probit1.LM_error
+        pslade[r,0] = probit1.pinkse_slade
+        if abs(morans[r,0])>1.96: #Critical value for normal distribution (5%)
+            morans[r,1] = 1
+        if abs(pinkse[r,0])>3.841: #Critical value for chi-square distribution (5%)
+            pinkse[r,1] = 1
+        if abs(pslade[r,0])>3.841: #Critical value for chi-square distribution (5%)
+            pslade[r,1] = 1
+    return (betas, sd, morans, pinkse, pslade)
+
 
 if __name__ == '__main__':
-    b = np.reshape(np.array([-1,0.5]),(2,1)) #set value for \betas
+    b = np.reshape(np.array([1,0.5]),(2,1)) #set value for \betas
     R = 3000 #set the number of runs. If not divisible by the number of cores, it will be changed to the biggest divisible lesser than the amount provided.
-    x0 = np.random.normal(2,1,(25,1)) #set the X0
+    x0 = np.random.normal(-2,1,(25,1)) #set the X0
+    #x0 = np.reshape(np.array([[1,2,3,-1,-2,-3,2,-4,4]]),(9,1)) #set the X0
     x0 = np.hstack((np.ones(x0.shape),x0)) #Add constant to X0
     N = 5 #Number of sets of sample size. The samples sizes are n_i = 5**{N_i*2}
     lambd = [-0.8,-0.5,-0.3,-0.1,-0.01,0,0.01,0.1,0.3,0.5,0.8] #set values for \lambda
