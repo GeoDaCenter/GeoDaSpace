@@ -50,8 +50,7 @@ class STSLS_dev(TSLS.TSLS_dev):
                   all exogenous variables from x and instruments; if set to
                   None then only spatial lagged 
     w_lags      : integer
-                  Number of spatial lags of the exogenous variables. Kelejian
-                  et al. (2004) [1]_ recommends w_lags=2, which is the default.
+                  Number of spatial lags of the exogenous variables. 
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
@@ -159,7 +158,7 @@ class STSLS_dev(TSLS.TSLS_dev):
     Econometrics, 18, 163-198.
     """
 
-    def __init__(self, x, y, w, h=None, w_lags=2, constant=True, robust=None):
+    def __init__(self, x, y, w, h=None, w_lags=1, constant=True, robust=None):
         if type(h).__name__ == 'ndarry': # spatial and non-spatial instruments
             h = self.get_lags(h, w, w_lags)
         elif h == None:                  # spatial instruments only
