@@ -692,7 +692,7 @@ def _test():
     doctest.testmod()
 
 if __name__ == '__main__':
-    #_test()
+    _test()
 
     import numpy as np
     import pysal
@@ -704,7 +704,7 @@ if __name__ == '__main__':
     iv = STSLS_dev(x, y, w, h=None, w_lags=2, constant=True, robust=None)
     cache = spDcache(iv, w)
     ak = akTest(iv, w, cache)[1]
-    #AK = AKtest(w, x, y, h=iv.h, case='nsp')
+    AK = AKtest(w, x, y, h=iv.h, case='nsp')
     akl = akTest_legacy(iv, w, cache)[0]
-    #print 'AK: %f\tAK_legacy: %f'%(ak, akl)
+    print 'AK: %f\tAK_legacy: %f'%(ak, akl)
 
