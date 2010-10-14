@@ -329,3 +329,25 @@ def _test():
 
 if __name__ == '__main__':
     _test()
+    #Extended example:
+    import numpy as np
+    import pysal
+    db = pysal.open("examples/greene21_1.csv",'r')
+    var = {}
+    var['y']="GRADE"
+    var['x']=("GPA","TUCE","PSI")
+    y = np.array(db.by_col(var['y']))
+    y = np.reshape(y, (y.shape[0],1))
+    X = []
+    for i in var['x']:
+        X.append(db.by_col(i))
+    X = np.array(X).T
+    probit1=probit(X,y)
+    print "Dependent variable: GRADE"
+    print "Variable  Coef.  S.E.  Z-Stat. p-Value Slope Slope_SD"
+    print "Constant %5.4f %5.4f %5.4f %5.4f" % (probit1.betas[0],np.sqrt(probit1.vm.diagonal())[0],probit1.Zstat[0][0],probit1.Zstat[0][1])
+    for i in range(len(var['x'])):
+        print "%-9s %5.4f %5.4f %5.4f %5.4f %5.4f %5.4f" % (var['x'][i],probit1.betas[i+1],np.sqrt(probit1.vm.diagonal())[i+1],probit1.Zstat[i+1][0],probit1.Zstat[i+1][1],probit1.slopes[i],np.sqrt(probit1.slopes_vm.diagonal())[i])
+    print "Log-Likelihood:", round(probit1.logl,4)
+    print "LR test:", round(probit1.LR[0],3), "; pvalue:", round(probit1.LR[1],4)
+    print "% correctly predicted:", round(probit1.predpc,2),"%"
