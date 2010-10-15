@@ -123,7 +123,7 @@ class STSLS_dev(TSLS.TSLS_dev):
     >>> h = np.array(h).T
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
-    >>> reg=STSLS_dev(X, y, w)
+    >>> reg=STSLS_dev(X, y, w, w_lags=2)
     >>> reg.betas
     array([[ 45.45909249],
            [  0.41929355],
@@ -131,7 +131,7 @@ class STSLS_dev(TSLS.TSLS_dev):
            [ -0.25953844]])
     >>> D.se_betas(reg)
     array([ 11.19151175,   0.18758518,   0.38861224,   0.09240593])
-    >>> reg=STSLS_dev(X, y, w, robust='white')
+    >>> reg=STSLS_dev(X, y, w, w_lags=2, robust='white')
     >>> reg.betas
     array([[ 45.45909249],
            [  0.41929355],
@@ -139,7 +139,7 @@ class STSLS_dev(TSLS.TSLS_dev):
            [ -0.25953844]])
     >>> D.se_betas(reg)
     array([ 10.93497906,   0.19588229,   0.49943339,   0.17217193])
-    >>> reg=STSLS_dev(X, y, w, robust='gls')
+    >>> reg=STSLS_dev(X, y, w, w_lags=2, robust='gls')
     >>> reg.betas
     array([[ 51.16882977],
            [  0.32904005],
@@ -147,7 +147,7 @@ class STSLS_dev(TSLS.TSLS_dev):
            [ -0.28543096]])
     >>> D.se_betas(reg)
     array([ 7.2237932 ,  0.13208009,  0.4297434 ,  0.15201063])
-    >>> reg=STSLS_dev(X, y, w, h)
+    >>> reg=STSLS_dev(X, y, w, h, w_lags=2)
 
     References
     ----------
