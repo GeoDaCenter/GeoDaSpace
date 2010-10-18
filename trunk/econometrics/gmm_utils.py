@@ -437,7 +437,7 @@ def get_spFilter(w,lamb,sf):
               PySAL weights instance  
     lamda   : double
               spatial autoregressive parameter
-    sp      : array
+    sf      : array
               the variable needed to compute the filter
     Returns
     --------
