@@ -212,7 +212,7 @@ class probit: #DEV class required.
                 LM_err_num = u_gen.T.dot(w.sparse * u_gen)**2
                 trWW_WpW = np.sum(((w.sparse*w.sparse)+(w.sparse.T*w.sparse)).diagonal())
                 LM_err = float(1.0 * LM_err_num / (sig2**2 * trWW_WpW))
-                #LM_err = np.array([LM_err,stats.chisqprob(LM_err,1)])
+                LM_err = np.array([LM_err,stats.chisqprob(LM_err,1)])
                 #Moran's I:
                 E = SP.lil_matrix(w.sparse.get_shape()) #There's a similar code in gmm_utils to create the Sigma matrix for the Psi.
                 E.setdiag(Phi_prod.flat)
@@ -221,12 +221,12 @@ class probit: #DEV class required.
                 moran_den = np.sqrt(np.sum((WE*WE + (w.sparse.T*E)*WE).diagonal()))
                 moran_num = u_naive.T.dot(w.sparse * u_naive)
                 moran = float(1.0*moran_num / moran_den)
-                #moran = np.array([moran,stats.norm.sf(abs(moran)) * 2.])
+                moran = np.array([moran,stats.norm.sf(abs(moran)) * 2.])
                 #Pinkse-Slade:
                 u_std = u_naive / np.sqrt(Phi_prod)
                 ps_num = u_std.T.dot(w.sparse * u_std)**2
                 ps = float(ps_num / trWW_WpW)
-                #ps = np.array([ps,stats.chisqprob(ps,1)]) #chi-square instead of bootstrap.
+                ps = np.array([ps,stats.chisqprob(ps,1)]) #chi-square instead of bootstrap.
                 self._cache['LM_error'] = LM_err
                 self._cache['moran'] = moran
                 self._cache['pinkse_slade'] = ps
@@ -245,9 +245,7 @@ class probit: #DEV class required.
         return self._cache['pinkse_slade']
 
     def par_est(self):
-        start = []
-        for i in range(self.x.shape[1]):
-            start.append(0.01)
+        start = [0.0] * self.x.shape[1]
         flogl = lambda par: -self.ll(par)
         fgrad = lambda par: -self.gradient(par)
         fhess = lambda par: -self.hessian(par)
@@ -259,11 +257,9 @@ class probit: #DEV class required.
                 H = self.hessian(history[-1])
                 par_hat0 = history[-1] - np.linalg.inv(H).dot(self.gradient(history[-1]))
                 history.append(par_hat0)
-                iteration = iteration + 1
+                iteration += 1
             logl = self.ll(par_hat0,final=1)
-            par_hat = [] #Coded like this to comply with most of the scipy optimizers.
-            par_hat.append(par_hat0)
-            par_hat.append(logl)            
+            par_hat = [par_hat0, logl] #Coded like this to comply with most of the scipy optimizers.             
         return par_hat
 
     def ll(self,par,final=None):
@@ -346,7 +342,7 @@ if __name__ == '__main__':
     for i in var['x']:
         X.append(db.by_col(i))
     X = np.array(X).T
-    probit1=probit(X,y)
+    probit1=probit(X,y,scalem='xmean')
     print "Dependent variable: GRADE"
     print "Variable  Coef.  S.E.  Z-Stat. p-Value Slope Slope_SD"
     print "Constant %5.4f %5.4f %5.4f %5.4f" % (probit1.betas[0],np.sqrt(probit1.vm.diagonal())[0],probit1.Zstat[0][0],probit1.Zstat[0][1])
