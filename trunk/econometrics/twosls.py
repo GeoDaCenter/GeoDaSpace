@@ -1,13 +1,11 @@
 import numpy as np
 import numpy.linalg as la
 import ols as OLS
-import robust as ROBUST
-import user_output as USER
+from ols import Regression_Props
 
-
-class TSLS_dev(OLS.OLS_dev, OLS.Regression_Props):
+class TSLS(Regression_Props):
     """
-    2SLS class to do all the computations
+    2SLS class in one expression
 
     NOTE: no consistency checks
     
@@ -17,13 +15,14 @@ class TSLS_dev(OLS.OLS_dev, OLS.Regression_Props):
     ----------
 
     x           : array
-                  nxk array of independent variables, including endogenous
+                  array of independent variables, excluding endogenous
                   variables (assumed to be aligned with y)
     y           : array
                   nx1 array of dependent variable
-    h           : array
-                  nxl array of instruments; typically this includes all
-                  exogenous variables from x and instruments
+    yend        : array
+                  endogenous variables (assumed to be aligned with y)
+    q           : array
+                  array of instruments (assumed to be aligned with yend); 
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
@@ -39,43 +38,28 @@ class TSLS_dev(OLS.OLS_dev, OLS.Regression_Props):
     ----------
 
     x           : array
-                  nxk array of independent variables (assumed to be aligned with y)
+                  array of independent variables (assumed to be aligned with y)
     y           : array
                   nx1 array of dependent variable
-    h           : array
-                  nxl array of instruments
     z           : array
-                  array of x and instruments appended
-    betas       : array
+                  n*k array of independent variables, including endogenous
+                  variables (assumed to be aligned with y)
+    h           : array
+                  nxl array of instruments, typically this includes all
+                  exogenous variables from x and instruments
+    n           : integer
+                  number of observations
+    delta       : array
                   kx1 array with estimated coefficients
-    xt          : array
-                  kxn array of transposed independent variables
-    xtx         : array
-                  kxk array
-    xtxi        : array
-                  kxk array of inverted xtx
     u           : array
-                  nx1 array of residuals (based on original x matrix)
+                  nx1 array of residuals 
     predy       : array
-                  nx1 array of predicted values (based on original x matrix)
-    n           : int
-                  Number of observations
+                  nx1 array of predicted values 
     k           : int
-                  Number of variables
-    utu         : float
-                  Sum of the squared residuals
-    sig2        : float
-                  Sigma squared with n in the denominator
-    sig2n_k     : float
-                  Sigma squared with n-k in the denominator
-    vm          : array
-                  Variance-covariance matrix (kxk)
-    mean_y      : float
-                  Mean of the dependent variable
-    std_y       : float
-                  Standard deviation of the dependent variable
-
-
+                  Number of variables, including exogenous and endorgenous variables
+    xptxpi      : array
+                  used to compute vm
+    
     Examples
     --------
 
@@ -86,127 +70,122 @@ class TSLS_dev(OLS.OLS_dev, OLS.Regression_Props):
     >>> y = np.reshape(y, (49,1))
     >>> X = []
     >>> X.append(db.by_col("INC"))
-    >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> # instrument for HOVAL with DISCBD
-    >>> h = []
-    >>> h.append(db.by_col("INC"))
-    >>> h.append(db.by_col("DISCBD"))
-    >>> h = np.array(h).T
-    >>> reg = TSLS_dev(X, y, h)
-    >>> reg.betas
+    >>> yd = []
+    >>> yd.append(db.by_col("HOVAL"))
+    >>> yd = np.array(yd).T
+    >>> q = []
+    >>> q.append(db.by_col("DISCBD"))
+    >>> q = np.array(q).T
+    >>> reg = TSLS(y, X, yd, q)
+    >>> print reg.delta
     array([[ 88.46579584],
            [  0.5200379 ],
            [ -1.58216593]])
     
     """
-    def __init__(self, x, y, h, constant=True, robust=None):
-        self.h = h
-        if constant:
-            x = np.hstack((np.ones(y.shape),x))
-            z = np.hstack((np.ones(y.shape),h))
-            # h = np.hstack((np.ones(y.shape),h)) # jy
-        else:
-            z = h
+    def __init__(self, y, x, yend, q, constant=True, robust=None):
+        
+        self.y = y  
+        self.n = y.shape[0]
+        self.x = x
+        
+        z = np.hstack((x,yend))  # including exogenous and endogenous variables      
         self.z = z
-        ztz = np.dot(z.T,z)
-        ztzi = la.inv(ztz)
-        ztx = np.dot(z.T, x)
-        ztzi_ztx = np.dot(ztzi, ztx)
-        x_hat = np.dot(z, ztzi_ztx)          # x_hat = Z(Z'Z)^-1 Z'X
-        OLS.OLS_dev.__init__(self, x_hat, y, constant=False)
-        self.xptxpi = self.xtxi              # using predicted x (xp)
-        self.u_2nd_stage = self.u
-        self.set_x(x)  # reset x, xtx and xtxi attributes to use original data
-        self.predy = np.dot(x, self.betas)   # using original data
-        self.u = y - self.predy              # using original data
-        if robust == 'gls':
-            self.betas, self.xptxpi = ROBUST.gls_dev(x, y, z, self.u)
-            self.predy = np.dot(x, self.betas)   # using original data and GLS betas
-            self.u = y - self.predy              # using original data and GLS betas
-            ### need to verify the VM for the non-spatial case
-        OLS.Regression_Props()
-
-
-        #### GLS and White robust 2SLS was implemented for the spatial case,
-        #### and results match there.  I have not tested the robust results
-        #### for the non-spatial case.
-        '''
-        ## 2SLS in one step: jy
-        z = x
-        zt = z.T
-        ht = h.T
-        hth = np.dot(ht,h)
+        self.k = z.shape[1]    # k = number of exogenous variables and endogenous variables 
+        h = np.hstack((x,q))   # including exogenous variables and instruments
+        self.h = h
+        
+        if constant:
+            z = np.hstack((np.ones(y.shape),z))
+            h = np.hstack((np.ones(y.shape),h))
+                    
+        hth = np.dot(h.T,h)
         hthi = la.inv(hth)
-        zth = np.dot(zt,h)
-        ztht = zth.T
+        htz = np.dot(h.T,z)
+        zth = np.dot(z.T,h)      
         
         factor_1 = np.dot(zth,hthi)
-        factor_2 = np.dot(factor_1,ht)
+        factor_2 = np.dot(factor_1,h.T)
         factor_2 = np.dot(factor_2,z)
         factor_2 = la.inv(factor_2)        
         factor_2 = np.dot(factor_2,factor_1)        
-        factor_2 = np.dot(factor_2,ht)       
-        rs = np.dot(factor_2,y)
-        '''
+        factor_2 = np.dot(factor_2,h.T)       
+        delta = np.dot(factor_2,y)
+        self.delta = delta
         
+        # predicted values
+        self.predy = np.dot(z,delta)
+        
+        # residuals
+        u = y - self.predy
+        self.u = u
+        
+        # attributes used in property 
+        self.zth = zth
+        self.hth = hth
+        self.htz = htz
+        self.hthi =hthi
+        
+        factor = np.dot(hthi, htz)
+        xp = np.dot(h, factor)
+        xptxp = np.dot(xp.T,xp)
+        xptxpi = la.inv(xptxp)
+        self.xp = xp
+        self.xptxpi = xptxpi
+        
+        # pfora1a2
+        factor_3 = np.dot(self.zth, self.hthi)
+        factor_4 = np.dot(factor_3, self.htz)
+        self.pfora1a2 = la.inv(factor_4)
+        
+        self._cache = {}
+        OLS.Regression_Props()
+        
+    @property
+    def m(self):
+        if 'm' not in self._cache:
+            xtxixt = np.dot(self.xptxpi,self.xp.T)
+            xxtxixt = np.dot(self.xp, xtxixt)
+            self._cache['m'] = np.eye(self.n) - xxtxixt
+        return self._cache['m']    
+    
     @property
     def vm(self):
         if 'vm' not in self._cache:
             self._cache['vm'] = np.dot(self.sig2, self.xptxpi)
         return self._cache['vm']
-    
-    
-class TSLS(TSLS_dev, USER.Diagnostic_Builder):
-    """
-    2SLS class for end-user (gives back only results and diagnostics)
-
-        # Need to check the shape of user input arrays, and report back descriptive
-        # errors when necessary
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> import pysal
-    >>> db=pysal.open("examples/columbus.dbf","r")
-    >>> y = np.array(db.by_col("CRIME"))
-    >>> y = np.reshape(y, (49,1))
-    >>> X = []
-    >>> X.append(db.by_col("INC"))
-    >>> X.append(db.by_col("HOVAL"))
-    >>> X = np.array(X).T
-    >>> # instrument for HOVAL with DISCBD
-    >>> h = []
-    >>> h.append(db.by_col("INC"))
-    >>> h.append(db.by_col("DISCBD"))
-    >>> h = np.array(h).T
-    >>> reg = TSLS(X, y, h, name_x=['INC','HOVAL'], name_y='CRIME', name_h=['INC','DISCBD'], name_ds='columbus')
-    >>> reg.betas
-    array([[ 88.46579584],
-           [  0.5200379 ],
-           [ -1.58216593]])
-    
-    """
-    def __init__(self, x, y, h, constant=True, robust=None, name_x=None,\
-                        name_y=None, name_h=None, name_ds=None, vm=False,\
-                        pred=False):
-        TSLS_dev.__init__(self, x, y, h, constant)
-        self.title = "TWO STAGE LEAST SQUARES"
-        self.name_ds = name_ds
-        self.name_y = name_y
-        self.name_x = name_x
-        self.name_h = name_h
-        USER.Diagnostic_Builder.__init__(self, constant=constant, vm=vm,\
-                                            pred=pred, instruments=True)
-
-
-
-def _test():
-    import doctest
-    doctest.testmod()
-
+        
+    @property
+    def pfora1a2(self):
+        if 'pfora1a2' not in self._cache:
+            factor1 = self.zth/(n * 1.0)
+            factor2 = n * self.hthi
+            factor3 = self.htz/(n * 1.0)
+            factor4 = np.dot(factor1, factor2)
+            factor5 = np.dot(factor4, factor3)
+            self._cache['pfora1a2'] = la.inv(factor5)
+        return self._cache['pfora1a2']
+        
+        
 if __name__ == '__main__':
-    _test()
+    import numpy as np
+    import pysal
+    db=pysal.open("examples/columbus.dbf","r")
+    y = np.array(db.by_col("CRIME"))
+    y = np.reshape(y, (49,1))
+    X = []
+    X.append(db.by_col("INC"))
+    X = np.array(X).T
+    yd = []
+    yd.append(db.by_col("HOVAL"))
+    yd = np.array(yd).T
+    # instrument for HOVAL with DISCBD
+    q = []
+    q.append(db.by_col("DISCBD"))
+    q = np.array(q).T
+    reg = TSLS(y, X, yd, q)
+    print reg.delta
+    print reg.vm 
 
-
-
+       
