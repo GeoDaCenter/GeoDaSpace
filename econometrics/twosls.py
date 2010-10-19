@@ -57,8 +57,20 @@ class TSLS(Regression_Props):
                   nx1 array of predicted values 
     k           : int
                   Number of variables, including exogenous and endorgenous variables
+    zth         : array
+                  z.T * h
+    hth         : array
+                  h.T * h
+    htz         : array
+                  h.T * z
+    hthi        : array
+                  inverse of h.T * h
+    xp          : array
+                  h * np.dot(hthi, htz)           
     xptxpi      : array
-                  used to compute vm
+                  inverse of np.dot(xp.T,xp), used to compute vm
+    pfora1a2    : array
+                  used to compute a1, a2
     
     Examples
     --------
@@ -155,18 +167,7 @@ class TSLS(Regression_Props):
         if 'vm' not in self._cache:
             self._cache['vm'] = np.dot(self.sig2, self.xptxpi)
         return self._cache['vm']
-        
-    @property
-    def pfora1a2(self):
-        if 'pfora1a2' not in self._cache:
-            factor1 = self.zth/(n * 1.0)
-            factor2 = n * self.hthi
-            factor3 = self.htz/(n * 1.0)
-            factor4 = np.dot(factor1, factor2)
-            factor5 = np.dot(factor4, factor3)
-            self._cache['pfora1a2'] = la.inv(factor5)
-        return self._cache['pfora1a2']
-        
+               
         
 if __name__ == '__main__':
     import numpy as np
