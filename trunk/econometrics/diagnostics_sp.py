@@ -5,8 +5,6 @@ ToDo:
 
     * Checking against R's spdep differs in:
         * Moran's variance
-    * Focus on:
-        * np.dot against * for sparse (Moran)
     * Document Moran
 """
 
@@ -701,10 +699,13 @@ if __name__ == '__main__':
     x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
     w = pysal.open('examples/columbus.gal', 'r').read()
     w.transform='r'
+    ols = OLS(x, y)
+    """
     iv = STSLS_dev(x, y, w, h=None, w_lags=2, constant=True, robust=None)
     cache = spDcache(iv, w)
     ak = akTest(iv, w, cache)[1]
     AK = AKtest(w, x, y, h=iv.h, case='nsp')
     akl = akTest_legacy(iv, w, cache)[0]
     print 'AK: %f\tAK_legacy: %f'%(ak, akl)
+    """
 
