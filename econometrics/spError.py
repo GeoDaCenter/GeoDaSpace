@@ -72,26 +72,26 @@ class GSLS:
     >>> w = pysal.open('examples/columbus.GAL', 'r').read() 
     >>> w.transform='r'
     >>> model = GSLS(x, y, w)
-    >>> model.betas
-    array([[ 47.69463364],
-           [  0.71045302],
-           [ -0.55052688]])
-    >>> model.se_betas
-    array([[ 12.41203878],
-           [  0.50444286],
-           [  0.17849637]])
-    >>> model.z
-    array([[ 3.84261075],
-           [ 1.40839148],
-           [-3.08424692]])
-    >>> model.pvals
-    array([[  1.21732453e-04],
-           [  1.59015181e-01],
-           [  2.04068151e-03]])
-    >>> model.lamb
-    0.32572993810113693
-    >>> model.sig2
-    198.55959469174414
+    >>> np.around(model.betas, decimals=6)
+    array([[ 47.694634],
+           [  0.710453],
+           [ -0.550527]])
+    >>> np.around(model.se_betas, decimals=6)
+    array([[ 12.412039],
+           [  0.504443],
+           [  0.178496]])
+    >>> np.around(model.z, decimals=6)
+    array([[ 3.842611],
+           [ 1.408391],
+           [-3.084247]])
+    >>> np.around(model.pvals, decimals=6)
+    array([[  1.22000000e-04],
+           [  1.59015000e-01],
+           [  2.04100000e-03]])
+    >>> np.around(model.lamb, decimals=6)
+    0.32573000000000002
+    >>> np.around(model.sig2, decimals=6)
+    198.559595
 
     """
     def __init__(self, x, y, w):
@@ -144,6 +144,7 @@ if __name__ == '__main__':
     w = pysal.open('examples/columbus.GAL', 'r').read()
     w.transform='r' #Needed to match R
 
+    """
     print '\n\tGSLS model Example'
     model = GSLS(x, y, w)
     print '\n### Betas ###'
@@ -158,4 +159,5 @@ if __name__ == '__main__':
     print model.lamb
     print '\n### Sig2 ###'
     print model.sig2
+    """
 
