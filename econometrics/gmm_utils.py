@@ -539,7 +539,7 @@ def get_spFilter(w,lamb,sf):
     ----------
     w       : weight
               PySAL weights instance  
-    lamda   : double
+    lamb    : double
               spatial autoregressive parameter
     sf      : array
               the variable needed to compute the filter
@@ -559,7 +559,6 @@ def get_spFilter(w,lamb,sf):
     >>> w=pysal.open("examples/columbus.GAL").read()        
     >>> solu = get_spFilter(w,0.5,y)
     >>> print solu
-    >>>
     [[  -8.9882875]
      [ -20.5685065]
      [ -28.196721 ]
@@ -613,7 +612,7 @@ def get_spFilter(w,lamb,sf):
     '''        
     # convert w into sparse matrix      
     w_matrix = w.sparse
-    rs = sf - lamb * w_matrix.dot(sf,)    
+    rs = sf - lamb * (w_matrix * sf)    
     
     return rs
         
@@ -650,4 +649,4 @@ if __name__ == "__main__":
     reg = tw.TSLS(y, X, yd, q)
     w = pysal.rook_from_shapefile("examples/columbus.shp")
     print get_a1a2(w, reg, 0.1)
-
+    
