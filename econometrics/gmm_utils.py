@@ -7,6 +7,7 @@ import pylab as pl
 from scipy import sparse as SP
 import scipy.optimize as op
 import numpy.linalg as la
+import twosls as tw
 
 # Arraiz et al.
 
@@ -369,7 +370,7 @@ def gm_gsls(lambdapar, moments):
     return sum(vv**2)
 
 
-def get_a1a2(w, h, u, z, lambdapar):
+def get_a1a2(w,reg,lambdapar):
     """
     Computes the a1 in psi equation:
     ...
@@ -380,14 +381,8 @@ def get_a1a2(w, h, u, z, lambdapar):
     w           : W
                   Spatial weights instance 
 
-    h           : matrix
-                  nxp matrix of Instruments
-                  
-    u           : array
-                  nx1 array of residuals
-                  
-    z           : matrix
-                  nxk matrix of exogenous variables
+    reg         : TSLS
+                  Two stage least quare regression instance
                   
     lambdapar   : float
                   Spatial autoregressive parameter
@@ -402,22 +397,131 @@ def get_a1a2(w, h, u, z, lambdapar):
     ----------
 
     .. [1] Anselin, L. GMM Estimation of Spatial Error Autocorrelation with Heteroskedasticity
-
-    """    
     
-    hth = np.dot(h.T, h)
-    htz = np.dot(h.T, z)
-    zth = htz.T
-    hthI = hth.I
-    p1 = np.dot(hthI, htz)
-    p2 = np.dot(((1.0/w.n) * zth), p1)
-    p = np.dot(p1, p2.I)
-    zst = get_spFilter(w,lambdapar, z).T
-    us = get_spFilter(w,lambdapar, u)
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X = np.array(X).T
+    >>> yd = []
+    >>> yd.append(db.by_col("HOVAL"))
+    >>> yd = np.array(yd).T
+    >>> q = []
+    >>> q.append(db.by_col("DISCBD"))
+    >>> q = np.array(q).T
+    >>> reg = TSLS(y, X, yd, q)
+    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> print get_a1a2(w, reg, 0.1)
+    [array([[ 195.25744009],
+       [ 134.95048367],
+       [ 144.86497532],
+       [ 197.14667952],
+       [  52.33214022],
+       [  81.69350113],
+       [  21.57110524],
+       [  39.25092151],
+       [   6.4176049 ],
+       [ 170.67203551],
+       [ -60.15087711],
+       [-100.19569464],
+       [ -55.52837813],
+       [-137.04929407],
+       [-117.22065128],
+       [-237.49411824],
+       [ 225.3706287 ],
+       [-203.42825553],
+       [-174.85693576],
+       [  -1.39376802],
+       [-176.27654673],
+       [ -50.67791491],
+       [ 172.45987849],
+       [-369.59572667],
+       [-255.94408153],
+       [-124.95298426],
+       [ -56.13432618],
+       [-163.02707821],
+       [-254.6118325 ],
+       [-342.08042841],
+       [  87.27426796],
+       [ 195.52015989],
+       [ -48.61295331],
+       [  25.43591635],
+       [ -77.97103239],
+       [ 161.58386522],
+       [-292.86815848],
+       [-163.35572807],
+       [ 263.76071154],
+       [  93.15017421],
+       [ 229.06891219],
+       [  24.8590105 ],
+       [-149.51313393],
+       [ -71.43398283],
+       [-121.99742651],
+       [ 242.30820653],
+       [ 255.65175765],
+       [ -67.73661086],
+       [ -43.87175237]]), array([[-21.72029625],
+       [ -7.31129615],
+       [-25.52293215],
+       [-71.65750555],
+       [-28.66735051],
+       [-12.63717599],
+       [-28.68521374],
+       [-29.58550686],
+       [  2.96599179],
+       [-30.93023241],
+       [-17.80630999],
+       [ -5.06459589],
+       [-10.02397569],
+       [  2.69963562],
+       [  3.63990154],
+       [ 14.25350242],
+       [-50.38630826],
+       [ 30.94803195],
+       [ 23.88560703],
+       [ 61.52079852],
+       [ 25.35869067],
+       [  3.59103615],
+       [ -5.46861869],
+       [ 66.63838572],
+       [ 24.62544213],
+       [  1.64026229],
+       [  3.1368649 ],
+       [  6.07269902],
+       [ 30.61753457],
+       [ 66.34539265],
+       [ -6.5092134 ],
+       [ -6.96971366],
+       [ -0.47489675],
+       [  3.33299607],
+       [ 14.09521629],
+       [-10.39550428],
+       [ 65.41009544],
+       [ 21.87671963],
+       [-37.6785381 ],
+       [ 43.75115273],
+       [-11.03552002],
+       [ 33.51704649],
+       [ 28.45201281],
+       [ 23.820111  ],
+       [ 26.42182744],
+       [-33.64750984],
+       [-28.58150944],
+       [  9.15976479],
+       [ 23.67941368]])]
+
+    """        
+    zst = get_spFilter(w,lambdapar, reg.z).T
+    us = get_spFilter(w,lambdapar, reg.u)
     alpha1 = (-2.0/w.n) * (np.dot((zst * get_A1(w.sparse)), us))
     alpha2 = (-1.0/w.n) * (np.dot((zst * (w.sparse + w.sparse.T)), us))
-    v1t = np.dot(np.dot(h, p), alpha1).T
-    v2t = np.dot(np.dot(h, p), alpha2).T
+    v1t = np.dot(np.dot(reg.h, reg.pfora1a2), alpha1).T
+    v2t = np.dot(np.dot(reg.h, reg.pfora1a2), alpha2).T
     a1t = 0
     a2t = 0
     pe = 0
@@ -530,11 +634,20 @@ if __name__ == "__main__":
 
     #m=moments_het(w,u)
     #vc = get_vc_het(w, u, 0.1)
-    w=pysal.weights.lat2W(2,2)
-    z=np.matrix([[1,6], [2,3], [5,7], [4,9]])
-    u=np.array([[3], [7], [8], [4]])
-    zl=w.sparse * z
-    h=np.hstack((z, zl))
-    a1,a2=get_a1a2(w,h,u, z, 0.1)
-    print a1,a2
+    import numpy as np
+    db=pysal.open("examples/columbus.dbf","r")
+    y = np.array(db.by_col("CRIME"))
+    y = np.reshape(y, (49,1))
+    X = []
+    X.append(db.by_col("INC"))
+    X = np.array(X).T
+    yd = []
+    yd.append(db.by_col("HOVAL"))
+    yd = np.array(yd).T
+    q = []
+    q.append(db.by_col("DISCBD"))
+    q = np.array(q).T
+    reg = tw.TSLS(y, X, yd, q)
+    w = pysal.rook_from_shapefile("examples/columbus.shp")
+    print get_a1a2(w, reg, 0.1)
 

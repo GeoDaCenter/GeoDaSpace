@@ -102,20 +102,22 @@ class TSLS(Regression_Props):
         self.n = y.shape[0]
         self.x = x
         
-        z = np.hstack((x,yend))  # including exogenous and endogenous variables      
-        self.z = z
-        self.k = z.shape[1]    # k = number of exogenous variables and endogenous variables 
+        z = np.hstack((x,yend))  # including exogenous and endogenous variables   
         h = np.hstack((x,q))   # including exogenous variables and instruments
-        self.h = h
         
         if constant:
             z = np.hstack((np.ones(y.shape),z))
             h = np.hstack((np.ones(y.shape),h))
-                    
+
+        self.z = z
+        self.h = h
+        self.k = z.shape[1]    # k = number of exogenous variables and endogenous variables 
+        
         hth = np.dot(h.T,h)
         hthi = la.inv(hth)
         htz = np.dot(h.T,z)
-        zth = np.dot(z.T,h)      
+        zth = np.dot(z.T,h)  
+        
         
         factor_1 = np.dot(zth,hthi)
         factor_2 = np.dot(factor_1,h.T)
@@ -147,9 +149,8 @@ class TSLS(Regression_Props):
         self.xptxpi = xptxpi
         
         # pfora1a2
-        factor_3 = np.dot(self.zth, self.hthi)
-        factor_4 = np.dot(factor_3, self.htz)
-        self.pfora1a2 = la.inv(factor_4)
+        factor_4 = np.dot(self.zth, factor)
+        self.pfora1a2 = self.n*np.dot(factor, la.inv(factor_4))
         
         self._cache = {}
         OLS.Regression_Props()
