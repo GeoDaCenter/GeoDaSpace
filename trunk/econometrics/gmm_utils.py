@@ -414,7 +414,7 @@ def get_a1a2(w,reg,lambdapar):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = TSLS(y, X, yd, q)
+    >>> reg = TSLS_dev(y, X, yd, q)
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> print get_a1a2(w, reg, 0.1)
     [array([[ 195.25744009],
@@ -646,7 +646,7 @@ if __name__ == "__main__":
     q = []
     q.append(db.by_col("DISCBD"))
     q = np.array(q).T
-    reg = tw.TSLS(y, X, yd, q)
+    reg = tw.TSLS_dev(y, X, yd, q)
     w = pysal.rook_from_shapefile("examples/columbus.shp")
     print get_a1a2(w, reg, 0.1)
     
