@@ -3,7 +3,11 @@ import numpy.linalg as la
 import ols as OLS
 from ols import Regression_Props
 
-class TSLS(Regression_Props):
+class TSLS():
+    def __init__(self):
+        pass
+
+class TSLS_dev(Regression_Props):
     """
     2SLS class in one expression
 
@@ -89,7 +93,7 @@ class TSLS(Regression_Props):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = TSLS(y, X, yd, q)
+    >>> reg = TSLS_dev(y, X, yd, q)
     >>> print reg.delta
     array([[ 88.46579584],
            [  0.5200379 ],
@@ -186,7 +190,7 @@ if __name__ == '__main__':
     q = []
     q.append(db.by_col("DISCBD"))
     q = np.array(q).T
-    reg = TSLS(y, X, yd, q)
+    reg = TSLS_dev(y, X, yd, q)
     print reg.delta
     print reg.vm 
 
