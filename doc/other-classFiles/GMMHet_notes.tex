@@ -632,7 +632,7 @@ on p. 612 of \cite{Arraizetal:10}. The correct expression for $\mathbf{\Psi}_{\d
 and for $\mathbf{\Psi}_{\delta \rho}$ (in their notation) should include the matrix inverse
 operation (see A4 on p. 611).}  the residuals from the initial estimation are used, i.e., $\mathbf{u}_1$,
 together with the efficient and consistent estimate $\lambda_2$. The diagonal elements
-of $\mathbf{\Sigma}$ are the squares of the spatially filtered residuals, $(u_{1i} - \lambda_2 u_{1i} )^{2}$.
+of $\mathbf{\Sigma}$ are the squares of the spatially filtered residuals, $ u_{1is}^2 = (u_{1i} - \lambda_2 u_{1iL} )^{2}$.
 
 \subsubsection{OLS}
 In the special case of OLS estimation, $\mathbf{H} = \mathbf{Z}$ (or, $\mathbf{X}$) and the expression
@@ -682,11 +682,11 @@ and
 \end{equation}
 The expressions for $\mathbf{a}_1$ and $\mathbf{a}_2$ are as in Equation~\ref{eq:arweighted}, using  $\mathbf{u}_2$ as the residual vector and $\lambda_3$ for the 
 autoregressive parameter. The diagonal elements
-of $\mathbf{\Sigma}$ are the squares of the spatially filtered residuals, $(u_{2i} - \lambda_3 u_{2i} )^{2}$.
+of $\mathbf{\Sigma}$ are the squares of the spatially filtered residuals, $u_{2is}^2 = (u_{2i} - \lambda_3 u_{2iL} )^{2}$.
 Note that it is no longer necessary to compute the inverse matrix $( \mathbf{I} - \lambda \mathbf{W} )^{-1}$. 
 
 \subsubsection{SWLS}
-When there are no endogenous variables present in $\mathbf{Z}$, the matrix $\mathbf{\Psi}$
+When there are no endogenous variables present in $\mathbf{Z}$, the matrix $\mathbf{\Psi}_o$
 is again block-diagonal, since $\mathbf{\Psi}_{\delta \lambda} = 0$. Also, the expression for 
 $\mathbf{P}$ simplifies to $(n^{-1} \mathbf{Z'}_s\mathbf{Z}_s )^{-1}$, a cross-product in the
 spatially filtered explanatory variables (using $\lambda_3$). Similarly, 
