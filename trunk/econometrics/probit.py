@@ -145,7 +145,7 @@ class probit: #DEV class required.
     @property
     def xb(self):
         if 'xb' not in self._cache:
-            self._cache['xb'] = self.x.dot(self.betas)
+            self._cache['xb'] = np.dot(self.x,self.betas)
         return self._cache['xb']
     @property
     def predy(self):
@@ -174,7 +174,7 @@ class probit: #DEV class required.
             if self.scalem == 'phimean':
                 self._cache['scale'] = float(1.0 * np.sum(self.phiy)/self.n)
             if self.scalem == 'xmean':
-                self._cache['scale'] = float(stats.norm.pdf(self.xmean.T.dot(self.betas)))
+                self._cache['scale'] = float(stats.norm.pdf(np.dot(self.xmean.T,self.betas)))
         return self._cache['scale']
     @property
     def slopes(self):
@@ -186,8 +186,8 @@ class probit: #DEV class required.
         if 'slopes_vm' not in self._cache:
             x = self.xmean
             b = self.betas
-            dfdb = np.eye(self.k) - b.T.dot(x)*b.dot(x.T)
-            slopes_vm = (self.scale**2)*dfdb.dot(self.vm).dot(dfdb.T)
+            dfdb = np.eye(self.k) - np.dot(b.T,x)*np.dot(b,x.T)
+            slopes_vm = (self.scale**2)*np.dot(np.dot(dfdb,self.vm),dfdb.T)
             self._cache['slopes_vm'] = slopes_vm[1:,1:]
         return self._cache['slopes_vm']
     @property
@@ -209,7 +209,7 @@ class probit: #DEV class required.
                 u_naive = self.y - Phi
                 u_gen = phi * (u_naive / Phi_prod)
                 sig2 = np.sum((phi * phi) / Phi_prod) / self.n
-                LM_err_num = u_gen.T.dot(w.sparse * u_gen)**2
+                LM_err_num = np.dot(u_gen.T,(w * u_gen))**2
                 trWW_WpW = np.sum(((w.sparse*w.sparse)+(w.sparse.T*w.sparse)).diagonal())
                 LM_err = float(1.0 * LM_err_num / (sig2**2 * trWW_WpW))
                 LM_err = np.array([LM_err,stats.chisqprob(LM_err,1)])
@@ -219,12 +219,12 @@ class probit: #DEV class required.
                 E = E.asformat('csr')
                 WE = w.sparse*E
                 moran_den = np.sqrt(np.sum((WE*WE + (w.sparse.T*E)*WE).diagonal()))
-                moran_num = u_naive.T.dot(w.sparse * u_naive)
+                moran_num = np.dot(u_naive.T, (w * u_naive))
                 moran = float(1.0*moran_num / moran_den)
                 moran = np.array([moran,stats.norm.sf(abs(moran)) * 2.])
                 #Pinkse-Slade:
                 u_std = u_naive / np.sqrt(Phi_prod)
-                ps_num = u_std.T.dot(w.sparse * u_std)**2
+                ps_num = np.dot(u_std.T, (w * u_std))**2
                 ps = float(ps_num / trWW_WpW)
                 ps = np.array([ps,stats.chisqprob(ps,1)]) #chi-square instead of bootstrap.
                 self._cache['LM_error'] = LM_err
@@ -255,7 +255,7 @@ class probit: #DEV class required.
             history = [np.inf, start]
             while (iteration < 50 and np.all(np.abs(history[-1] - history[-2])>1e-08)):
                 H = self.hessian(history[-1])
-                par_hat0 = history[-1] - np.linalg.inv(H).dot(self.gradient(history[-1]))
+                par_hat0 = history[-1] - np.dot(np.linalg.inv(H),self.gradient(history[-1]))
                 history.append(par_hat0)
                 iteration += 1
             logl = self.ll(par_hat0,final=1)
@@ -271,7 +271,7 @@ class probit: #DEV class required.
                 beta.append(float(par[i]))         
         beta = np.reshape(np.array(beta),(self.k,1))
         q = 2 * self.y - 1
-        qxb = q * self.x.dot(beta)
+        qxb = q * np.dot(self.x,beta)
         ll = sum(np.log(stats.norm.cdf(qxb)))
         return ll
 
@@ -281,9 +281,9 @@ class probit: #DEV class required.
             beta.append(float(par[i]))         
         beta = np.reshape(np.array(beta),(self.k,1))
         q = 2 * self.y - 1
-        qxb = q * self.x.dot(beta)
+        qxb = q * np.dot(self.x,beta)
         lamb = q * stats.norm.pdf(qxb)/stats.norm.cdf(qxb)
-        gradient = lamb.T.dot(self.x)[0]
+        gradient = np.dot(lamb.T,self.x)[0]
         return gradient
 
     def hessian(self,par,final=None):        
@@ -295,10 +295,10 @@ class probit: #DEV class required.
                 beta.append(float(par[i]))             
         beta = np.reshape(np.array(beta),(self.k,1))
         q = 2 * self.y - 1
-        xb = self.x.dot(beta)
+        xb = np.dot(self.x,beta)
         qxb = q * xb
         lamb = q * stats.norm.pdf(qxb)/stats.norm.cdf(qxb)
-        hessian = self.x.T.dot(-lamb * (lamb + xb) * self.x)
+        hessian = np.dot((self.x.T),(-lamb * (lamb + xb) * self.x ))
         return hessian
 
     def slope_graph(self,pos,k,sample='actual',std=2):
