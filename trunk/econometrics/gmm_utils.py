@@ -414,7 +414,7 @@ def get_a1a2(w,reg,lambdapar):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = TSLS_dev(y, X, yd, q)
+    >>> reg = tw.TSLS_dev(y, X, yd, q)
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> print get_a1a2(w, reg, 0.1)
     [array([[ 195.25744009],
@@ -615,8 +615,14 @@ def get_spFilter(w,lamb,sf):
     rs = sf - lamb * (w_matrix * sf)    
     
     return rs
-        
 
+def _test():
+    import doctest
+    doctest.testmod()
+
+if __name__ == '__main__':
+    _test()
+'''
 if __name__ == "__main__":
     
     import random
@@ -649,4 +655,4 @@ if __name__ == "__main__":
     reg = tw.TSLS_dev(y, X, yd, q)
     w = pysal.rook_from_shapefile("examples/columbus.shp")
     print get_a1a2(w, reg, 0.1)
-    
+'''
