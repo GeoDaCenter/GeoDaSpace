@@ -95,9 +95,9 @@ class TSLS_dev(Regression_Props):
     >>> q = np.array(q).T
     >>> reg = TSLS_dev(y, X, yd, q)
     >>> print reg.delta
-    array([[ 88.46579584],
-           [  0.5200379 ],
-           [ -1.58216593]])
+    [[ 88.46579584]
+     [  0.5200379 ]
+     [ -1.58216593]]
     
     """
     def __init__(self, y, x, yend, q, constant=True, robust=None):
@@ -172,8 +172,8 @@ class TSLS_dev(Regression_Props):
         if 'vm' not in self._cache:
             self._cache['vm'] = np.dot(self.sig2, self.xptxpi)
         return self._cache['vm']
-               
-        
+
+                     
 if __name__ == '__main__':
     import numpy as np
     import pysal
