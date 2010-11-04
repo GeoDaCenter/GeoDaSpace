@@ -53,7 +53,7 @@ class Regression_Props:
     @property
     def vm(self):
         if 'vm' not in self._cache:
-            self._cache['vm'] = np.dot(self.sig2n_k, self.xtxi)
+            self._cache['vm'] = np.dot(self.sig2, self.xtxi)
         return self._cache['vm']
     
     @property
