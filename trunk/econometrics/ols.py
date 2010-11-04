@@ -34,10 +34,10 @@ class Regression_Props:
             self._cache['utu'] = np.sum(self.u**2)
         return self._cache['utu']
     @property
-    def sig2(self):
-        if 'sig2' not in self._cache:
-            self._cache['sig2'] = self.utu / self.n
-        return self._cache['sig2']
+    def sig2n(self):
+        if 'sig2n' not in self._cache:
+            self._cache['sig2n'] = self.utu / self.n
+        return self._cache['sig2n']
     @property
     def sig2n_k(self):
         if 'sig2n_k' not in self._cache:
@@ -156,6 +156,7 @@ class OLS_dev(Regression_Props):
         self.n, self.k = x.shape
         Regression_Props()
         self._cache = {}
+        self.sig2 = self.sig2n_k
 
     def set_x(self, x):
         self.x = x
@@ -213,8 +214,6 @@ class OLS(OLS_dev, USER.Diagnostic_Builder):
                dataset's name
     name_y   : string
                dependent variable's name
-    mean_y   : float
-               mean value of dependent variable
     name_x   : tuple
                independent variables' names
     mean_y   : float
@@ -233,8 +232,8 @@ class OLS(OLS_dev, USER.Diagnostic_Builder):
                sigma squared
     sig2ML   : float
                sigma squared ML 
-    Fstat    : dictionary
-               key: 'value','prob'; value: float
+    Fstat    : tuple
+               statistic (float), p-value (float)
     logll    : float
                Log likelihood        
     aic      : float
@@ -243,15 +242,23 @@ class OLS(OLS_dev, USER.Diagnostic_Builder):
                Schwarz criterion     
     std_err  : array
                1*(k+1) array of Std.Error    
-    Tstat    : dictionary
-               key: name of variables, constant & independent variables
-               value: tuple of t statistic and p-value
+    Tstat    : list of tuples
+               each tuple contains the pair (statistic, p-value), where each is
+               a float; same order as self.x
     mulColli : float
                Multicollinearity condition number
-    diag     : dictionary
-               key: test name including 'JB', 'BP', 'KB', 'WH', representing 
-               'Jarque-Bera', 'Breusch-Pagan', 'Koenker-Bassett', 'White'
-               value: tuple including 3 elements--degree of freedom, value, p-value
+    JB       : dictionary
+               'jb': Jarque-Bera statistic (float); 'pvalue': p-value (float); 'df':
+               degrees of freedom (int)  
+    BP       : dictionary
+               'bp': Breusch-Pagan statistic (float); 'pvalue': p-value (float); 'df':
+               degrees of freedom (int)  
+    KB       : dictionary
+               'kb': Koenker-Bassett statistic (float); 'pvalue': p-value (float); 'df':
+               degrees of freedom (int)  
+    white    : dictionary
+               'wh': White statistic (float); 'pvalue': p-value (float); 'df':
+               degrees of freedom (int)  
     summary  : string
                including all the information in OLS class in nice format          
      
@@ -278,10 +285,17 @@ class OLS(OLS_dev, USER.Diagnostic_Builder):
                         name_ds=None, vm=False, pred=False):
         OLS_dev.__init__(self, x, y, constant) 
         self.title = "ORDINARY LEAST SQUARES"        
+        if not name_x:
+            name_x = ['var_'+str(i+1) for i in range(len(x[0]))]
+        if constant:
+            name_x.insert(0, 'CONSTANT')
+        if not name_y:
+            name_y = 'dep_var'
+        if not name_ds:
+            name_ds = 'unknown'
+        self.name_x = name_x
         self.name_ds = name_ds
         self.name_y = name_y
-        self.name_x = name_x
-        self.sig2 = self.sig2n_k        
         USER.Diagnostic_Builder.__init__(self, constant=constant, vm=vm, pred=pred)
 
 
@@ -291,5 +305,6 @@ def _test():
 
 if __name__ == '__main__':
     _test()
+
 
 

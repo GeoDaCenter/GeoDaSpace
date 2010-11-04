@@ -25,25 +25,40 @@ within the `tests` directory as follows::
 
 """
 
-__author__ = "Sergio J. Rey <srey@asu.edu>, David C. Folch <david.folch@asuedu>"
+__author__ = "Sergio J. Rey <srey@asu.edu>, David C. Folch <david.folch@asu.edu>"
 
+#### do not modify this ####
 import unittest
 import doctest
+suite = unittest.TestSuite()
+############################
 
-# module imports
+
+
+
+# import modules with doc tests here
 import ols, spHetErr, twosls
 import twosls_sp, diagnostics
 import probit
+# add modules to this list
+mods = 'ols', 'spHetErr', 'twosls', 'twosls_sp',\
+       'diagnostics', 'probit'
 
-#add modules to include in tests
-mods='ols', 'spHetErr', 'twosls', 'twosls_sp', 'diagnostics', 'probit'
 
-suite = unittest.TestSuite()
+# add unit tests here
+import test_ols
+suite.addTest(test_ols.suite)
+
+
+
+
+
+
+
+
+#### do not modify this ####################
 for mod in mods:
     suite.addTest(doctest.DocTestSuite(mod))
-
-# Test imports
-'''This section is for unit tests'''
-
 runner = unittest.TextTestRunner()
 runner.run(suite)
+############################################
