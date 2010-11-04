@@ -54,7 +54,7 @@ class Test_Data:
     """
     def __init__(self, n=100, variables=6, k='small', folder=''):
         np.random.seed(10)
-        self.y = np.random.randn(n,)
+        self.y = np.random.randn(n, 1)
         self.x = np.random.randn(n, variables-1)
         self.y_name = 'varA'
         letters = map(chr, range(66, 91))
