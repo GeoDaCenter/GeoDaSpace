@@ -110,8 +110,9 @@ class Test_OLS(unittest.TestCase):
                   (-2.6544086427176916, 0.010874504909754612)]
         np.testing.assert_array_almost_equal(ols.Tstat, t_stat, decimal=8)
         self.assertAlmostEquals(ols.mulColli, 6.5418277514438046, places=10)
-        jb = {'df': 2, 'jb': 1.835752520075947, 'pvalue': 0.39936629124876566} 
-        self.assertEquals(ols.JB, jb)
+        self.assertAlmostEquals(ols.JB['jb'], 1.835752520075947)
+        self.assertAlmostEquals(ols.JB['df'], 2)
+        self.assertAlmostEquals(ols.JB['pvalue'], 0.39936629124876566)
         bp = {'bp': 10.012849713093686, 'df': 2, 'pvalue': 0.0066947954259665692} 
         self.assertEquals(ols.BP, bp)
         kb = {'df': 2, 'kb': 7.2165644721877449, 'pvalue': 0.027098355486469869} 
