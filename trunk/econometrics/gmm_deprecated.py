@@ -5,7 +5,8 @@ PySAL original weights structures
 NOTE: its use is deprecated
 """
 
-from pysal.weights.spatial_lag import lag_array
+#from pysal.weights.spatial_lag import lag_array
+from scipy import sparse as SP
 import numpy as np
 
 class Moments():
