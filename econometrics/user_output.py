@@ -20,13 +20,12 @@ class Diagnostic_Builder:
         
         #part 2: REGRESSION DIAGNOSTICS 
         self.mulColli = diagnostics.condition_index(self)
-        self.diag = {}
-        self.diag['JB'] = diagnostics.jarque_bera(self)
+        self.JB = diagnostics.jarque_bera(self)
         
         #part 3: DIAGNOSTICS FOR HETEROSKEDASTICITY         
-        self.diag['BP'] = diagnostics.breusch_pagan(self)
-        self.diag['KB'] = {'df':2,'kb':5.694088,'pvalue':0.0580156}
-        self.diag['WH'] = {'df':5,'wh':19.94601,'pvalue':0.0012792}
+        self.BP = diagnostics.breusch_pagan(self)
+        self.KB = diagnostics.koenker_bassett(self)
+        self.white = diagnostics.white(self)
         
         #part 4: summary output
         self.summary = summary_results(self, constant=constant, vm=vm, pred=pred, instruments=instruments)
@@ -82,11 +81,12 @@ def summary_results(reg, constant=True, vm = False, pred = False, instruments=Fa
     strSummary += "----------------------------------------------------------------------------\n"
     strSummary += "    Variable     Coefficient       Std.Error     t-Statistic     Probability\n"
     strSummary += "----------------------------------------------------------------------------\n"
-    if constant:
-        strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % ('CONSTANT',reg.betas[0][0],reg.std_err[0],reg.Tstat[0][0],reg.Tstat[0][1])
-        i = 1
-    else:
-        i = 0
+    #if constant:
+    #    strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % ('CONSTANT',reg.betas[0][0],reg.std_err[0],reg.Tstat[0][0],reg.Tstat[0][1])
+    #    i = 1
+    #else:
+    #    i = 0
+    i = 0
     for name in reg.name_x:        
         strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.Tstat[i][0],reg.Tstat[i][1])
         i += 1
@@ -104,15 +104,15 @@ def summary_results(reg, constant=True, vm = False, pred = False, instruments=Fa
     strSummary += "MULTICOLLINEARITY CONDITION NUMBER%12.6f\n" % (reg.mulColli)
     strSummary += "TEST ON NORMALITY OF ERRORS\n"
     strSummary += "TEST                  DF          VALUE            PROB\n"
-    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ('Jarque-Bera',reg.diag['JB']['df'],reg.diag['JB']['jb'],reg.diag['JB']['pvalue'])
+    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ('Jarque-Bera',reg.JB['df'],reg.JB['jb'],reg.JB['pvalue'])
     strSummary += "DIAGNOSTICS FOR HETEROSKEDASTICITY\n"
     strSummary += "RANDOM COEFFICIENTS\n"
     strSummary += "TEST                  DF          VALUE            PROB\n"
-    strSummary += "%-22s%2d       %12.6f        %9.7f\n" % ('Breusch-Pagan test',reg.diag['BP']['df'],reg.diag['BP']['bp'],reg.diag['BP']['pvalue'])
-    strSummary += "%-22s%2d       %12.6f        %9.7f\n" % ('Koenker-Bassett test',reg.diag['KB']['df'],reg.diag['KB']['kb'],reg.diag['KB']['pvalue'])
+    strSummary += "%-22s%2d       %12.6f        %9.7f\n" % ('Breusch-Pagan test',reg.BP['df'],reg.BP['bp'],reg.BP['pvalue'])
+    strSummary += "%-22s%2d       %12.6f        %9.7f\n" % ('Koenker-Bassett test',reg.KB['df'],reg.KB['kb'],reg.KB['pvalue'])
     strSummary += "SPECIFICATION ROBUST TEST\n"
     strSummary += "TEST                  DF          VALUE            PROB\n"
-    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ('White',reg.diag['WH']['df'],reg.diag['WH']['wh'],reg.diag['WH']['pvalue'])
+    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ('White',reg.white['df'],reg.white['wh'],reg.white['pvalue'])
 
     # variance matrix
     if vm:
