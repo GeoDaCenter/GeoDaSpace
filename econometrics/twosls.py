@@ -4,6 +4,9 @@ import ols as OLS
 from ols import Regression_Props
 
 class TSLS():
+    """
+    need test requiring BOTH yend and q
+    """
     def __init__(self):
         pass
 

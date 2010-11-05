@@ -4,6 +4,7 @@ import pysal
 import ols as OLS
 
 class Test_OLS(unittest.TestCase):
+    """ setUp is called before each test function execution """
     def setUp(self):
         db=pysal.open("examples/columbus.dbf","r")
         y = np.array(db.by_col("CRIME"))
@@ -15,7 +16,7 @@ class Test_OLS(unittest.TestCase):
         self.y = y
         self.X = X
 
-    """ All methods names that begin with 'test' will be executed as a test case """
+    """ All method names that begin with 'test' will be executed as a test case """
     def test_OLS_dev(self):
         ols = OLS.OLS_dev(self.X,self.y)
         # test the typical usage
@@ -123,7 +124,6 @@ class Test_OLS(unittest.TestCase):
         ols = OLS.OLS(self.X,self.y, constant=False)
         betas = np.array([[ 1.28624161], [ 0.22045774]])
         np.testing.assert_array_almost_equal(ols.betas, betas, decimal=8)
-
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(Test_OLS)
