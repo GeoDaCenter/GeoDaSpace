@@ -39,22 +39,21 @@ class STSLS_dev(TSLS.TSLS_dev):
     ----------
 
     x           : array
-                  nxk array of independent variables, including endogenous
+                  array of independent variables, excluding endogenous
                   variables (assumed to be aligned with y)
     y           : array
                   nx1 array of dependent variable
     w           : spatial weights object
                   pysal spatial weights object
-    h           : array
-                  optional nxl array of instruments; typically this includes 
-                  all exogenous variables from x and instruments; if set to
-                  None then only spatial lagged 
+    yend        : array
+                  endogenous variables (assumed to be aligned with y)
+    q           : array
+                  array of instruments (assumed to be aligned with yend); 
     w_lags      : integer
                   Number of spatial lags of the exogenous variables. 
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
-
     robust      : string
                   If 'white' then a White consistent estimator of the
                   variance-covariance matrix is given. If 'gls' then
@@ -69,18 +68,14 @@ class STSLS_dev(TSLS.TSLS_dev):
                   nxk array of independent variables (assumed to be aligned with y)
     y           : array
                   nx1 array of dependent variable
-    h           : array
-                  nxl array of instruments
     z           : array
-                  array of x and instruments appended
-    betas       : array
+                  n*k array of independent variables, including endogenous
+                  variables (assumed to be aligned with y)                  
+    h           : array
+                  nxl array of instruments, this includes all exogenous variables 
+                  from x and instruments
+    delta       : array
                   kx1 array with estimated coefficients
-    xt          : array
-                  kxn array of transposed independent variables
-    xtx         : array
-                  kxk array
-    xtxi        : array
-                  kxk array of inverted xtx
     u           : array
                   nx1 array of residuals (based on original x matrix)
     predy       : array
@@ -88,13 +83,11 @@ class STSLS_dev(TSLS.TSLS_dev):
     n           : int
                   Number of observations
     k           : int
-                  Number of variables
+                  Number of variables, including exogenous and endogenous variables
     utu         : float
                   Sum of the squared residuals
     sig2        : float
                   Sigma squared with n in the denominator
-    sig2n_k     : float
-                  Sigma squared with n-k in the denominator
     vm          : array
                   Variance-covariance matrix (kxk)
     mean_y      : float
@@ -109,46 +102,48 @@ class STSLS_dev(TSLS.TSLS_dev):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics as D
+    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w.transform = 'r'
     >>> db=pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
+    >>> # no non-spatial endogenous variables
     >>> X = []
     >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> yd = []    
-    >>> yd.append(db.by_col("HOVAL"))
-    >>> yd = np.array(yd).T
-    >>> # instrument for HOVAL with DISCBD
-    >>> q = []
-    >>> q.append(db.by_col("DISCBD"))
-    >>> q = np.array(q).T
-    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
-    >>> w.transform = 'r'
-    >>> reg=STSLS_dev(X, y, w, yd, q, w_lags=2)
+    >>> reg=STSLS_dev(X, y, w, w_lags=2)
     >>> reg.delta
     array([[ 45.45909249],
-           [  0.41929355],
            [ -1.0410089 ],
-           [ -0.25953844]])
+           [ -0.25953844],
+           [  0.41929355]])
     >>> D.se_betas(reg)
-    array([ 11.19151175,   0.18758518,   0.38861224,   0.09240593])
+    array([ 11.19151175,   0.38861224,   0.09240593,   0.18758518])
     >>> reg=STSLS_dev(X, y, w, w_lags=2, robust='white')
     >>> reg.delta
     array([[ 45.45909249],
-           [  0.41929355],
            [ -1.0410089 ],
-           [ -0.25953844]])
+           [ -0.25953844],
+           [  0.41929355]])
     >>> D.se_betas(reg)
-    array([ 10.93497906,   0.19588229,   0.49943339,   0.17217193])
+    array([ 10.93497906,   0.49943339,   0.17217193,   0.19588229])
     >>> reg=STSLS_dev(X, y, w, w_lags=2, robust='gls')
     >>> reg.delta
     array([[ 51.16882977],
-           [  0.32904005],
            [ -1.12721019],
-           [ -0.28543096]])
+           [ -0.28543096],
+           [  0.32904005]])
     >>> D.se_betas(reg)
-    array([ 7.2237932 ,  0.13208009,  0.4297434 ,  0.15201063])
-    >>> reg=STSLS_dev(X, y, w, yd, w_lags=2)
+    array([ 7.2237932 ,  0.4297434 ,  0.15201063,  0.13208009])
+    >>> # instrument for HOVAL with DISCBD
+    >>> X = np.array(db.by_col("INC"))
+    >>> X = np.reshape(X, (49,1))
+    >>> yd = np.array(db.by_col("HOVAL"))
+    >>> yd = np.reshape(yd, (49,1))
+    >>> q = np.array(db.by_col("DISCBD"))
+    >>> q = np.reshape(q, (49,1))
+    >>> reg=STSLS_dev(X, y, w, yd, q, w_lags=2)
 
     References
     ----------
@@ -162,12 +157,16 @@ class STSLS_dev(TSLS.TSLS_dev):
     def __init__(self, x, y, w, yend=None, q=None, w_lags=1, constant=True, robust=None):
         yl = pysal.lag_spatial(w, y)
         if type(yend).__name__ == 'ndarray': # spatial and non-spatial instruments
-            spatial_inst = self.get_lags(x, w, w_lags)
+            lag_vars = np.hstack((x, q))
+            #spatial_inst = self.get_lags(x, w, w_lags)
+            spatial_inst = self.get_lags(lag_vars, w, w_lags)
             q = np.hstack((q, spatial_inst))
             yend = np.hstack((yend, yl))
         elif yend == None:                   # spatial instruments only
             q = self.get_lags(x, w, w_lags)
             yend = yl
+        else:
+            raise Exception, "invalid value passed to yend"
         TSLS.TSLS_dev.__init__(self, x, y, yend, q, constant, robust)
         if robust == 'gls':
             self.vm = self.vm_gls
@@ -175,7 +174,7 @@ class STSLS_dev(TSLS.TSLS_dev):
             self.vm = self.vm_white
         else:
             self.vm = self.vm_standard
-       
+        
     def get_lags(self, x, w, w_lags):
         lag = pysal.lag_spatial(w, x)
         spat_inst = lag
@@ -202,7 +201,7 @@ class STSLS_dev(TSLS.TSLS_dev):
     def vm_white(self):
         # follows stsls in R spdep
         if 'vm' not in self._cache:
-            v = ROBUST.get_omega(self.x, self.u)
+            v = ROBUST.get_omega(self.z, self.u)
             xptxpiv = np.dot(self.xptxpi, v)
             self._cache['vm'] = np.dot(xptxpiv, self.xptxpi)
         return self._cache['vm']
