@@ -112,14 +112,17 @@ class Test_OLS(unittest.TestCase):
         np.testing.assert_array_almost_equal(ols.Tstat, t_stat, decimal=8)
         self.assertAlmostEquals(ols.mulColli, 6.5418277514438046, places=10)
         self.assertAlmostEquals(ols.JB['jb'], 1.835752520075947)
-        self.assertAlmostEquals(ols.JB['df'], 2)
+        self.assertEquals(ols.JB['df'], 2)
         self.assertAlmostEquals(ols.JB['pvalue'], 0.39936629124876566)
-        bp = {'bp': 10.012849713093686, 'df': 2, 'pvalue': 0.0066947954259665692} 
-        self.assertEquals(ols.BP, bp)
-        kb = {'df': 2, 'kb': 7.2165644721877449, 'pvalue': 0.027098355486469869} 
-        self.assertEquals(ols.KB, kb)
-        white = {'df': 5, 'pvalue': 0.0012792228173925788, 'wh': 19.946008239903257} 
-        self.assertEquals(ols.white, white)
+        self.assertAlmostEquals(ols.BP['bp'], 10.012849713093686)
+        self.assertEquals(ols.BP['df'], 2)
+        self.assertAlmostEquals(ols.BP['pvalue'], 0.0066947954259665692)
+        self.assertAlmostEquals(ols.KB['kb'], 7.2165644721877449)
+        self.assertEquals(ols.KB['df'], 2)
+        self.assertAlmostEquals(ols.KB['pvalue'], 0.027098355486469869)
+        self.assertAlmostEquals(ols.white['wh'], 19.946008239903257)
+        self.assertEquals(ols.white['df'], 5)
+        self.assertAlmostEquals(ols.white['pvalue'], 0.0012792228173925788)
         # test not using constant
         ols = OLS.OLS(self.X,self.y, constant=False)
         betas = np.array([[ 1.28624161], [ 0.22045774]])
