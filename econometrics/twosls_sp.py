@@ -182,13 +182,6 @@ class STSLS_dev(TSLS.TSLS_dev):
         return spat_inst
 
     @property
-    def vm_standard(self):
-        # follows stsls in R spdep
-        if 'vm' not in self._cache:
-            self._cache['vm'] = np.dot(self.sig2n_k, self.xptxpi)
-        return self._cache['vm']
-
-    @property
     def vm_gls(self):
         # follows stsls in R spdep
         if 'vm' not in self._cache:
