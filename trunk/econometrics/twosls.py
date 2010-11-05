@@ -2,6 +2,7 @@ import numpy as np
 import numpy.linalg as la
 import ols as OLS
 from ols import Regression_Props
+import robust as ROBUST
 
 class TSLS():
     """
@@ -33,7 +34,6 @@ class TSLS_dev(Regression_Props):
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
-
     robust      : string
                   If 'white' then a White consistent estimator of the
                   variance-covariance matrix is given. If 'gls' then
@@ -54,16 +54,16 @@ class TSLS_dev(Regression_Props):
     h           : array
                   nxl array of instruments, typically this includes all
                   exogenous variables from x and instruments
-    n           : integer
-                  number of observations
     delta       : array
                   kx1 array with estimated coefficients
     u           : array
                   nx1 array of residuals 
     predy       : array
                   nx1 array of predicted values 
+    n           : integer
+                  number of observations
     k           : int
-                  Number of variables, including exogenous and endorgenous variables
+                  Number of variables, including exogenous and endogenous variables
     zth         : array
                   z.T * h
     hth         : array
@@ -96,14 +96,14 @@ class TSLS_dev(Regression_Props):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = TSLS_dev(y, X, yd, q)
+    >>> reg = TSLS_dev(X, y, yd, q)
     >>> print reg.delta
     [[ 88.46579584]
      [  0.5200379 ]
      [ -1.58216593]]
     
     """
-    def __init__(self, y, x, yend, q, constant=True, robust=None):
+    def __init__(self, x, y, yend, q, constant=True, robust=None):
         
         self.y = y  
         self.n = y.shape[0]
@@ -159,8 +159,15 @@ class TSLS_dev(Regression_Props):
         factor_4 = np.dot(self.zth, factor)
         self.pfora1a2 = self.n*np.dot(factor, la.inv(factor_4))
         
+        if robust == 'gls':
+            self.delta, self.xptxpi = ROBUST.gls_dev(z, y, h, self.u)
+            self.predy = np.dot(z, self.delta)   # using original data and GLS betas
+            self.u = y - self.predy              # using original data and GLS betas
+            ### need to verify the VM for the non-spatial case
+
         self._cache = {}
         OLS.Regression_Props()
+        self.sig2 = self.sig2n
         
     @property
     def m(self):
@@ -176,8 +183,14 @@ class TSLS_dev(Regression_Props):
             self._cache['vm'] = np.dot(self.sig2, self.xptxpi)
         return self._cache['vm']
 
+
+def _test():
+    import doctest
+    doctest.testmod()
+
                      
 if __name__ == '__main__':
+    _test()    
     import numpy as np
     import pysal
     db=pysal.open("examples/columbus.dbf","r")
@@ -193,7 +206,7 @@ if __name__ == '__main__':
     q = []
     q.append(db.by_col("DISCBD"))
     q = np.array(q).T
-    reg = TSLS_dev(y, X, yd, q)
+    reg = TSLS_dev(X, y, yd, q)
     print reg.delta
     print reg.vm 
 

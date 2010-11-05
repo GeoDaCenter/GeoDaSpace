@@ -38,11 +38,11 @@ suite = unittest.TestSuite()
 
 # import modules with doc tests here
 import ols, spHetErr, twosls
-import twosls_sp, diagnostics
+import twosls_sp, diagnostics, robust
 import probit
 # add modules to this list
 mods = 'ols', 'spHetErr', 'twosls', 'twosls_sp',\
-       'diagnostics', 'probit'
+       'diagnostics', 'robust', 'probit'
 
 
 # add unit tests here
