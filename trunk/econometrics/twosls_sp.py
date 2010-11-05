@@ -114,17 +114,18 @@ class STSLS_dev(TSLS.TSLS_dev):
     >>> y = np.reshape(y, (49,1))
     >>> X = []
     >>> X.append(db.by_col("INC"))
-    >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
+    >>> yd = []    
+    >>> yd.append(db.by_col("HOVAL"))
+    >>> yd = np.array(yd).T
     >>> # instrument for HOVAL with DISCBD
-    >>> h = []
-    >>> h.append(db.by_col("INC"))
-    >>> h.append(db.by_col("DISCBD"))
-    >>> h = np.array(h).T
+    >>> q = []
+    >>> q.append(db.by_col("DISCBD"))
+    >>> q = np.array(q).T
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
-    >>> reg=STSLS_dev(X, y, w, w_lags=2)
-    >>> reg.betas
+    >>> reg=STSLS_dev(X, y, w, yd, q, w_lags=2)
+    >>> reg.delta
     array([[ 45.45909249],
            [  0.41929355],
            [ -1.0410089 ],
@@ -132,7 +133,7 @@ class STSLS_dev(TSLS.TSLS_dev):
     >>> D.se_betas(reg)
     array([ 11.19151175,   0.18758518,   0.38861224,   0.09240593])
     >>> reg=STSLS_dev(X, y, w, w_lags=2, robust='white')
-    >>> reg.betas
+    >>> reg.delta
     array([[ 45.45909249],
            [  0.41929355],
            [ -1.0410089 ],
@@ -140,14 +141,14 @@ class STSLS_dev(TSLS.TSLS_dev):
     >>> D.se_betas(reg)
     array([ 10.93497906,   0.19588229,   0.49943339,   0.17217193])
     >>> reg=STSLS_dev(X, y, w, w_lags=2, robust='gls')
-    >>> reg.betas
+    >>> reg.delta
     array([[ 51.16882977],
            [  0.32904005],
            [ -1.12721019],
            [ -0.28543096]])
     >>> D.se_betas(reg)
     array([ 7.2237932 ,  0.13208009,  0.4297434 ,  0.15201063])
-    >>> reg=STSLS_dev(X, y, w, h, w_lags=2)
+    >>> reg=STSLS_dev(X, y, w, yd, w_lags=2)
 
     References
     ----------
@@ -158,14 +159,16 @@ class STSLS_dev(TSLS.TSLS_dev):
     Econometrics, 18, 163-198.
     """
 
-    def __init__(self, x, y, w, h=None, w_lags=1, constant=True, robust=None):
-        if type(h).__name__ == 'ndarry': # spatial and non-spatial instruments
-            h = self.get_lags(h, w, w_lags)
-        elif h == None:                  # spatial instruments only
-            h = self.get_lags(x, w, w_lags)
+    def __init__(self, x, y, w, yend=None, q=None, w_lags=1, constant=True, robust=None):
         yl = pysal.lag_spatial(w, y)
-        x = np.hstack((yl, x))
-        TSLS.TSLS_dev.__init__(self, x, y, h, constant, robust)
+        if type(yend).__name__ == 'ndarray': # spatial and non-spatial instruments
+            spatial_inst = self.get_lags(x, w, w_lags)
+            q = np.hstack((q, spatial_inst))
+            yend = np.hstack((yend, yl))
+        elif yend == None:                   # spatial instruments only
+            q = self.get_lags(x, w, w_lags)
+            yend = yl
+        TSLS.TSLS_dev.__init__(self, x, y, yend, q, constant, robust)
         if robust == 'gls':
             self.vm = self.vm_gls
         elif robust == 'white':
@@ -173,12 +176,13 @@ class STSLS_dev(TSLS.TSLS_dev):
         else:
             self.vm = self.vm_standard
        
-    def get_lags(self, rhs, w, w_lags):
-        rhsl = copy.copy(rhs)
-        for i in range(w_lags):
-            rhsl = pysal.lag_spatial(w, rhsl)
-            rhs = np.hstack((rhs, rhsl))    
-        return rhs
+    def get_lags(self, x, w, w_lags):
+        lag = pysal.lag_spatial(w, x)
+        spat_inst = lag
+        for i in range(w_lags-1):
+            lag = pysal.lag_spatial(w, lag)
+            spat_inst = np.hstack((spat_inst, lag))
+        return spat_inst
 
     @property
     def vm_standard(self):
