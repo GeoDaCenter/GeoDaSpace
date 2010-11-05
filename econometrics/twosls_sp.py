@@ -158,7 +158,6 @@ class STSLS_dev(TSLS.TSLS_dev):
         yl = pysal.lag_spatial(w, y)
         if type(yend).__name__ == 'ndarray': # spatial and non-spatial instruments
             lag_vars = np.hstack((x, q))
-            #spatial_inst = self.get_lags(x, w, w_lags)
             spatial_inst = self.get_lags(lag_vars, w, w_lags)
             q = np.hstack((q, spatial_inst))
             yend = np.hstack((yend, yl))
@@ -168,12 +167,11 @@ class STSLS_dev(TSLS.TSLS_dev):
         else:
             raise Exception, "invalid value passed to yend"
         TSLS.TSLS_dev.__init__(self, x, y, yend, q, constant, robust)
+        self.sig2 = self.sig2n_k
         if robust == 'gls':
             self.vm = self.vm_gls
         elif robust == 'white':
             self.vm = self.vm_white
-        else:
-            self.vm = self.vm_standard
         
     def get_lags(self, x, w, w_lags):
         lag = pysal.lag_spatial(w, x)
