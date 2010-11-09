@@ -1,0 +1,9 @@
+dusty:~ dfolch$ python
+Python 2.5.1 (r251:54863, Feb  6 2009, 19:02:12) 
+[GCC 4.0.1 (Apple Inc. build 5465)] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+>>> 
+>>> 
+>>> 
+>>> import pysal
+>>> 
