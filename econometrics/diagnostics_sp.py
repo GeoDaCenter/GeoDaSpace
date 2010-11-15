@@ -11,8 +11,8 @@ ToDo:
 from scipy.stats.stats import chisqprob
 from scipy.stats import norm
 from ols import OLS_dev as OLS
-from twosls import TSLS_dev
-from twosls_sp import STSLS_dev
+#from twosls import TSLS_dev
+#from twosls_sp import STSLS_dev
 import numpy as np
 import numpy.linalg as la
 import pysal
