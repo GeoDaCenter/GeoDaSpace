@@ -91,9 +91,10 @@ def moments_het(w, u):
     ut = u.T
     S = w.sparse
     St = S.T
+    A1 = get_A1(S)
 
     utSt = ut * St
-    A1u = w.A1 * u
+    A1u = A1 * u
     Su = S * u
 
     g1 = np.dot(ut, A1u)
@@ -101,7 +102,7 @@ def moments_het(w, u):
     g = np.array([[g1][0][0],[g2][0][0]]) / w.n
 
     G11 = 2 * (np.dot(utSt, A1u)) 
-    G12 = -np.dot(utSt * w.A1, Su)
+    G12 = -np.dot(utSt * A1, Su)
     G21 = np.dot(utSt, ((S + St) * u))
     G22 = -np.dot(utSt, (S * Su))
     G = np.array([[G11[0][0],G12[0][0]],[G21[0][0],G22[0][0]]]) / w.n
@@ -171,11 +172,11 @@ def get_vc_het(w, E):
     592-614.
 
     """
-    
-    A1t = w.A1.T
+    A1=get_A1(w.sparse)
+    A1t = A1.T
     wt = w.sparse.T
 
-    aPatE = (w.A1 + A1t) * E
+    aPatE = (A1 + A1t) * E
     wPwtE = (w.sparse + wt) * E
 
     psi11 = aPatE * aPatE
@@ -615,6 +616,98 @@ def get_spFilter(w,lamb,sf):
     rs = sf - lamb * (w_matrix * sf)    
     
     return rs
+  
+def get_J(w, lamb, u):
+    G=moments_het(w, u)[0]    
+    J=np.dot(G, np.array([[1], [2*lamb]]))
+    return J
+
+def get_Omega_2SLS(w, lamb, reg):
+    """
+    Computes the variance-covariance matrix for 2SLS:
+    ...
+
+    Parameters
+    ----------
+
+    w           : W
+                  Spatial weights instance 
+
+    reg         : TSLS
+                  Two stage least quare regression instance
+                  
+    lamb        : float
+                  Spatial autoregressive parameter
+ 
+    Returns
+    -------
+
+    omega       : array
+                  (k+1)x(k+1)
+                  
+        Examples
+    --------
+
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X = np.array(X).T
+    >>> yd = []
+    >>> yd.append(db.by_col("HOVAL"))
+    >>> yd = np.array(yd).T
+    >>> q = []
+    >>> q.append(db.by_col("DISCBD"))
+    >>> q = np.array(q).T
+    >>> reg = TSLS(y, X, yd, q)
+    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> print get_Omega_2SLS(w, 0.1, reg)
+    >>>
+    [[  2.02523835e+04   1.17710247e+03  -9.69212937e+02   1.28150689e+01]
+    [  1.17710247e+03   1.14640082e+02  -7.61825004e+01   1.39419338e+00]
+    [ -9.69212937e+02  -7.61825004e+01   5.56502280e+01  -8.80686177e-01]
+    [  1.28150689e+01   1.39419338e+00  -8.80686177e-01   1.00264668e-01]]
+
+    """
+
+    pe = 0
+    psi_dd_1=0
+    psi_dd_2=0
+    while (lamb**pe > 1e-10):
+        psi_dd_1 = psi_dd_1 + (lamb**pe) * reg.h.T * (w.sparse**pe)
+        psi_dd_2 = psi_dd_2 + (lamb**pe) * (w.sparse.T**pe) * reg.h
+        pe = pe + 1
+        
+    sigma=get_psi_sigma(w, reg.u, lamb)
+    psi_dd_h=(1.0/w.n)*psi_dd_1*sigma
+    psi_dd=np.dot(psi_dd_h, psi_dd_2)
+    a1a2=get_a1a2(w, reg, lamb)
+    psi_dl=np.dot(psi_dd_h, np.hstack((a1a2[0],a1a2[1])))
+    psi=get_vc_het(w,sigma)    
+    psii=la.inv(psi)
+    psi_o=np.hstack((np.vstack((psi_dd, psi_dl.T)), np.vstack((psi_dl, psi))))
+    J=get_J(w, lamb, reg.u)
+    jtpsii=np.dot(J.T, psii)
+    jtpsiij=np.dot(jtpsii, J)
+    jtpsiiji=la.inv(jtpsiij)
+    omega_1=np.dot(jtpsiiji, jtpsii)
+    omega_2=np.dot(np.dot(psii, J), jtpsiiji)
+    om_1_s=omega_1.shape
+    om_2_s=omega_2.shape
+    p_s=reg.pfora1a2.shape
+    omega_left=np.hstack((np.vstack((reg.pfora1a2.T, np.zeros((om_1_s[0],p_s[0])))), 
+               np.vstack((np.zeros((p_s[1], om_1_s[1])), omega_1))))
+    omega_right=np.hstack((np.vstack((reg.pfora1a2, np.zeros((om_2_s[0],p_s[1])))), 
+               np.vstack((np.zeros((p_s[0], om_2_s[1])), omega_2))))
+    omega=np.dot(np.dot(omega_left, psi_o), omega_right)
+    
+    return omega
+    
+                  
+    
 
 def _test():
     import doctest
@@ -654,5 +747,8 @@ if __name__ == "__main__":
     q = np.array(q).T
     reg = tw.TSLS_dev(y, X, yd, q)
     w = pysal.rook_from_shapefile("examples/columbus.shp")
-    print get_a1a2(w, reg, 0.1)
-'''
+    print get_Omega_2SLS(w, 0.1, reg)
+    #print get_a1a2(w, reg, 0.1)
+    
+    
+
