@@ -14,3 +14,5 @@ model <- lm(y ~ x, data=dbf)
 moran <- lm.morantest(model, w)
 print(moran)
 
+lm <- lm.LMtests(model, w, test='SARMA')
+#print(lm)
