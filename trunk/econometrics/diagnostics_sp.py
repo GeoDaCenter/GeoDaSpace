@@ -76,16 +76,16 @@ class LMtests:
     >>> w = pysal.open('examples/columbus.GAL', 'r').read()
     >>> w.transform='r'
     >>> lms = LMtests(x, y, w)
-    >>> lms.lme
-    (3.0970936509697777, 0.078432200675767894)
-    >>> lms.lml
-    (0.98155210636059953, 0.32181591629750089)
-    >>> lms.rlme
-    (3.2091869044218444, 0.073225864192985324)
-    >>> lms.rlml
-    (1.0936453598126665, 0.2956649241090511)
-    >>> lms.sarma
-    (4.190739010782444, 0.12302477693605457)
+    >>> np.around(lms.lme, decimals=6)
+    array([ 3.097094,  0.078432])
+    >>> np.around(lms.lml, decimals=6)
+    array([ 0.981552,  0.321816])
+    >>> np.around(lms.rlme, decimals=6)
+    array([ 3.209187,  0.073226])
+    >>> np.around(lms.rlml, decimals=6)
+    array([ 1.093645,  0.295665])
+    >>> np.around(lms.sarma, decimals=6)
+    array([ 4.190739,  0.123025])
     """
     def __init__(self, x, y, w, constant=True, tests=['all']):
         if w.transform != 'R':
