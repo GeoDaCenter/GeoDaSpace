@@ -1,11 +1,5 @@
 """
 Spatial diagnostics module
-
-ToDo:
-
-    * Checking against R's spdep differs in:
-        * Moran's variance
-    * Document Moran
 """
 
 from scipy.stats.stats import chisqprob
@@ -79,22 +73,19 @@ class LMtests:
     >>> csv = pysal.open('examples/columbus.dbf','r')
     >>> y = np.array([csv.by_col('HOVAL')]).T
     >>> x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
-    >>> w = pysal.open('examples/columbus.gal', 'r').read()
+    >>> w = pysal.open('examples/columbus.GAL', 'r').read()
     >>> w.transform='r'
-    >>> from ols import OLS_dev as OLS
-    >>> wy = w.sparse * y
-    >>> ols = OLS(x, y)
     >>> lms = LMtests(x, y, w)
     >>> lms.lme
-    (3.992947267432295, 0.045691076106858394)
+    (3.0970936509697777, 0.078432200675767894)
     >>> lms.lml
-    (1.8194874340454195, 0.17737430099228549)
+    (0.98155210636059953, 0.32181591629750089)
     >>> lms.rlme
-    (2.8712886542421709, 0.090172642054033358)
+    (3.2091869044218444, 0.073225864192985324)
     >>> lms.rlml
-    (0.69782882085529507, 0.4035142049850427)
+    (1.0936453598126665, 0.2956649241090511)
     >>> lms.sarma
-    (4.6907760882875902, 0.095810016400331821)
+    (4.190739010782444, 0.12302477693605457)
     """
     def __init__(self, x, y, w, constant=True, tests=['all']):
         if w.transform != 'R':
@@ -211,6 +202,56 @@ class AKtest:
 
 class MoranRes:
     def __init__(self, x, y, w, constant=True):
+        """
+        Moran's I for spatial autocorrelation in residuals from OLS regression
+        ...
+
+        Parameters
+        ----------
+
+        x           : array
+                      nxk array of independent variables (assumed to be aligned with y)
+        y           : array
+                      nx1 array of dependent variable
+        w           : W
+                      Spatial weights instance (requires 'S' and 'A1') assumed to
+                      be row-standardized
+        constant    : boolean
+                      If true it appends a vector of ones to the independent variables
+                      to estimate intercept (set to True by default)        
+
+        Attributes
+        ----------
+        I           : float
+                      Moran's I statistic
+        eI          : float
+                      Moran's I expectation
+        vI          : float
+                      Moran's I variance
+        zI          : float
+                      Moran's I standardized value
+
+        Examples
+        --------
+
+        >>> import numpy as np
+        >>> import pysal
+        >>> csv = pysal.open('examples/columbus.dbf','r')
+        >>> y = np.array([csv.by_col('HOVAL')]).T
+        >>> x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
+        >>> w = pysal.open('examples/columbus.GAL', 'r').read()
+        >>> w.transform='r'
+        >>> ols = OLS(x, y)
+        >>> m = MoranRes(x, y, w)
+        >>> np.around(m.I, decimals=6)
+        0.17130999999999999
+        >>> np.around(m.eI, decimals=6)
+        -0.034522999999999998
+        >>> np.around(m.vI, decimals=6)
+        0.0081300000000000001
+        >>> np.around(m.zI, decimals=6)
+        2.2827389999999999
+        """
         ols = OLS(x, y, constant=constant)
         cache = spDcache(ols, w)
         self.I = get_mI(ols, w, cache)
@@ -281,8 +322,8 @@ class spDcache:
     def j(self):
         if 'j' not in self._cache:
             wxb = self.w.sparse * self.reg.predy
-            num = np.dot(wxb.T, np.dot(self.reg.m, wxb)) + (self.t * self.reg.sig2)
-            den = self.reg.n * self.reg.sig2
+            num = np.dot(wxb.T, np.dot(self.reg.m, wxb)) + (self.t * self.reg.sig2n)
+            den = self.reg.n * self.reg.sig2n
             self._cache['j'] = num / den
         return self._cache['j']
     @property
@@ -293,14 +334,14 @@ class spDcache:
     @property
     def utwuDs(self):
         if 'utwuDs' not in self._cache:
-            res = np.dot(self.reg.u.T, self.wu) / self.reg.sig2
+            res = np.dot(self.reg.u.T, self.wu) / self.reg.sig2n
             self._cache['utwuDs'] = res
         return self._cache['utwuDs']
     @property
     def utwyDs(self):
         if 'utwyDs' not in self._cache:
             res = np.dot(self.reg.u.T, self.w.sparse * self.reg.y)
-            self._cache['utwyDs'] = res / self.reg.sig2
+            self._cache['utwyDs'] = res / self.reg.sig2n
         return self._cache['utwyDs']
     @property
     def t(self):
@@ -697,9 +738,16 @@ if __name__ == '__main__':
     csv = pysal.open('examples/columbus.dbf','r')
     y = np.array([csv.by_col('HOVAL')]).T
     x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
-    w = pysal.open('examples/columbus.gal', 'r').read()
+    w = pysal.open('examples/columbus.GAL', 'r').read()
     w.transform='r'
     ols = OLS(x, y)
+    m = MoranRes(x, y, w)
+    print """### Moran Results ###
+     I\t:\t %f
+    eI\t:\t%f
+    vI\t:\t %f
+    zI\t:\t %f
+    """%(m.I, m.eI, m.vI, m.zI)
     """
     iv = STSLS_dev(x, y, w, h=None, w_lags=2, constant=True, robust=None)
     cache = spDcache(iv, w)
