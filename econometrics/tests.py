@@ -40,9 +40,10 @@ suite = unittest.TestSuite()
 import ols, spHetErr, twosls
 import twosls_sp, diagnostics, robust
 import probit
+import spError
 # add modules to this list
 mods = 'ols', 'spHetErr', 'twosls', 'twosls_sp',\
-       'diagnostics', 'robust', 'probit'
+       'diagnostics', 'robust', 'probit', 'spError'
 
 
 # add unit tests here

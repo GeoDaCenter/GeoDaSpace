@@ -115,7 +115,7 @@ class GSLS:
         #Output
         self.betas = ols.betas
         self.lamb = lambda1
-        self.sig2 = ols.sig2
+        self.sig2 = ols.sig2n
         self.u = ols.u
         self.se_betas, self.z, self.pvals = self._inference(ols)
 
