@@ -41,9 +41,11 @@ import ols, spHetErr, twosls
 import twosls_sp, diagnostics, robust
 import probit
 import spError
+import diagnostics_sp
 # add modules to this list
 mods = 'ols', 'spHetErr', 'twosls', 'twosls_sp',\
-       'diagnostics', 'robust', 'probit', 'spError'
+       'diagnostics', 'robust', 'probit', 'spError',\
+       'diagnostics_sp'
 
 
 # add unit tests here
