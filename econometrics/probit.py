@@ -25,7 +25,7 @@ class probit: #DEV class required.
     optim       : string
                   Optimization method.
                   Default: 'newton' (Newton-Raphson).
-                  Alternative: 'bhhh' (yet to be coded)
+                  Alternatives: 'ncg' (Newton-CG), 'bfgs' (BFGS algorithm)
     scalem      : string
                   Method to calculate the scale of the marginal effects.
                   Default: 'phimean' (Mean of individual marginal effects)
@@ -118,7 +118,7 @@ class probit: #DEV class required.
         self.w = w
         par_est = self.par_est()
         self.betas = np.reshape(par_est[0],(self.k,1))
-        self.logl = float(par_est[1])
+        self.logl = -float(par_est[1])
         self._cache = {}
 
     @property
@@ -201,7 +201,7 @@ class probit: #DEV class required.
     def LM_error(self): #LM error and Moran's I tests are calculated together.
         if 'LM_error' not in self._cache: 
             if self.w:
-                w = self.w
+                w = self.w.sparse
                 phi = self.phiy
                 Phi = self.predy
                 #LM_error:
@@ -210,15 +210,15 @@ class probit: #DEV class required.
                 u_gen = phi * (u_naive / Phi_prod)
                 sig2 = np.sum((phi * phi) / Phi_prod) / self.n
                 LM_err_num = np.dot(u_gen.T,(w * u_gen))**2
-                trWW_WpW = np.sum(((w.sparse*w.sparse)+(w.sparse.T*w.sparse)).diagonal())
+                trWW_WpW = np.sum(((w*w)+(w.T*w)).diagonal())
                 LM_err = float(1.0 * LM_err_num / (sig2**2 * trWW_WpW))
                 LM_err = np.array([LM_err,stats.chisqprob(LM_err,1)])
                 #Moran's I:
-                E = SP.lil_matrix(w.sparse.get_shape()) #There's a similar code in gmm_utils to create the Sigma matrix for the Psi.
+                E = SP.lil_matrix(w.get_shape()) #There's a similar code in gmm_utils to create the Sigma matrix for the Psi.
                 E.setdiag(Phi_prod.flat)
                 E = E.asformat('csr')
-                WE = w.sparse*E
-                moran_den = np.sqrt(np.sum((WE*WE + (w.sparse.T*E)*WE).diagonal()))
+                WE = w*E
+                moran_den = np.sqrt(np.sum((WE*WE + (w.T*E)*WE).diagonal()))
                 moran_num = np.dot(u_naive.T, (w * u_naive))
                 moran = float(1.0*moran_num / moran_den)
                 moran = np.array([moran,stats.norm.sf(abs(moran)) * 2.])
@@ -245,21 +245,33 @@ class probit: #DEV class required.
         return self._cache['pinkse_slade']
 
     def par_est(self):
-        start = [0.0] * self.x.shape[1]
-        flogl = lambda par: -self.ll(par)
-        fgrad = lambda par: -self.gradient(par)
-        fhess = lambda par: -self.hessian(par)
+        start = np.dot(la.inv(np.dot(self.x.T,self.x)),np.dot(self.x.T,self.y))
         if self.optim == 'newton':
             iteration = 0
-            start = np.array(start)
-            history = [np.inf, start]
-            while (iteration < 50 and np.all(np.abs(history[-1] - history[-2])>1e-08)):
-                H = self.hessian(history[-1])
-                par_hat0 = history[-1] - np.dot(np.linalg.inv(H),self.gradient(history[-1]))
+            history = [start]
+            m = 1
+            while (iteration < 50 and m>=1e-04):
+                H = -la.inv(self.hessian(history[-1]))
+                g = np.reshape(self.gradient(history[-1]),(self.k,1))
+                Hg = np.dot(H,g)
+                par_hat0 = history[-1] + Hg
                 history.append(par_hat0)
                 iteration += 1
-            logl = self.ll(par_hat0,final=1)
-            par_hat = [par_hat0, logl] #Coded like this to comply with most of the scipy optimizers.             
+                m = np.dot(g.T,Hg)
+            logl = self.ll(par_hat0,final=1) 
+            par_hat = [par_hat0, -logl] #Coded like this to comply with most of the scipy optimizers.
+        else:
+            flogl = lambda par: -self.ll(par)
+            fgrad = lambda par: -self.gradient(par)
+            if self.optim == 'bfgs':
+                par_hat = op.fmin_bfgs(flogl,start,fgrad,full_output=1,disp=0)
+                warn = par_hat[6] 
+            if self.optim == 'ncg':                
+                fhess = lambda par: -self.hessian(par)
+                par_hat = op.fmin_ncg(flogl,start,fgrad,fhess=fhess,full_output=1,disp=0)
+                warn = par_hat[5]
+            if warn > 0:
+                print "Maximum number of iterations exceeded or gradient and/or function calls not changing."
         return par_hat
 
     def ll(self,par,final=None):
