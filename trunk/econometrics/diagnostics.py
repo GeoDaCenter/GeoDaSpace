@@ -1,10 +1,5 @@
 """
 Diagnostics for regression estimations. 
-
-To Do List:
-
-    * Add variance inflation factor (more complicated than originally expected).
-    * Add  a constant check function. 
         
 """
 
@@ -22,21 +17,18 @@ def f_stat(reg):
     
     Parameters
     ----------
-
     reg             : regression object
                       output instance from a regression model
 
     Returns
     ----------
-
     fs_result       : tuple
                       includes value of F statistic and associated p-value
 
     References
     ----------
-
-    [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
-    
+    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle
+       River. 
 
     Examples
     --------
@@ -57,12 +49,11 @@ def f_stat(reg):
     ('28.385629224695', '0.000000009341')
 
     """ 
-    
-    k = reg.k                   # (scalar) number of independent variables (includes constant)
-    n = reg.n                   # (scalar) number of observations
-    utu = reg.utu               # (scalar) residual sum of squares
-    predy = reg.predy           # (array) vector of predicted values (n x 1)
-    mean_y = reg.mean_y         # (scalar) mean of dependent observations
+    k = reg.k            # (scalar) number of ind. variables (includes constant)
+    n = reg.n            # (scalar) number of observations
+    utu = reg.utu        # (scalar) residual sum of squares
+    predy = reg.predy    # (array) vector of predicted values (n x 1)
+    mean_y = reg.mean_y  # (scalar) mean of dependent observations
     Q = utu
     U = np.sum((predy-mean_y)**2)
     fStat = (U/(k-1))/(Q/(n-k))
@@ -85,16 +76,14 @@ def f_stat_tsls(reg):
 
     Returns
     ----------
-
     fs_result       : tuple
                       includes value of F statistic and associated p-value
 
     References
     ----------
-
-    [1] J.M. Wooldridge. 1990. A note on the Lagrange multiplier and F-statistics 
-        for two stage least squares regressions. Economics Letters 34, 151-155.
-    
+    .. [1] J.M. Wooldridge. 1990. A note on the Lagrange multiplier and F-
+       statistics for two stage least squares regressions. Economics Letters
+       34, 151-155.  
 
     Examples
     --------
@@ -119,12 +108,11 @@ def f_stat_tsls(reg):
     ('7.40058418460', '0.00163476698')
 
     """ 
-    
-    k = reg.k                   # (scalar) number of independent variables (includes constant)
-    n = reg.n                   # (scalar) number of observations
-    utu = reg.utu               # (scalar) residual sum of squares
-    predy = reg.predy           # (array) vector of predicted values (n x 1)
-    mean_y = reg.mean_y         # (scalar) mean of dependent observations
+    k = reg.k            # (scalar) number of ind. variables (includes constant)
+    n = reg.n            # (scalar) number of observations
+    utu = reg.utu        # (scalar) residual sum of squares
+    predy = reg.predy    # (array) vector of predicted values (n x 1)
+    mean_y = reg.mean_y  # (scalar) mean of dependent observations
     Q = utu
     import ols as OLS
     ssr_intercept = OLS.OLS_dev(np.ones(reg.y.shape), reg.y, False).utu
@@ -143,20 +131,19 @@ def t_stat(reg):
     
     Parameters
     ----------
-
     reg             : regression object
                       output instance from a regression model
-        
+
     Returns
     -------    
-
     ts_result       : list of tuples
-                      each tuple includes value of t statistic and associated p-value
+                      each tuple includes value of t statistic and associated p-
+                      value
 
     References
     ----------
-
-    [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
+    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle
+       River.
 
     Examples
     --------
@@ -177,11 +164,10 @@ def t_stat(reg):
     ('14.490373143689', '0.000000000000', '-4.780496191297', '0.000018289595', '-2.654408642718', '0.010874504910')
     
     """ 
-    
-    k = reg.k                   # (scalar) number of independent variables (includes constant)
-    n = reg.n                   # (scalar) number of observations
-    vm = reg.vm                 # (array) coefficients of variance matrix (k x k)
-    betas = reg.betas           # (array) coefficients of the regressors (1 x k) 
+    k = reg.k           # (scalar) number of ind. variables (includes constant)
+    n = reg.n           # (scalar) number of observations
+    vm = reg.vm         # (array) coefficients of variance matrix (k x k)
+    betas = reg.betas   # (array) coefficients of the regressors (1 x k) 
     variance = vm.diagonal()
     tStat = betas.reshape(len(betas),)/ np.sqrt(variance)
     rs = {}
@@ -198,20 +184,19 @@ def r2(reg):
     
     Parameters
     ----------
-
     reg             : regression object
                       output instance from a regression model
-        
+
     Returns
     ----------
-
     r2_result       : float
-                      value of the coefficient of determination for the regression 
+                      value of the coefficient of determination for the
+                      regression 
 
     References
     ----------
-
-    [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
+    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle
+       River.
     
     Examples
     --------
@@ -232,10 +217,9 @@ def r2(reg):
     0.55240404083742334
     
     """ 
-
-    y = reg.y                   # (array) vector of dependent observations (n x 1)
-    mean_y = reg.mean_y         # (scalar) mean of dependent observations
-    utu = reg.utu               # (scalar) residual sum of squares
+    y = reg.y               # (array) vector of dependent observations (n x 1)
+    mean_y = reg.mean_y     # (scalar) mean of dependent observations
+    utu = reg.utu           # (scalar) residual sum of squares
     ss_tot = sum((y-mean_y)**2)
     r2 = 1-utu/ss_tot
     r2_result = r2[0]
@@ -249,20 +233,19 @@ def ar2(reg):
     
     Parameters
     ----------
-
     reg             : regression object
-                      output instance from a regression model
-        
+                      output instance from a regression model   
+
     Returns
     ----------
-
     ar2_result      : float
-                      value of R^2 adjusted for the number of explanatory variables.
+                      value of R^2 adjusted for the number of explanatory
+                      variables.
 
     References
     ----------
-
-    [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
+    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle
+       River.
     
     Examples
     --------
@@ -283,9 +266,8 @@ def ar2(reg):
     0.5329433469607896
 
     """ 
-
-    k = reg.k                   # (scalar) number of independent variables (includes constant)
-    n = reg.n                   # (scalar) number of observations
+    k = reg.k       # (scalar) number of ind. variables (includes constant)
+    n = reg.n       # (scalar) number of observations
     ar2_result =  1-(1-r2(reg))*(n-1)/(n-k)
     return ar2_result
 
@@ -297,20 +279,18 @@ def se_betas(reg):
     
     Parameters
     ----------
-
     reg             : regression object
                       output instance from a regression model
-        
+
     Returns
     ----------
-
     se_result       : array
-                      includes standard errors of each regression coefficient (1 x k)
-    
+                      includes standard errors of each coefficient (1 x k)
+
     References
     ----------
-
-    [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
+    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle
+       River.
     
     Examples
     --------
@@ -331,8 +311,7 @@ def se_betas(reg):
     array([ 4.73548613,  0.33413076,  0.10319868])
     
     """ 
-
-    vm = reg.vm                 # (array) coefficients of variance matrix (k x k)  
+    vm = reg.vm         # (array) coefficients of variance matrix (k x k)  
     variance = vm.diagonal()
     se_result = np.sqrt(variance)
     return se_result
@@ -345,24 +324,21 @@ def log_likelihood(reg):
     
     Parameters
     ----------
-
     reg             : regression object
                       output instance from a regression model
 
     Returns
     -------
-
     ll_result       : float
                       value for the log-likelihood of the regression.
 
     References
     ----------
-
-    [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
+    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle
+       River.
 
     Examples
     --------
-
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
@@ -380,7 +356,6 @@ def log_likelihood(reg):
     -187.3772388121491
 
     """
-
     n = reg.n       # (scalar) number of observations
     utu = reg.utu   # (scalar) residual sum of squares
     ll_result = -0.5*(n*(np.log(2*math.pi))+n*np.log(utu/n)+(utu/(utu/n)))
@@ -394,24 +369,21 @@ def akaike(reg):
 
     Parameters
     ----------
-
     reg             : regression object
                       output instance from a regression model
 
     Returns
     -------
-
     aic_result      : scalar
                       value for Akaike Information Criterion of the regression. 
 
     References
     ----------
-
-    [1] H. Akaike. 1974. A new look at the statistical identification model. IEEE Transactions on Automatic Control, 19(6):716-723.
+    .. [1] H. Akaike. 1974. A new look at the statistical identification model.
+       IEEE Transactions on Automatic Control, 19(6):716-723.
 
     Examples
     --------
-
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
@@ -429,9 +401,8 @@ def akaike(reg):
     380.7544776242982
 
     """
-
     n = reg.n       # (scalar) number of observations
-    k = reg.k       # (scalar) number of independent variables (including constant)
+    k = reg.k       # (scalar) number of ind. variables (including constant)
     utu = reg.utu   # (scalar) residual sum of squares
     aic_result = 2*k + n*(np.log((2*np.pi*utu)/n)+1)
     return aic_result
@@ -444,24 +415,22 @@ def schwarz(reg):
 
     Parameters
     ----------
-
     reg             : regression object
                       output instance from a regression model
 
     Returns
     -------
-
     bic_result      : scalar
-                      value for Schwarz (Bayesian) Information Criterion of the regression. 
+                      value for Schwarz (Bayesian) Information Criterion of the
+                      regression. 
 
     References
     ----------
-
-    [1] G. Schwarz. 1978. Estimating the dimension of a model. The Annals of Statistics, pages 461-464. 
+    .. [1] G. Schwarz. 1978. Estimating the dimension of a model. The Annals of
+       Statistics, pages 461-464. 
 
     Examples
     --------
-
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
@@ -479,9 +448,8 @@ def schwarz(reg):
     386.42993851863008
 
     """
-
     n = reg.n       # (scalar) number of observations
-    k = reg.k       # (scalar) number of independent variables (including constant)
+    k = reg.k       # (scalar) number of ind. variables (including constant)
     utu = reg.utu   # (scalar) residual sum of squares
     sc_result = k*np.log(n) + n*(np.log((2*np.pi*utu)/n)+1)
     return sc_result
@@ -490,28 +458,26 @@ def schwarz(reg):
 
 def condition_index(reg):
     """
-    Calculates the multicollinearity condition index according to Belsey, Kuh and Welsh (1980)
+    Calculates the multicollinearity condition index according to Belsey, Kuh
+    and Welsh (1980)
 
     Parameters
     ----------
-
     reg             : regression object
                       output instance from a regression model
 
     Returns
     -------
-
     ci_result       : float
                       scalar value for the multicollinearity condition index. 
 
     References
     ----------
-            
-    [1] D. Belsley, E. Kuh, and R. Welsch. 1980. Regression Diagnostics. Wiley, New York.
+    .. [1] D. Belsley, E. Kuh, and R. Welsch. 1980. Regression Diagnostics. 
+       New York: Wiley.
 
     Examples
     --------
-
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
@@ -529,7 +495,6 @@ def condition_index(reg):
     6.541827751444
 
     """
-
     xtx = reg.xtx   # (array) k x k projection matrix (includes constant)
     diag = np.diagonal(xtx)
     scale = xtx/diag    
@@ -547,33 +512,30 @@ def jarque_bera(reg):
 
     Parameters
     ----------
-
     reg             : regression object
                       output instance from a regression model
 
     Returns
     ------- 
     jb_result       : dictionary
-                      contains the statistic (jb) for the Jarque-Bera test and the associated p-value (p-value)
-
+                      contains the statistic (jb) for the Jarque-Bera test and
+                      the associated p-value (p-value)
     df              : integer
                       degrees of freedom associated with the test (always 2)
-
     jb              : float
                       value of the test statistic
-
     pvalue          : float
-                      p-value associated with the statistic (chi^2 distributed with 2 df)
-
+                      p-value associated with the statistic (chi^2 distributed
+                      with 2 df)
 
     References
     ----------
-            
-    [1] C. Jarque and A. Bera. 1980. Efficient tests for normality, homoscedasticity and serial independence of regression residuals. Economics Letters, 6(3):255-259.
+    .. [1] C. Jarque and A. Bera. 1980. Efficient tests for normality,
+       homoscedasticity and serial independence of regression residuals.
+       Economics Letters, 6(3):255-259.
 
     Examples
     --------
-
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
@@ -595,7 +557,6 @@ def jarque_bera(reg):
     0.399366291249
 
     """
-    
     n = reg.n               # (scalar) number of observations
     u = reg.u               # (array) residuals from regression 
     u2 = u**2                          
@@ -615,37 +576,36 @@ def jarque_bera(reg):
 
 def breusch_pagan(reg):
     """
-    Calculates the Breusch-Pagan test statistic to check for heteroskedasticity. 
+    Calculates the Breusch-Pagan test statistic to check for
+    heteroskedasticity. 
 
     Parameters
     ----------
-
     reg             : regression object
                       output instance from a regression model 
 
     Returns
     -------
-
     bp_result       : dictionary
-                      contains the statistic (bp) for the Breusch-Pagan test and the associated p-value (p-value)
-
+                      contains the statistic (bp) for the Breusch-Pagan test
+                      and the associated p-value (p-value)
     bp              : float
                       scalar value for the Breusch-Pagan test statistic.
-
     df              : integer
                       degrees of freedom associated with the test (k)
-
     pvalue          : float
-                      p-value associated with the statistic (chi^2 distributed with k df)
+                      p-value associated with the statistic (chi^2 distributed
+                      with k df)
 
     References
     ----------
     
-    [1] T. Breusch and A. Pagan. 1979. A simple test for heteroscedasticity and random coefficient variation. Econometrica: Journal of the Econometric Society, 47(5):1287-1294.
+    .. [1] T. Breusch and A. Pagan. 1979. A simple test for heteroscedasticity
+       and random coefficient variation. Econometrica: Journal of the
+       Econometric Society, 47(5):1287-1294.
 
     Examples
     --------
-
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
@@ -709,37 +669,34 @@ def white(reg):
 
     Parameters
     ----------
-
     reg             : regression object
                       output instance from a regression model
-
     constant        : boolean
-                      if true the original regression includes a constant, set to "True" by default
+                      if true the original regression includes a constant, set
+                      to "True" by default
 
     Returns
     -------
-
     white_result    : dictionary
-                      contains the statistic (white), degrees of freedom (df) and the associated p-value (pvalue) for the White test. 
-
+                      contains the statistic (white), degrees of freedom (df)
+                      and the associated p-value (pvalue) for the White test. 
     white           : float
                       scalar value for the White test statistic.
-
     df              : integer
                       degrees of freedom associated with the test
-
     pvalue          : float
-                      p-value associated with the statistic (chi^2 distributed with k df)
-
+                      p-value associated with the statistic (chi^2 distributed
+                      with k df)
+    
     References
     ----------
-
-    [1] H. White. 1980. A heteroskedasticity-consistent covariance matrix estimator and a direct test for heteroskdasticity. Econometrica. 48(4) 817-838. 
+    .. [1] H. White. 1980. A heteroskedasticity-consistent covariance matrix
+       estimator and a direct test for heteroskdasticity. Econometrica. 48(4)
+       817-838. 
 
 
     Examples
     --------
-
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
@@ -761,7 +718,6 @@ def white(reg):
     0.001279222817
 
     """
-
     e = reg.u**2
     k = reg.k
     n = reg.n
@@ -791,7 +747,8 @@ def white(reg):
         v = X[:,i]**2
         A.append(v)
 
-    # Convert to an array with the proper dimensions and append the original non-binary variables
+    # Convert to an array with the proper dimensions and append the original
+    # non-binary variables
     A = np.array(A).T
     A = np.hstack((X,A))
     n,k = A.shape
@@ -810,7 +767,8 @@ def white(reg):
     uniqueomit = set(omitcolumn)
     omitcolumn = list(uniqueomit)
 
-    # Now the identified columns must be removed (done in reverse to prevent renumbering)
+    # Now the identified columns must be removed (done in reverse to prevent
+    # renumbering)
     omitcolumn.reverse()
     for c in omitcolumn:
         A = np.delete(A,c,1)
@@ -830,37 +788,36 @@ def white(reg):
 
 def koenker_bassett(reg):
     """
-    Calculates the Koenker-Bassett test statistic to check for heteroskedasticity. 
+    Calculates the Koenker-Bassett test statistic to check for
+    heteroskedasticity. 
 
     Parameters
     ----------
-
     reg             : regression output
                       output from an instance of a regression class
 
     Returns
     -------
-
+    kb_result       : dictionary
+                      contains the statistic (kb), degrees of freedom (df)
+                      and the associated p-value (pvalue) for the test. 
     kb              : float
                       scalar value for the Koenker-Bassett test statistic.
-
     df              : integer
                       degrees of freedom associated with the test
-
     pvalue          : float
                       p-value associated with the statistic (chi^2 distributed)
 
     Reference
     ---------
-    
-    [1] R. Koenker and G. Bassett. 1982. Robust tests for heteroscedasticity based on regression quantiles. Econometrica, 50(1):43-61. 
+    .. [1] R. Koenker and G. Bassett. 1982. Robust tests for heteroscedasticity
+       based on regression quantiles. Econometrica, 50(1):43-61. 
 
-    [2] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
-
+    .. [2] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle
+       River.
 
     Examples
     --------
-
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
@@ -882,8 +839,7 @@ def koenker_bassett(reg):
     0.027098355486
 
     """
-
-    # The notation here deliberately matches that of Greene (2003).
+    # The notation here matches that of Greene (2003).
     u = reg.u**2
     e = reg.u
     n = reg.n
@@ -926,24 +882,26 @@ def koenker_bassett(reg):
 
 def vif(reg):
     """
-    Calculates the variance inflation factor for each independent variable. For the ease of indexing the results, the constant is currently included. This should be omitted when reporting the results to the output text.
+    Calculates the variance inflation factor for each independent variable. For
+    the ease of indexing the results, the constant is currently included. This
+    should be omitted when reporting the results to the output text.
     
     Parameters
     ----------
-
     reg             : regression object
                       output instance from a regression model
         
     Returns
     -------    
-
     vif_result      : list of tuples
-                      each tuple includes the vif and the tolerance, the order of the variables corresponds to their order in the reg.x matrix
+                      each tuple includes the vif and the tolerance, the order
+                      of the variables corresponds to their order in the reg.x
+                      matrix
 
     References
     ----------
-
-    [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
+    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle
+       River.
 
     Examples
     --------
@@ -971,10 +929,7 @@ def vif(reg):
     >>> print("%12.12f"%hovalvif[1])
     0.750121427487
 
-
-
     """
-
     X = reg.x
     n,k = X.shape
     vif_result = []
@@ -996,6 +951,59 @@ def vif(reg):
     return vif_result
 
 
+def hausman(olsreg,tslsreg):
+    """
+    Computes the Hausman specification test in the form of a Wald statistic.
+
+    Parameters
+    ----------
+    olsreg          : ordinary least squares regression object
+                      output instance from an ordinary least squares regression
+                      model
+    tlsreg          : two stage least squares regression object
+                      output instance from a two stage least squares regression
+                      model
+
+    Returns
+    -------
+    hausman_result  : dictionary
+                      contains the statistic (hausman), degrees of freedom (df)
+                      and the associated p-value (pvalue) for the test. 
+    hausman         : float
+                      scalar value for the Hausman test statistic.
+    df              : integer
+                      degrees of freedom associated with the test
+    pvalue          : float
+                      p-value associated with the statistic (chi^2 distributed
+                      with kstar degrees of freedom)
+                      
+    References
+    ----------
+    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle
+       River.
+
+    Examples
+    --------
+
+    """
+    b_iv = tlsreg.delta
+    b_ls = olsreg.betas
+    v_iv = tlsreg.xptxpi
+    v_ls = olsreg.xtxi
+    sig2 = olsreg.sig2n_k   # Greene specifies this is the correct sig2 to use, Stata gives an option     
+    df = tlsreg.kstar       # degrees of freedom specified by Greene, Stata uses tlsreg.k 
+
+    d = b_iv-b_ls
+    dt = d.T
+    part1 = la.pinv(v_iv-v_ls)
+    part2 = np.dot(dt,part1)
+    part3 = np.dot(part2,d)
+    hausman = part3/sig2
+    pvalue=stats.chisqprob(hausman,df)
+    hausman_result = {'hausman':hausman,'df':df,'pvalue':pvalue}
+    return hausman_result
+
+
 
 def constant_check(array):
     """
@@ -1003,13 +1011,11 @@ def constant_check(array):
 
     Parameters
     ----------
-
     array           : array
                       an array of variables to be inspected 
 
     Returns
     -------
-
     constant        : boolean
                       true signifies the presence of a constant
 
@@ -1026,8 +1032,6 @@ def constant_check(array):
             break
     return constant
         
-
-
 
 def _test():
     import doctest

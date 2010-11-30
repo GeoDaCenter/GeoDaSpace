@@ -64,6 +64,8 @@ class TSLS_dev(Regression_Props):
                   number of observations
     k           : int
                   Number of variables, including exogenous and endogenous variables
+    kstar       : int
+                  Number of endogenous variables. 
     zth         : array
                   z.T * h
     hth         : array
@@ -108,6 +110,7 @@ class TSLS_dev(Regression_Props):
         self.y = y  
         self.n = y.shape[0]
         self.x = x
+        self.kstar = yend.shape[1]
         
         z = np.hstack((x,yend))  # including exogenous and endogenous variables   
         h = np.hstack((x,q))   # including exogenous variables and instruments
