@@ -3,12 +3,18 @@ import numpy as np
 import diagnostics
 
 
+
+
+
+
 class Diagnostic_Builder:
-    def __init__(self, constant, vm, pred, instruments=False):
+    def __init__(self, x, constant, name_x, name_y, name_ds, vm, pred,\
+                            name_yend=None, name_q=None,\
+                            instruments=False):
         #general information
         self.r2 = diagnostics.r2(self)    
         self.ar2 = diagnostics.ar2(self)   
-        self.sigML = self.sig2  
+        self.sigML = self.sig2n  
         self.Fstat = diagnostics.f_stat(self)  
         self.logll = diagnostics.log_likelihood(self) 
         self.aic = diagnostics.akaike(self) 
@@ -16,22 +22,53 @@ class Diagnostic_Builder:
         
         #Coefficient, Std.Error, t-Statistic, Probability 
         self.std_err = diagnostics.se_betas(self)
-        self.Tstat = diagnostics.t_stat(self)
+        if instruments:
+            self.Zstat = diagnostics.t_stat(self, z_stat=True)
+        else:
+            self.Tstat = diagnostics.t_stat(self)
         
         #part 2: REGRESSION DIAGNOSTICS 
-        self.mulColli = diagnostics.condition_index(self)
+        if instruments:
+            self.mulColli = None
+        else:
+            self.mulColli = diagnostics.condition_index(self)
         self.JB = diagnostics.jarque_bera(self)
         
         #part 3: DIAGNOSTICS FOR HETEROSKEDASTICITY         
         self.BP = diagnostics.breusch_pagan(self)
         self.KB = diagnostics.koenker_bassett(self)
-        self.white = diagnostics.white(self)
+        if instruments:
+            self.white = None
+        else:
+            self.white = diagnostics.white(self)
         
         #part 4: summary output
-        self.summary = summary_results(self, constant=constant, vm=vm, pred=pred, instruments=instruments)
+        if not name_x:
+            name_x = ['var_'+str(i+1) for i in range(len(x[0]))]
+        if constant:
+            name_x.insert(0, 'CONSTANT')
+        if not name_y:
+            name_y = 'dep_var'
+        if not name_ds:
+            name_ds = 'unknown'
+        if instruments:
+            if not name_yend:
+                self.name_yend = ['endogenous_'+str(i+1) for i in range(len(self.yend[0]))]
+            else:
+                self.name_yend = name_yend
+            if not name_q:
+                self.name_q = ['instrument_'+str(i+1) for i in range(len(self.q[0]))]
+            else:
+                self.name_q = name_q
+            self.name_h = name_x
+            self.name_h.extend(self.name_q)
+        self.name_x = name_x
+        self.name_ds = name_ds
+        self.name_y = name_y
+        self.summary = summary_results(self, vm=vm, pred=pred, instruments=instruments)
 
 
-def summary_results(reg, constant=True, vm = False, pred = False, instruments=False):
+def summary_results(reg, vm=False, pred=False, instruments=False):
     """
     nice output for regressions
     
@@ -79,29 +116,36 @@ def summary_results(reg, constant=True, vm = False, pred = False, instruments=Fa
     
     # Variable    Coefficient     Std.Error    t-Statistic   Probability 
     strSummary += "----------------------------------------------------------------------------\n"
-    strSummary += "    Variable     Coefficient       Std.Error     t-Statistic     Probability\n"
-    strSummary += "----------------------------------------------------------------------------\n"
-    #if constant:
-    #    strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % ('CONSTANT',reg.betas[0][0],reg.std_err[0],reg.Tstat[0][0],reg.Tstat[0][1])
-    #    i = 1
-    #else:
-    #    i = 0
-    i = 0
-    for name in reg.name_x:        
-        strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.Tstat[i][0],reg.Tstat[i][1])
-        i += 1
-    strSummary += "----------------------------------------------------------------------------\n"
     if instruments:
+        strSummary += "    Variable     Coefficient       Std.Error     z-Statistic     Probability\n"
+    else:
+        strSummary += "    Variable     Coefficient       Std.Error     t-Statistic     Probability\n"
+    strSummary += "----------------------------------------------------------------------------\n"
+    i = 0
+    if instruments:
+        for name in reg.name_x:        
+            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.Zstat[i][0],reg.Zstat[i][1])
+            i += 1
+        for name in reg.name_yend:        
+            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.Zstat[i][0],reg.Zstat[i][1])
+            i += 1
+        strSummary += "----------------------------------------------------------------------------\n"
         insts = "Instruments: "
         for name in reg.name_h:
             insts += name + ", "
         text_wrapper = TW.TextWrapper(width=76, subsequent_indent="             ")
         insts = text_wrapper.fill(insts[:-2])
         strSummary += insts + "\n"
+    else:
+        for name in reg.name_x:        
+            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.Tstat[i][0],reg.Tstat[i][1])
+            i += 1
+        strSummary += "----------------------------------------------------------------------------\n"
     
     # diagonostics
     strSummary += "\n\nREGRESSION DIAGNOSTICS\n"
-    strSummary += "MULTICOLLINEARITY CONDITION NUMBER%12.6f\n" % (reg.mulColli)
+    if reg.mulColli:
+        strSummary += "MULTICOLLINEARITY CONDITION NUMBER%12.6f\n" % (reg.mulColli)
     strSummary += "TEST ON NORMALITY OF ERRORS\n"
     strSummary += "TEST                  DF          VALUE            PROB\n"
     strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ('Jarque-Bera',reg.JB['df'],reg.JB['jb'],reg.JB['pvalue'])
@@ -110,9 +154,10 @@ def summary_results(reg, constant=True, vm = False, pred = False, instruments=Fa
     strSummary += "TEST                  DF          VALUE            PROB\n"
     strSummary += "%-22s%2d       %12.6f        %9.7f\n" % ('Breusch-Pagan test',reg.BP['df'],reg.BP['bp'],reg.BP['pvalue'])
     strSummary += "%-22s%2d       %12.6f        %9.7f\n" % ('Koenker-Bassett test',reg.KB['df'],reg.KB['kb'],reg.KB['pvalue'])
-    strSummary += "SPECIFICATION ROBUST TEST\n"
-    strSummary += "TEST                  DF          VALUE            PROB\n"
-    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ('White',reg.white['df'],reg.white['wh'],reg.white['pvalue'])
+    if reg.white:
+        strSummary += "SPECIFICATION ROBUST TEST\n"
+        strSummary += "TEST                  DF          VALUE            PROB\n"
+        strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ('White',reg.white['df'],reg.white['wh'],reg.white['pvalue'])
 
     # variance matrix
     if vm:

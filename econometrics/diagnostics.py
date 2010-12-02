@@ -96,13 +96,14 @@ def f_stat_tsls(reg):
     >>> y = np.reshape(y, (49,1))
     >>> X = []
     >>> X.append(db.by_col("INC"))
-    >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> h = []
-    >>> h.append(db.by_col("INC"))
-    >>> h.append(db.by_col("DISCBD"))
-    >>> h = np.array(h).T
-    >>> reg = TSLS(X, y, h)
+    >>> yd = []
+    >>> yd.append(db.by_col("HOVAL"))
+    >>> yd = np.array(yd).T
+    >>> q = []
+    >>> q.append(db.by_col("DISCBD"))
+    >>> q = np.array(q).T
+    >>> reg = TSLS(X, y, yd, q)
     >>> testresult = diagnostics.f_stat_tsls(reg)
     >>> print("%12.11f"%testresult[0],"%12.11f"%testresult[1])
     ('7.40058418460', '0.00163476698')
@@ -116,7 +117,8 @@ def f_stat_tsls(reg):
     Q = utu
     import ols as OLS
     ssr_intercept = OLS.OLS_dev(np.ones(reg.y.shape), reg.y, False).utu
-    ssr_2nd_stage = np.sum(reg.u_2nd_stage**2)
+    u_2nd_stage = reg.y - np.dot(reg.xp, reg.betas)
+    ssr_2nd_stage = np.sum(u_2nd_stage**2)
     U = ssr_intercept - ssr_2nd_stage
     fStat = (U/(k-1))/(Q/(n-k))
     pValue = stats.f.sf(fStat,k-1,n-k)
@@ -125,25 +127,30 @@ def f_stat_tsls(reg):
 
 
 
-def t_stat(reg):
+def t_stat(reg, z_stat=False):
     """
-    Calculates the t-statistics and associated p-values.
+    Calculates the t-statistics (or z-statistics) and associated p-values.
     
     Parameters
     ----------
+
     reg             : regression object
                       output instance from a regression model
 
+    z_stat          : boolean
+                      If True run z-stat instead of t-stat
+        
     Returns
     -------    
+
     ts_result       : list of tuples
-                      each tuple includes value of t statistic and associated p-
-                      value
+                      each tuple includes value of t statistic (or z
+                      statistic) and associated p-value
 
     References
     ----------
-    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle
-       River.
+
+    [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
 
     Examples
     --------
@@ -151,6 +158,7 @@ def t_stat(reg):
     >>> import pysal
     >>> import diagnostics
     >>> from ols import OLS_dev as OLS
+    >>> from twosls import TSLS_dev as TSLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -159,22 +167,40 @@ def t_stat(reg):
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
     >>> reg = OLS(X,y)
+    >>> # t-stat for OLS
     >>> testresult = diagnostics.t_stat(reg)
     >>> print("%12.12f"%testresult[0][0], "%12.12f"%testresult[0][1], "%12.12f"%testresult[1][0], "%12.12f"%testresult[1][1], "%12.12f"%testresult[2][0], "%12.12f"%testresult[2][1])
     ('14.490373143689', '0.000000000000', '-4.780496191297', '0.000018289595', '-2.654408642718', '0.010874504910')
-    
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X = np.array(X).T    
+    >>> yd = []
+    >>> yd.append(db.by_col("HOVAL"))
+    >>> yd = np.array(yd).T
+    >>> q = []
+    >>> q.append(db.by_col("DISCBD"))
+    >>> q = np.array(q).T
+    >>> reg = TSLS(X, y, yd, q)
+    >>> # z-stat for TSLS
+    >>> testresult = diagnostics.t_stat(reg, z_stat=True)
+    >>> print("%12.12f"%testresult[0][0], "%12.12f"%testresult[0][1], "%12.12f"%testresult[1][0], "%12.12f"%testresult[1][1], "%12.12f"%testresult[2][0], "%12.12f"%testresult[2][1])
+    ('5.845264470459', '0.000000005058', '0.367601566836', '0.713170346347', '-1.994689130783', '0.046076795581')
     """ 
-    k = reg.k           # (scalar) number of ind. variables (includes constant)
-    n = reg.n           # (scalar) number of observations
-    vm = reg.vm         # (array) coefficients of variance matrix (k x k)
-    betas = reg.betas   # (array) coefficients of the regressors (1 x k) 
+    
+    k = reg.k                   # (scalar) number of independent variables (includes constant)
+    n = reg.n                   # (scalar) number of observations
+    vm = reg.vm                 # (array) coefficients of variance matrix (k x k)
+    betas = reg.betas           # (array) coefficients of the regressors (1 x k) 
     variance = vm.diagonal()
     tStat = betas.reshape(len(betas),)/ np.sqrt(variance)
-    rs = {}
-    for i in range(len(betas)):
-        rs[i] = (tStat[i],stats.t.sf(abs(tStat[i]),n-k)*2)
-    ts_result  = rs.values()
+    ts_result = []
+    for t in tStat:
+        if z_stat:
+            ts_result.append((t, stats.norm.sf(abs(t))*2))
+        else:
+            ts_result.append((t, stats.t.sf(abs(t),n-k)*2))
     return ts_result
+
 
 
 

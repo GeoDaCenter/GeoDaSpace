@@ -1,15 +1,8 @@
 import numpy as np
 import numpy.linalg as la
-import ols as OLS
 from ols import Regression_Props
 import robust as ROBUST
-
-class TSLS():
-    """
-    need test requiring BOTH yend and q
-    """
-    def __init__(self):
-        pass
+import user_output as USER
 
 class TSLS_dev(Regression_Props):
     """
@@ -30,7 +23,8 @@ class TSLS_dev(Regression_Props):
     yend        : array
                   endogenous variables (assumed to be aligned with y)
     q           : array
-                  array of instruments (assumed to be aligned with yend); 
+                  array of external exogenous variables to use as instruments
+                  (note: this should not contain any variables from x)
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
@@ -45,17 +39,20 @@ class TSLS_dev(Regression_Props):
     ----------
 
     x           : array
-                  array of independent variables (assumed to be aligned with y)
+                  array of independent variables (with constant added if
+                  constant parameter set to True)
     y           : array
                   nx1 array of dependent variable
     z           : array
-                  n*k array of independent variables, including endogenous
-                  variables (assumed to be aligned with y)
+                  nxk array of variables (combination of x and yend)
     h           : array
-                  nxl array of instruments, typically this includes all
-                  exogenous variables from x and instruments
-    delta       : array
-                  kx1 array with estimated coefficients
+                  nxl array of instruments (combination of x and q)
+    yend        : array
+                  endogenous variables (assumed to be aligned with y)
+    q           : array
+                  array of external exogenous variables
+    betas       : array
+                  kx1 array of estimated coefficients
     u           : array
                   nx1 array of residuals 
     predy       : array
@@ -99,7 +96,7 @@ class TSLS_dev(Regression_Props):
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
     >>> reg = TSLS_dev(X, y, yd, q)
-    >>> print reg.delta
+    >>> print reg.betas
     [[ 88.46579584]
      [  0.5200379 ]
      [ -1.58216593]]
@@ -121,6 +118,8 @@ class TSLS_dev(Regression_Props):
 
         self.z = z
         self.h = h
+        self.q = q
+        self.yend = yend
         self.k = z.shape[1]    # k = number of exogenous variables and endogenous variables 
         
         hth = np.dot(h.T,h)
@@ -135,11 +134,11 @@ class TSLS_dev(Regression_Props):
         factor_2 = la.inv(factor_2)        
         factor_2 = np.dot(factor_2,factor_1)        
         factor_2 = np.dot(factor_2,h.T)       
-        delta = np.dot(factor_2,y)
-        self.delta = delta
+        betas = np.dot(factor_2,y)
+        self.betas = betas
         
         # predicted values
-        self.predy = np.dot(z,delta)
+        self.predy = np.dot(z,betas)
         
         # residuals
         u = y - self.predy
@@ -163,13 +162,13 @@ class TSLS_dev(Regression_Props):
         self.pfora1a2 = self.n*np.dot(factor, la.inv(factor_4))
         
         if robust == 'gls':
-            self.delta, self.xptxpi = ROBUST.gls_dev(z, y, h, self.u)
-            self.predy = np.dot(z, self.delta)   # using original data and GLS betas
+            self.betas, self.xptxpi = ROBUST.gls_dev(z, y, h, self.u)
+            self.predy = np.dot(z, self.betas)   # using original data and GLS betas
             self.u = y - self.predy              # using original data and GLS betas
             ### need to verify the VM for the non-spatial case
 
         self._cache = {}
-        OLS.Regression_Props()
+        Regression_Props()
         self.sig2 = self.sig2n
         
     @property
@@ -185,6 +184,32 @@ class TSLS_dev(Regression_Props):
         if 'vm' not in self._cache:
             self._cache['vm'] = np.dot(self.sig2, self.xptxpi)
         return self._cache['vm']
+
+
+class TSLS(TSLS_dev, USER.Diagnostic_Builder):
+    """
+    need test requiring BOTH yend and q
+    """
+    def __init__(self, x, y, yend, q, constant=True, name_x=None,\
+                        name_y=None, name_yend=None, name_q=None,\
+                        name_ds=None, robust=None, vm=False,\
+                        pred=False):
+        TSLS_dev.__init__(self, x, y, yend, q, constant=True, robust=None)
+        self.title = "TWO STAGE LEAST SQUARES"        
+        USER.Diagnostic_Builder.__init__(self, x=x, constant=constant,\
+                                            name_x=name_x, name_y=name_y,\
+                                            name_ds=name_ds, name_q=name_q,\
+                                            name_yend=name_yend, vm=vm,\
+                                            pred=pred, instruments=True)
+        
+        ### tsls.summary output needs to be checked. Currently uses z-stats
+        ### and prints names of instruments. Need to replace R squared with
+        ### some pseudo version. Need to add multicollinearity test back in.
+        ### Need to bring in correct f_stat.
+
+
+
+
 
 
 def _test():
@@ -210,7 +235,7 @@ if __name__ == '__main__':
     q.append(db.by_col("DISCBD"))
     q = np.array(q).T
     reg = TSLS_dev(X, y, yd, q)
-    print reg.delta
+    print reg.betas
     print reg.vm 
 
        
