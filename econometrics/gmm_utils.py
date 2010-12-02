@@ -299,7 +299,7 @@ def get_vm_het(G, lamb, reg, u, w, psi):
     """
 
     J = np.dot(G, np.array([[1],[2 * lamb]]))
-    Zs = get_spCO(reg.x,w,lamb)
+    Zs = get_spFilter(w,lamb,reg.x)
     ZstEZs = np.dot((Zs.T * get_psi_sigma(w, u, lamb)), Zs)
     ZsZsi = la.inv(np.dot(Zs.T,Zs))
     omega11 = w.n * np.dot(np.dot(ZsZsi,ZstEZs),ZsZsi)
