@@ -12,7 +12,6 @@ class Spatial_Error_Het:
 
     Based on Arraiz et al [1]_
 
-    NOTE: w is assumed to have w.A1
     ...
 
     Parameters
@@ -53,7 +52,6 @@ class Spatial_Error_Het:
     >>> from testing_utils import Test_Data as DAT
     >>> data = DAT()
     >>> y, x, w = data.y, data.x, data.w
-    >>> w.A1 = get_A1(w.sparse)
     >>> reg = Spatial_Error_Het(x, y, w)
     >>> print np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(7,1)))
     [[ 0.08028647  0.09883845]
@@ -118,7 +116,6 @@ if __name__ == '__main__':
     from testing_utils import Test_Data as DAT
     data = DAT()
     y, x, w = data.y, data.x, data.w
-    w.A1 = get_A1(w.sparse)
     reg = Spatial_Error_Het(x, y, w)
     print "Dependent variable: Y"
     print "Variable  Coef.  S.E."
