@@ -285,19 +285,10 @@ class OLS(OLS_dev, USER.Diagnostic_Builder):
                         name_ds=None, vm=False, pred=False):
         OLS_dev.__init__(self, x, y, constant) 
         self.title = "ORDINARY LEAST SQUARES"        
-        if not name_x:
-            name_x = ['var_'+str(i+1) for i in range(len(x[0]))]
-        if constant:
-            name_x.insert(0, 'CONSTANT')
-        if not name_y:
-            name_y = 'dep_var'
-        if not name_ds:
-            name_ds = 'unknown'
-        self.name_x = name_x
-        self.name_ds = name_ds
-        self.name_y = name_y
-        USER.Diagnostic_Builder.__init__(self, constant=constant, vm=vm, pred=pred)
-
+        USER.Diagnostic_Builder.__init__(self, x=x, constant=constant,\
+                                            name_x=name_x, name_y=name_y,\
+                                            name_ds=name_ds, vm=vm,\
+                                            pred=pred)
 
 def _test():
     import doctest

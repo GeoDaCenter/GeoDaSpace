@@ -74,7 +74,7 @@ class STSLS_dev(TSLS.TSLS_dev):
     h           : array
                   nxl array of instruments, this includes all exogenous variables 
                   from x and instruments
-    delta       : array
+    betas       : array
                   kx1 array with estimated coefficients
     u           : array
                   nx1 array of residuals (based on original x matrix)
@@ -113,7 +113,7 @@ class STSLS_dev(TSLS.TSLS_dev):
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
     >>> reg=STSLS_dev(X, y, w, w_lags=2)
-    >>> reg.delta
+    >>> reg.betas
     array([[ 45.45909249],
            [ -1.0410089 ],
            [ -0.25953844],
@@ -121,7 +121,7 @@ class STSLS_dev(TSLS.TSLS_dev):
     >>> D.se_betas(reg)
     array([ 11.19151175,   0.38861224,   0.09240593,   0.18758518])
     >>> reg=STSLS_dev(X, y, w, w_lags=2, robust='white')
-    >>> reg.delta
+    >>> reg.betas
     array([[ 45.45909249],
            [ -1.0410089 ],
            [ -0.25953844],
@@ -129,7 +129,7 @@ class STSLS_dev(TSLS.TSLS_dev):
     >>> D.se_betas(reg)
     array([ 10.93497906,   0.49943339,   0.17217193,   0.19588229])
     >>> reg=STSLS_dev(X, y, w, w_lags=2, robust='gls')
-    >>> reg.delta
+    >>> reg.betas
     array([[ 51.16882977],
            [ -1.12721019],
            [ -0.28543096],

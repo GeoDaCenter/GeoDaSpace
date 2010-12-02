@@ -80,7 +80,7 @@ class Test_OLS(unittest.TestCase):
         self.assertAlmostEquals(ols.sig2n, 122.75291297519111, places=10)
         self.assertAlmostEquals(ols.sig2n_k, 130.75853773444268, places=10)
         self.assertAlmostEquals(ols.sig2, 130.75853773444268, places=10)
-        self.assertAlmostEquals(ols.sigML, 130.75853773444268, places=10)
+        self.assertAlmostEquals(ols.sigML, 122.75291297519111, places=10)
         vm = np.array([[  2.24248289e+01,  -9.42351346e-01,  -1.61567494e-01],
                        [ -9.42351346e-01,   1.11643366e-01,  -1.72367399e-02],
                        [ -1.61567494e-01,  -1.72367399e-02,   1.06499683e-02]])

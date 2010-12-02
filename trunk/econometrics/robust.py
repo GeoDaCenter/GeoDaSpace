@@ -30,7 +30,7 @@ def gls_dev(z, y, h, u):
 
     results     : tuple
                   first element is a kx1 array of estimated coefficients
-                  (i.e. deltas) and the second is a kxk array for the
+                  (i.e. betas) and the second is a kxk array for the
                   variance-covariance matrix (i.e [(Z'X)' omega^-1 (Z'X)]^-1 )
 
     Examples
@@ -51,20 +51,20 @@ def gls_dev(z, y, h, u):
     >>> X = np.array(X).T
     >>> # run gls_dev manually
     >>> reg=STSLS_dev(X, y, w, w_lags=2)
-    >>> reg.delta
+    >>> reg.betas
     array([[ 45.45909249],
            [ -1.0410089 ],
            [ -0.25953844],
            [  0.41929355]])
-    >>> delta_hat, xptxpi = gls_dev(reg.z, reg.y, reg.h, reg.u)
-    >>> delta_hat
+    >>> beta_hat, xptxpi = gls_dev(reg.z, reg.y, reg.h, reg.u)
+    >>> beta_hat
     array([[ 51.16882977],
            [ -1.12721019],
            [ -0.28543096],
            [  0.32904005]])
     >>> # run gls_dev directly using 2SLS
     >>> reg=STSLS_dev(X, y, w, w_lags=2, robust='gls')
-    >>> reg.delta
+    >>> reg.betas
     array([[ 51.16882977],
            [ -1.12721019],
            [ -0.28543096],
