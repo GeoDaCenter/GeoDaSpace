@@ -65,7 +65,6 @@ class Spatial_Error_Het:
         
         betas, lambda3, self.u, vc2, G = self.iterate(cycles,ols,w,lambda2)
         #Output
-        #Will lambda be stacked to the betas? If not, the var-cov matrix should not contain the var of lambda.
         self.betas = np.vstack((betas,lambda3))
         self.vm = GMM.get_vm_het(G,lambda3,ols,self.u,w,vc2)
 
@@ -94,9 +93,6 @@ class Spatial_Error_Het:
             #How many times do we want to iterate after 2b.? What should value of i be
             #   in loop?
 
-# LA - note: as written, requires recomputation of spatial lag
-#         for each value of lambda; since the spatial lag does
-#         not change, this should be moved out
 
 if __name__ == '__main__':
 
