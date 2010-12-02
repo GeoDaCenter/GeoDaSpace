@@ -47,8 +47,24 @@ class Spatial_Error_Het:
     Large Sample Results". Journal of Regional Science, Vol. 60, No. 2, pp.
     592-614.
 
-
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from testing_utils import Test_Data as DAT
+    >>> data = DAT()
+    >>> y, x, w = data.y, data.x, data.w
+    >>> w.A1 = get_A1(w.sparse)
+    >>> reg = Spatial_Error_Het(x, y, w)
+    >>> print np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(7,1)))
+    [[ 0.08028647  0.09883845]
+     [-0.17811755  0.10271992]
+     [-0.05991007  0.12766904]
+     [-0.01487806  0.10826346]
+     [ 0.09024685  0.09246069]
+     [ 0.14459452  0.10005024]
+     [ 0.00068073  0.08663456]]
     """
+
     def __init__(self,x,y,w,cycles=1): ######Inserted i parameter here for iterations...
 
         #1a. OLS --> \tilde{betas}
@@ -93,14 +109,20 @@ class Spatial_Error_Het:
             #How many times do we want to iterate after 2b.? What should value of i be
             #   in loop?
 
+def _test():
+    import doctest
+    doctest.testmod()
 
 if __name__ == '__main__':
-
+    _test()
     from testing_utils import Test_Data as DAT
     data = DAT()
     y, x, w = data.y, data.x, data.w
-    y = np.array([y]).T
     w.A1 = get_A1(w.sparse)
-    sp = Spatial_Error_Het(x, y, w)
-    print np.hstack((sp.betas,np.reshape(np.array(np.sqrt(sp.vm.diagonal())),(7,1))))
-
+    reg = Spatial_Error_Het(x, y, w)
+    print "Dependent variable: Y"
+    print "Variable  Coef.  S.E."
+    print "Constant %5.4f %5.4f" % (reg.betas[0],np.sqrt(reg.vm.diagonal())[0])
+    for i in range(x.shape[1]):
+        print "Var_%s %5.4f %5.4f" % (i+1,reg.betas[i+1],np.sqrt(reg.vm.diagonal())[i+1])
+    print "Lambda: %5.4f %5.4f" % (reg.betas[-1],np.sqrt(reg.vm.diagonal())[-1])
