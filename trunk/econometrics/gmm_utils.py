@@ -706,7 +706,79 @@ def get_Omega_2SLS(w, lamb, reg):
     
     return omega
     
+def get_Omega_GS2SLS(w, lamb, reg):
+    """
+    Computes the variance-covariance matrix for GS2SLS:
+    ...
+
+    Parameters
+    ----------
+
+    w           : W
+                  Spatial weights instance 
+
+    reg         : TSLS
+                  Generalized Spatial two stage least quare regression instance
                   
+    lamb        : float
+                  Spatial autoregressive parameter
+ 
+    Returns
+    -------
+
+    omega       : array
+                  (k+1)x(k+1)
+                  
+        Examples
+    --------
+
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X = np.array(X).T
+    >>> yd = []
+    >>> yd.append(db.by_col("HOVAL"))
+    >>> yd = np.array(yd).T
+    >>> q = []
+    >>> q.append(db.by_col("DISCBD"))
+    >>> q = np.array(q).T
+    >>> reg = STSLS(y, X, yd, q)
+    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> print get_Omega_GS2SLS(w, 0.1, reg)
+    >>>
+
+    """
+    
+    sigma=get_psi_sigma(w, reg.u, lamb)
+    psi_dd_1=(1.0/w.n) * reg.h.T * sigma 
+    psi_dd=psi_dd_1 * reg.h
+    a1a2=get_a1a2(w, reg, lamb)
+    psi_dl=psi_dd_1 * np.hstack((a1a2[0],a1a2[1]))
+    psi=get_vc_het(w,sigma)    
+    psii=la.inv(psi)
+    psi_o=np.hstack((np.vstack((psi_dd, psi_dl.T)), np.vstack((psi_dl, psi))))
+    
+    J=get_J(w, lamb, reg.u)
+    jtpsii=np.dot(J.T, psii)
+    jtpsiij=np.dot(jtpsii, J)
+    jtpsiiji=la.inv(jtpsiij)
+    omega_1=np.dot(jtpsiiji, jtpsii)
+    omega_2=np.dot(np.dot(psii, J), jtpsiiji)
+    om_1_s=omega_1.shape
+    om_2_s=omega_2.shape
+    p_s=reg.pfora1a2.shape
+    
+    omega_left=np.hstack((np.vstack((reg.pfora1a2.T, np.zeros((om_1_s[0],p_s[0])))), 
+               np.vstack((np.zeros((p_s[1], om_1_s[1])), omega_1))))
+    omega_right=np.hstack((np.vstack((reg.pfora1a2, np.zeros((om_2_s[0],p_s[1])))), 
+               np.vstack((np.zeros((p_s[0], om_2_s[1])), omega_2))))
+    omega=np.dot(np.dot(omega_left, psi_o), omega_right)
+    
+    return omega                  
     
 
 def _test():
