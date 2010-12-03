@@ -717,7 +717,7 @@ def get_Omega_GS2SLS(w, lamb, reg):
     w           : W
                   Spatial weights instance 
 
-    reg         : TSLS
+    reg         : STSLS
                   Generalized Spatial two stage least quare regression instance
                   
     lamb        : float
