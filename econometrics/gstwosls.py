@@ -114,7 +114,7 @@ class GSTSLS_dev(Regression_Props):
         self.y = GMM.get_spFilter(w, lamb, y)
         self.n = y.shape[0]
         self.x = GMM.get_spFilter(w, lamb, x)
-        self.yend = get_spFilter(w, lamb,yend)
+        self.yend = GMM.get_spFilter(w, lamb,yend)
         self.kstar = yend.shape[1]
         
         self.z = np.hstack((self.x, self.yend))  # including exogenous and endogenous variables   
