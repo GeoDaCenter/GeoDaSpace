@@ -3,7 +3,7 @@ import numpy.linalg as la
 from ols import Regression_Props
 import robust as ROBUST
 import user_output as USER
-from gmm_utils import get_spFilter
+import gmm_utils as GMM
 
 class GSTSLS_dev(Regression_Props):
     """
@@ -111,9 +111,9 @@ class GSTSLS_dev(Regression_Props):
     """
     def __init__(self, x, y, yend, q, w, lamb, constant=True, robust=None):
         
-        self.y = get_spFilter(w, lamb, y)
+        self.y = GMM.get_spFilter(w, lamb, y)
         self.n = y.shape[0]
-        self.x = get_spFilter(w, lamb, x)
+        self.x = GMM.get_spFilter(w, lamb, x)
         self.yend = get_spFilter(w, lamb,yend)
         self.kstar = yend.shape[1]
         
