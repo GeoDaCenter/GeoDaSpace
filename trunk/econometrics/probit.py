@@ -79,6 +79,9 @@ class probit: #DEV class required.
     pinkse_slade: float
                   Lagrange Multiplier test against spatial error correlation.
                   Implemented as presented in Pinkse and Slade (1998)
+    warning     : boolean
+                  if True Maximum number of iterations exceeded or gradient 
+                  and/or function calls not changing.
 
     References
     ----------
@@ -116,7 +119,7 @@ class probit: #DEV class required.
         self.optim = optim
         self.scalem = scalem
         self.w = w
-        par_est = self.par_est()
+        par_est, self.warning = self.par_est()
         self.betas = np.reshape(par_est[0],(self.k,1))
         self.logl = -float(par_est[1])
         self._cache = {}
@@ -246,6 +249,7 @@ class probit: #DEV class required.
 
     def par_est(self):
         start = np.dot(la.inv(np.dot(self.x.T,self.x)),np.dot(self.x.T,self.y))
+        warn = 0
         if self.optim == 'newton':
             iteration = 0
             history = [start]
@@ -258,6 +262,8 @@ class probit: #DEV class required.
                 history.append(par_hat0)
                 iteration += 1
                 m = np.dot(g.T,Hg)
+            if iteration == 50:
+                warn = 1
             logl = self.ll(par_hat0,final=1) 
             par_hat = [par_hat0, -logl] #Coded like this to comply with most of the scipy optimizers.
         else:
@@ -270,9 +276,11 @@ class probit: #DEV class required.
                 fhess = lambda par: -self.hessian(par)
                 par_hat = op.fmin_ncg(flogl,start,fgrad,fhess=fhess,full_output=1,disp=0)
                 warn = par_hat[5]
-            if warn > 0:
-                print "Maximum number of iterations exceeded or gradient and/or function calls not changing."
-        return par_hat
+        if warn > 0:
+            warn = True
+        else:
+            warn = False
+        return par_hat, warn
 
     def ll(self,par,final=None):
         if final:
@@ -355,6 +363,8 @@ if __name__ == '__main__':
         X.append(db.by_col(i))
     X = np.array(X).T
     probit1=probit(X,y,scalem='xmean')
+    if probit1.warning:
+        print "Maximum number of iterations exceeded or gradient and/or function calls not changing."
     print "Dependent variable: GRADE"
     print "Variable  Coef.  S.E.  Z-Stat. p-Value Slope Slope_SD"
     print "Constant %5.4f %5.4f %5.4f %5.4f" % (probit1.betas[0],np.sqrt(probit1.vm.diagonal())[0],probit1.Zstat[0][0],probit1.Zstat[0][1])
