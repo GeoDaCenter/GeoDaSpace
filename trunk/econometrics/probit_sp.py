@@ -142,14 +142,13 @@ class probit_sp: #DEV class required.
             if self.core == 'single':
                 sigp = p_runs([R,self.n,V,B])
             if self.core == 'multi':
-                sigp = sum(pool.map(p_runs, [(R/cores,self.n,V,B)] * cores))
-                if int(R/cores)*cores < R:
-                     sigp += p_runs([R-int(R/cores)*cores,self.n,V,B])           
+                sigp = sum(pool.map(p_runs, [(R/cores,self.n,V,B)] * cores))         
             if self.core == 'grid':
-                cores = 100 #amount of runs each core will get.
+                cores = 100 #amount of runs each processor will get.
                 IDs = range(R/cores)                                        
                 sigp = get_grid((self.n,V,B),cores,IDs)
                 print "p =", sigp, sigp/R
+            if self.core == 'multi' or self.core == 'grid':
                 if int(R/cores)*cores < R:
                     sigp += p_runs([R-int(R/cores)*cores,self.n,V,B])
             lnp = np.log(float(1.0*sigp/R))
@@ -192,7 +191,7 @@ def get_grid(data,cycles,IDs):
         data = pickle.load(pkl_file)
         pkl_file.close()
         output.append(data[0])
-        print data
+        #print data
         os.remove(outfile)
     os.remove(path+'probit_sp.pkl')
     return sum(output)
