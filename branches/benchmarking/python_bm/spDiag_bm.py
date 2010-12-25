@@ -9,10 +9,10 @@ trunk = '../../../trunk/econometrics/'
 
 # Data Loading
 from econometrics.testing_utils import Test_Data 
-from econometrics.diagnostics_sp import akTest
+from econometrics.diagnostics_sp import akTest, spDcache
 from econometrics.twosls_sp import STSLS_dev as STSLS
 
-## 10000 obs
+## 100 obs
 data = Test_Data(100, 4, 'medium', trunk)
 
 # Moran's I
@@ -27,12 +27,22 @@ X = []
 X.append(db.by_col("INC"))
 X.append(db.by_col("HOVAL"))
 X = np.array(X).T
+"""
 # instrument for HOVAL with DISCBD
 h = []
 h.append(db.by_col("INC"))
 h.append(db.by_col("DISCBD"))
 h = np.array(h).T
-w = pysal.rook_from_shapefile(trunk + "examples/columbus.shp")
+"""
+#w = pysal.queen_from_shapefile(trunk + "examples/columbus.shp")
+w = pysal.open('colgeoda.gal').read()
 w.transform = 'r'
 
-iv = STSLS(X, y, w, w_lags=2)
+iv = STSLS(X, y, w, w_lags=1)
+
+print '\n\t### SPATIAL 2SLS results from PySAL ###'
+print '###Betas:\n', iv.betas
+
+cache = spDcache(iv, w)
+ak = akTest(iv, w, cache)
+print '###AK test:\t', ak.ak
