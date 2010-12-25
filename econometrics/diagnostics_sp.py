@@ -165,7 +165,6 @@ class AKtest:
                         ak = \dfrac{N \times I^*}{\phi^2}
 
                   Note: if case='nsp' then it simplifies to the LMerror
-
     p           : float
                   P-value of the test
 
@@ -590,7 +589,7 @@ def akTest(iv, w, spDcache):
     mi = get_mI(iv, w, spDcache)
     # Phi2
     etwz = np.dot(iv.u.T, (w.sparse * iv.z))
-    p = np.dot(iv.x, np.dot(iv.xtxi, iv.x.T))
+    p = np.dot(iv.x, np.dot(iv.xptxpi, iv.xp.T))
     ztpz = np.dot(iv.z.T, np.dot(p, iv.z))
     nztpzi = w.n * la.inv(ztpz)
     a = np.dot((etwz / w.n), np.dot(nztpzi, (etwz.T / w.n)))
