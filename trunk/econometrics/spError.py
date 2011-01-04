@@ -14,9 +14,9 @@ import ols as OLS
 from diagnostics import se_betas
 
 
-class GSLS:
+class GMSWLS:
     """
-    Generalized Spatial Least Squares (OLS + GMM) as in Kelejian and Prucha
+    Generalized Moments Spatially Weighted Least Squares (OLS + GMM) as in Kelejian and Prucha
     (1998) [1]_ and Kelejian and Prucha (1999) [2]_
     ...
 
