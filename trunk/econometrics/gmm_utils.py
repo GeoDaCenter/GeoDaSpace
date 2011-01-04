@@ -14,6 +14,8 @@ import gstwosls as gst
 
 def get_A1(S):
     """
+    [COPIED to spError] --> Duplicated!!!
+
     Builds A1 as in Arraiz et al [1]_
 
     .. math::
@@ -535,7 +537,9 @@ def get_a1a2(w,reg,lambdapar):
 
 def get_spFilter(w,lamb,sf):
     '''
-    computer the spatially filtered variables
+    [COPIED to spError] --> Duplicated!!!
+
+    compute the spatially filtered variables
     
     Parameters
     ----------
