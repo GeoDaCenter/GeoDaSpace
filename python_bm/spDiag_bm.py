@@ -9,7 +9,7 @@ trunk = '../../../trunk/econometrics/'
 
 # Data Loading
 from econometrics.testing_utils import Test_Data 
-from econometrics.diagnostics_sp import akTest, spDcache
+from econometrics.diagnostics_sp import akTest, akTest_legacy, spDcache
 from econometrics.twosls_sp import STSLS_dev as STSLS
 
 ## 100 obs
@@ -45,4 +45,4 @@ print '###Betas:\n', iv.betas
 
 cache = spDcache(iv, w)
 ak = akTest(iv, w, cache)
-print '###AK test:\t', ak.ak
+print '###AK test:\t', ak
