@@ -109,7 +109,7 @@ class OLS_dev(Regression_Props):
     n       : int
               Number of observations
     k       : int
-              Number of variables
+              Number of variables (constant included)
     utu     : float
               Sum of the squared residuals
     sig2    : float
@@ -209,7 +209,7 @@ class OLS(OLS_dev, USER.Diagnostic_Builder):
     n        : int
                Number of observations
     k        : int
-               Number of variables
+               Number of variables (constant included)
     name_ds  : string
                dataset's name
     name_y   : string
@@ -241,7 +241,7 @@ class OLS(OLS_dev, USER.Diagnostic_Builder):
     sc       : float
                Schwarz criterion     
     std_err  : array
-               1*(k+1) array of Std.Error    
+               1*k array of Std.Error    
     Tstat    : list of tuples
                each tuple contains the pair (statistic, p-value), where each is
                a float; same order as self.x
@@ -268,6 +268,7 @@ class OLS(OLS_dev, USER.Diagnostic_Builder):
     >>> import numpy as np
     >>> import pysal
     >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> # Extract CRIME column from the dbf file
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
     >>> X = []
