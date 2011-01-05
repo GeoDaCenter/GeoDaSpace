@@ -18,7 +18,7 @@ class Test_OLS(unittest.TestCase):
 
     """ All method names that begin with 'test' will be executed as a test case """
     def test_OLS_dev(self):
-        ols = OLS.OLS_dev(self.X,self.y)
+        ols = OLS.BaseOLS(self.y, self.X)
         # test the typical usage
         x = np.hstack((np.ones(self.y.shape),self.X))
         np.testing.assert_array_equal(ols.x, x)
@@ -53,7 +53,7 @@ class Test_OLS(unittest.TestCase):
         self.assertAlmostEquals(ols.std_y, 16.560476353674986, places=10)
 
     def test_OLS(self):
-        ols = OLS.OLS(self.X, self.y)
+        ols = OLS.OLS(self.y, self.X)
         x = np.hstack((np.ones(self.y.shape), self.X))
         # make sure OLS matches OLS_dev
         np.testing.assert_array_equal(ols.x, x)
@@ -91,7 +91,7 @@ class Test_OLS(unittest.TestCase):
         self.assertEquals(ols.name_ds, 'unknown')
         self.assertEquals(ols.name_x, ['CONSTANT', 'var_1', 'var_2'])
         self.assertEquals(ols.name_y, 'dep_var')
-        ols = OLS.OLS(self.X, self.y, name_ds='Columbus',
+        ols = OLS.OLS(self.y, self.X, name_ds='Columbus',
                       name_x=['inc','hoval'], name_y='crime')
         self.assertEquals(ols.name_ds, 'Columbus')
         self.assertEquals(ols.name_x, ['CONSTANT', 'inc', 'hoval'])
@@ -99,8 +99,8 @@ class Test_OLS(unittest.TestCase):
         self.assertAlmostEquals(ols.r2, 0.55240404083742334, places=10)
         self.assertAlmostEquals(ols.ar2, 0.5329433469607896, places=10)
         self.assertAlmostEquals(ols.sig2, 130.75853773444268, places=10)
-        self.assertAlmostEquals(ols.Fstat[0], 28.385629224694853, places=10)
-        self.assertAlmostEquals(ols.Fstat[1], 9.3407471005108332e-09, places=10)
+        self.assertAlmostEquals(ols.f_stat[0], 28.385629224694853, places=10)
+        self.assertAlmostEquals(ols.f_stat[1], 9.3407471005108332e-09, places=10)
         self.assertAlmostEquals(ols.logll, -187.3772388121491, places=10)
         self.assertAlmostEquals(ols.aic, 380.7544776242982, places=10)
         self.assertAlmostEquals(ols.sc, 386.42993851863008, places=10)
@@ -109,22 +109,22 @@ class Test_OLS(unittest.TestCase):
         t_stat = [(14.490373143689094, 9.2108899889173982e-19),
                   (-4.7804961912965762, 1.8289595070843232e-05),
                   (-2.6544086427176916, 0.010874504909754612)]
-        np.testing.assert_array_almost_equal(ols.Tstat, t_stat, decimal=8)
+        np.testing.assert_array_almost_equal(ols.t_stat, t_stat, decimal=8)
         self.assertAlmostEquals(ols.mulColli, 6.5418277514438046, places=10)
-        self.assertAlmostEquals(ols.JB['jb'], 1.835752520075947)
-        self.assertEquals(ols.JB['df'], 2)
-        self.assertAlmostEquals(ols.JB['pvalue'], 0.39936629124876566)
-        self.assertAlmostEquals(ols.BP['bp'], 10.012849713093686)
-        self.assertEquals(ols.BP['df'], 2)
-        self.assertAlmostEquals(ols.BP['pvalue'], 0.0066947954259665692)
-        self.assertAlmostEquals(ols.KB['kb'], 7.2165644721877449)
-        self.assertEquals(ols.KB['df'], 2)
-        self.assertAlmostEquals(ols.KB['pvalue'], 0.027098355486469869)
+        self.assertAlmostEquals(ols.jarque_bera['jb'], 1.835752520075947)
+        self.assertEquals(ols.jarque_bera['df'], 2)
+        self.assertAlmostEquals(ols.jarque_bera['pvalue'], 0.39936629124876566)
+        self.assertAlmostEquals(ols.breusch_pagan['bp'], 10.012849713093686)
+        self.assertEquals(ols.breusch_pagan['df'], 2)
+        self.assertAlmostEquals(ols.breusch_pagan['pvalue'], 0.0066947954259665692)
+        self.assertAlmostEquals(ols.koenker_bassett['kb'], 7.2165644721877449)
+        self.assertEquals(ols.koenker_bassett['df'], 2)
+        self.assertAlmostEquals(ols.koenker_bassett['pvalue'], 0.027098355486469869)
         self.assertAlmostEquals(ols.white['wh'], 19.946008239903257)
         self.assertEquals(ols.white['df'], 5)
         self.assertAlmostEquals(ols.white['pvalue'], 0.0012792228173925788)
         # test not using constant
-        ols = OLS.OLS(self.X,self.y, constant=False)
+        ols = OLS.OLS(self.y, self.X, constant=False)
         betas = np.array([[ 1.28624161], [ 0.22045774]])
         np.testing.assert_array_almost_equal(ols.betas, betas, decimal=8)
 
