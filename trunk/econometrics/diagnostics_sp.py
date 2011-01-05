@@ -20,16 +20,10 @@ class LMtests:
     Attributes
     ----------
 
-    x           : array
-                  nxk array of independent variables (assumed to be aligned with y)
-    y           : array
-                  nx1 array of dependent variable
+    ols         : OLS
+                  OLS regression object
     w           : W
-                  Spatial weights instance (requires 'S' and 'A1') assumed to
-                  be row-standardized
-    constant    : boolean
-                  If true it appends a vector of ones to the independent variables
-                  to estimate intercept (set to True by default)
+                  Spatial weights instance assumed to be row-standardized
     tests       : list
                   Lists of strings with the tests desired to be performed.
                   Values may be:
@@ -70,12 +64,14 @@ class LMtests:
 
     >>> import numpy as np
     >>> import pysal
+    >>> from ols import OLS_dev as OLS
     >>> csv = pysal.open('examples/columbus.dbf','r')
     >>> y = np.array([csv.by_col('HOVAL')]).T
     >>> x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
     >>> w = pysal.open('examples/columbus.gal', 'r').read()
     >>> w.transform='r'
-    >>> lms = LMtests(x, y, w)
+    >>> ols = OLS(x, y)
+    >>> lms = LMtests(ols, w)
     >>> np.around(lms.lme, decimals=6)
     array([ 3.097094,  0.078432])
     >>> np.around(lms.lml, decimals=6)
@@ -87,11 +83,10 @@ class LMtests:
     >>> np.around(lms.sarma, decimals=6)
     array([ 4.190739,  0.123025])
     """
-    def __init__(self, x, y, w, constant=True, tests=['all']):
+    def __init__(self, ols, w, tests=['all']):
         if w.transform != 'R':
             w.transform = 'r'
             print '\nYour W object has been row-standardized\n'
-        ols = OLS(x, y, constant=constant)
         cache = spDcache(ols, w)
         if tests == ['all']:
             tests = ['lme', 'lml','rlme', 'rlml', 'sarma']
@@ -117,7 +112,7 @@ class AKtest:
     ----------
 
     w           : W
-                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  Spatial weights instance assumed to
                   be row-standardized
     x           : array
                   nxk array of independent variables, including endogenous
@@ -200,60 +195,54 @@ class AKtest:
             \n"""
 
 class MoranRes:
-    def __init__(self, x, y, w, constant=True, z=False):
-        """
-        Moran's I for spatial autocorrelation in residuals from OLS regression
-        ...
+    """
+    Moran's I for spatial autocorrelation in residuals from OLS regression
+    ...
 
-        Parameters
-        ----------
+    Parameters
+    ----------
 
-        x           : array
-                      nxk array of independent variables (assumed to be aligned with y)
-        y           : array
-                      nx1 array of dependent variable
-        w           : W
-                      Spatial weights instance (requires 'S' and 'A1') assumed to
-                      be row-standardized
-        constant    : boolean
-                      If true it appends a vector of ones to the independent variables
-                      to estimate intercept (set to True by default)        
-        z           : boolean
-                      If set to True computes attributes eI, vI and zI. Due to computational burden of vI, defaults to False.
+    ols         : OLS
+                  OLS regression object
+    w           : W
+                  Spatial weights instance assumed to
+                  be row-standardized
+    z           : boolean
+                  If set to True computes attributes eI, vI and zI. Due to computational burden of vI, defaults to False.
 
-        Attributes
-        ----------
-        I           : float
-                      Moran's I statistic
-        eI          : float
-                      Moran's I expectation
-        vI          : float
-                      Moran's I variance
-        zI          : float
-                      Moran's I standardized value
+    Attributes
+    ----------
+    I           : float
+                  Moran's I statistic
+    eI          : float
+                  Moran's I expectation
+    vI          : float
+                  Moran's I variance
+    zI          : float
+                  Moran's I standardized value
 
-        Examples
-        --------
+    Examples
+    --------
 
-        >>> import numpy as np
-        >>> import pysal
-        >>> csv = pysal.open('examples/columbus.dbf','r')
-        >>> y = np.array([csv.by_col('HOVAL')]).T
-        >>> x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
-        >>> w = pysal.open('examples/columbus.gal', 'r').read()
-        >>> w.transform='r'
-        >>> ols = OLS(x, y)
-        >>> m = MoranRes(x, y, w, z=True)
-        >>> np.around(m.I, decimals=6)
-        0.17130999999999999
-        >>> np.around(m.eI, decimals=6)
-        -0.034522999999999998
-        >>> np.around(m.vI, decimals=6)
-        0.0081300000000000001
-        >>> np.around(m.zI, decimals=6)
-        2.2827389999999999
-        """
-        ols = OLS(x, y, constant=constant)
+    >>> import numpy as np
+    >>> import pysal
+    >>> csv = pysal.open('examples/columbus.dbf','r')
+    >>> y = np.array([csv.by_col('HOVAL')]).T
+    >>> x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
+    >>> w = pysal.open('examples/columbus.gal', 'r').read()
+    >>> w.transform='r'
+    >>> ols = OLS(x, y)
+    >>> m = MoranRes(ols, w, z=True)
+    >>> np.around(m.I, decimals=6)
+    0.17130999999999999
+    >>> np.around(m.eI, decimals=6)
+    -0.034522999999999998
+    >>> np.around(m.vI, decimals=6)
+    0.0081300000000000001
+    >>> np.around(m.zI, decimals=6)
+    2.2827389999999999
+    """
+    def __init__(self, ols, w, z=False):
         cache = spDcache(ols, w)
         self.I = get_mI(ols, w, cache)
         if z:
@@ -272,7 +261,7 @@ class spDcache:
     reg         : OLS_dev, TSLS_dev, STSLS_dev
                   Instance from a regression class
     w           : W
-                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  Spatial weights instance assumed to
                   be row-standardized
 
     Attributes
@@ -395,7 +384,7 @@ def lmErr(reg, w, spDcache):
     reg         : OLS_dev, TSLS_dev, STSLS_dev
                   Instance from a regression class
     w           : W
-                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  Spatial weights instance assumed to
                   be row-standardized
     spDcache     : spDcache
                   Instance of spDcache class
@@ -428,7 +417,7 @@ def lmLag(ols, w, spDcache):
     ols         : OLS_dev
                   Instance from an OLS_dev regression 
     w           : W
-                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  Spatial weights instance assumed to
                   be row-standardized
     spDcache     : spDcache
                   Instance of spDcache class
@@ -462,7 +451,7 @@ def rlmErr(ols, w, spDcache):
     ols         : OLS_dev
                   Instance from an OLS_dev regression 
     w           : W
-                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  Spatial weights instance assumed to
                   be row-standardized
     spDcache     : spDcache
                   Instance of spDcache class
@@ -498,7 +487,7 @@ def rlmLag(ols, w, spDcache):
     ols             : OLS_dev
                       Instance from an OLS_dev regression 
     w               : W
-                      Spatial weights instance (requires 'S' and 'A1') assumed to
+                      Spatial weights instance assumed to
                       be row-standardized
     spDcache        : spDcache
                       Instance of spDcache class
@@ -531,7 +520,7 @@ def lmSarma(ols, w, spDcache):
     ols         : OLS_dev
                   Instance from an OLS_dev regression 
     w           : W
-                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  Spatial weights instance assumed to
                   be row-standardized
     spDcache     : spDcache
                   Instance of spDcache class
@@ -566,7 +555,7 @@ def akTest(iv, w, spDcache):
     iv          : STSLS_dev
                   Instance from spatial 2SLS regression
     w           : W
-                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  Spatial weights instance assumed to
                   be row-standardized
    spDcache     : spDcache
                   Instance of spDcache class
@@ -624,7 +613,7 @@ def akTest_legacy(iv, w, spDcache):
     iv          : STSLS_dev
                   Instance from spatial 2SLS regression
     w           : W
-                  Spatial weights instance (requires 'S' and 'A1') assumed to
+                  Spatial weights instance assumed to
                   be row-standardized
    spDcache     : spDcache
                   Instance of spDcache class
@@ -670,7 +659,7 @@ def get_mI(reg, w, spDcache):
     reg             : OLS_dev, TSLS_dev, STSLS_dev
                       Instance from a regression class
     w               : W
-                      Spatial weights instance (requires 'S' and 'A1') assumed to
+                      Spatial weights instance assumed to
                       be row-standardized
     spDcache        : spDcache
                       Instance of spDcache class
@@ -752,7 +741,7 @@ if __name__ == '__main__':
     w = pysal.open('examples/columbus.gal', 'r').read()
     w.transform='r'
     ols = OLS(x, y)
-    m = MoranRes(x, y, w, z=True)
+    m = MoranRes(ols, w, z=True)
     print """### Moran Results ###
      I\t:\t %f
     eI\t:\t%f
