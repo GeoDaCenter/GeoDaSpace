@@ -4,7 +4,7 @@ Spatial diagnostics module
 
 from scipy.stats.stats import chisqprob
 from scipy.stats import norm
-from ols import OLS_dev as OLS
+from ols import BaseOLS as OLS
 #from twosls import TSLS_dev
 #from twosls_sp import STSLS_dev
 import numpy as np
@@ -64,13 +64,13 @@ class LMtests:
 
     >>> import numpy as np
     >>> import pysal
-    >>> from ols import OLS_dev as OLS
+    >>> from ols import BaseOLS as OLS
     >>> csv = pysal.open('examples/columbus.dbf','r')
     >>> y = np.array([csv.by_col('HOVAL')]).T
     >>> x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
     >>> w = pysal.open('examples/columbus.gal', 'r').read()
     >>> w.transform='r'
-    >>> ols = OLS(x, y)
+    >>> ols = OLS(y, x)
     >>> lms = LMtests(ols, w)
     >>> np.around(lms.lme, decimals=6)
     array([ 3.097094,  0.078432])
@@ -231,7 +231,7 @@ class MoranRes:
     >>> x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
     >>> w = pysal.open('examples/columbus.gal', 'r').read()
     >>> w.transform='r'
-    >>> ols = OLS(x, y)
+    >>> ols = OLS(y, x)
     >>> m = MoranRes(ols, w, z=True)
     >>> np.around(m.I, decimals=6)
     0.17130999999999999
@@ -740,7 +740,7 @@ if __name__ == '__main__':
     x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
     w = pysal.open('examples/columbus.gal', 'r').read()
     w.transform='r'
-    ols = OLS(x, y)
+    ols = OLS(y, x)
     m = MoranRes(ols, w, z=True)
     print """### Moran Results ###
      I\t:\t %f

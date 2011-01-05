@@ -52,7 +52,7 @@ class Spatial_Error_Het:
     >>> from testing_utils import Test_Data as DAT
     >>> data = DAT()
     >>> y, x, w = data.y, data.x, data.w
-    >>> reg = Spatial_Error_Het(x, y, w)
+    >>> reg = Spatial_Error_Het(y, x, w)
     >>> print np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(7,1)))
     [[ 0.08028647  0.09883845]
      [-0.17811755  0.10271992]
@@ -63,10 +63,10 @@ class Spatial_Error_Het:
      [ 0.00068073  0.08663456]]
     """
 
-    def __init__(self,x,y,w,cycles=1): ######Inserted i parameter here for iterations...
+    def __init__(self,y,x,w,cycles=1): ######Inserted i parameter here for iterations...
 
         #1a. OLS --> \tilde{betas}
-        ols = OLS.OLS_dev(x,y)
+        ols = OLS.BaseOLS(y, x)
 
         #1b. GMM --> \tilde{\lambda1}
         moments = GMM.moments_het(w, ols.u)
@@ -93,7 +93,7 @@ class Spatial_Error_Het:
             #   GM lambda is only consistent in the absence of heteroskedasticity
             #   so do we need to do FGLS here instead of OLS?
             
-            ols_i = OLS.OLS_dev(xs,ys,constant=False)
+            ols_i = OLS.BaseOLS(ys,xs,constant=False)
 
             #2b. GMM --> \hat{\lambda}
             u = ols.y - np.dot(ols.x,ols_i.betas)
