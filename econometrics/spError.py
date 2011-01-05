@@ -99,7 +99,7 @@ class GMSWLS:
         n, k = x.shape
 
         #1a. OLS --> \tilde{betas}
-        ols = OLS.OLS_dev(x,y, constant=False)
+        ols = OLS.BaseOLS(y, x, constant=False)
 
         #1b. GMM --> \tilde{\lambda1}
         moments = self._momentsGMSWLS(w, ols.u)
@@ -108,7 +108,7 @@ class GMSWLS:
         #2a. OLS -->\hat{betas}
         xs,ys = get_spFilter(w, lambda1, x),get_spFilter(w, lambda1, y)
 
-        ols = OLS.OLS_dev(xs,ys, constant=False)
+        ols = OLS.BaseOLS(ys, xs, constant=False)
 
         #Output
         self.betas = ols.betas

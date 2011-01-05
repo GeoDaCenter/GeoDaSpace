@@ -162,7 +162,7 @@ class BaseTSLS(RegressionProps):
         self.pfora1a2 = self.n*np.dot(factor, la.inv(factor_4))
         
         if robust == 'gls':
-            self.betas, self.xptxpi = ROBUST.gls_dev(z, y, h, self.u)
+            self.betas, self.xptxpi = ROBUST.gls4tsls(y, z, h, self.u)
             self.predy = np.dot(z, self.betas)   # using original data and GLS betas
             self.u = y - self.predy              # using original data and GLS betas
             ### need to verify the VM for the non-spatial case
