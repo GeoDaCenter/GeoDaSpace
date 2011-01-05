@@ -49,7 +49,7 @@ mods = 'ols', 'spHetErr', 'twosls', 'twosls_sp',\
 
 
 # add unit tests here
-import test_ols
+import tests.test_ols as test_ols
 suite.addTest(test_ols.suite)
 
 
