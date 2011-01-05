@@ -35,7 +35,7 @@ def f_stat(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import OLS_dev as OLS
+    >>> from ols import BaseOLS as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -43,7 +43,7 @@ def f_stat(reg):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> reg = OLS(X,y)
+    >>> reg = OLS(y,X)
     >>> testresult = diagnostics.f_stat(reg)
     >>> print("%12.12f"%testresult[0],"%12.12f"%testresult[1])
     ('28.385629224695', '0.000000009341')
@@ -90,7 +90,7 @@ def f_stat_tsls(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from twosls import TSLS_dev as TSLS
+    >>> from twosls import BaseTSLS as TSLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -103,7 +103,7 @@ def f_stat_tsls(reg):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = TSLS(X, y, yd, q)
+    >>> reg = TSLS(y, X, yd, q)
     >>> testresult = diagnostics.f_stat_tsls(reg)
     >>> print("%12.11f"%testresult[0],"%12.11f"%testresult[1])
     ('7.40058418460', '0.00163476698')
@@ -116,7 +116,7 @@ def f_stat_tsls(reg):
     mean_y = reg.mean_y  # (scalar) mean of dependent observations
     Q = utu
     import ols as OLS
-    ssr_intercept = OLS.OLS_dev(np.ones(reg.y.shape), reg.y, False).utu
+    ssr_intercept = OLS.BaseOLS(reg.y, np.ones(reg.y.shape), constant=False).utu
     u_2nd_stage = reg.y - np.dot(reg.xp, reg.betas)
     ssr_2nd_stage = np.sum(u_2nd_stage**2)
     U = ssr_intercept - ssr_2nd_stage
@@ -157,8 +157,8 @@ def t_stat(reg, z_stat=False):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import OLS_dev as OLS
-    >>> from twosls import TSLS_dev as TSLS
+    >>> from ols import BaseOLS as OLS
+    >>> from twosls import BaseTSLS as TSLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -166,7 +166,7 @@ def t_stat(reg, z_stat=False):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> reg = OLS(X,y)
+    >>> reg = OLS(y,X)
     >>> # t-stat for OLS
     >>> testresult = diagnostics.t_stat(reg)
     >>> print("%12.12f"%testresult[0][0], "%12.12f"%testresult[0][1], "%12.12f"%testresult[1][0], "%12.12f"%testresult[1][1], "%12.12f"%testresult[2][0], "%12.12f"%testresult[2][1])
@@ -180,7 +180,7 @@ def t_stat(reg, z_stat=False):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = TSLS(X, y, yd, q)
+    >>> reg = TSLS(y, X, yd, q)
     >>> # z-stat for TSLS
     >>> testresult = diagnostics.t_stat(reg, z_stat=True)
     >>> print("%12.12f"%testresult[0][0], "%12.12f"%testresult[0][1], "%12.12f"%testresult[1][0], "%12.12f"%testresult[1][1], "%12.12f"%testresult[2][0], "%12.12f"%testresult[2][1])
@@ -229,7 +229,7 @@ def r2(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import OLS_dev as OLS
+    >>> from ols import BaseOLS as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -237,7 +237,7 @@ def r2(reg):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> reg = OLS(X,y)
+    >>> reg = OLS(y,X)
     >>> testresult = diagnostics.r2(reg)
     >>> testresult
     0.55240404083742334
@@ -278,7 +278,7 @@ def ar2(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import OLS_dev as OLS
+    >>> from ols import BaseOLS as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -286,7 +286,7 @@ def ar2(reg):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> reg = OLS(X,y)
+    >>> reg = OLS(y,X)
     >>> testresult = diagnostics.ar2(reg)
     >>> testresult
     0.5329433469607896
@@ -323,7 +323,7 @@ def se_betas(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import OLS_dev as OLS
+    >>> from ols import BaseOLS as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -331,7 +331,7 @@ def se_betas(reg):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> reg = OLS(X,y)
+    >>> reg = OLS(y,X)
     >>> testresult = diagnostics.se_betas(reg)
     >>> testresult
     array([ 4.73548613,  0.33413076,  0.10319868])
@@ -368,7 +368,7 @@ def log_likelihood(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import OLS_dev as OLS
+    >>> from ols import BaseOLS as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -376,7 +376,7 @@ def log_likelihood(reg):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> reg = OLS(X,y)
+    >>> reg = OLS(y,X)
     >>> testresult = diagnostics.log_likelihood(reg)
     >>> testresult
     -187.3772388121491
@@ -413,7 +413,7 @@ def akaike(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import OLS_dev as OLS
+    >>> from ols import BaseOLS as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -421,7 +421,7 @@ def akaike(reg):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> reg = OLS(X,y)
+    >>> reg = OLS(y,X)
     >>> testresult = diagnostics.akaike(reg)
     >>> testresult
     380.7544776242982
@@ -460,7 +460,7 @@ def schwarz(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import OLS_dev as OLS
+    >>> from ols import BaseOLS as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -468,7 +468,7 @@ def schwarz(reg):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> reg = OLS(X,y)
+    >>> reg = OLS(y,X)
     >>> testresult = diagnostics.schwarz(reg)
     >>> testresult
     386.42993851863008
@@ -507,7 +507,7 @@ def condition_index(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import OLS_dev as OLS
+    >>> from ols import BaseOLS as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -515,7 +515,7 @@ def condition_index(reg):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> reg = OLS(X,y)
+    >>> reg = OLS(y,X)
     >>> testresult = diagnostics.condition_index(reg)
     >>> print("%12.12f"%testresult)
     6.541827751444
@@ -565,7 +565,7 @@ def jarque_bera(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import OLS_dev as OLS
+    >>> from ols import BaseOLS as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -573,7 +573,7 @@ def jarque_bera(reg):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> reg = OLS(X,y)
+    >>> reg = OLS(y,X)
     >>> testresult = diagnostics.jarque_bera(reg)
     >>> testresult['df']
     2
@@ -635,7 +635,7 @@ def breusch_pagan(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import OLS_dev as OLS
+    >>> from ols import BaseOLS as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -643,7 +643,7 @@ def breusch_pagan(reg):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> reg = OLS(X,y)
+    >>> reg = OLS(y,X)
     >>> testresult = diagnostics.breusch_pagan(reg)
     >>> testresult['df']
     2
@@ -726,7 +726,7 @@ def white(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import OLS_dev as OLS
+    >>> from ols import BaseOLS as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -734,7 +734,7 @@ def white(reg):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> reg = OLS(X,y)
+    >>> reg = OLS(y,X)
     >>> testresult = diagnostics.white(reg)
     >>> testresult['df']
     5
@@ -802,7 +802,7 @@ def white(reg):
 
     # Conduct the auxiliary regression and calculate the statistic
     import ols as OLS
-    aux_reg = OLS.OLS_dev(A,e,constant=False)
+    aux_reg = OLS.BaseOLS(e,A,constant=False)
     aux_r2 = r2(aux_reg)
     wh = aux_r2*n
     df = k-1
@@ -847,7 +847,7 @@ def koenker_bassett(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import OLS_dev as OLS
+    >>> from ols import BaseOLS as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -855,7 +855,7 @@ def koenker_bassett(reg):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> reg = OLS(X,y)
+    >>> reg = OLS(y,X)
     >>> testresult = diagnostics.koenker_bassett(reg)
     >>> testresult['df']
     2
@@ -934,7 +934,7 @@ def vif(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import OLS_dev as OLS
+    >>> from ols import BaseOLS as OLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -942,7 +942,7 @@ def vif(reg):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> reg = OLS(X,y)
+    >>> reg = OLS(y,X)
     >>> testresult = diagnostics.vif(reg)
     >>> incvif = testresult[1]
     >>> print("%12.12f"%incvif[0])
@@ -965,7 +965,7 @@ def vif(reg):
         Z = np.delete(Z,j,1)
         y  = X[:,j]
         import ols as OLS
-        aux = OLS.OLS_dev(Z,y,constant=False)
+        aux = OLS.BaseOLS(y,Z,constant=False)
         mean_y = aux.mean_y
         utu = aux.utu
         ss_tot = sum((y-mean_y)**2)

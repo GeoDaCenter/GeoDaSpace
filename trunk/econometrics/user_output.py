@@ -7,15 +7,15 @@ import diagnostics
 
 
 
-class Diagnostic_Builder:
-    def __init__(self, x, constant, name_x, name_y, name_ds, vm, pred,\
-                            name_yend=None, name_q=None,\
+class DiagnosticBuilder:
+    def __init__(self, x, constant, w, name_x, name_y, name_ds,\
+                            vm, pred, name_yend=None, name_q=None,\
                             instruments=False):
         #general information
         self.r2 = diagnostics.r2(self)    
         self.ar2 = diagnostics.ar2(self)   
         self.sigML = self.sig2n  
-        self.Fstat = diagnostics.f_stat(self)  
+        self.f_stat = diagnostics.f_stat(self)  
         self.logll = diagnostics.log_likelihood(self) 
         self.aic = diagnostics.akaike(self) 
         self.sc = diagnostics.schwarz(self) 
@@ -23,20 +23,20 @@ class Diagnostic_Builder:
         #Coefficient, Std.Error, t-Statistic, Probability 
         self.std_err = diagnostics.se_betas(self)
         if instruments:
-            self.Zstat = diagnostics.t_stat(self, z_stat=True)
+            self.z_stat = diagnostics.t_stat(self, z_stat=True)
         else:
-            self.Tstat = diagnostics.t_stat(self)
+            self.t_stat = diagnostics.t_stat(self)
         
         #part 2: REGRESSION DIAGNOSTICS 
         if instruments:
             self.mulColli = None
         else:
             self.mulColli = diagnostics.condition_index(self)
-        self.JB = diagnostics.jarque_bera(self)
+        self.jarque_bera = diagnostics.jarque_bera(self)
         
         #part 3: DIAGNOSTICS FOR HETEROSKEDASTICITY         
-        self.BP = diagnostics.breusch_pagan(self)
-        self.KB = diagnostics.koenker_bassett(self)
+        self.breusch_pagan = diagnostics.breusch_pagan(self)
+        self.koenker_bassett = diagnostics.koenker_bassett(self)
         if instruments:
             self.white = None
         else:
@@ -106,8 +106,8 @@ def summary_results(reg, vm=False, pred=False, instruments=False):
     strSummary += '\n'
 
     # general information 2
-    strSummary += "%-20s:%12.6f  %-22s:%12.4f\n" % ('R-squared',reg.r2,'F-statistic',reg.Fstat[0])
-    strSummary += "%-20s:%12.6f  %-22s:%12.8g\n" % ('Adjusted R-squared',reg.ar2,'Prob(F-statistic)',reg.Fstat[1])
+    strSummary += "%-20s:%12.6f  %-22s:%12.4f\n" % ('R-squared',reg.r2,'F-statistic',reg.f_stat[0])
+    strSummary += "%-20s:%12.6f  %-22s:%12.8g\n" % ('Adjusted R-squared',reg.ar2,'Prob(F-statistic)',reg.f_stat[1])
     strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('Sum squared residual',reg.utu,'Log likelihood',reg.logll)
     strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('Sigma-square',reg.sig2,'Akaike info criterion',reg.aic)
     strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('S.E. of regression',np.sqrt(reg.sig2),'Schwarz criterion',reg.sc)
@@ -124,10 +124,10 @@ def summary_results(reg, vm=False, pred=False, instruments=False):
     i = 0
     if instruments:
         for name in reg.name_x:        
-            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.Zstat[i][0],reg.Zstat[i][1])
+            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.Zstat[i][0],reg.z_stat[i][1])
             i += 1
         for name in reg.name_yend:        
-            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.Zstat[i][0],reg.Zstat[i][1])
+            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.Zstat[i][0],reg.z_stat[i][1])
             i += 1
         strSummary += "----------------------------------------------------------------------------\n"
         insts = "Instruments: "
@@ -138,7 +138,7 @@ def summary_results(reg, vm=False, pred=False, instruments=False):
         strSummary += insts + "\n"
     else:
         for name in reg.name_x:        
-            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.Tstat[i][0],reg.Tstat[i][1])
+            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.t_stat[i][0],reg.t_stat[i][1])
             i += 1
         strSummary += "----------------------------------------------------------------------------\n"
     
@@ -148,12 +148,12 @@ def summary_results(reg, vm=False, pred=False, instruments=False):
         strSummary += "MULTICOLLINEARITY CONDITION NUMBER%12.6f\n" % (reg.mulColli)
     strSummary += "TEST ON NORMALITY OF ERRORS\n"
     strSummary += "TEST                  DF          VALUE            PROB\n"
-    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ('Jarque-Bera',reg.JB['df'],reg.JB['jb'],reg.JB['pvalue'])
+    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ('Jarque-Bera',reg.jarque_bera['df'],reg.jarque_bera['jb'],reg.jarque_bera['pvalue'])
     strSummary += "DIAGNOSTICS FOR HETEROSKEDASTICITY\n"
     strSummary += "RANDOM COEFFICIENTS\n"
     strSummary += "TEST                  DF          VALUE            PROB\n"
-    strSummary += "%-22s%2d       %12.6f        %9.7f\n" % ('Breusch-Pagan test',reg.BP['df'],reg.BP['bp'],reg.BP['pvalue'])
-    strSummary += "%-22s%2d       %12.6f        %9.7f\n" % ('Koenker-Bassett test',reg.KB['df'],reg.KB['kb'],reg.KB['pvalue'])
+    strSummary += "%-22s%2d       %12.6f        %9.7f\n" % ('Breusch-Pagan test',reg.breusch_pagan['df'],reg.breusch_pagan['bp'],reg.breusch_pagan['pvalue'])
+    strSummary += "%-22s%2d       %12.6f        %9.7f\n" % ('Koenker-Bassett test',reg.koenker_bassett['df'],reg.koenker_bassett['kb'],reg.koenker_bassett['pvalue'])
     if reg.white:
         strSummary += "SPECIFICATION ROBUST TEST\n"
         strSummary += "TEST                  DF          VALUE            PROB\n"

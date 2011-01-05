@@ -1,10 +1,10 @@
 import numpy as np
 import numpy.linalg as la
-from ols import Regression_Props
+from ols import RegressionProps
 import robust as ROBUST
 import user_output as USER
 
-class TSLS_dev(Regression_Props):
+class BaseTSLS(RegressionProps):
     """
     2SLS class in one expression
 
@@ -95,14 +95,14 @@ class TSLS_dev(Regression_Props):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = TSLS_dev(X, y, yd, q)
+    >>> reg = BaseTSLS(y, X, yd, q)
     >>> print reg.betas
     [[ 88.46579584]
      [  0.5200379 ]
      [ -1.58216593]]
     
     """
-    def __init__(self, x, y, yend, q, constant=True, robust=None):
+    def __init__(self, y, x, yend, q, constant=True, robust=None):
         
         self.y = y  
         self.n = y.shape[0]
@@ -168,7 +168,7 @@ class TSLS_dev(Regression_Props):
             ### need to verify the VM for the non-spatial case
 
         self._cache = {}
-        Regression_Props()
+        RegressionProps()
         self.sig2 = self.sig2n
         
     @property
@@ -186,17 +186,17 @@ class TSLS_dev(Regression_Props):
         return self._cache['vm']
 
 
-class TSLS(TSLS_dev, USER.Diagnostic_Builder):
+class TSLS(BaseTSLS, USER.DiagnosticBuilder):
     """
     need test requiring BOTH yend and q
     """
-    def __init__(self, x, y, yend, q, constant=True, name_x=None,\
+    def __init__(self, y, x, yend, q, constant=True, name_x=None,\
                         name_y=None, name_yend=None, name_q=None,\
                         name_ds=None, robust=None, vm=False,\
                         pred=False):
-        TSLS_dev.__init__(self, x, y, yend, q, constant=True, robust=None)
+        BaseTSLSdev.__init__(self, x, y, yend, q, constant=True, robust=None)
         self.title = "TWO STAGE LEAST SQUARES"        
-        USER.Diagnostic_Builder.__init__(self, x=x, constant=constant,\
+        USER.DiagnosticBuilder.__init__(self, x=x, constant=constant,\
                                             name_x=name_x, name_y=name_y,\
                                             name_ds=name_ds, name_q=name_q,\
                                             name_yend=name_yend, vm=vm,\
@@ -234,7 +234,7 @@ if __name__ == '__main__':
     q = []
     q.append(db.by_col("DISCBD"))
     q = np.array(q).T
-    reg = TSLS_dev(X, y, yd, q)
+    reg = BaseTSLS(y, X, yd, q)
     print reg.betas
     print reg.vm 
 
