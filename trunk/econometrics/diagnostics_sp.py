@@ -584,19 +584,16 @@ def akTest(iv, w, spDcache):
     p = la.inv(np.dot(iv.h.T, iv.h))
     p = np.dot(p, iv.h.T)
     p = np.dot(iv.h, p)
-    """
-    pr = np.dot(iv.xptxpi, iv.xp.T)
-    print pr.shape
-    print iv.x.shape
-    p = np.dot(iv.x, pr)
-    """
     ztpz = np.dot(iv.z.T, np.dot(p, iv.z))
     nztpzi = w.n * la.inv(ztpz)
     a = np.dot((etwz / w.n), np.dot(nztpzi, (etwz.T / w.n)))
     s12 = (w.s0 / w.n)**2
-    s2 = (2. * w.trcW2 + w.trcWtW) / w.n
-    s2p = np.sum(np.dot(w.full()[0] + w.full()[0].T, w.full()[0] + w.full()[0].T).diagonal()) / w.n
-    phi2 = (s2 / 2. * s12) + (4. / (s12 * iv.sig2)) * a
+    # s2
+    s2 = w.sparse + w.sparse.T
+    s2 = s2 * s2
+    s2 = np.sum(s2.diagonal()) / w.n
+
+    phi2 = (s2 / 2. * s12) + (4. / (s12 * iv.sig2n)) * a
     ak = w.n * mi**2 / phi2 # ak = (N^{1/2} * I* / phi)^2
     pval = chisqprob(ak, 1)
     return (mi, ak[0][0], pval[0][0])
