@@ -1,11 +1,11 @@
 import numpy as np
 import numpy.linalg as la
-from ols import Regression_Props
+from ols import RegressionProps
 import robust as ROBUST
 import user_output as USER
 import gmm_utils as GMM
 
-class GSTSLS_dev(Regression_Props):
+class GSTSLS_dev(RegressionProps):
     """
     2SLS class in one expression
 
@@ -173,7 +173,7 @@ class GSTSLS_dev(Regression_Props):
             ### need to verify the VM for the non-spatial case
 
         self._cache = {}
-        Regression_Props()
+        RegressionProps()
         self.sig2 = self.sig2n        
 
 def _test():

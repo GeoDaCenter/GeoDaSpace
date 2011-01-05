@@ -2,10 +2,10 @@ import numpy as np
 import numpy.linalg as la
 import user_output as USER
 
-class Regression_Props:
+class RegressionProps:
     """
     Helper class that adds common regression properties to any regression
-    class that inherits it.  It takes no parameters.  See OLS_dev for example
+    class that inherits it.  It takes no parameters.  See BaseOLS for example
     usage.
 
     Parameters
@@ -69,20 +69,17 @@ class Regression_Props:
     
 
 
-class OLS_dev(Regression_Props):
+class BaseOLS(RegressionProps):
     """
-    OLS class to do all the computations
-
-    NOTE: no consistency checks
-    
-    Maximal Complexity: O(n^3)
+    Compute ordinary least squares (note: no consistency checks or
+    diagnostics)
 
     Parameters
     ----------
-    x        : array
-               nxk array of independent variables (assumed to be aligned with y)
     y        : array
                nx1 array of dependent variable
+    x        : array
+               nxk array of independent variables (assumed to be aligned with y)
     constant : boolean
                If true it appends a vector of ones to the independent variables
                to estimate intercept (set to True by default)
@@ -90,10 +87,10 @@ class OLS_dev(Regression_Props):
     Attributes
     ----------
 
-    x       : array
-              nxk array of independent variables (assumed to be aligned with y)
     y       : array
               nx1 array of dependent variable
+    x       : array
+              nxk array of independent variables (assumed to be aligned with y)
     betas   : array
               kx1 array with estimated coefficients
     xt      : array
@@ -135,71 +132,68 @@ class OLS_dev(Regression_Props):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> ols=OLS_dev(X,y)
+    >>> ols=BaseOLS(y,X)
     >>> ols.betas
     array([[ 68.6189611 ],
            [ -1.59731083],
            [ -0.27393148]])
     
     """
-    def __init__(self,x,y,constant=True):
+    def __init__(self, y, x, constant=True):
         if constant:
-            x = np.hstack((np.ones(y.shape),x))
+            x = np.hstack((np.ones(y.shape), x))
         self.set_x(x)
-        xty = np.dot(x.T,y)
-        self.betas = np.dot(self.xtxi,xty)
-        predy = np.dot(x,self.betas)
+        xty = np.dot(x.T, y)
+        self.betas = np.dot(self.xtxi, xty)
+        predy = np.dot(x, self.betas)
         u = y-predy
         self.u = u
         self.predy = predy
         self.y = y
         self.n, self.k = x.shape
-        Regression_Props()
+        RegressionProps()
         self._cache = {}
         self.sig2 = self.sig2n_k
 
     def set_x(self, x):
         self.x = x
         self.xt = x.T
-        self.xtx = np.dot(self.x.T,self.x)
+        self.xtx = np.dot(self.x.T, self.x)
         self.xtxi = la.inv(self.xtx)
 
-class OLS(OLS_dev, USER.Diagnostic_Builder):
+class OLS(BaseOLS, USER.DiagnosticBuilder):
     """
-    OLS class for end-user (gives back only results and diagnostics)
+    Compute ordinary least squares and return results and diagnostics.
     
-    Maximal Complexity: O(n^3)
-
     Parameters
     ----------
 
-    x        : array
-               nxk array of independent variables (assumed to be aligned with y)
-
     y        : array
                nx1 array of dependent variable
-
-    names    : tuple
-               used in summary output, the sequence is (dataset name, dependent name, independent names)
-    
+    x        : array
+               nxk array of independent variables (assumed to be aligned with y)
     constant : boolean
                If true it appends a vector of ones to the independent variables
                to estimate intercept (set to True by default)
-
+    name_y   : string
+               Name of dependent variables for use in output
+    name_x   : list of strings
+               Names of independent variables for use in output
+    name_ds  : string
+               Name of dataset for use in output
     vm       : boolean
                if True, include variance matrix in summary results
-
     pred     : boolean
                if True, include y, predicted values and residuals in summary results
-
     
+
     Attributes
     ----------
 
-    x        : array
-               nxk array of independent variables (assumed to be aligned with y)
     y        : array
                nx1 array of dependent variable
+    x        : array
+               nxk array of independent variables (assumed to be aligned with y)
     betas    : array
                kx1 array with estimated coefficients
     u        : array
@@ -213,54 +207,54 @@ class OLS(OLS_dev, USER.Diagnostic_Builder):
     name_ds  : string
                dataset's name
     name_y   : string
-               dependent variable's name
+               Dependent variable's name
     name_x   : tuple
-               independent variables' names
+               Independent variables' names
     mean_y   : float
-               mean value of dependent variable
+               Mean value of dependent variable
     std_y    : float
-               standard deviation of dependent variable
+               Standard deviation of dependent variable
     vm       : array
-               variance covariance matrix (kxk)
+               Variance covariance matrix (kxk)
     r2       : float
-               R square
+               R squared
     ar2      : float
-               adjusted R square
+               Adjusted R squared
     utu      : float
                Sum of the squared residuals
     sig2     : float
-               sigma squared
+               Sigma squared
     sig2ML   : float
-               sigma squared ML 
-    Fstat    : tuple
-               statistic (float), p-value (float)
+               Sigma squared ML 
+    f_stat   : tuple
+               Statistic (float), p-value (float)
     logll    : float
                Log likelihood        
     aic      : float
                Akaike info criterion 
     sc       : float
-               Schwarz criterion     
+               Schwartz criterion     
     std_err  : array
-               1*k array of Std.Error    
-    Tstat    : list of tuples
-               each tuple contains the pair (statistic, p-value), where each is
+               1xk array of Std.Error    
+    t_stat   : list of tuples
+               Each tuple contains the pair (statistic, p-value), where each is
                a float; same order as self.x
     mulColli : float
                Multicollinearity condition number
-    JB       : dictionary
+    jarque_bera : dictionary
                'jb': Jarque-Bera statistic (float); 'pvalue': p-value (float); 'df':
                degrees of freedom (int)  
-    BP       : dictionary
+    breusch_pagan : dictionary
                'bp': Breusch-Pagan statistic (float); 'pvalue': p-value (float); 'df':
                degrees of freedom (int)  
-    KB       : dictionary
+    koenker_bassett : dictionary
                'kb': Koenker-Bassett statistic (float); 'pvalue': p-value (float); 'df':
                degrees of freedom (int)  
     white    : dictionary
                'wh': White statistic (float); 'pvalue': p-value (float); 'df':
                degrees of freedom (int)  
     summary  : string
-               including all the information in OLS class in nice format          
+               Including all the information in OLS class in nice format          
      
     
     Examples
@@ -275,18 +269,18 @@ class OLS(OLS_dev, USER.Diagnostic_Builder):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> ols = OLS(X, y, name_x=['INC','HOVAL'], name_y='CRIME', name_ds='columbus')
+    >>> ols = OLS(y, X, name_y='CRIME', name_x=['INC','HOVAL'], name_ds='columbus')
     >>> ols.betas
     array([[ 68.6189611 ],
            [ -1.59731083],
            [ -0.27393148]])
     
     """
-    def __init__(self, x, y, constant=True, name_x=None, name_y=None,\
+    def __init__(self, y, x, w=None, constant=True, name_y=None, name_x=None,\
                         name_ds=None, vm=False, pred=False):
-        OLS_dev.__init__(self, x, y, constant) 
+        BaseOLS.__init__(self, y, x, constant) 
         self.title = "ORDINARY LEAST SQUARES"        
-        USER.Diagnostic_Builder.__init__(self, x=x, constant=constant,\
+        USER.DiagnosticBuilder.__init__(self, x=x, constant=constant, w=w,\
                                             name_x=name_x, name_y=name_y,\
                                             name_ds=name_ds, vm=vm,\
                                             pred=pred)

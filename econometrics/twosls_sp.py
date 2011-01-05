@@ -27,7 +27,7 @@ class STSLS(TSLS.TSLS):
 
         pass
 
-class STSLS_dev(TSLS.TSLS_dev):
+class BaseSTSLS(TSLS.BaseTSLS):
     """
     Spatial 2SLS class to do all the computations
 
@@ -112,7 +112,7 @@ class STSLS_dev(TSLS.TSLS_dev):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> reg=STSLS_dev(X, y, w, w_lags=2)
+    >>> reg=BaseSTSLS(y, X, w, w_lags=2)
     >>> reg.betas
     array([[ 45.45909249],
            [ -1.0410089 ],
@@ -120,7 +120,7 @@ class STSLS_dev(TSLS.TSLS_dev):
            [  0.41929355]])
     >>> D.se_betas(reg)
     array([ 11.19151175,   0.38861224,   0.09240593,   0.18758518])
-    >>> reg=STSLS_dev(X, y, w, w_lags=2, robust='white')
+    >>> reg=BaseSTSLS(y, X, w, w_lags=2, robust='white')
     >>> reg.betas
     array([[ 45.45909249],
            [ -1.0410089 ],
@@ -128,7 +128,7 @@ class STSLS_dev(TSLS.TSLS_dev):
            [  0.41929355]])
     >>> D.se_betas(reg)
     array([ 10.93497906,   0.49943339,   0.17217193,   0.19588229])
-    >>> reg=STSLS_dev(X, y, w, w_lags=2, robust='gls')
+    >>> reg=BaseSTSLS(y, X, w, w_lags=2, robust='gls')
     >>> reg.betas
     array([[ 51.16882977],
            [ -1.12721019],
@@ -143,7 +143,7 @@ class STSLS_dev(TSLS.TSLS_dev):
     >>> yd = np.reshape(yd, (49,1))
     >>> q = np.array(db.by_col("DISCBD"))
     >>> q = np.reshape(q, (49,1))
-    >>> reg=STSLS_dev(X, y, w, yd, q, w_lags=2)
+    >>> reg=BaseSTSLS(y, X, w, yd, q, w_lags=2)
 
     References
     ----------
@@ -154,7 +154,7 @@ class STSLS_dev(TSLS.TSLS_dev):
     Econometrics, 18, 163-198.
     """
 
-    def __init__(self, x, y, w, yend=None, q=None, w_lags=1, constant=True, robust=None):
+    def __init__(self, y, x, w, yend=None, q=None, w_lags=1, constant=True, robust=None):
         yl = pysal.lag_spatial(w, y)
         if type(yend).__name__ == 'ndarray': # spatial and non-spatial instruments
             lag_vars = np.hstack((x, q))
@@ -166,7 +166,7 @@ class STSLS_dev(TSLS.TSLS_dev):
             yend = yl
         else:
             raise Exception, "invalid value passed to yend"
-        TSLS.TSLS_dev.__init__(self, x, y, yend, q, constant, robust)
+        TSLS.BaseTSLS.__init__(self, y, x, yend, q, constant, robust)
         self.sig2 = self.sig2n_k
         if robust == 'gls':
             self.vm = self.vm_gls
