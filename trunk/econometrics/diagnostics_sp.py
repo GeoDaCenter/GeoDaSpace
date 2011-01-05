@@ -73,7 +73,7 @@ class LMtests:
     >>> csv = pysal.open('examples/columbus.dbf','r')
     >>> y = np.array([csv.by_col('HOVAL')]).T
     >>> x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
-    >>> w = pysal.open('examples/columbus.GAL', 'r').read()
+    >>> w = pysal.open('examples/columbus.gal', 'r').read()
     >>> w.transform='r'
     >>> lms = LMtests(x, y, w)
     >>> np.around(lms.lme, decimals=6)
@@ -200,7 +200,7 @@ class AKtest:
             \n"""
 
 class MoranRes:
-    def __init__(self, x, y, w, constant=True):
+    def __init__(self, x, y, w, constant=True, z=False):
         """
         Moran's I for spatial autocorrelation in residuals from OLS regression
         ...
@@ -218,6 +218,8 @@ class MoranRes:
         constant    : boolean
                       If true it appends a vector of ones to the independent variables
                       to estimate intercept (set to True by default)        
+        z           : boolean
+                      If set to True computes attributes eI, vI and zI. Due to computational burden of vI, defaults to False.
 
         Attributes
         ----------
@@ -238,10 +240,10 @@ class MoranRes:
         >>> csv = pysal.open('examples/columbus.dbf','r')
         >>> y = np.array([csv.by_col('HOVAL')]).T
         >>> x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
-        >>> w = pysal.open('examples/columbus.GAL', 'r').read()
+        >>> w = pysal.open('examples/columbus.gal', 'r').read()
         >>> w.transform='r'
         >>> ols = OLS(x, y)
-        >>> m = MoranRes(x, y, w)
+        >>> m = MoranRes(x, y, w, z=True)
         >>> np.around(m.I, decimals=6)
         0.17130999999999999
         >>> np.around(m.eI, decimals=6)
@@ -254,9 +256,10 @@ class MoranRes:
         ols = OLS(x, y, constant=constant)
         cache = spDcache(ols, w)
         self.I = get_mI(ols, w, cache)
-        self.eI = get_eI(ols, w, cache)
-        self.vI = get_vI(ols, w, self.eI, cache)
-        self.zI, self.p_norm = get_zI(self.I, self.eI, self.vI)
+        if z:
+            self.eI = get_eI(ols, w, cache)
+            self.vI = get_vI(ols, w, self.eI, cache)
+            self.zI, self.p_norm = get_zI(self.I, self.eI, self.vI)
 
 class spDcache:
     """
@@ -746,10 +749,10 @@ if __name__ == '__main__':
     csv = pysal.open('examples/columbus.dbf','r')
     y = np.array([csv.by_col('HOVAL')]).T
     x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
-    w = pysal.open('examples/columbus.GAL', 'r').read()
+    w = pysal.open('examples/columbus.gal', 'r').read()
     w.transform='r'
     ols = OLS(x, y)
-    m = MoranRes(x, y, w)
+    m = MoranRes(x, y, w, z=True)
     print """### Moran Results ###
      I\t:\t %f
     eI\t:\t%f
