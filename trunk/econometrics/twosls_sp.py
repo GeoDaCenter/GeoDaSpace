@@ -156,7 +156,7 @@ class BaseSTSLS(TSLS.BaseTSLS):
 
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1, constant=True, robust=None):
         yl = pysal.lag_spatial(w, y)
-        if type(yend).__name__ == 'ndarray': # spatial and non-spatial instruments
+        if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
             lag_vars = np.hstack((x, q))
             spatial_inst = self.get_lags(lag_vars, w, w_lags)
             q = np.hstack((q, spatial_inst))
