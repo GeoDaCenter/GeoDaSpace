@@ -190,13 +190,13 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
     """
     need test requiring BOTH yend and q
     """
-    def __init__(self, y, x, yend, q, constant=True, name_x=None,\
+    def __init__(self, y, x, yend, q, w=None, constant=True, name_x=None,\
                         name_y=None, name_yend=None, name_q=None,\
                         name_ds=None, robust=None, vm=False,\
                         pred=False):
         BaseTSLSdev.__init__(self, x, y, yend, q, constant=True, robust=None)
         self.title = "TWO STAGE LEAST SQUARES"        
-        USER.DiagnosticBuilder.__init__(self, x=x, constant=constant,\
+        USER.DiagnosticBuilder.__init__(self, x=x, constant=constant, w=w,\
                                             name_x=name_x, name_y=name_y,\
                                             name_ds=name_ds, name_q=name_q,\
                                             name_yend=name_yend, vm=vm,\

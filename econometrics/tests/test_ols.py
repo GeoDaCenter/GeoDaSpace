@@ -127,6 +127,20 @@ class Test_OLS(unittest.TestCase):
         ols = OLS.OLS(self.y, self.X, constant=False)
         betas = np.array([[ 1.28624161], [ 0.22045774]])
         np.testing.assert_array_almost_equal(ols.betas, betas, decimal=8)
+        # test spatial diagnostics
+        w = pysal.open('examples/columbus.gal', 'r').read()
+        w.transform = 'r'
+        ols = OLS.OLS(self.y, self.X, w=w)
+        self.assertAlmostEquals(ols.lm_error[0], 5.2062139238820784)
+        self.assertAlmostEquals(ols.lm_error[1], 0.022506293821436953)
+        self.assertAlmostEquals(ols.lm_lag[0],8.897998591087477)
+        self.assertAlmostEquals(ols.lm_lag[1], 0.0028548339507328928)
+        self.assertAlmostEquals(ols.rlm_error[0],0.043905931885077722)
+        self.assertAlmostEquals(ols.rlm_error[1], 0.83402872393126437)
+        self.assertAlmostEquals(ols.rlm_lag[0],3.7356905990904767)
+        self.assertAlmostEquals(ols.rlm_lag[1], 0.053261645050770842)
+        self.assertAlmostEquals(ols.lm_sarma[0], 8.9419045229725551)
+        self.assertAlmostEquals(ols.lm_sarma[1], 0.011436420201077028)
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(Test_OLS)
