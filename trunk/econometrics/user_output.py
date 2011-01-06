@@ -140,11 +140,9 @@ def summary_results(reg, vm=False, pred=False, instruments=False):
     i = 0
     if instruments:
         for name in reg.name_x:        
-            print "exog", i, name
             strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.z_stat[i][0],reg.z_stat[i][1])
             i += 1
         for name in reg.name_yend:        
-            print "endog", i, name
             strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.z_stat[i][0],reg.z_stat[i][1])
             i += 1
         strSummary += "----------------------------------------------------------------------------\n"

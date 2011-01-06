@@ -5,35 +5,10 @@ import numpy.linalg as la
 import twosls as TSLS
 import robust as ROBUST
 
-class STSLS(TSLS.TSLS):
-    """
-    Spatial two stage least squares (2SLS). Also accommodates the case of
-    endogenous explanatory variables.  Note: pure non-spatial 2SLS can be
-    using the class Two_SLS
-    
-    Spatial 2SLS class for end-user (gives back only results and diagnostics)
-    """
-    def __init__(self):
-
-
-
-        # Need to check the shape of user input arrays, and report back descriptive
-        # errors when necessary
-
-        # check the x array for a vector of ones... do we take the spatial lag
-        # of these if W is not binary or row standardized?
-
-        # check capitalization in the string passed to robust parameter. 
-
-        pass
-
 class BaseSTSLS(TSLS.BaseTSLS):
     """
     Spatial 2SLS class to do all the computations
 
-    NOTE: no consistency checks
-    
-    Maximal Complexity: 
 
     Parameters
     ----------
@@ -42,15 +17,18 @@ class BaseSTSLS(TSLS.BaseTSLS):
                   nx1 array of dependent variable
     x           : array
                   array of independent variables, excluding endogenous
-                  variables (assumed to be aligned with y)
+                  variables
     w           : spatial weights object
                   pysal spatial weights object
     yend        : array
-                  endogenous variables (assumed to be aligned with y)
+                  non-spatial endogenous variables
     q           : array
-                  array of instruments (assumed to be aligned with yend); 
+                  array of instruments for yend (note: this should not contain
+                  any variables from x; spatial instruments are computed by 
+                  default)
     w_lags      : integer
-                  Number of spatial lags of the exogenous variables. 
+                  Number of spatial lags of the exogenous variables to be
+                  included as spatial instruments (defaul set to 1)
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
@@ -64,36 +42,48 @@ class BaseSTSLS(TSLS.BaseTSLS):
     Attributes
     ----------
 
-    x           : array
-                  nxk array of independent variables (assumed to be aligned with y)
     y           : array
                   nx1 array of dependent variable
+    x           : array
+                  array of independent variables (with constant added if
+                  constant parameter set to True)
     z           : array
-                  n*k array of independent variables, including endogenous
-                  variables (assumed to be aligned with y)                  
+                  nxk array of variables (combination of x, yend and spatial
+                  lag of y)
     h           : array
-                  nxl array of instruments, this includes all exogenous variables 
-                  from x and instruments
+                  nxl array of instruments (combination of x, q, spatial lags)
+    yend        : array
+                  endogenous variables (including spatial lag)
+    q           : array
+                  array of external exogenous variables (including spatil
+                  lags)
     betas       : array
-                  kx1 array with estimated coefficients
+                  kx1 array of estimated coefficients
     u           : array
-                  nx1 array of residuals (based on original x matrix)
+                  nx1 array of residuals
     predy       : array
-                  nx1 array of predicted values (based on original x matrix)
+                  nx1 array of predicted values
     n           : int
                   Number of observations
     k           : int
-                  Number of variables, including exogenous and endogenous variables
-    utu         : float
-                  Sum of the squared residuals
-    sig2        : float
-                  Sigma squared with n in the denominator
-    vm          : array
-                  Variance-covariance matrix (kxk)
-    mean_y      : float
-                  Mean of the dependent variable
-    std_y       : float
-                  Standard deviation of the dependent variable
+                  Number of variables, including exogenous and endogenous
+                  variables and constant
+    kstar       : int
+                  Number of endogenous variables. 
+    zth         : array
+                  z.T * h
+    hth         : array
+                  h.T * h
+    htz         : array
+                  h.T * z
+    hthi        : array
+                  inverse of h.T * h
+    xp          : array
+                  h * np.dot(hthi, htz)           
+    xptxpi      : array
+                  inverse of np.dot(xp.T,xp), used to compute vm
+    pfora1a2    : array
+                  used to compute a1, a2
 
 
     Examples
@@ -154,7 +144,8 @@ class BaseSTSLS(TSLS.BaseTSLS):
     Econometrics, 18, 163-198.
     """
 
-    def __init__(self, y, x, w, yend=None, q=None, w_lags=1, constant=True, robust=None):
+    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
+                    constant=True, robust=None):
         yl = pysal.lag_spatial(w, y)
         if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
             lag_vars = np.hstack((x, q))
@@ -202,6 +193,38 @@ class BaseSTSLS(TSLS.BaseTSLS):
     #### robustness (gls and white) for the case of no additional endogenous 
     #### variables.  I have not checked any of the results when non-spatial
     #### instruments are included.
+
+
+class STSLS(TSLS.TSLS, BaseSTSLS):
+    """
+    Spatial two stage least squares (S2SLS). Also accommodates the case of
+    endogenous explanatory variables.  Note: pure non-spatial 2SLS can be run
+    using the class TSLS.
+    
+
+
+        # Need to check the shape of user input arrays, and report back descriptive
+        # errors when necessary
+
+        # check the x array for a vector of ones... do we take the spatial lag
+        # of these if W is not binary or row standardized?
+
+        # check capitalization in the string passed to robust parameter. 
+
+
+
+
+    """
+    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
+                    constant=True, name_x=None, name_y=None,\
+                    name_yend=None, name_q=None, name_ds=None,\
+                    robust=None, vm=False, pred=False):
+
+        pass
+
+
+
+
 
 
 def _test():
