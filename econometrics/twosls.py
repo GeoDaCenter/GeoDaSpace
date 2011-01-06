@@ -295,17 +295,21 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
     
 
     """
-    def __init__(self, y, x, yend, q, w=None, constant=True, name_x=None,\
-                        name_y=None, name_yend=None, name_q=None,\
+    def __init__(self, y, x, yend, q, w=None, constant=True, name_y=None,\
+                        name_x=None, name_yend=None, name_q=None,\
                         name_ds=None, robust=None, vm=False,\
                         pred=False):
-        BaseTSLS.__init__(self, y, x, yend, q, constant=True, robust=None)
+        BaseTSLS.__init__(self, y, x, yend, q, constant, robust)
         self.title = "TWO STAGE LEAST SQUARES"        
+        self.name_ds = USER.set_name_ds(name_ds)
+        self.name_y = USER.set_name_y(name_y)
+        self.name_x = USER.set_name_x(name_x, x, constant)
+        self.name_yend = USER.set_name_yend(name_yend, yend)
+        self.name_z = self.name_x + self.name_yend
+        self.name_q = USER.set_name_q(name_q, q)
+        self.name_h = USER.set_name_h(self.name_x, self.name_q)
         USER.DiagnosticBuilder.__init__(self, x=x, constant=constant, w=w,\
-                                            name_x=name_x, name_y=name_y,\
-                                            name_ds=name_ds, name_q=name_q,\
-                                            name_yend=name_yend, vm=vm,\
-                                            pred=pred, instruments=True)
+                                            vm=vm, pred=pred, instruments=True)
         
         ### tsls.summary output needs to be checked. Currently uses z-stats
         ### and prints names of instruments. Need to replace R squared with

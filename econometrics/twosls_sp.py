@@ -4,6 +4,7 @@ import pysal
 import numpy.linalg as la
 import twosls as TSLS
 import robust as ROBUST
+import user_output as USER
 
 class BaseSTSLS(TSLS.BaseTSLS):
     """
@@ -195,7 +196,7 @@ class BaseSTSLS(TSLS.BaseTSLS):
     #### instruments are included.
 
 
-class STSLS(TSLS.TSLS, BaseSTSLS):
+class STSLS(BaseSTSLS, USER.DiagnosticBuilder):
     """
     Spatial two stage least squares (S2SLS). Also accommodates the case of
     endogenous explanatory variables.  Note: pure non-spatial 2SLS can be run
@@ -212,17 +213,81 @@ class STSLS(TSLS.TSLS, BaseSTSLS):
         # check capitalization in the string passed to robust parameter. 
 
 
+    Examples
+    --------
+
+    >>> import numpy as np
+    >>> import pysal
+    >>> import diagnostics as D
+    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w.transform = 'r'
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> # no non-spatial endogenous variables
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> reg=STSLS(y, X, w, w_lags=2, name_x=['inc', 'hoval'], name_y='crime', name_ds='columbus')
+    >>> reg.betas
+    array([[ 45.45909249],
+           [ -1.0410089 ],
+           [ -0.25953844],
+           [  0.41929355]])
+    >>> D.se_betas(reg)
+    array([ 11.19151175,   0.38861224,   0.09240593,   0.18758518])
+    >>> reg=STSLS(y, X, w, w_lags=2, robust='white', name_x=['inc', 'hoval'], name_y='crime', name_ds='columbus')
+    >>> reg.betas
+    array([[ 45.45909249],
+           [ -1.0410089 ],
+           [ -0.25953844],
+           [  0.41929355]])
+    >>> D.se_betas(reg)
+    array([ 10.93497906,   0.49943339,   0.17217193,   0.19588229])
+    >>> reg=STSLS(y, X, w, w_lags=2, robust='gls', name_x=['inc', 'hoval'], name_y='crime', name_ds='columbus')
+    >>> reg.betas
+    array([[ 51.16882977],
+           [ -1.12721019],
+           [ -0.28543096],
+           [  0.32904005]])
+    >>> D.se_betas(reg)
+    array([ 7.2237932 ,  0.4297434 ,  0.15201063,  0.13208009])
+    >>> # instrument for HOVAL with DISCBD
+    >>> X = np.array(db.by_col("INC"))
+    >>> X = np.reshape(X, (49,1))
+    >>> yd = np.array(db.by_col("HOVAL"))
+    >>> yd = np.reshape(yd, (49,1))
+    >>> q = np.array(db.by_col("DISCBD"))
+    >>> q = np.reshape(q, (49,1))
+    >>> reg=STSLS(y, X, w, yd, q, w_lags=2, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
 
 
     """
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True, name_x=None, name_y=None,\
+                    constant=True, name_y=None, name_x=None,\
                     name_yend=None, name_q=None, name_ds=None,\
                     robust=None, vm=False, pred=False):
 
-        pass
-
-
+        BaseSTSLS.__init__(self, y, x, w, yend, q, w_lags, constant, robust)
+        self.title = "SPATIAL TWO STAGE LEAST SQUARES"        
+        self.name_ds = USER.set_name_ds(name_ds)
+        self.name_y = USER.set_name_y(name_y)
+        self.name_x = USER.set_name_x(name_x, x, constant)
+        if yend != None:
+            self.name_yend = USER.set_name_yend(name_yend, yend)
+        else:
+            self.name_yend = []
+        self.name_yend.append(USER.set_name_yend_sp(self.name_y))
+        self.name_z = self.name_x + self.name_yend
+        if q != None:
+            self.name_q = USER.set_name_q(name_q, q)
+        else:
+            self.name_q = []
+        self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags))
+        self.name_h = USER.set_name_h(self.name_x, self.name_q)
+        USER.DiagnosticBuilder.__init__(self, x=x, constant=constant, w=w,\
+                                            vm=vm, pred=pred, instruments=True)
 
 
 
