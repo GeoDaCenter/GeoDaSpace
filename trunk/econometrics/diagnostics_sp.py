@@ -7,8 +7,6 @@ __all__ = ['LMtests', 'AKtest', 'MoranRes', 'spDcache', 'akTest']
 from scipy.stats.stats import chisqprob
 from scipy.stats import norm
 #from ols import BaseOLS as OLS
-from ols import *
-import ols as OLS
 #from twosls import TSLS_dev
 #from twosls_sp import STSLS_dev
 import numpy as np
@@ -737,6 +735,7 @@ if __name__ == '__main__':
 
     import numpy as np
     import pysal
+    import ols as OLS
     csv = pysal.open('examples/columbus.dbf','r')
     y = np.array([csv.by_col('HOVAL')]).T
     x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T

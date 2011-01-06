@@ -236,8 +236,8 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
                Log likelihood        
     aic      : float
                Akaike info criterion 
-    sc       : float
-               Schwartz criterion     
+    schwarz  : float
+               Schwarz info criterion     
     std_err  : array
                1xk array of Std.Error    
     t_stat   : list of tuples
@@ -307,10 +307,11 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
                         name_ds=None, vm=False, pred=False):
         BaseOLS.__init__(self, y, x, constant) 
         self.title = "ORDINARY LEAST SQUARES"        
+        self.name_ds = USER.set_name_ds(name_ds)
+        self.name_y = USER.set_name_y(name_y)
+        self.name_x = USER.set_name_x(name_x, x, constant)
         USER.DiagnosticBuilder.__init__(self, x=x, constant=constant, w=w,\
-                                            name_x=name_x, name_y=name_y,\
-                                            name_ds=name_ds, vm=vm,\
-                                            pred=pred)
+                                            vm=vm, pred=pred)
 
 def _test():
     import doctest

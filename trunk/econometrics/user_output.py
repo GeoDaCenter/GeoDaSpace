@@ -1,3 +1,7 @@
+
+
+
+
 import textwrap as TW
 import numpy as np
 import copy
@@ -5,14 +9,100 @@ import diagnostics
 import diagnostics_sp
 
 
-
-
-
-
 class DiagnosticBuilder:
-    def __init__(self, x, constant, w, name_x, name_y, name_ds,\
-                            vm, pred, name_yend=None, name_q=None,\
-                            instruments=False):
+    """
+    Dispatch appropriate diagnostics to various regression types. This is is
+    generally inherited by a regression class.
+
+    Parameters
+    ----------
+
+    x           : array
+                  Array of independent variables
+    constant    : boolean
+                  Boolean indicating if the regression class automatically
+                  inserted a constant as an independent variable
+    w           : pysal spatial weights object
+                  This triggers if spatial diagnostics are run
+    vm          : boolean
+                  If True then include the variance-covariance matrix in the
+                  output
+    pred        : boolean
+                  If True then include the predicted values in the output
+    instruments : boolean
+                  If True then the class assumes the regression is some form
+                  of 2SLS
+
+    Attributes
+    ----------
+    r2       : float
+               R squared
+    ar2      : float
+               Adjusted R squared
+    utu      : float
+               Sum of the squared residuals
+    sig2     : float
+               Sigma squared
+    sig2ML   : float
+               Sigma squared ML 
+    f_stat   : tuple
+               Statistic (float), p-value (float)
+    logll    : float
+               Log likelihood        
+    aic      : float
+               Akaike info criterion 
+    schwarz  : float
+               Schwarz criterion     
+    std_err  : array
+               1xk array of Std.Error    
+    t_stat   : list of tuples
+               Each tuple contains the pair (statistic, p-value), where each is
+               a float; same order as self.x
+    mulColli : float
+               Multicollinearity condition number
+    jarque_bera : dictionary
+               'jb': Jarque-Bera statistic (float); 'pvalue': p-value (float); 'df':
+               degrees of freedom (int)  
+    breusch_pagan : dictionary
+               'bp': Breusch-Pagan statistic (float); 'pvalue': p-value (float); 'df':
+               degrees of freedom (int)  
+    koenker_bassett : dictionary
+               'kb': Koenker-Bassett statistic (float); 'pvalue': p-value (float); 'df':
+               degrees of freedom (int)  
+    white    : dictionary
+               'wh': White statistic (float); 'pvalue': p-value (float); 'df':
+               degrees of freedom (int)  
+    lm_error : tuple
+               Lagrange multiplier test for spatial error model; each tuple contains
+               the pair (statistic, p-value), where each is a float; only available 
+               if w defined
+    lm_lag   : tuple
+               Lagrange multiplier test for spatial lag model; each tuple contains
+               the pair (statistic, p-value), where each is a float; only available 
+               if w defined
+    rlm_error : tuple
+               Robust lagrange multiplier test for spatial error model; each tuple 
+               contains the pair (statistic, p-value), where each is a float; only 
+               available if w defined
+    rlm_lag   : tuple
+               Robust lagrange multiplier test for spatial lag model; each tuple 
+               contains the pair (statistic, p-value), where each is a float; only 
+               available if w defined
+    lm_sarma : tuple
+               Lagrange multiplier test for spatial SARMA model; each tuple contains
+               the pair (statistic, p-value), where each is a float; only available 
+               if w defined
+    moran_res : float
+                Moran's I statistic for the residuals; only available if w
+                defined. Note: to get p-value see pysal.spreg.MoranRes().
+    summary  : string
+               Including all the information in OLS class in nice format          
+    ak_test  : tuple
+               Anselin-Kelejian test; tuple contains the triple (moran's I,
+               AK statistic, pvalue)
+
+    """
+    def __init__(self, x, constant, w, vm, pred, instruments=False):
         #general information
         self.r2 = diagnostics.r2(self)    
         self.ar2 = diagnostics.ar2(self)   
@@ -20,7 +110,7 @@ class DiagnosticBuilder:
         self.f_stat = diagnostics.f_stat(self)  
         self.logll = diagnostics.log_likelihood(self) 
         self.aic = diagnostics.akaike(self) 
-        self.sc = diagnostics.schwarz(self) 
+        self.schwarz = diagnostics.schwarz(self) 
         
         #Coefficient, Std.Error, t-Statistic, Probability 
         self.std_err = diagnostics.se_betas(self)
@@ -44,36 +134,12 @@ class DiagnosticBuilder:
         else:
             self.white = diagnostics.white(self)
         
-        #part 4: summary output
-        if not name_x:
-            name_x = ['var_'+str(i+1) for i in range(len(x[0]))]
-        if constant:
-            name_x.insert(0, 'CONSTANT')
-        if not name_y:
-            name_y = 'dep_var'
-        if not name_ds:
-            name_ds = 'unknown'
-        if instruments:
-            if not name_yend:
-                self.name_yend = ['endogenous_'+str(i+1) for i in range(len(self.yend[0]))]
-            else:
-                self.name_yend = name_yend
-            if not name_q:
-                self.name_q = ['instrument_'+str(i+1) for i in range(len(self.q[0]))]
-            else:
-                self.name_q = name_q
-            self.name_h = copy.copy(name_x)
-            self.name_h.extend(self.name_q)
-        self.name_x = name_x
-        self.name_ds = name_ds
-        self.name_y = name_y
-        self.summary = summary_results(self, vm=vm, pred=pred, instruments=instruments)
-
-        #part 5: spatial diagnostics
+        #part 4: spatial diagnostics
         if w:
             if instruments:
-                ak = diagnostics_sp.ak_test(self, w)
-                self.ak_test = (ak.mi, ak.ak, ak.p)
+                #ak = diagnostics_sp.AKtest(self, w)
+                #self.ak_test = (ak.mi, ak.ak, ak.p)
+                self.ak_test = ('xxx', 'xxx', 'xxx')
             else:
                 lm_tests = diagnostics_sp.LMtests(self, w)
                 self.lm_error = lm_tests.lme
@@ -83,6 +149,175 @@ class DiagnosticBuilder:
                 self.lm_sarma = lm_tests.sarma
                 moran_res = diagnostics_sp.MoranRes(self, w).I
 
+        #part 5: summary output
+        self.summary = summary_results(self, vm=vm, pred=pred, instruments=instruments)
+
+def set_name_ds(name_ds):
+    """Set the dataset name in regression; return generic name if user
+    provides no explicit name."
+
+    Parameters
+    ----------
+
+    name_ds     : string
+                  User provided dataset name.
+
+    Returns
+    -------
+    
+    name_ds     : string
+                  
+    """
+    if not name_ds:
+        name_ds = 'unknown'
+    return name_ds
+
+def set_name_y(name_y):
+    """Set the dataset name in regression; return generic name if user
+    provides no explicit name."
+
+    Parameters
+    ----------
+
+    name_ds     : string
+                  User provided dataset name.
+
+    Returns
+    -------
+    
+    name_ds     : string
+                  
+    """
+    if not name_y:
+        name_y = 'dep_var'
+    return name_y
+
+def set_name_x(name_x, x, constant):
+    """Set the independent variable names in regression; return generic name if user
+    provides no explicit name."
+
+    Parameters
+    ----------
+
+    name_x      : list of string
+                  User provided exogenous variable names.
+
+    Returns
+    -------
+    
+    name_x      : list of strings
+                  
+    """
+    if not name_x:
+        name_x = ['var_'+str(i+1) for i in range(len(x[0]))]
+    if constant:
+        name_x.insert(0, 'CONSTANT')
+    return name_x
+    
+def set_name_yend(name_yend, yend):
+    """Set the endogenous variable names in regression; return generic name if user
+    provides no explicit name."
+
+    Parameters
+    ----------
+
+    name_yend   : list of strings
+                  User provided exogenous variable names.
+
+    Returns
+    -------
+    
+    name_yend   : list of strings
+                  
+    """
+    if not name_yend:
+        name_yend = ['endogenous_'+str(i+1) for i in range(len(yend[0]))]
+    return name_yend
+    
+def set_name_q(name_q, q):
+    """Set the instrument names in regression; return generic name if user
+    provides no explicit name."
+
+    Parameters
+    ----------
+
+    name_q      : string
+                  User provided instrument names.
+    q           : array
+                  Array of instruments
+
+    Returns
+    -------
+    
+    name_q      : list of strings
+                  
+    """
+    if not name_q:
+        name_q = ['instrument_'+str(i+1) for i in range(len(q[0]))]
+    return name_q
+
+def set_name_yend_sp(name_y):
+    """Set the spatial lag name in regression; return generic name if user
+    provides no explicit name."
+
+    Parameters
+    ----------
+
+    name_y      : string
+                  User provided dependent variable name.
+
+    Returns
+    -------
+    
+    name_yend_sp : string
+                  
+    """
+    return 'lag_' + name_y
+
+def set_name_q_sp(name_x, w_lags):
+    """Set the spatial instrument names in regression; return generic name if user
+    provides no explicit name."
+
+    Parameters
+    ----------
+
+    name_x      : list of strings
+                  User provided exogenous variable names.
+
+    w_lags      : int
+                  User provided number of spatial instruments lags
+
+    Returns
+    -------
+    
+    name_q_sp   : list of strings
+                  
+    """
+    sp_inst_names = []
+    for i in range(w_lags):
+        for j in name_x:
+            sp_inst_names.append('lag'+str(i+1)+'_'+j)
+    return sp_inst_names
+    
+def set_name_h(name_x, name_q):
+    """Set the full instruments names in regression; return generic name if user
+    provides no explicit name."
+
+    Parameters
+    ----------
+
+    name_x      : list of strings
+                  User provided exogenous variable names.
+    name_q      : list of strings
+                  User provided instrument variable names.
+
+    Returns
+    -------
+    
+    name_h      : list of strings
+                  
+    """
+    return name_x + name_q
 
 def summary_results(reg, vm=False, pred=False, instruments=False):
     """
@@ -126,7 +361,7 @@ def summary_results(reg, vm=False, pred=False, instruments=False):
     strSummary += "%-20s:%12.6f  %-22s:%12.8g\n" % ('Adjusted R-squared',reg.ar2,'Prob(F-statistic)',reg.f_stat[1])
     strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('Sum squared residual',reg.utu,'Log likelihood',reg.logll)
     strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('Sigma-square',reg.sig2,'Akaike info criterion',reg.aic)
-    strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('S.E. of regression',np.sqrt(reg.sig2),'Schwarz criterion',reg.sc)
+    strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('S.E. of regression',np.sqrt(reg.sig2),'Schwarz criterion',reg.schwarz)
     strSummary += "%-20s:%12.3f\n%-20s:%12.4f\n" % ('Sigma-square ML',reg.sigML,'S.E of regression ML',np.sqrt(reg.sigML))
     strSummary += '\n'
     
