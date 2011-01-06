@@ -10,7 +10,7 @@ trunk = '../../../trunk/econometrics/'
 # Data Loading
 from econometrics.testing_utils import Test_Data 
 from econometrics.diagnostics_sp import akTest, akTest_legacy, spDcache
-from econometrics.twosls_sp import STSLS_dev as STSLS
+from econometrics.twosls_sp import BaseSTSLS as STSLS
 
 ## 100 obs
 data = Test_Data(100, 4, 'medium', trunk)
@@ -38,7 +38,7 @@ h = np.array(h).T
 w = pysal.open('colgeoda.gal').read()
 w.transform = 'r'
 
-iv = STSLS(X, y, w, w_lags=1)
+iv = STSLS(y, X, w, w_lags=1)
 
 print '\n\t### SPATIAL 2SLS results from PySAL ###'
 print '###Betas:\n', iv.betas
