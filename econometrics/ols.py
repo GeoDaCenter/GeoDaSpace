@@ -90,7 +90,8 @@ class BaseOLS(RegressionProps):
     y       : array
               nx1 array of dependent variable
     x       : array
-              nxk array of independent variables (assumed to be aligned with y)
+              nxk array of independent variables (with constant added if
+              constant parameter set to True)
     betas   : array
               kx1 array with estimated coefficients
     xt      : array
@@ -184,9 +185,9 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     name_ds  : string
                Name of dataset for use in output
     vm       : boolean
-               if True, include variance matrix in summary results
+               If True, include variance matrix in summary results
     pred     : boolean
-               if True, include y, predicted values and residuals in summary results
+               If True, include y, predicted values and residuals in summary results
     
 
     Attributes
@@ -195,7 +196,8 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     y        : array
                nx1 array of dependent variable
     x        : array
-               nxk array of independent variables (assumed to be aligned with y)
+               nxk array of independent variables (with constant added if
+               constant parameter set to True)
     betas    : array
                kx1 array with estimated coefficients
     u        : array
@@ -294,7 +296,7 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> ols = OLS(y, X, name_y='CRIME', name_x=['INC','HOVAL'], name_ds='columbus')
+    >>> ols = OLS(y, X, name_y='crime', name_x=['inc','hoval'], name_ds='columbus')
     >>> ols.betas
     array([[ 68.6189611 ],
            [ -1.59731083],

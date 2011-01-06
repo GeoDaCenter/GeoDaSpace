@@ -8,20 +8,16 @@ class BaseTSLS(RegressionProps):
     """
     2SLS class in one expression
 
-    NOTE: no consistency checks
-    
-    Maximal Complexity: 
-
     Parameters
     ----------
 
-    x           : array
-                  array of independent variables, excluding endogenous
-                  variables (assumed to be aligned with y)
     y           : array
                   nx1 array of dependent variable
+    x           : array
+                  array of independent variables, excluding endogenous
+                  variables
     yend        : array
-                  endogenous variables (assumed to be aligned with y)
+                  endogenous variables
     q           : array
                   array of external exogenous variables to use as instruments
                   (note: this should not contain any variables from x)
@@ -38,17 +34,17 @@ class BaseTSLS(RegressionProps):
     Attributes
     ----------
 
+    y           : array
+                  nx1 array of dependent variable
     x           : array
                   array of independent variables (with constant added if
                   constant parameter set to True)
-    y           : array
-                  nx1 array of dependent variable
     z           : array
                   nxk array of variables (combination of x and yend)
     h           : array
                   nxl array of instruments (combination of x and q)
     yend        : array
-                  endogenous variables (assumed to be aligned with y)
+                  endogenous variables
     q           : array
                   array of external exogenous variables
     betas       : array
@@ -60,7 +56,8 @@ class BaseTSLS(RegressionProps):
     n           : integer
                   number of observations
     k           : int
-                  Number of variables, including exogenous and endogenous variables
+                  Number of variables, including exogenous and endogenous
+                  variables and constant
     kstar       : int
                   Number of endogenous variables. 
     zth         : array
@@ -189,12 +186,120 @@ class BaseTSLS(RegressionProps):
 class TSLS(BaseTSLS, USER.DiagnosticBuilder):
     """
     need test requiring BOTH yend and q
+
+    Parameters
+    ----------
+
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  array of independent variables, excluding endogenous
+                  variables
+    w           : spatial weights object
+                  if provided then spatial diagnostics are computed       
+    yend        : array
+                  endogenous variables
+    q           : array
+                  array of external exogenous variables to use as instruments
+                  (note: this should not contain any variables from x)
+    constant    : boolean
+                  If true it appends a vector of ones to the independent variables
+                  to estimate intercept (set to True by default)            
+    robust      : string
+                  If 'white' then a White consistent estimator of the
+                  variance-covariance matrix is given. If 'gls' then
+                  generalized least squares is performed resulting in new
+                  coefficient estimates along with a new variance-covariance
+                  matrix. 
+    name_y      : string
+                  Name of dependent variables for use in output
+    name_x      : list of strings
+                  Names of independent variables for use in output
+    name_yend   : list of strings
+                  Names of endogenous variables for use in output
+    name_q      : list of strings
+                  Names of instruments for use in output
+    name_ds     : string
+                  Name of dataset for use in output
+    vm          : boolean
+                  If True, include variance matrix in summary results
+    pred        : boolean
+                  If True, include y, predicted values and residuals in summary results
+
+    Attributes
+    ----------
+
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  array of independent variables (with constant added if
+                  constant parameter set to True)
+    z           : array
+                  nxk array of variables (combination of x and yend)
+    h           : array
+                  nxl array of instruments (combination of x and q)
+    yend        : array
+                  endogenous variables
+    q           : array
+                  array of external exogenous variables
+    betas       : array
+                  kx1 array of estimated coefficients
+    u           : array
+                  nx1 array of residuals 
+    predy       : array
+                  nx1 array of predicted values 
+    n           : integer
+                  number of observations
+    k           : int
+                  Number of variables, including exogenous and endogenous
+                  variables and constant
+    kstar       : int
+                  Number of endogenous variables. 
+    zth         : array
+                  z.T * h
+    hth         : array
+                  h.T * h
+    htz         : array
+                  h.T * z
+    hthi        : array
+                  inverse of h.T * h
+    xp          : array
+                  h * np.dot(hthi, htz)           
+    xptxpi      : array
+                  inverse of np.dot(xp.T,xp), used to compute vm
+    pfora1a2    : array
+                  used to compute a1, a2
+    
+    Examples
+    --------
+
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X = np.array(X).T
+    >>> yd = []
+    >>> yd.append(db.by_col("HOVAL"))
+    >>> yd = np.array(yd).T
+    >>> q = []
+    >>> q.append(db.by_col("DISCBD"))
+    >>> q = np.array(q).T
+    >>> reg = TSLS(y, X, yd, q, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
+    >>> print reg.betas
+    [[ 88.46579584]
+     [  0.5200379 ]
+     [ -1.58216593]]
+    
+
     """
     def __init__(self, y, x, yend, q, w=None, constant=True, name_x=None,\
                         name_y=None, name_yend=None, name_q=None,\
                         name_ds=None, robust=None, vm=False,\
                         pred=False):
-        BaseTSLSdev.__init__(self, x, y, yend, q, constant=True, robust=None)
+        BaseTSLS.__init__(self, y, x, yend, q, constant=True, robust=None)
         self.title = "TWO STAGE LEAST SQUARES"        
         USER.DiagnosticBuilder.__init__(self, x=x, constant=constant, w=w,\
                                             name_x=name_x, name_y=name_y,\

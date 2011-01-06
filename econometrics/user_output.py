@@ -1,5 +1,6 @@
 import textwrap as TW
 import numpy as np
+import copy
 import diagnostics
 import diagnostics_sp
 
@@ -61,7 +62,7 @@ class DiagnosticBuilder:
                 self.name_q = ['instrument_'+str(i+1) for i in range(len(self.q[0]))]
             else:
                 self.name_q = name_q
-            self.name_h = name_x
+            self.name_h = copy.copy(name_x)
             self.name_h.extend(self.name_q)
         self.name_x = name_x
         self.name_ds = name_ds
@@ -139,10 +140,12 @@ def summary_results(reg, vm=False, pred=False, instruments=False):
     i = 0
     if instruments:
         for name in reg.name_x:        
-            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.Zstat[i][0],reg.z_stat[i][1])
+            print "exog", i, name
+            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.z_stat[i][0],reg.z_stat[i][1])
             i += 1
         for name in reg.name_yend:        
-            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.Zstat[i][0],reg.z_stat[i][1])
+            print "endog", i, name
+            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.z_stat[i][0],reg.z_stat[i][1])
             i += 1
         strSummary += "----------------------------------------------------------------------------\n"
         insts = "Instruments: "
