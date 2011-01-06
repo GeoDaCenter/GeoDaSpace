@@ -2,9 +2,13 @@
 Spatial diagnostics module
 """
 
+__all__ = ['LMtests', 'AKtest', 'MoranRes', 'spDcache', 'akTest'] 
+
 from scipy.stats.stats import chisqprob
 from scipy.stats import norm
-from ols import BaseOLS as OLS
+#from ols import BaseOLS as OLS
+from ols import *
+import ols as OLS
 #from twosls import TSLS_dev
 #from twosls_sp import STSLS_dev
 import numpy as np
@@ -64,7 +68,7 @@ class LMtests:
 
     >>> import numpy as np
     >>> import pysal
-    >>> from ols import BaseOLS as OLS
+    >>> from ols import OLS
     >>> csv = pysal.open('examples/columbus.dbf','r')
     >>> y = np.array([csv.by_col('HOVAL')]).T
     >>> x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
@@ -226,6 +230,7 @@ class MoranRes:
 
     >>> import numpy as np
     >>> import pysal
+    >>> from ols import OLS
     >>> csv = pysal.open('examples/columbus.dbf','r')
     >>> y = np.array([csv.by_col('HOVAL')]).T
     >>> x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
@@ -737,7 +742,7 @@ if __name__ == '__main__':
     x = np.array([csv.by_col('INC'), csv.by_col('CRIME')]).T
     w = pysal.open('examples/columbus.gal', 'r').read()
     w.transform='r'
-    ols = OLS(y, x)
+    ols = OLS.BaseOLS(y, x)
     m = MoranRes(ols, w, z=True)
     print """### Moran Results ###
      I\t:\t %f

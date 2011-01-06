@@ -1,6 +1,7 @@
 import textwrap as TW
 import numpy as np
 import diagnostics
+import diagnostics_sp
 
 
 
@@ -66,6 +67,20 @@ class DiagnosticBuilder:
         self.name_ds = name_ds
         self.name_y = name_y
         self.summary = summary_results(self, vm=vm, pred=pred, instruments=instruments)
+
+        #part 5: spatial diagnostics
+        if w:
+            if instruments:
+                ak = diagnostics_sp.ak_test(self, w)
+                self.ak_test = (ak.mi, ak.ak, ak.p)
+            else:
+                lm_tests = diagnostics_sp.LMtests(self, w)
+                self.lm_error = lm_tests.lme
+                self.lm_lag = lm_tests.lml
+                self.rlm_error = lm_tests.rlme
+                self.rlm_lag = lm_tests.rlml
+                self.lm_sarma = lm_tests.sarma
+                moran_res = diagnostics_sp.MoranRes(self, w).I
 
 
 def summary_results(reg, vm=False, pred=False, instruments=False):

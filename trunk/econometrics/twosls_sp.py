@@ -38,11 +38,11 @@ class BaseSTSLS(TSLS.BaseTSLS):
     Parameters
     ----------
 
+    y           : array
+                  nx1 array of dependent variable
     x           : array
                   array of independent variables, excluding endogenous
                   variables (assumed to be aligned with y)
-    y           : array
-                  nx1 array of dependent variable
     w           : spatial weights object
                   pysal spatial weights object
     yend        : array

@@ -172,6 +172,8 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
                nx1 array of dependent variable
     x        : array
                nxk array of independent variables (assumed to be aligned with y)
+    w        : spatial weights object
+               if provided then spatial diagnostics are computed
     constant : boolean
                If true it appends a vector of ones to the independent variables
                to estimate intercept (set to True by default)
@@ -253,6 +255,29 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     white    : dictionary
                'wh': White statistic (float); 'pvalue': p-value (float); 'df':
                degrees of freedom (int)  
+    lm_error : tuple
+               Lagrange multiplier test for spatial error model; each tuple contains
+               the pair (statistic, p-value), where each is a float; only available 
+               if w defined
+    lm_lag   : tuple
+               Lagrange multiplier test for spatial lag model; each tuple contains
+               the pair (statistic, p-value), where each is a float; only available 
+               if w defined
+    rlm_error : tuple
+               Robust lagrange multiplier test for spatial error model; each tuple 
+               contains the pair (statistic, p-value), where each is a float; only 
+               available if w defined
+    rlm_lag   : tuple
+               Robust lagrange multiplier test for spatial lag model; each tuple 
+               contains the pair (statistic, p-value), where each is a float; only 
+               available if w defined
+    lm_sarma : tuple
+               Lagrange multiplier test for spatial SARMA model; each tuple contains
+               the pair (statistic, p-value), where each is a float; only available 
+               if w defined
+    moran_res : float
+                Moran's I statistic for the residuals; only available if w
+                defined. Note: to get p-value see pysal.spreg.MoranRes().
     summary  : string
                Including all the information in OLS class in nice format          
      
