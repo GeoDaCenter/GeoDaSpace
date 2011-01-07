@@ -147,10 +147,11 @@ class DiagnosticBuilder:
                 self.rlm_error = lm_tests.rlme
                 self.rlm_lag = lm_tests.rlml
                 self.lm_sarma = lm_tests.sarma
-                moran_res = diagnostics_sp.MoranRes(self, w).I
+                moran_res = diagnostics_sp.MoranRes(self, w, z=True)
+                self.moran_res = moran_res.I, moran_res.zI, moran_res.p_norm 
 
         #part 5: summary output
-        self.summary = summary_results(self, vm=vm, pred=pred, instruments=instruments)
+        self.summary = summary_results(self, w, vm, pred, instruments)
 
 def set_name_ds(name_ds):
     """Set the dataset name in regression; return generic name if user
@@ -319,7 +320,7 @@ def set_name_h(name_x, name_q):
     """
     return name_x + name_q
 
-def summary_results(reg, vm=False, pred=False, instruments=False):
+def summary_results(reg, w, vm, pred, instruments):
     """
     nice output for regressions
     
@@ -409,17 +410,19 @@ def summary_results(reg, vm=False, pred=False, instruments=False):
         strSummary += "SPECIFICATION ROBUST TEST\n"
         strSummary += "TEST                  DF          VALUE            PROB\n"
         strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ('White',reg.white['df'],reg.white['wh'],reg.white['pvalue'])
-    """
+
     # spatial diagonostics
-    strSummary += "\n\nDIAGNOSTICS FOR SPATIAL DEPENDENCE\n"
-    strSummary += "TEST                          MI/DF      VALUE          PROB\n" 
-    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ("Moran's I (error)",     1.9302482      %9.7f\n" % (
-    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ("Lagrange Multiplier (lag)",      1        0.9310484      %9.7f\n" % (
-    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ("Robust LM (lag)",                1        0.6115664      %9.7f\n" % (
-    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ("Lagrange Multiplier (error)",    1        1.8963561      %9.7f\n" % (
-    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ("Robust LM (error)",              1        1.5768742      %9.7f\n" % (
-    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ("Lagrange Multiplier (SARMA)",    2        2.5079226      %9.7f\n" % (
-    """
+    if w and not instruments:
+        print "got here"
+        strSummary += "DIAGNOSTICS FOR SPATIAL DEPENDENCE\n"
+        strSummary += "TEST                          MI/DF      VALUE          PROB\n" 
+        strSummary += "%-22s  %12.6f %12.6f       %9.7f\n" % ("Moran's I (error)", reg.moran_res[0], reg.moran_res[1], reg.moran_res[2])
+        strSummary += "%-22s      %2d    %12.6f       %9.7f\n" % ("Lagrange Multiplier (lag)", 1, reg.lm_lag[0], reg.lm_lag[1])
+        strSummary += "%-22s         %2d    %12.6f       %9.7f\n" % ("Robust LM (lag)", 1, reg.rlm_lag[0], reg.rlm_lag[1])
+        strSummary += "%-22s    %2d    %12.6f       %9.7f\n" % ("Lagrange Multiplier (error)", 1, reg.lm_error[0], reg.lm_error[1])
+        strSummary += "%-22s         %2d    %12.6f       %9.7f\n" % ("Robust LM (error)", 1, reg.rlm_error[0], reg.rlm_error[1])
+        strSummary += "%-22s    %2d    %12.6f       %9.7f\n\n" % ("Lagrange Multiplier (SARMA)", 2, reg.lm_sarma[0], reg.lm_sarma[1])
+    
 
     # variance matrix
     if vm:
