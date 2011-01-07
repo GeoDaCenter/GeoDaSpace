@@ -10,7 +10,7 @@ trunk = '../../../trunk/econometrics/'
 # Data Loading
 from econometrics.testing_utils import Test_Data 
 from econometrics.diagnostics_sp import akTest, akTest_legacy, spDcache
-from econometrics.twosls_sp import BaseSTSLS as STSLS
+from econometrics.twosls_sp import STSLS as STSLS
 
 ## 100 obs
 data = Test_Data(100, 4, 'medium', trunk)
