@@ -409,6 +409,17 @@ def summary_results(reg, vm=False, pred=False, instruments=False):
         strSummary += "SPECIFICATION ROBUST TEST\n"
         strSummary += "TEST                  DF          VALUE            PROB\n"
         strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ('White',reg.white['df'],reg.white['wh'],reg.white['pvalue'])
+    """
+    # spatial diagonostics
+    strSummary += "\n\nDIAGNOSTICS FOR SPATIAL DEPENDENCE\n"
+    strSummary += "TEST                          MI/DF      VALUE          PROB\n" 
+    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ("Moran's I (error)",     1.9302482      %9.7f\n" % (
+    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ("Lagrange Multiplier (lag)",      1        0.9310484      %9.7f\n" % (
+    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ("Robust LM (lag)",                1        0.6115664      %9.7f\n" % (
+    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ("Lagrange Multiplier (error)",    1        1.8963561      %9.7f\n" % (
+    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ("Robust LM (error)",              1        1.5768742      %9.7f\n" % (
+    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ("Lagrange Multiplier (SARMA)",    2        2.5079226      %9.7f\n" % (
+    """
 
     # variance matrix
     if vm:
