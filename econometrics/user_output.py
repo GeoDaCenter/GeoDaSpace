@@ -412,8 +412,7 @@ def summary_results(reg, w, vm, pred, instruments):
         strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ('White',reg.white['df'],reg.white['wh'],reg.white['pvalue'])
 
     # spatial diagonostics
-    if w and not instruments:
-        print "got here"
+    if w and not instruments:   # OLS diagnostics
         strSummary += "DIAGNOSTICS FOR SPATIAL DEPENDENCE\n"
         strSummary += "TEST                          MI/DF      VALUE          PROB\n" 
         strSummary += "%-22s  %12.6f %12.6f       %9.7f\n" % ("Moran's I (error)", reg.moran_res[0], reg.moran_res[1], reg.moran_res[2])
@@ -422,7 +421,8 @@ def summary_results(reg, w, vm, pred, instruments):
         strSummary += "%-22s    %2d    %12.6f       %9.7f\n" % ("Lagrange Multiplier (error)", 1, reg.lm_error[0], reg.lm_error[1])
         strSummary += "%-22s         %2d    %12.6f       %9.7f\n" % ("Robust LM (error)", 1, reg.rlm_error[0], reg.rlm_error[1])
         strSummary += "%-22s    %2d    %12.6f       %9.7f\n\n" % ("Lagrange Multiplier (SARMA)", 2, reg.lm_sarma[0], reg.lm_sarma[1])
-    
+    if w and instruments:       # 2SLS diagnostics
+        pass 
 
     # variance matrix
     if vm:
