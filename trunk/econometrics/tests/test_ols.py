@@ -103,7 +103,7 @@ class Test_OLS(unittest.TestCase):
         self.assertAlmostEquals(ols.f_stat[1], 9.3407471005108332e-09, places=10)
         self.assertAlmostEquals(ols.logll, -187.3772388121491, places=10)
         self.assertAlmostEquals(ols.aic, 380.7544776242982, places=10)
-        self.assertAlmostEquals(ols.sc, 386.42993851863008, places=10)
+        self.assertAlmostEquals(ols.schwarz, 386.42993851863008, places=10)
         std_err = np.array([ 4.73548613,  0.33413076,  0.10319868])
         np.testing.assert_array_almost_equal(ols.std_err, std_err, decimal=8)
         t_stat = [(14.490373143689094, 9.2108899889173982e-19),
