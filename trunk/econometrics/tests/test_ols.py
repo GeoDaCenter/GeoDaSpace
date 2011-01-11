@@ -50,7 +50,7 @@ class Test_OLS(unittest.TestCase):
                        [ -1.61567494e-01,  -1.72367399e-02,   1.06499683e-02]])
         np.testing.assert_array_almost_equal(ols.vm, vm, decimal=6)
         self.assertAlmostEquals(ols.mean_y, 35.128823897959187, places=10)
-        self.assertAlmostEquals(ols.std_y, 16.560476353674986, places=10)
+        self.assertAlmostEquals(ols.std_y, 16.732092091229699, places=10)
 
     def test_OLS(self):
         ols = OLS.OLS(self.y, self.X)
@@ -86,7 +86,7 @@ class Test_OLS(unittest.TestCase):
                        [ -1.61567494e-01,  -1.72367399e-02,   1.06499683e-02]])
         np.testing.assert_array_almost_equal(ols.vm, vm, decimal=6)
         self.assertAlmostEquals(ols.mean_y, 35.128823897959187, places=10)
-        self.assertAlmostEquals(ols.std_y, 16.560476353674986, places=10)
+        self.assertAlmostEquals(ols.std_y, 16.732092091229699, places=10)
         # start testing specific attributes for the OLS class
         self.assertEquals(ols.name_ds, 'unknown')
         self.assertEquals(ols.name_x, ['CONSTANT', 'var_1', 'var_2'])
