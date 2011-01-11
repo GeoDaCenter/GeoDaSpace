@@ -316,7 +316,10 @@ class spDcache:
     def j(self):
         if 'j' not in self._cache:
             wxb = self.w.sparse * self.reg.predy
-            num = np.dot(wxb.T, np.dot(self.reg.m, wxb)) + (self.t * self.reg.sig2n)
+            wxb2 = np.dot(wxb.T, wxb)
+            xwxb = np.dot(self.reg.x.T, wxb)
+            num1 = wxb2 - np.dot(xwxb.T, np.dot(self.reg.xtxi, xwxb))
+            num = num1 + (self.t * self.reg.sig2n)
             den = self.reg.n * self.reg.sig2n
             self._cache['j'] = num / den
         return self._cache['j']
@@ -344,15 +347,12 @@ class spDcache:
             self._cache['t'] = np.sum(prod.diagonal())
         return self._cache['t']
     @property
-    def mw(self):
-        if 'mw' not in self._cache:
-            self._cache['mw'] = self.reg.m * self.w.sparse
-        return self._cache['mw']
-    @property
-    def trMw(self):
-        if 'trMw' not in self._cache:
-            self._cache['trMw'] = np.sum(self.mw.diagonal())
-        return self._cache['trMw']
+    def trA(self):
+        if 'trA' not in self._cache:
+            xtwx = np.dot(self.reg.x.T, pysal.lag_spatial(self.w, self.reg.x))
+            mw = np.dot(self.reg.xtxi, xtwx)
+            self._cache['trA'] = np.sum(mw.diagonal())
+        return self._cache['trA']
     @property
     def AB(self):
         """
@@ -368,11 +368,6 @@ class spDcache:
             B = np.dot(G, c2)
             self._cache['AB'] = [A, B]
         return self._cache['AB']
-    @property
-    def trA(self):
-        if 'trA' not in self._cache:
-            self._cache['trA'] = np.sum(self.AB[0].diagonal())
-        return self._cache['trA']
 
 
 def lmErr(reg, w, spDcache):
@@ -678,12 +673,6 @@ def get_mI(reg, w, spDcache):
     mi = (w.n * np.dot(reg.u.T, spDcache.wu)) / (w.s0 * reg.utu)
     return mi[0][0]
 
-def get_eI(ols, w, spDcache):
-    """
-    Moran's I expectation as in Cliff & Ord 1981 (p. 201-203)
-    """
-    return -(w.n * spDcache.trA) / (w.s0 * (w.n - ols.k))
-
 def get_vI(ols, w, ei, spDcache):
     """
     Moran's I variance coded as in Cliff & Ord 1981 (p. 201-203) and R's spdep
@@ -698,23 +687,11 @@ def get_vI(ols, w, ei, spDcache):
             (w.s1 + 2 * trA2 - trB - ((2 * (spDcache.trA**2)) / (w.n - ols.k)))
     return vi
 
-def get_eI_m(ols, w, spDcache):
+def get_eI(ols, w, spDcache):
     """
     Moran's I expectation using matrix M
     """
-    return (w.n * spDcache.trMw) / (w.s0 * (w.n - ols.k))
-
-def get_vI_m(ols, w, ei, spDcache):
-    """
-    Moran's I variance using matrix M
-    """
-    trMwmwt = np.dot(spDcache.mw, (ols.m * w.sparse.T))
-    trMwmwt = np.sum(trMwmwt.diagonal())
-    #mw2 = spDcache.mw**2
-    mw2 = np.dot(spDcache.mw, spDcache.mw)
-    num = w.n**2 * (trMwmwt + np.sum(mw2.diagonal()) + spDcache.trMw**2)
-    den = w.s0**2 * (((w.n - ols.k) * (w.n - ols.k + 2)) )
-    return (num / den) - ei**2
+    return - (w.n * spDcache.trA) / (w.s0 * (w.n - ols.k))
 
 def get_zI(I, ei, vi):
     """

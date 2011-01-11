@@ -2,7 +2,7 @@ import numpy as np
 import numpy.linalg as la
 import user_output as USER
 
-__all__ = []
+__all__ = ["OLS"]
 
 class RegressionProps:
     """
@@ -17,7 +17,7 @@ class RegressionProps:
     ----------
     utu     : float
               Sum of the squared residuals
-    sig2    : float
+    sig2n    : float
               Sigma squared with n in the denominator
     sig2n_k : float
               Sigma squared with n-k in the denominator
@@ -46,13 +46,6 @@ class RegressionProps:
             self._cache['sig2n_k'] = self.utu / (self.n-self.k)
         return self._cache['sig2n_k']
     @property
-    def m(self):
-        if 'm' not in self._cache:
-            xtxixt = np.dot(self.xtxi,self.xt)
-            xxtxixt = np.dot(self.x, xtxixt)
-            self._cache['m'] = np.eye(self.n) - xxtxixt
-        return self._cache['m']
-    @property
     def vm(self):
         if 'vm' not in self._cache:
             self._cache['vm'] = np.dot(self.sig2, self.xtxi)
@@ -66,7 +59,7 @@ class RegressionProps:
     @property
     def std_y(self):
         if 'std_y' not in self._cache:
-            self._cache['std_y']=np.std(self.y)
+            self._cache['std_y']=np.std(self.y, ddof=1)
         return self._cache['std_y']
     
 
