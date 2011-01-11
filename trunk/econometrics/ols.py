@@ -89,8 +89,6 @@ class BaseOLS(RegressionProps):
               constant parameter set to True)
     betas   : array
               kx1 array with estimated coefficients
-    xt      : array
-              kxn array of transposed independent variables
     xtx     : array
               kxk array
     xtxi    : array
@@ -153,7 +151,6 @@ class BaseOLS(RegressionProps):
 
     def set_x(self, x):
         self.x = x
-        self.xt = x.T
         self.xtx = np.dot(self.x.T, self.x)
         self.xtxi = la.inv(self.xtx)
 
