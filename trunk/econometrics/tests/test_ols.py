@@ -17,7 +17,7 @@ class Test_OLS(unittest.TestCase):
         self.X = X
 
     """ All method names that begin with 'test' will be executed as a test case """
-    def test_OLS_dev(self):
+    def test_BaseOLS(self):
         ols = OLS.BaseOLS(self.y, self.X)
         # test the typical usage
         x = np.hstack((np.ones(self.y.shape),self.X))
@@ -55,7 +55,7 @@ class Test_OLS(unittest.TestCase):
     def test_OLS(self):
         ols = OLS.OLS(self.y, self.X)
         x = np.hstack((np.ones(self.y.shape), self.X))
-        # make sure OLS matches OLS_dev
+        # make sure OLS matches BaseOLS
         np.testing.assert_array_equal(ols.x, x)
         np.testing.assert_array_equal(ols.y, self.y)
         betas = np.array([[ 68.6189611 ], [ -1.59731083], [ -0.27393148]])
@@ -141,6 +141,9 @@ class Test_OLS(unittest.TestCase):
         self.assertAlmostEquals(ols.rlm_lag[1], 0.053261645050770842)
         self.assertAlmostEquals(ols.lm_sarma[0], 8.9419045229725551)
         self.assertAlmostEquals(ols.lm_sarma[1], 0.011436420201077028)
+        self.assertAlmostEquals(ols.moran_res[0], 0.22210940657867592)
+        self.assertAlmostEquals(ols.moran_res[1], 2.8393189345136847)
+        self.assertAlmostEquals(ols.moran_res[2], 0.0045209944743344263)
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(Test_OLS)

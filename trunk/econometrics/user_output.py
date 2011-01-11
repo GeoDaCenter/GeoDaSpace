@@ -8,6 +8,8 @@ import copy
 import diagnostics
 import diagnostics_sp
 
+__all__ = []
+
 
 class DiagnosticBuilder:
     """
@@ -92,9 +94,9 @@ class DiagnosticBuilder:
                Lagrange multiplier test for spatial SARMA model; each tuple contains
                the pair (statistic, p-value), where each is a float; only available 
                if w defined
-    moran_res : float
-                Moran's I statistic for the residuals; only available if w
-                defined. Note: to get p-value see pysal.spreg.MoranRes().
+    moran_res : tuple
+                Tuple containing the triple (Moran's I, stansardized Moran's
+                I, p-value); only available if w defined
     summary  : string
                Including all the information in OLS class in nice format          
     ak_test  : tuple
@@ -236,7 +238,7 @@ def set_name_yend(name_yend, yend):
     return name_yend
     
 def set_name_q(name_q, q):
-    """Set the instrument names in regression; return generic name if user
+    """Set the external instrument names in regression; return generic name if user
     provides no explicit name."
 
     Parameters
@@ -453,5 +455,66 @@ def summary_results(reg, w, vm, pred, instruments):
     strSummary += "========================= END OF REPORT =============================="
         
     return strSummary
+
+
+
+def check_arrays(*arrays):
+    """Check if the objects passed by a user to a regression class are
+    correctly structured. If the user's data is correctly formed this function
+    returns nothing, if not then an exception is raised. Note, this does not 
+    check for model setup, simply the shape and types of the objects.
+
+    Parameters
+    ----------
+
+    *arrays : anything
+              Objects passed by the user to a regression class; any type
+              object can be passed and any number of objects can be passed
+     
+    Returns
+    -------
+
+    Returns : nothing
+              Nothing is returned
+
+    Examples
+    --------
+
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> # Extract CRIME column from the dbf file
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> check_arrays(y, X)
+    >>> # should not raise an exception
+
+    """
+    rows = []
+    for i in arrays:
+        if not issubclass(type(i), np.ndarray):
+            raise Exception, "all input data must be numpy arrays"
+        shape = i.shape
+        if len(shape) > 2:
+            raise Exception, "all input arrays must have exactly two dimensions"
+        if len(shape) == 1:
+            raise Exception, "all input arrays must have exactly two dimensions"
+        if shape[0] < shape[1]:
+            raise Exception, "one or more input arrays have more columns than rows"
+        rows.append(shape[0])
+    if len(set(rows)) > 1:
+        raise Exception, "arrays not all of same length"
+
+def _test():
+    import doctest
+    doctest.testmod()
+
+if __name__ == '__main__':
+    _test()
+
 
 

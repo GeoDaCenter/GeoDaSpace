@@ -2,6 +2,8 @@ import numpy as np
 import numpy.linalg as la
 import user_output as USER
 
+__all__ = []
+
 class RegressionProps:
     """
     Helper class that adds common regression properties to any regression
@@ -277,9 +279,9 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
                Lagrange multiplier test for spatial SARMA model; each tuple contains
                the pair (statistic, p-value), where each is a float; only available 
                if w defined
-    moran_res : float
-                Moran's I statistic for the residuals; only available if w
-                defined. Note: to get p-value see pysal.spreg.MoranRes().
+    moran_res : tuple
+                Tuple containing the triple (Moran's I, stansardized Moran's
+                I, p-value); only available if w defined
     summary  : string
                Including all the information in OLS class in nice format          
      
@@ -305,6 +307,7 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     """
     def __init__(self, y, x, w=None, constant=True, name_y=None, name_x=None,\
                         name_ds=None, vm=False, pred=False):
+        USER.check_arrays(y, x)
         BaseOLS.__init__(self, y, x, constant) 
         self.title = "ORDINARY LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
