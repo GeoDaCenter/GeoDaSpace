@@ -99,9 +99,6 @@ class DiagnosticBuilder:
                 I, p-value); only available if w defined
     summary  : string
                Including all the information in OLS class in nice format          
-    ak_test  : tuple
-               Anselin-Kelejian test; tuple contains the triple (moran's I,
-               AK statistic, pvalue)
 
     """
     def __init__(self, x, constant, w, vm, pred, instruments=False):
@@ -139,9 +136,7 @@ class DiagnosticBuilder:
         #part 4: spatial diagnostics
         if w:
             if instruments:
-                #ak = diagnostics_sp.AKtest(self, w)
-                #self.ak_test = (ak.mi, ak.ak, ak.p)
-                self.ak_test = ('xxx', 'xxx', 'xxx')
+                pass
             else:
                 lm_tests = diagnostics_sp.LMtests(self, w)
                 self.lm_error = lm_tests.lme
