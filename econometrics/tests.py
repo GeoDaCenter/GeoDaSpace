@@ -37,13 +37,13 @@ suite = unittest.TestSuite()
 
 
 # import modules with doc tests here
-import ols, spHetErr, twosls
+import ols, spHetErr, twosls, user_output
 import twosls_sp, diagnostics, robust
 import probit
 import spError
 import diagnostics_sp
 # add modules to this list
-mods = 'ols', 'spHetErr', 'twosls', 'twosls_sp',\
+mods = 'ols', 'spHetErr', 'twosls', 'user_output', 'twosls_sp',\
        'diagnostics', 'robust', 'probit', 'spError',\
        'diagnostics_sp'
 
@@ -51,6 +51,8 @@ mods = 'ols', 'spHetErr', 'twosls', 'twosls_sp',\
 # add unit tests here
 import tests.test_ols as test_ols
 suite.addTest(test_ols.suite)
+import tests.test_user_output as test_user_output
+suite.addTest(test_user_output.suite)
 
 
 
