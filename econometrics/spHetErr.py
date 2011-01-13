@@ -116,7 +116,7 @@ if __name__ == '__main__':
     from testing_utils import Test_Data as DAT
     data = DAT()
     y, x, w = data.y, data.x, data.w
-    reg = Spatial_Error_Het(x, y, w)
+    reg = Spatial_Error_Het(y, x, w)
     print "Dependent variable: Y"
     print "Variable  Coef.  S.E."
     print "Constant %5.4f %5.4f" % (reg.betas[0],np.sqrt(reg.vm.diagonal())[0])
