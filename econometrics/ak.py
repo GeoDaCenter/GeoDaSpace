@@ -5,7 +5,7 @@ import numpy.linalg as la
 import pysal
 
 
-from diagnostics_sp import spDcache
+from diagnostics_sp import spDcache, get_mI
 
 class AKtest:
     """
