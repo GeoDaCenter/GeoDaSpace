@@ -101,7 +101,7 @@ class probit: #DEV class required.
     >>> X.append(db.by_col("TUCE"))
     >>> X.append(db.by_col("PSI"))
     >>> X = np.array(X).T
-    >>> probit1=probit(X,y,scalem='xmean')
+    >>> probit1=probit(y,X,scalem='xmean')
     >>> np.around(probit1.betas, decimals=3)
     array([[-7.452],
            [ 1.626],
@@ -109,7 +109,7 @@ class probit: #DEV class required.
            [ 1.426]])
    
     """
-    def __init__(self,x,y,constant=True,w=None,optim='newton',scalem='phimean'):
+    def __init__(self,y,x,constant=True,w=None,optim='newton',scalem='phimean'):
         self.y = y        
         if constant:
             x = np.hstack((np.ones(y.shape),x))
@@ -362,7 +362,7 @@ if __name__ == '__main__':
     for i in var['x']:
         X.append(db.by_col(i))
     X = np.array(X).T
-    probit1=probit(X,y,scalem='xmean')
+    probit1=probit(y,X,scalem='xmean')
     if probit1.warning:
         print "Maximum number of iterations exceeded or gradient and/or function calls not changing."
     print "Dependent variable: GRADE"
