@@ -504,6 +504,53 @@ def check_arrays(*arrays):
     if len(set(rows)) > 1:
         raise Exception, "arrays not all of same length"
 
+def check_weights(w, y):
+    """Check if the w parameter passed by the user is a pysal.W object and
+    check that its dimensionality matches the y parameter.  Note that this
+    check is not performed if w set to None.
+
+    Parameters
+    ----------
+
+    w       : any python object
+              Object passed by the user to a regression class; any type
+              object can be passed
+    y       : numpy array
+              Any shape numpy array can be passed. Note: if y passed
+              check_arrays, then it will be valid for this function
+
+    Returns
+    -------
+
+    Returns : nothing
+              Nothing is returned
+              
+    Examples
+    --------
+
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> # Extract CRIME column from the dbf file
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> w = pysal.open("examples/columbus.gal", 'r').read()
+    >>> check_weights(w, y)
+    >>> # should not raise an exception
+
+    """
+    if w:
+        if type(w).__name__ != 'W':
+            raise Exception, "w must be a pysal.W object"
+        if w.n != y.shape[0]:
+            raise Exception, "y must be nx1, and w must be an nxn PySAL W object"
+
+
+
 def _test():
     import doctest
     doctest.testmod()
