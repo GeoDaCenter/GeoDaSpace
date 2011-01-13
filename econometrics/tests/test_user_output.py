@@ -139,7 +139,7 @@ class Test_OLS(unittest.TestCase):
         # don't know how to test multiline string in python 2.6
         pass
 
-class Test_Arrays(unittest.TestCase):
+class Test_Checkers(unittest.TestCase):
     def setUp(self):
         db=pysal.open("examples/columbus.dbf","r")
         y = np.array(db.by_col("CRIME"))
@@ -149,7 +149,7 @@ class Test_Arrays(unittest.TestCase):
         X.append(db.by_col("HOVAL"))
         self.X = X
     
-    def test_check_arrays1(self):
+    def test_check_arrays(self):
         # X not an array
         self.assertRaises(Exception, USER.check_arrays, self.y, self.X)
         self.X = np.array(self.X)  # X and y wrong shape
@@ -160,12 +160,14 @@ class Test_Arrays(unittest.TestCase):
         self.y = self.y[1:,:]  # X and y with different lengths
         self.assertRaises(Exception, USER.check_arrays, self.y, self.X)
 
-        
+    def test_check_weights(self):
+        w = 4
+        self.assertRaises(Exception, USER.check_weights, w, self.y)
 
     
 
 suite = unittest.TestLoader().loadTestsFromTestCase(Test_OLS)
-suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_Arrays))
+suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_Checkers))
 
 if __name__ == '__main__':
     runner = unittest.TextTestRunner()

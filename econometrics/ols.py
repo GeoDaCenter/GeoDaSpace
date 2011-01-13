@@ -298,6 +298,7 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     def __init__(self, y, x, w=None, constant=True, name_y=None, name_x=None,\
                         name_ds=None, vm=False, pred=False):
         USER.check_arrays(y, x)
+        USER.check_weights(w, y)
         BaseOLS.__init__(self, y, x, constant) 
         self.title = "ORDINARY LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
