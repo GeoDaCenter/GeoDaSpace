@@ -6,14 +6,12 @@ Diagnostics for regression estimations.
 import pysal
 from pysal.common import *
 from math import sqrt
-#import ols as OLS
-
 
 
 def f_stat(reg):
     """
-    Calculates the f-statistic and associated p-value of the regression. (For
-    two stage least squares see f_stat_tsls)
+    Calculates the f-statistic and associated p-value of the regression.
+    (For two stage least squares see f_stat_tsls)
     
     Parameters
     ----------
@@ -27,8 +25,8 @@ def f_stat(reg):
 
     References
     ----------
-    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle
-       River. 
+    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper
+       Saddle River. 
 
     Examples
     --------
@@ -49,7 +47,7 @@ def f_stat(reg):
     ('28.385629224695', '0.000000009341')
 
     """ 
-    k = reg.k            # (scalar) number of ind. variables (includes constant)
+    k = reg.k            # (scalar) number of ind. vars (includes constant)
     n = reg.n            # (scalar) number of observations
     utu = reg.utu        # (scalar) residual sum of squares
     predy = reg.predy    # (array) vector of predicted values (n x 1)
@@ -63,67 +61,6 @@ def f_stat(reg):
 
 
 
-def f_stat_tsls(reg):
-    """
-    Calculates the f-statistic and associated p-value for a two stage least
-    squares regression. 
-    
-    Parameters
-    ----------
-
-    reg             : TSLS regression object
-                      output instance from a regression model
-
-    Returns
-    ----------
-    fs_result       : tuple
-                      includes value of F statistic and associated p-value
-
-    References
-    ----------
-    .. [1] J.M. Wooldridge. 1990. A note on the Lagrange multiplier and F-
-       statistics for two stage least squares regressions. Economics Letters
-       34, 151-155.  
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> import pysal
-    >>> import diagnostics
-    >>> from twosls import BaseTSLS as TSLS
-    >>> db = pysal.open("examples/columbus.dbf","r")
-    >>> y = np.array(db.by_col("CRIME"))
-    >>> y = np.reshape(y, (49,1))
-    >>> X = []
-    >>> X.append(db.by_col("INC"))
-    >>> X = np.array(X).T
-    >>> yd = []
-    >>> yd.append(db.by_col("HOVAL"))
-    >>> yd = np.array(yd).T
-    >>> q = []
-    >>> q.append(db.by_col("DISCBD"))
-    >>> q = np.array(q).T
-    >>> reg = TSLS(y, X, yd, q)
-    >>> testresult = diagnostics.f_stat_tsls(reg)
-    >>> print("%12.11f"%testresult[0],"%12.11f"%testresult[1])
-    ('7.40058418460', '0.00163476698')
-
-    """ 
-    k = reg.k            # (scalar) number of ind. variables (includes constant)
-    n = reg.n            # (scalar) number of observations
-    utu = reg.utu        # (scalar) residual sum of squares
-    predy = reg.predy    # (array) vector of predicted values (n x 1)
-    mean_y = reg.mean_y  # (scalar) mean of dependent observations
-    Q = utu
-    import ols as OLS
-    ssr_intercept = OLS.BaseOLS(reg.y, np.ones(reg.y.shape), constant=False).utu
-    u_2nd_stage = reg.y - np.dot(reg.xp, reg.betas)
-    ssr_2nd_stage = np.sum(u_2nd_stage**2)
-    U = ssr_intercept - ssr_2nd_stage
-    fStat = (U/(k-1))/(Q/(n-k))
-    pValue = stats.f.sf(fStat,k-1,n-k)
-    fs_result = (fStat, pValue)
-    return fs_result
 
 
 
@@ -133,16 +70,13 @@ def t_stat(reg, z_stat=False):
     
     Parameters
     ----------
-
     reg             : regression object
                       output instance from a regression model
-
     z_stat          : boolean
                       If True run z-stat instead of t-stat
         
     Returns
     -------    
-
     ts_result       : list of tuples
                       each tuple includes value of t statistic (or z
                       statistic) and associated p-value
@@ -150,7 +84,8 @@ def t_stat(reg, z_stat=False):
     References
     ----------
 
-    [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle River.
+    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper
+       Saddle River. 
 
     Examples
     --------
@@ -171,26 +106,12 @@ def t_stat(reg, z_stat=False):
     >>> testresult = diagnostics.t_stat(reg)
     >>> print("%12.12f"%testresult[0][0], "%12.12f"%testresult[0][1], "%12.12f"%testresult[1][0], "%12.12f"%testresult[1][1], "%12.12f"%testresult[2][0], "%12.12f"%testresult[2][1])
     ('14.490373143689', '0.000000000000', '-4.780496191297', '0.000018289595', '-2.654408642718', '0.010874504910')
-    >>> X = []
-    >>> X.append(db.by_col("INC"))
-    >>> X = np.array(X).T    
-    >>> yd = []
-    >>> yd.append(db.by_col("HOVAL"))
-    >>> yd = np.array(yd).T
-    >>> q = []
-    >>> q.append(db.by_col("DISCBD"))
-    >>> q = np.array(q).T
-    >>> reg = TSLS(y, X, yd, q)
-    >>> # z-stat for TSLS
-    >>> testresult = diagnostics.t_stat(reg, z_stat=True)
-    >>> print("%12.12f"%testresult[0][0], "%12.12f"%testresult[0][1], "%12.12f"%testresult[1][0], "%12.12f"%testresult[1][1], "%12.12f"%testresult[2][0], "%12.12f"%testresult[2][1])
-    ('5.845264470459', '0.000000005058', '0.367601566836', '0.713170346347', '-1.994689130783', '0.046076795581')
     """ 
     
-    k = reg.k                   # (scalar) number of independent variables (includes constant)
-    n = reg.n                   # (scalar) number of observations
-    vm = reg.vm                 # (array) coefficients of variance matrix (k x k)
-    betas = reg.betas           # (array) coefficients of the regressors (1 x k) 
+    k = reg.k           # (scalar) number of ind. vars (includes constant)
+    n = reg.n           # (scalar) number of observations
+    vm = reg.vm         # (array) coefficients of variance matrix (k x k)
+    betas = reg.betas   # (array) coefficients of the regressors (1 x k) 
     variance = vm.diagonal()
     tStat = betas.reshape(len(betas),)/ np.sqrt(variance)
     ts_result = []
@@ -221,8 +142,8 @@ def r2(reg):
 
     References
     ----------
-    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle
-       River.
+    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper
+       Saddle River. 
     
     Examples
     --------
@@ -243,8 +164,8 @@ def r2(reg):
     0.55240404083742334
     
     """ 
-    y = reg.y               # (array) vector of dependent observations (n x 1)
-    mean_y = reg.mean_y     # (scalar) mean of dependent observations
+    y = reg.y               # (array) vector of dep observations (n x 1)
+    mean_y = reg.mean_y     # (scalar) mean of dep observations
     utu = reg.utu           # (scalar) residual sum of squares
     ss_tot = sum((y-mean_y)**2)
     r2 = 1-utu/ss_tot
@@ -270,8 +191,8 @@ def ar2(reg):
 
     References
     ----------
-    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle
-       River.
+    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper
+       Saddle River. 
     
     Examples
     --------
@@ -315,8 +236,8 @@ def se_betas(reg):
 
     References
     ----------
-    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle
-       River.
+    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper
+       Saddle River. 
     
     Examples
     --------
@@ -360,8 +281,8 @@ def log_likelihood(reg):
 
     References
     ----------
-    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle
-       River.
+    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper
+       Saddle River. 
 
     Examples
     --------
@@ -401,12 +322,13 @@ def akaike(reg):
     Returns
     -------
     aic_result      : scalar
-                      value for Akaike Information Criterion of the regression. 
+                      value for Akaike Information Criterion of the
+                      regression. 
 
     References
     ----------
-    .. [1] H. Akaike. 1974. A new look at the statistical identification model.
-       IEEE Transactions on Automatic Control, 19(6):716-723.
+    .. [1] H. Akaike. 1974. A new look at the statistical identification
+       model. IEEE Transactions on Automatic Control, 19(6):716-723.
 
     Examples
     --------
@@ -447,13 +369,13 @@ def schwarz(reg):
     Returns
     -------
     bic_result      : scalar
-                      value for Schwarz (Bayesian) Information Criterion of the
-                      regression. 
+                      value for Schwarz (Bayesian) Information Criterion of
+                      the regression. 
 
     References
     ----------
-    .. [1] G. Schwarz. 1978. Estimating the dimension of a model. The Annals of
-       Statistics, pages 461-464. 
+    .. [1] G. Schwarz. 1978. Estimating the dimension of a model. The
+       Annals of Statistics, pages 461-464. 
 
     Examples
     --------
@@ -484,8 +406,8 @@ def schwarz(reg):
 
 def condition_index(reg):
     """
-    Calculates the multicollinearity condition index according to Belsey, Kuh
-    and Welsh (1980)
+    Calculates the multicollinearity condition index according to Belsey,
+    Kuh and Welsh (1980)
 
     Parameters
     ----------
@@ -495,7 +417,8 @@ def condition_index(reg):
     Returns
     -------
     ci_result       : float
-                      scalar value for the multicollinearity condition index. 
+                      scalar value for the multicollinearity condition
+                      index. 
 
     References
     ----------
@@ -544,15 +467,15 @@ def jarque_bera(reg):
     Returns
     ------- 
     jb_result       : dictionary
-                      contains the statistic (jb) for the Jarque-Bera test and
-                      the associated p-value (p-value)
+                      contains the statistic (jb) for the Jarque-Bera test
+                      and the associated p-value (p-value)
     df              : integer
                       degrees of freedom associated with the test (always 2)
     jb              : float
                       value of the test statistic
     pvalue          : float
-                      p-value associated with the statistic (chi^2 distributed
-                      with 2 df)
+                      p-value associated with the statistic (chi^2
+                      distributed with 2 df)
 
     References
     ----------
@@ -620,15 +543,15 @@ def breusch_pagan(reg):
     df              : integer
                       degrees of freedom associated with the test (k)
     pvalue          : float
-                      p-value associated with the statistic (chi^2 distributed
-                      with k df)
+                      p-value associated with the statistic (chi^2
+                      distributed with k df)
 
     References
     ----------
     
-    .. [1] T. Breusch and A. Pagan. 1979. A simple test for heteroscedasticity
-       and random coefficient variation. Econometrica: Journal of the
-       Econometric Society, 47(5):1287-1294.
+    .. [1] T. Breusch and A. Pagan. 1979. A simple test for
+       heteroscedasticity and random coefficient variation. Econometrica:
+       Journal of the Econometric Society, 47(5):1287-1294.
 
     Examples
     --------
@@ -698,27 +621,28 @@ def white(reg):
     reg             : regression object
                       output instance from a regression model
     constant        : boolean
-                      if true the original regression includes a constant, set
-                      to "True" by default
+                      if true the original regression includes a constant,
+                      set to "True" by default
 
     Returns
     -------
     white_result    : dictionary
-                      contains the statistic (white), degrees of freedom (df)
-                      and the associated p-value (pvalue) for the White test. 
+                      contains the statistic (white), degrees of freedom
+                      (df) and the associated p-value (pvalue) for the
+                      White test. 
     white           : float
                       scalar value for the White test statistic.
     df              : integer
                       degrees of freedom associated with the test
     pvalue          : float
-                      p-value associated with the statistic (chi^2 distributed
-                      with k df)
+                      p-value associated with the statistic (chi^2
+                      distributed with k df)
     
     References
     ----------
     .. [1] H. White. 1980. A heteroskedasticity-consistent covariance matrix
-       estimator and a direct test for heteroskdasticity. Econometrica. 48(4)
-       817-838. 
+       estimator and a direct test for heteroskdasticity. Econometrica.
+       48(4) 817-838. 
 
 
     Examples
@@ -832,15 +756,17 @@ def koenker_bassett(reg):
     df              : integer
                       degrees of freedom associated with the test
     pvalue          : float
-                      p-value associated with the statistic (chi^2 distributed)
+                      p-value associated with the statistic (chi^2
+                      distributed)
 
     Reference
     ---------
-    .. [1] R. Koenker and G. Bassett. 1982. Robust tests for heteroscedasticity
-       based on regression quantiles. Econometrica, 50(1):43-61. 
+    .. [1] R. Koenker and G. Bassett. 1982. Robust tests for
+       heteroscedasticity based on regression quantiles. Econometrica,
+       50(1):43-61. 
 
-    .. [2] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle
-       River.
+    .. [2] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper
+       Saddle River. 
 
     Examples
     --------
@@ -908,9 +834,10 @@ def koenker_bassett(reg):
 
 def vif(reg):
     """
-    Calculates the variance inflation factor for each independent variable. For
-    the ease of indexing the results, the constant is currently included. This
-    should be omitted when reporting the results to the output text.
+    Calculates the variance inflation factor for each independent variable.
+    For the ease of indexing the results, the constant is currently
+    included. This should be omitted when reporting the results to the
+    output text.
     
     Parameters
     ----------
@@ -920,14 +847,14 @@ def vif(reg):
     Returns
     -------    
     vif_result      : list of tuples
-                      each tuple includes the vif and the tolerance, the order
-                      of the variables corresponds to their order in the reg.x
-                      matrix
+                      each tuple includes the vif and the tolerance, the
+                      order of the variables corresponds to their order in
+                      the reg.x matrix
 
     References
     ----------
-    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle
-       River.
+    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper
+       Saddle River. 
 
     Examples
     --------
@@ -975,59 +902,6 @@ def vif(reg):
         resj = (vifj,tolj)
         vif_result.append(resj)
     return vif_result
-
-
-def hausman(olsreg,tslsreg):
-    """
-    Computes the Hausman specification test in the form of a Wald statistic.
-
-    Parameters
-    ----------
-    olsreg          : ordinary least squares regression object
-                      output instance from an ordinary least squares regression
-                      model
-    tlsreg          : two stage least squares regression object
-                      output instance from a two stage least squares regression
-                      model
-
-    Returns
-    -------
-    hausman_result  : dictionary
-                      contains the statistic (hausman), degrees of freedom (df)
-                      and the associated p-value (pvalue) for the test. 
-    hausman         : float
-                      scalar value for the Hausman test statistic.
-    df              : integer
-                      degrees of freedom associated with the test
-    pvalue          : float
-                      p-value associated with the statistic (chi^2 distributed
-                      with kstar degrees of freedom)
-                      
-    References
-    ----------
-    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper Saddle
-       River.
-
-    Examples
-    --------
-
-    """
-    b_iv = tlsreg.delta
-    b_ls = olsreg.betas
-    v_iv = tlsreg.xptxpi
-    v_ls = olsreg.xtxi
-    sig2 = olsreg.sig2n_k   # Greene specifies this is the correct sig2 to use, Stata gives an option     
-    df = tlsreg.kstar       # degrees of freedom specified by Greene, Stata uses tlsreg.k 
-
-    d = b_iv-b_ls
-    dt = d.T
-    part1 = la.pinv(v_iv-v_ls)
-    part2 = np.dot(dt,part1)
-    part3 = np.dot(part2,d)
-    hausman = part3/sig2
-    pvalue=stats.chisqprob(hausman,df)
-    hausman_result = {'hausman':hausman,'df':df,'pvalue':pvalue}
-    return hausman_result
 
 
 
