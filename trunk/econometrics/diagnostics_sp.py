@@ -22,7 +22,7 @@ class LMtests:
     ols         : OLS
                   OLS regression object
     w           : W
-                  Spatial weights instance assumed to be row-standardized
+                  Spatial weights instance
     tests       : list
                   Lists of strings with the tests desired to be performed.
                   Values may be:
@@ -83,9 +83,6 @@ class LMtests:
     array([ 4.190739,  0.123025])
     """
     def __init__(self, ols, w, tests=['all']):
-        if w.transform != 'R':
-            w.transform = 'r'
-            print '\nYour W object has been row-standardized\n'
         cache = spDcache(ols, w)
         if tests == ['all']:
             tests = ['lme', 'lml','rlme', 'rlml', 'sarma']
