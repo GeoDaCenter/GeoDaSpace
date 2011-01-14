@@ -919,6 +919,25 @@ def constant_check(array):
     constant        : boolean
                       true signifies the presence of a constant
 
+    Example
+    -------
+
+    >>> import numpy as np
+    >>> import pysal
+    >>> import diagnostics
+    >>> from ols import BaseOLS as OLS
+    >>> db = pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> reg = OLS(y,X)
+    >>> diagnostics.constant_check(reg.x)
+    True
+
+
     """
     n,k = array.shape
     constant = False
