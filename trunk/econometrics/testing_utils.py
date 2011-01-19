@@ -52,7 +52,7 @@ class Test_Data:
     >>>
 
     """
-    def __init__(self, n=100, variables=6, k='small', folder=''):
+    def __init__(self, n=100, variables=6, k='small', folder='', omit_w=False):
         np.random.seed(10)
         self.y = np.random.randn(n, 1)
         self.x = np.random.randn(n, variables-1)
@@ -60,29 +60,30 @@ class Test_Data:
         letters = map(chr, range(66, 91))
         self.x_names = ['var'+i for i in letters[:variables-1]]
         
-        if n==100:
-            if k=='small':
-                w_file = folder + 'examples/w_rook_n100_order1_k4.gal'
-            if k=='medium':
-                w_file = folder + 'examples/w_rook_n100_order2_k10.gal'
-            if k=='large':
-                w_file = folder + 'examples/w_rook_n100_order3_k19.gal'
-        if n==10000:
-            if k=='small':
-                w_file = folder + 'examples/w_rook_n10000_order1_k4.gal'
-            if k=='medium':
-                w_file = folder + 'examples/w_rook_n10000_order2_k12.gal'
-            if k=='large':
-                w_file = folder + 'examples/w_rook_n10000_order3_k23.gal'
-        if n==1000000:
-            if k=='small':
-                w_file = folder + 'examples/w_rook_n1000000_order1_k4.gal'
-            if k=='medium':
-                w_file = None
-            if k=='large':
-                w_file = None
-        if w_file:
-            self.w = pysal.open(w_file).read()
+        if not omit_w:
+            if n==100:
+                if k=='small':
+                    w_file = folder + 'examples/w_rook_n100_order1_k4.gal'
+                if k=='medium':
+                    w_file = folder + 'examples/w_rook_n100_order2_k10.gal'
+                if k=='large':
+                    w_file = folder + 'examples/w_rook_n100_order3_k19.gal'
+            if n==10000:
+                if k=='small':
+                    w_file = folder + 'examples/w_rook_n10000_order1_k4.gal'
+                if k=='medium':
+                    w_file = folder + 'examples/w_rook_n10000_order2_k12.gal'
+                if k=='large':
+                    w_file = folder + 'examples/w_rook_n10000_order3_k23.gal'
+            if n==1000000:
+                if k=='small':
+                    w_file = folder + 'examples/w_rook_n1000000_order1_k4.gal'
+                if k=='medium':
+                    w_file = None
+                if k=='large':
+                    w_file = None
+            if w_file:
+                self.w = pysal.open(w_file).read()
 
 def different(a, b):
     """
