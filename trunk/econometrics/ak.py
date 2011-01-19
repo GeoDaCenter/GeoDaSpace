@@ -18,8 +18,7 @@ class AKtest:
     ----------
 
     w           : W
-                  Spatial weights instance assumed to
-                  be row-standardized
+                  Spatial weights instance 
     x           : array
                   nxk array of independent variables, including endogenous
                   variables (assumed to be aligned with y)
@@ -111,8 +110,7 @@ def akTest(iv, w, spDcache):
     iv          : STSLS_dev
                   Instance from spatial 2SLS regression
     w           : W
-                  Spatial weights instance assumed to
-                  be row-standardized
+                  Spatial weights instance 
    spDcache     : spDcache
                   Instance of spDcache class
 
@@ -166,8 +164,7 @@ def akTest_legacy(iv, w, spDcache):
     iv          : STSLS_dev
                   Instance from spatial 2SLS regression
     w           : W
-                  Spatial weights instance assumed to
-                  be row-standardized
+                  Spatial weights instance
    spDcache     : spDcache
                   Instance of spDcache class
 

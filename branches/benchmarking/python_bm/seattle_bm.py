@@ -15,9 +15,9 @@ print '\n\t\t\t### Seattle dataset benchmarking ###\n'
 
 ti = time.time()
 t0 = time.time()
-w = pysal.open(data_link + '_pts.gwt').read()
+#w = pysal.open(data_link + '_pts.gwt').read()
 t1 = time.time()
-print 'Number of observations:\t\t%i\n'%w.n
+#print 'Number of observations:\t\t%i\n'%w.n
 tf = t1 - t0
 print 'Shape reading and W creating:\t%.5f seconds'%tf
 
@@ -27,28 +27,28 @@ t1 = time.time()
 tf = t1 - t0
 print 'Loading data:\t\t\t%.5f seconds'%tf
 
-"""
 t0 = time.time()
-y = np.array([nat.by_col('HR90')]).T
+y = np.array([nat.by_col('PIN')]).T
+y = np.array(y, dtype=float)
 t1 = time.time()
 tf = t1 - t0
 print 'Creating dep var y:\t\t%.5f seconds'%tf
 
 t0 = time.time()
-xvars = ['RD90', 'MA90', 'DV90', 'BLK90']
-xvars = ['MA90', 'DV90']
+xvars = ['PARKEY', 'MAJOR', 'MINOR', 'LOT_SQFT', 'OID_', 'STORIES', 'DINEROOM', 'OTHERRM', 'BEDROOM']
 x = map(nat.by_col, xvars)
 x = map(np.array, x)
 x = np.vstack(x)
 x = x.T
+x = np.array(a, dtype=float)
 t1 = time.time()
 tf = t1 - t0
 print 'Creating indep vars x:\t\t%.5f seconds'%tf
 
 t0 = time.time()
-ols = OLS(y, x, w, name_y='HR60', name_x=xvars, name_ds='NAT', vm=True)
+#ols = OLS(y, x, w, name_y='HR60', name_x=xvars, name_ds='NAT', vm=True)
+ols = OLS(y, x, name_y='PIN', name_x=xvars, name_ds='NAT', vm=True)
 t1 = time.time()
 tf = t1 - t0
 print 'Running OLS & diagnostics:\t%.5f seconds\n'%tf
 
-"""

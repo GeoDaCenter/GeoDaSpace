@@ -108,8 +108,7 @@ class MoranRes:
     ols         : OLS
                   OLS regression object
     w           : W
-                  Spatial weights instance assumed to
-                  be row-standardized
+                  Spatial weights instance
     z           : boolean
                   If set to True computes attributes eI, vI and zI. Due to computational burden of vI, defaults to False.
 
@@ -165,8 +164,7 @@ class spDcache:
     reg         : OLS_dev, TSLS_dev, STSLS_dev
                   Instance from a regression class
     w           : W
-                  Spatial weights instance assumed to
-                  be row-standardized
+                  Spatial weights instance
 
     Attributes
     ----------
@@ -281,9 +279,8 @@ def lmErr(reg, w, spDcache):
     reg         : OLS_dev, TSLS_dev, STSLS_dev
                   Instance from a regression class
     w           : W
-                  Spatial weights instance assumed to
-                  be row-standardized
-    spDcache     : spDcache
+                  Spatial weights instance
+    spDcache    : spDcache
                   Instance of spDcache class
 
     Returns
@@ -314,8 +311,7 @@ def lmLag(ols, w, spDcache):
     ols         : OLS_dev
                   Instance from an OLS_dev regression 
     w           : W
-                  Spatial weights instance assumed to
-                  be row-standardized
+                  Spatial weights instance 
     spDcache     : spDcache
                   Instance of spDcache class
 
@@ -348,8 +344,7 @@ def rlmErr(ols, w, spDcache):
     ols         : OLS_dev
                   Instance from an OLS_dev regression 
     w           : W
-                  Spatial weights instance assumed to
-                  be row-standardized
+                  Spatial weights instance
     spDcache     : spDcache
                   Instance of spDcache class
 
@@ -384,8 +379,7 @@ def rlmLag(ols, w, spDcache):
     ols             : OLS_dev
                       Instance from an OLS_dev regression 
     w               : W
-                      Spatial weights instance assumed to
-                      be row-standardized
+                      Spatial weights instance 
     spDcache        : spDcache
                       Instance of spDcache class
 
@@ -417,8 +411,7 @@ def lmSarma(ols, w, spDcache):
     ols         : OLS_dev
                   Instance from an OLS_dev regression 
     w           : W
-                  Spatial weights instance assumed to
-                  be row-standardized
+                  Spatial weights instance
     spDcache     : spDcache
                   Instance of spDcache class
 
@@ -453,8 +446,7 @@ def get_mI(reg, w, spDcache):
     reg             : OLS_dev, TSLS_dev, STSLS_dev
                       Instance from a regression class
     w               : W
-                      Spatial weights instance assumed to
-                      be row-standardized
+                      Spatial weights instance
     spDcache        : spDcache
                       Instance of spDcache class
 

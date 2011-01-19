@@ -26,7 +26,7 @@ class GMSWLS:
     y           : array
                   nx1 array of dependent variable
     w           : W
-                  Spatial weights instance assumed to be row-standardized
+                  Spatial weights instance 
 
     Attributes
     ----------
