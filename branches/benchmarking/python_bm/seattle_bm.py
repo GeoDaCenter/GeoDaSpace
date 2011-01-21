@@ -10,14 +10,15 @@ import numpy as np
 from econometrics.ols import OLS
 
 data_link = '/home/dani/AAA/LargeData/Seattle/parcel2000_city_resbldg99clean'
+data_link = '/Users/dani/AAA/LargeData/Seattle/parcel2000_city_resbldg99clean'
 
 print '\n\t\t\t### Seattle dataset benchmarking ###\n'
 
 ti = time.time()
 t0 = time.time()
-#w = pysal.open(data_link + '_pts.gwt').read()
+w = pysal.open(data_link + '_pts.gwt').read()
 t1 = time.time()
-#print 'Number of observations:\t\t%i\n'%w.n
+print 'Number of observations:\t\t%i\n'%w.n
 tf = t1 - t0
 print 'Shape reading and W creating:\t%.5f seconds'%tf
 
@@ -27,6 +28,7 @@ t1 = time.time()
 tf = t1 - t0
 print 'Loading data:\t\t\t%.5f seconds'%tf
 
+"""
 t0 = time.time()
 y = np.array([nat.by_col('PIN')]).T
 y = np.array(y, dtype=float)
@@ -51,4 +53,5 @@ ols = OLS(y, x, name_y='PIN', name_x=xvars, name_ds='NAT', vm=True)
 t1 = time.time()
 tf = t1 - t0
 print 'Running OLS & diagnostics:\t%.5f seconds\n'%tf
+"""
 
