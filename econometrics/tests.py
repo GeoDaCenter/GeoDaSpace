@@ -37,26 +37,26 @@ suite = unittest.TestSuite()
 
 
 # import modules with doc tests here
-import ols, spHetErr, twosls, user_output
-import twosls_sp, diagnostics, robust
-import probit
+import spHetErr, twosls
+import twosls_sp, robust
+import probit, ak, diagnostics_tsls
 import spError
-import diagnostics_sp
 # add modules to this list
-mods = 'ols', 'spHetErr', 'twosls', 'user_output', 'twosls_sp',\
-       'diagnostics', 'robust', 'probit', 'spError',\
-       'diagnostics_sp'
+mods = 'spHetErr', 'twosls', 'twosls_sp',\
+       'robust', 'probit', 'spError',\
+       'ak', 'diagnostics_tsls'
 
 
 # add unit tests here
+"""at this time all exisitng unit tests have been moved to pysal. we need to
+rewrite this unit tesing script to follow the pysal standard.  talk to Phil
+when the next unit tests are added.
+
 import tests.test_ols as test_ols
 suite.addTest(test_ols.suite)
 import tests.test_user_output as test_user_output
 suite.addTest(test_user_output.suite)
-
-
-
-
+"""
 
 
 

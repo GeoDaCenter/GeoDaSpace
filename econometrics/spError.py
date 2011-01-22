@@ -8,8 +8,8 @@ from scipy import sparse as SP
 from scipy.stats import norm
 import numpy as np
 import numpy.linalg as la
-import ols as OLS
-from diagnostics import se_betas
+import pysal.spreg.ols as OLS
+from pysal.spreg.diagnostics import se_betas
 
 
 class GMSWLS:

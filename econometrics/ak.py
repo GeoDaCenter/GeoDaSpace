@@ -5,7 +5,7 @@ import numpy.linalg as la
 import pysal
 
 
-from diagnostics_sp import spDcache, get_mI
+from pysal.spreg.diagnostics_sp import spDcache, get_mI
 
 class AKtest:
     """
@@ -196,4 +196,15 @@ def akTest_legacy(iv, w, spDcache):
     mchi = mi1**2 / (t + denom)
     pmchi = chisqprob(mchi,1)
     return (mchi[0][0], pmchi[0][0])
+
+
+
+
+def _test():
+    import doctest
+    doctest.testmod()
+
+                     
+if __name__ == '__main__':
+    _test()    
 

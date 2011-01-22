@@ -2,7 +2,7 @@ import numpy as np
 import pysal
 import gmm_utils as GMM
 from gmm_utils import get_A1, get_spFilter
-import ols as OLS
+import pysal.spreg.ols as OLS
 from scipy import sparse as SP
 import time
 

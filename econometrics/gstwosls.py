@@ -1,8 +1,8 @@
 import numpy as np
 import numpy.linalg as la
-from ols import RegressionProps
+from pysal.spreg.ols import RegressionProps
 import robust as ROBUST
-import user_output as USER
+import pysal.spreg.user_output as USER
 import gmm_utils as GMM
 
 class GSTSLS_dev(RegressionProps):
