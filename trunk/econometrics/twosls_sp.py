@@ -4,7 +4,7 @@ import pysal
 import numpy.linalg as la
 import twosls as TSLS
 import robust as ROBUST
-import user_output as USER
+import pysal.spreg.user_output as USER
 
 class BaseSTSLS(TSLS.BaseTSLS):
     """
@@ -92,7 +92,7 @@ class BaseSTSLS(TSLS.BaseTSLS):
 
     >>> import numpy as np
     >>> import pysal
-    >>> import diagnostics as D
+    >>> import pysal.spreg.diagnostics as D
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
     >>> db=pysal.open("examples/columbus.dbf","r")
@@ -218,7 +218,7 @@ class STSLS(BaseSTSLS, USER.DiagnosticBuilder):
 
     >>> import numpy as np
     >>> import pysal
-    >>> import diagnostics as D
+    >>> import pysal.spreg.diagnostics as D
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
     >>> db=pysal.open("examples/columbus.dbf","r")

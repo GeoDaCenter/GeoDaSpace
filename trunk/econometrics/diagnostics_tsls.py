@@ -6,6 +6,7 @@ Diagnostics for two stage least squares regression estimations.
 import pysal
 from pysal.common import *
 from math import sqrt
+import pysal.spreg.ols as OLS
 
 
 def f_stat_tsls(reg):
@@ -33,7 +34,7 @@ def f_stat_tsls(reg):
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> import diagnostics
+    >>> import diagnostics_tsls as diagnostics
     >>> from twosls import BaseTSLS as TSLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
@@ -59,7 +60,6 @@ def f_stat_tsls(reg):
     predy = reg.predy    # (array) vector of predicted values (n x 1)
     mean_y = reg.mean_y  # (scalar) mean of dependent observations
     Q = utu
-    import ols as OLS
     ssr_intercept = OLS.BaseOLS(reg.y, np.ones(reg.y.shape), constant=False).utu
     u_2nd_stage = reg.y - np.dot(reg.xp, reg.betas)
     ssr_2nd_stage = np.sum(u_2nd_stage**2)
@@ -96,8 +96,8 @@ def t_stat(reg, z_stat=False):
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> import diagnostics
-    >>> from ols import BaseOLS as OLS
+    >>> import pysal.spreg.diagnostics as diagnostics
+    >>> from pysal.spreg.ols import BaseOLS as OLS
     >>> from twosls import BaseTSLS as TSLS
     >>> db = pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
@@ -194,4 +194,16 @@ def hausman(olsreg,tslsreg):
     pvalue=stats.chisqprob(hausman,df)
     hausman_result = {'hausman':hausman,'df':df,'pvalue':pvalue}
     return hausman_result
+
+
+
+
+
+def _test():
+    import doctest
+    doctest.testmod()
+
+                     
+if __name__ == '__main__':
+    _test()    
 
