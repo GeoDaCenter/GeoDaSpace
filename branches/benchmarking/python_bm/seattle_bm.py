@@ -16,7 +16,8 @@ print '\n\t\t\t### Seattle dataset benchmarking ###\n'
 
 ti = time.time()
 t0 = time.time()
-w = pysal.open(data_link + '_pts.gwt').read()
+#w = pysal.open(data_link + '_pts.gwt').read()
+w = pysal.knnW_from_shapefile(data_link + '_pts.shp', k=4)
 t1 = time.time()
 print 'Number of observations:\t\t%i\n'%w.n
 tf = t1 - t0

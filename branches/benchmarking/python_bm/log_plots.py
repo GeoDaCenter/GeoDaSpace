@@ -4,7 +4,7 @@ Read the logs from benchmarking and plot them
 
 import pylab as pl
 
-def plot_all(log_file):
+def plot_all(log_file, title='SPREG benchmarking', pic=None):
     log = open(log_file)
     n = []
     k = []
@@ -31,23 +31,28 @@ def plot_all(log_file):
         if line[0] == 'Moran':
             moran.append(line[2])
         if line[0] == 'Total':
-            moran.append(line[3])
+            total.append(line[3])
     log.close()
-    print map(len, [creDa, creWe, reg, lm, moran, total])
-    #pl.figure()
-    #pl.plot(n, creDa, label='Data Generation')
-    #pl.plot(n, creWe, label='Weights Creating')
-    #pl.plot(n, reg, label='Regression')
-    #pl.plot(n, lm, label='LM diagnostics Creating')
-    #pl.plot(n, moran, label='Moran on Residuals')
-    #pl.plot(n, total, label='Total time')
-    #pl.show()
-    #title = 'SPREG benchmarking'
-    #pl.title(title)
-    #pl.legend(loc=2)
-    #pl.xlabel('N')
-    #pl.ylabel('Seconds')
-    #pl.show()
+    pl.figure()
+    pl.plot(n, creDa, label='Data Generation')
+    pl.plot(n, creWe, label='Weights Creating')
+    pl.plot(n, reg, label='Regression')
+    pl.plot(n, lm, label='LM diagnostics Creating')
+    pl.plot(n, moran, label='Moran on Residuals')
+    pl.plot(n, total, label='Total time')
+    pl.title(title)
+    pl.legend(loc=2)
+    pl.xlabel('N')
+    pl.ylabel('Seconds')
+    if pic:
+        pl.savefig(pic)
+    else:
+        pl.show()
     return 'Done'
 
-plot_all('log.txt')
+#plot_all('log_sp.txt', title='SPREG benchmarking\n(only sp Diagnostics)', \
+#        pic='log_sp.png')
+
+plot_all('log_all.txt', title='SPREG benchmarking\n(non-sp & sp Diagnostics)', \
+        pic='log_all.png')
+
