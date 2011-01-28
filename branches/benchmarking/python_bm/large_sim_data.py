@@ -176,7 +176,7 @@ def test_large_sp(s, k, log):
 
 #sizes = [150, 300, 450, 600, 750, 800, 900, 1000]
 #sizes = [1150, 1300, 1450, 1600, 1750, 1900, 2000]
-s = 1750
+s = 1600
 k = 10
 a = None
 
@@ -222,7 +222,7 @@ print runOls
 t0 = time.time()
 ww = w.sparse * w.sparse
 ww = np.sum(ww.diagonal())
-#lms = LMtests(ols, w)
+lms = LMtests(ols, w)
 t1 = time.time()
 tf = t1 - t0
 runLm = 'LM diagnostics:\t\t\t%.5f seconds\n'%tf
@@ -231,7 +231,7 @@ if a:
 print runLm
 
 t0 = time.time()
-#moran = MoranRes(ols, w, z=True)
+moran = MoranRes(ols, w, z=True)
 t1 = time.time()
 tf = t1 - t0
 runMoran = 'Moran test:\t\t\t%.5f seconds\n'%tf

@@ -85,6 +85,11 @@ class LMtests:
     """
     def __init__(self, ols, w, tests=['all'], large=1000000):
         cache = spDcache(ols, w)
+        if w.n > large:
+            print 'Dictionaries for neighbors and weights have been suppressed for efficiency'
+            w.neighbors = None
+            w.weights = None
+
         if tests == ['all']:
             tests = ['lme', 'lml','rlme', 'rlml', 'sarma']
         if 'lme' in tests:
@@ -534,5 +539,6 @@ def _test():
     doctest.testmod()
 
 if __name__ == '__main__':
-    _test()
+    #_test()
+    w = pysal.lat2W(100, 100)
 
