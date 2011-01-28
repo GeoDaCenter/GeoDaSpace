@@ -16,8 +16,8 @@ print '\n\t\t\t### Seattle dataset benchmarking ###\n'
 
 ti = time.time()
 t0 = time.time()
-#w = pysal.open(data_link + '_pts.gwt').read()
-w = pysal.knnW_from_shapefile(data_link + '_pts.shp', k=4)
+w = pysal.open(data_link + '_pts.gwt').read()
+#w = pysal.knnW_from_shapefile(data_link + '_pts.shp', k=4)
 t1 = time.time()
 print 'Number of observations:\t\t%i\n'%w.n
 tf = t1 - t0
@@ -29,7 +29,6 @@ t1 = time.time()
 tf = t1 - t0
 print 'Loading data:\t\t\t%.5f seconds'%tf
 
-"""
 t0 = time.time()
 y = np.array([nat.by_col('PIN')]).T
 y = np.array(y, dtype=float)
@@ -54,5 +53,4 @@ ols = OLS(y, x, name_y='PIN', name_x=xvars, name_ds='NAT', vm=True)
 t1 = time.time()
 tf = t1 - t0
 print 'Running OLS & diagnostics:\t%.5f seconds\n'%tf
-"""
 
