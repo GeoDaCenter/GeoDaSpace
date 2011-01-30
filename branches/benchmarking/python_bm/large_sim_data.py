@@ -176,7 +176,7 @@ def test_large_sp(s, k, log):
 
 #sizes = [150, 300, 450, 600, 750, 800, 900, 1000]
 #sizes = [1150, 1300, 1450, 1600, 1750, 1900, 2000]
-s = 1600
+s = 160
 k = 10
 a = None
 
@@ -211,7 +211,7 @@ if a:
 print creWe
 
 t0 = time.time()
-ols = BaseOLS(data.y, data.x)
+ols = OLS(data.y, data.x)
 t1 = time.time()
 tf = t1 - t0
 runOls = 'Regression:\t\t\t%.5f seconds\n'%tf
