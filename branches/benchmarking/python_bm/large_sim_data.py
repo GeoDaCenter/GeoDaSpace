@@ -220,8 +220,6 @@ if a:
 print runOls
 
 t0 = time.time()
-ww = w.sparse * w.sparse
-ww = np.sum(ww.diagonal())
 lms = LMtests(ols, w)
 t1 = time.time()
 tf = t1 - t0
