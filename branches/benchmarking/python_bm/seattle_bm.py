@@ -20,9 +20,15 @@ def run_seattle(data_link, yvar, xvars, k=8, pts=True):
     if pts:
         w_link += '_pts'
     w_link += '.shp'
-    w = pysal.knnW_from_shapefile(w_link, k=k)
+    if k=='min':
+        print 'Calculating Min. Threshold'
+        thres = pysal.min_threshold_dist_from_shapefile(w_link)
+        print 'Computing distance weights'
+        w = pysal.threshold_binaryW_from_shapefile(w_link, thres)
+    else:
+        w = pysal.knnW_from_shapefile(w_link, k=k)
     t1 = time.time()
-    print 'Number of observations:\t\t%i\n'%w.n
+    print 'Number of observations:\t\t%i'%w.n
     print 'Number of variables:\t\t%i\n'%k
     tf = t1 - t0
     print 'Shape reading and W creating:\t%.5f seconds'%tf
@@ -38,7 +44,6 @@ def run_seattle(data_link, yvar, xvars, k=8, pts=True):
     yx = [map(row.__getitem__, yx) for row in nat]
     yx = np.array(yx)
     y, x = np.reshape(yx[:, 0], (w.n, 1)), yx[:, 1:]
-    print y.shape, x.shape
     t1 = time.time()
     tf = t1 - t0
     print 'Creating y & x vars:\t\t%.5f seconds'%tf
@@ -67,10 +72,10 @@ def run_seattle(data_link, yvar, xvars, k=8, pts=True):
     return [ols]
 
 larea = '/home/dani/AAA/LargeData/Seattle/parcel2000_city_resbldg99_larea'
-larea = '/Volumes/GeoDa/Workspace/Julia/Seattle/parcel2000_city_resbldg99_larea'
+#larea = '/Volumes/GeoDa/Workspace/Julia/Seattle/parcel2000_city_resbldg99_larea'
 
 resarea = '/home/dani/AAA/LargeData/Seattle/all97_Aug08_bis_resarea_tract'
-resarea = '/Volumes/GeoDa/Workspace/Julia/Seattle/all97_Aug08_bis_resarea_tract'
+#resarea = '/Volumes/GeoDa/Workspace/Julia/Seattle/all97_Aug08_bis_resarea_tract'
 
 '''
 xvars = ['GRADE', 'BEDROOM', 'BASEAREA', 'FULLBATH', 'YEARBLT', 'CONDTION']
@@ -85,12 +90,14 @@ xvars = ['firplace', 'bricksto', 'bathfull', 'lake1k', 'park250', 'stories2', \
 yvar = 'lnprice'
 model = run_seattle(resarea, yvar, xvars, pts=False)
 
-'''
 # K= 20
-data_link = '/home/dani/AAA/LargeData/Seattle/parcel2000_city_resbldg99_larea'
-data_link = '/Volumes/GeoDa/Workspace/Julia/Seattle/parcel2000_city_resbldg99_larea'
 xvars = ['GRADE', 'BEDROOM', 'BASEAREA', 'FULLBATH', 'YEARBLT', 'CONDTION']
 yvar = 'LIVEAREA'
-model = run_seattle(data_link, yvar, xvars, k=20)
+model = run_seattle(larea, yvar, xvars, k=20)
+'''
 
 # Min. Threshold
+xvars = ['GRADE', 'BEDROOM', 'BASEAREA', 'FULLBATH', 'YEARBLT', 'CONDTION']
+yvar = 'LIVEAREA'
+model = run_seattle(larea, yvar, xvars, k='min')
+
