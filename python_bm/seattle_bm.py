@@ -72,10 +72,10 @@ def run_seattle(data_link, yvar, xvars, k=8, pts=True):
     return [ols]
 
 larea = '/home/dani/AAA/LargeData/Seattle/parcel2000_city_resbldg99_larea'
-#larea = '/Volumes/GeoDa/Workspace/Julia/Seattle/parcel2000_city_resbldg99_larea'
+larea = '/Volumes/GeoDa/Workspace/Julia/Seattle/parcel2000_city_resbldg99_larea'
 
 resarea = '/home/dani/AAA/LargeData/Seattle/all97_Aug08_bis_resarea_tract'
-#resarea = '/Volumes/GeoDa/Workspace/Julia/Seattle/all97_Aug08_bis_resarea_tract'
+resarea = '/Volumes/GeoDa/Workspace/Julia/Seattle/all97_Aug08_bis_resarea_tract'
 
 '''
 xvars = ['GRADE', 'BEDROOM', 'BASEAREA', 'FULLBATH', 'YEARBLT', 'CONDTION']
