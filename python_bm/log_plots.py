@@ -190,8 +190,8 @@ def write_r(log_file, outfile):
     fo.close()
     return pack
 
-obj = write_all('log_sp.txt', outfile='spregLog.csv')
-obj = write_r('large-data-simR.txt', outfile='rLog.csv')
+#obj = write_all('log_sp.txt', outfile='spregLog.csv')
+#obj = write_r('large-data-simR.txt', outfile='rLog.csv')
 
 #obj = plot_r('large-data-simR.txt', pic='log_sp_r.png')
 
@@ -201,3 +201,5 @@ obj = write_r('large-data-simR.txt', outfile='rLog.csv')
 #plot_all('log_all.txt', title='SPREG benchmarking\n(non-sp & sp Diagnostics)', \
 #       pic='log_all.png')
 
+#plot_all('large_sw.txt', title='SPREG lat2SW')
+write_all('large_sw.txt', 'large_sw_rplot.csv')
