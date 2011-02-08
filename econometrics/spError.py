@@ -27,6 +27,9 @@ class GMSWLS:
                   nx1 array of dependent variable
     w           : W
                   Spatial weights instance 
+    constant    : boolean
+                  If true it appends a vector of ones to the independent variables
+                  to estimate intercept (set to True by default)
 
     Attributes
     ----------
@@ -92,10 +95,11 @@ class GMSWLS:
     198.559595
 
     """
-    def __init__(self, y, x, w):
+    def __init__(self, y, x, w, constant=True):
         w.A1 = get_A1(w.sparse)
 
-        x = np.hstack((np.ones(y.shape),x))
+        if constant:
+            x = np.hstack((np.ones(y.shape),x))
         n, k = x.shape
 
         #1a. OLS --> \tilde{betas}
@@ -116,6 +120,7 @@ class GMSWLS:
         self.sig2 = ols.sig2n
         self.u = ols.u
         self.se_betas, self.z, self.pvals = self._inference(ols)
+        self.step2OLS = ols
 
     def _inference(self, ols):
         """
