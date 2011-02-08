@@ -147,6 +147,30 @@ def rel_err(a, b):
         rel_err = np.abs(a - b) / np.abs(b)
     return rel_err
 
+def randomKnnW(n, k, p=2.):
+    '''
+    Builds a W object from random points based on knn
+    ...
+
+    Arguments
+    ---------
+    n       : int
+              Number of observations for the W object
+    k       : int
+              Number of neighbors per observation in the W object
+    p       : float
+              Minkowski p-norm distance metric parameter
+
+    Returns
+    -------
+    w       : W
+              PySAL weights object
+
+    '''
+    xy = np.random.random(n * 2)
+    xy = xy.reshape((n, 2))
+    return pysal.knnW_from_array(xy, k, p)
+
 def _test():
     import doctest
     doctest.testmod()

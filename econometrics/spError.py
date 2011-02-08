@@ -69,7 +69,7 @@ class GMSWLS:
     >>> x = np.array([dbf.by_col('INC'), dbf.by_col('CRIME')]).T
     >>> w = pysal.open('examples/columbus.gal', 'r').read() 
     >>> w.transform='r'
-    >>> model = GMSWLS(x, y, w)
+    >>> model = GMSWLS(y, x, w)
     >>> np.around(model.betas, decimals=6)
     array([[ 47.694634],
            [  0.710453],
@@ -92,7 +92,7 @@ class GMSWLS:
     198.559595
 
     """
-    def __init__(self, x, y, w):
+    def __init__(self, y, x, w):
         w.A1 = get_A1(w.sparse)
 
         x = np.hstack((np.ones(y.shape),x))
