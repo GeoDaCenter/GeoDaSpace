@@ -5,6 +5,7 @@ __author__ = "Luc Anselin luc.anselin@asu.edu Daniel Arribas-Bel darribas@asu.ed
 
 from scipy.stats.stats import chisqprob
 from scipy.stats import norm
+import multiprocessing as mp
 import numpy as np
 import numpy.linalg as la
 import pysal
@@ -252,7 +253,10 @@ class spDcache:
     @property
     def utwuDs(self):
         if 'utwuDs' not in self._cache:
-            res = np.dot(self.reg.u.T, self.wu) / self.reg.sig2n
+            #res = np.dot(self.reg.u.T, self.wu) / self.reg.sig2n
+            cores = mp.cpu_count()
+            pool = mp.Pool(cores)
+            trs = pool.map(utwuDs_multi, [(self.reg.u.T, self.wu, self.reg.sig2n)])
             self._cache['utwuDs'] = res
         return self._cache['utwuDs']
     @property
@@ -264,13 +268,20 @@ class spDcache:
     @property
     def t(self):
         if 't' not in self._cache:
+            '''
             t1 = self.w.sparse.T * self.w.sparse
             t1 = np.sum(t1.diagonal())
             t2 = self.w.sparse * self.w.sparse
             t2 = np.sum(t2.diagonal())
             #prod = (self.w.sparse.T + self.w.sparse) * self.w.sparse 
             #self._cache['t'] = np.sum(prod.diagonal())
-            self._cache['t'] = t1 + t2
+            t = t1 + t2
+            '''
+            print 'Using multi core'
+            cores = mp.cpu_count()
+            pool = mp.Pool(cores)
+            t = pool.map(t_multi, [w2])[0]
+            self._cache['t'] = t
         return self._cache['t']
     @property
     def trA(self):
@@ -285,7 +296,16 @@ class spDcache:
         Computes A and B matrices as in Cliff-Ord 1981, p. 203
         """
         if 'AB' not in self._cache:
-            U = (self.w.sparse + self.w.sparse.T) / 2.
+            print '@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
+            print 'Using multicore technology'
+            print '@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
+            cores = mp.cpu_count()
+            pool = mp.Pool(cores)
+            U = pool.map(abU_multi, [self.w.sparse])[0]
+            print '@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
+            print 'Done using multicore technology'
+            print '@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
+            #U = (self.w.sparse + self.w.sparse.T) / 2.
             z = U * self.reg.x
             c1 = np.dot(self.reg.x.T, z)
             c2 = np.dot(z.T, z)
@@ -528,6 +548,20 @@ def get_zI(I, ei, vi):
 def trWtW(w):
     diagWtW = [_sum_row_wtw(i, w.sparse) for i in np.arange(w.n)]
     return np.sum(diagWtW)
+
+def t_multi(w):
+    t1 = self.w.T * self.w
+    t1 = np.sum(t1.diagonal())
+    t2 = self.w * self.w
+    t2 = np.sum(t2.diagonal())
+    return t1 + t2
+
+def abU_multi(w):
+    return (w + w.T) / 2.
+
+def utwuDs_multi(pars):
+    u, wu, sig2n = pars
+    return np.dot(u.T, wu) / sig2n
 
 def _sum_row_wtw(i, wsp):
     row = wsp.data[wsp.indptr[i]: wsp.indptr[i+1]]
