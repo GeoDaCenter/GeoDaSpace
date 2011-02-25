@@ -8,7 +8,7 @@ import numpy as np
 from pysal.spreg.ols import OLS
 from pysal.spreg.ols import BaseOLS
 from opt_diagnostics_sp import LMtests, MoranRes
-from pysal.spreg.diagnostics_sp import LMtests, MoranRes
+#from pysal.spreg.diagnostics_sp import LMtests, MoranRes
 from econometrics.testing_utils import Test_Data as Data
 
 print '\n\t\t\t### Large simulated dataset benchmarking ###\n'
@@ -89,6 +89,7 @@ def test_large(s, k, log=None, base=False, sw=False, a=True):
         log.write(runOls)
     print runOls
 
+    '''
     t0 = time.time()
     lms = LMtests(ols, w)
     t1 = time.time()
@@ -97,6 +98,7 @@ def test_large(s, k, log=None, base=False, sw=False, a=True):
     if a:
         log.write(runLm)
     print runLm
+    '''
 
     t0 = time.time()
     moran = MoranRes(ols, w, z=True)
@@ -120,7 +122,7 @@ def test_large(s, k, log=None, base=False, sw=False, a=True):
 #sizes = [150, 300, 450]
 sizes = [500, 750, 1000, 1150, 1300, 1450, 1600]
 #sizes = [1750, 1900, 2000, 2050, 2100]
-sizes = [2035]
+sizes = [1750]
 
 for side in sizes:
     ols, lms, moran = test_large(side, 10, log='large_sw.txt', a=False, base=True, sw=False)
