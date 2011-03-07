@@ -9,8 +9,8 @@ trunk = '../../../trunk/econometrics/'
 
 # Data Loading
 from econometrics.testing_utils import Test_Data 
-from econometrics.diagnostics_sp import  spDcache
-from econometrics.ak import akTest, akTest_legacy
+from pysal.spreg.diagnostics_sp import  spDcache
+from econometrics.ak import akTest, akTest_legacy, AKtest
 from econometrics.twosls_sp import STSLS as STSLS
 
 ## 100 obs
@@ -44,6 +44,9 @@ iv = STSLS(y, X, w, w_lags=1)
 print '\n\t### SPATIAL 2SLS results from PySAL ###'
 print '###Betas:\n', iv.betas
 
+ak = AKtest(iv, w, case='gen')
+'''
 cache = spDcache(iv, w)
 ak = akTest(iv, w, cache)
-print '###AK test:\t', ak
+'''
+print '###AK test:\t', ak.ak, ak.p
