@@ -17,40 +17,14 @@ class AKtest:
     Parameters
     ----------
 
+    iv          : TSLS
+                  Regression object from TSLS class
     w           : W
                   Spatial weights instance 
-    x           : array
-                  nxk array of independent variables, including endogenous
-                  variables (assumed to be aligned with y)
-    y           : array
-                  nx1 array of dependent variable
-    h           : array
-                  nxl array of instruments; typically this includes all
-                  exogenous variables from x and instruments. If case='gen' and set
-                  to None then only spatial lagged 
-    constant    : boolean
-                  If true it appends a vector of ones to the independent variables
-                  to estimate intercept (set to True by default)
     case        : string
                   Flag for special cases (default to 'nosp'):
                     * 'nsp': Only NO spatial end. reg.
                     * 'gen': General case (spatial lag + end. reg.)
-    w_lags      : int
-                  [Only if case=0] Number of spatial lags of the exogenous
-                  variables. Kelejian et al. (2004) [2]_ recommends w_lags=2, which
-                  is the default.
-    constant    : boolean
-                  [Only if case=0] If true it appends a vector of ones to the
-                  independent variables to estimate intercept (set to True by
-                  default)
-
-    robust      : string
-                  [Only if case=0] If 'white' then a White consistent
-                  estimator of the variance-covariance matrix is given. If 'gls' then
-                  generalized least squares is performed resulting in new
-                  coefficient estimates along with a new variance-covariance
-                  matrix. 
-
 
     Attributes
     ----------
@@ -81,14 +55,11 @@ class AKtest:
     Econometrics, 18, 163-198.
             """
 
-    def __init__(self, w, x, y, h=None, case='nosp', w_lags=2, constant=True,
-            robust=None):
+    def __init__(self, iv, w, case='nosp'):
         if case == 'gen':
-            iv = STSLS_dev(x, y, w, h, w_lags=2, constant=constant, robust=robust)
             cache = spDcache(iv, w)
             self.mi, self.ak, self.p = akTest(iv, w, cache)
         elif case == 'nsp':
-            iv = TSLS_dev(x, y, h, constant=constant)
             cache = spDcache(iv, w)
             self.mi = get_mI(iv, w, cache)
             self.ak, self.p = lmErr(iv, w, cache)
