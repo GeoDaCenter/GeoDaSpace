@@ -192,10 +192,10 @@ def p_runs(att):
             n = -(i+1)
             vn[n] = 1.0*(V[n]-sumbn)/B[n,n]
             prodPhi = prodPhi * stats.norm.cdf(vn[n])  #* np.exp(1)
-            if prodPhi < 1e-100 and scale1 < 0 and r == 0:
+            if prodPhi < 1e-50 and scale1 < 0 and r == 0:
                 prodPhi = prodPhi * 1e+200
                 scale0 += 1
-            if prodPhi < 1e-100 and scale1 > 0:
+            if prodPhi < 1e-50 and scale1 > 0:
                 prodPhi = prodPhi * 1e+200
                 scale1 -= 1
             if i<N-1:
