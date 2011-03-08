@@ -188,6 +188,20 @@ def get_vc_het(w, E):
     psi = map(np.sum, [psi11.diagonal(), psi12.diagonal(), psi22.diagonal()])
     return np.array([[psi[0], psi[1]], [psi[1], psi[2]]]) / (2 * w.n)
 
+def get_vc_het_tsls(w, reg, lambdapar):
+
+    sigma = get_psi_sigma(w, reg.u, lambdapar)
+    vc1 = get_vc_het(w, sigma)
+    a1, a2 = get_a1a2(w, reg, lambdapar)
+    a1s = a1.T * sigma
+    a2s = a2.T * sigma
+    psi11 = float(np.dot(a1s, a1))
+    psi12 = float(np.dot(a1s, a2))
+    psi21 = float(np.dot(a2s, a1))
+    psi22 = float(np.dot(a2s, a2))
+    psi = np.array([[psi11, psi12], [psi21, psi22]]) / w.n
+    return vc1 + psi
+
 def optimizer_het(moments, vcX=np.array([0])):
     """
     Optimization of moments
@@ -259,7 +273,7 @@ def gm_het(lambdapar,moments):
     vv2=np.reshape(vv,[2,1])-moments[1]
     return sum(vv2**2)
 
-def get_vm_het(G, lamb, reg, u, w, psi):
+def get_vm_het(G, lamb, reg, w, psi):
     """
     Computes the variance-covariance matrix Omega as in Arraiz et al [1]_:
     ...
@@ -303,7 +317,7 @@ def get_vm_het(G, lamb, reg, u, w, psi):
 
     J = np.dot(G, np.array([[1],[2 * lamb]]))
     Zs = get_spFilter(w,lamb,reg.x)
-    ZstEZs = np.dot((Zs.T * get_psi_sigma(w, u, lamb)), Zs)
+    ZstEZs = np.dot((Zs.T * get_psi_sigma(w, reg.u, lamb)), Zs)
     ZsZsi = la.inv(np.dot(Zs.T,Zs))
     omega11 = w.n * np.dot(np.dot(ZsZsi,ZstEZs),ZsZsi)
     omega22 = la.inv(np.dot(np.dot(J.T,la.inv(psi)),J))
@@ -710,7 +724,7 @@ def get_Omega_2SLS(w, lamb, reg):
     
     return omega
     
-def get_Omega_GS2SLS(w, lamb, reg):
+def get_Omega_GS2SLS(w, lamb, reg, G, psi):
     """
     Computes the variance-covariance matrix for GS2SLS:
     ...
@@ -721,11 +735,15 @@ def get_Omega_GS2SLS(w, lamb, reg):
     w           : W
                   Spatial weights instance 
 
-    reg         : GSTSLS
-                  Generalized Spatial two stage least quare regression instance
-                  
     lamb        : float
                   Spatial autoregressive parameter
+                  
+    reg         : GSTSLS
+                  Generalized Spatial two stage least quare regression instance
+    G           : array
+                  Moments
+    psi         : array
+                  Weighting matrix
  
     Returns
     -------
@@ -764,17 +782,19 @@ def get_Omega_GS2SLS(w, lamb, reg):
     psi_dd_1=(1.0/w.n) * reg.h.T * sigma 
     psi_dd = np.dot(psi_dd_1, reg.h)
     a1a2=get_a1a2(w, reg, lamb)
-    psi_dl=np.dot(psi_dd_1,np.hstack((a1a2[0],a1a2[1])))
-    psi=get_vc_het(w,sigma)    
-    psii=la.inv(psi)
+
+    psi_dl=np.dot(psi_dd_1,np.hstack(tuple(a1a2)))
+
     psi_o=np.hstack((np.vstack((psi_dd, psi_dl.T)), np.vstack((psi_dl, psi))))
+
+    psii=la.inv(psi)
     
-    J=get_J(w, lamb, reg.u)
-    jtpsii=np.dot(J.T, psii)
-    jtpsiij=np.dot(jtpsii, J)
+    j = np.dot(G, np.array([[1.], [2*lamb]]))
+    jtpsii=np.dot(j.T, psii)
+    jtpsiij=np.dot(jtpsii, j)
     jtpsiiji=la.inv(jtpsiij)
     omega_1=np.dot(jtpsiiji, jtpsii)
-    omega_2=np.dot(np.dot(psii, J), jtpsiiji)
+    omega_2=np.dot(np.dot(psii, j), jtpsiiji)
     om_1_s=omega_1.shape
     om_2_s=omega_2.shape
     p_s=reg.pfora1a2.shape
@@ -788,6 +808,7 @@ def get_Omega_GS2SLS(w, lamb, reg):
     return omega                  
     
 
+    
 def _test():
     import doctest
     doctest.testmod()

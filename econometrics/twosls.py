@@ -147,17 +147,14 @@ class BaseTSLS(RegressionProps):
         self.htz = htz
         self.hthi =hthi
         
-        factor = np.dot(hthi, htz)
-        xp = np.dot(h, factor)
+        self.factor = np.dot(hthi, htz)
+        xp = np.dot(h, self.factor)
         xptxp = np.dot(xp.T,xp)
         xptxpi = la.inv(xptxp)
         self.xp = xp
         self.xptxpi = xptxpi
         
-        # pfora1a2
-        factor_4 = np.dot(self.zth, factor)
-        self.pfora1a2 = self.n*np.dot(factor, la.inv(factor_4))
-        
+       
         if robust == 'gls':
             self.betas, self.xptxpi = ROBUST.gls4tsls(y, z, h, self.u)
             self.predy = np.dot(z, self.betas)   # using original data and GLS betas
@@ -167,6 +164,14 @@ class BaseTSLS(RegressionProps):
         self._cache = {}
         RegressionProps()
         self.sig2 = self.sig2n
+
+    @property
+    def pfora1a2(self):
+        if 'pfora1a2' not in self._cache:
+            # pfora1a2
+            factor_4 = np.dot(self.zth, self.factor)
+            self._cache['pfora1a2'] = self.n*np.dot(self.factor, la.inv(factor_4))
+        return self._cache['pfora1a2']    
         
     @property
     def m(self):
