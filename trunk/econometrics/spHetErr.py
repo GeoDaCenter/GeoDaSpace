@@ -31,11 +31,11 @@ class SWLS_Het:
     ----------
     
     betas       : array
-                  (k+1)x1 array with beta estimates for intercept and x
-    lamb        : float
-                  Estimate of lambda
+                  (k+1)x1 array with estimates for betas and lambda
     u           : array
                   nx1 array with residuals
+    vm          : array
+                  (k+1)x(k+1) variance-covariance matrix
 
     References
     ----------
@@ -96,8 +96,6 @@ class SWLS_Het:
             lambda2 = GMM.optimizer_het(moments_i,vc2)[0][0]
         return beta_i,lambda2,u,vc2,moments_i[0], predy
 
-
-
 class GSTSLS_Het:
     """
     GMM method for a spatial error model with heteroskedasticity and endogenous variables
@@ -113,29 +111,28 @@ class GSTSLS_Het:
                   nxk array with independent variables aligned with y
     y           : array
                   nx1 array with dependent variables
-    w           : W
-                  PySAL weights instance aligned with y and with instances S
-                  and A1 created
-    cycles      : int
-                  Optional. Number of iterations of steps 2a. and 2b. Set to 1
-                  by default
     yend        : array
                   non-spatial endogenous variables
     q           : array
                   array of instruments for yend (note: this should not contain
                   any variables from x; spatial instruments are computed by 
                   default)
-
+    w           : W
+                  PySAL weights instance aligned with y and with instances S
+                  and A1 created
+    cycles      : int
+                  Optional. Number of iterations of steps 2a. and 2b. Set to 1
+                  by default
 
     Attributes
     ----------
     
     betas       : array
-                  (k+1)x1 array with beta estimates for intercept and x
-    lamb        : float
-                  Estimate of lambda
+                  (k+1)x1 array with estimates for betas and lambda
     u           : array
                   nx1 array with residuals
+    vm          : array
+                  (k+1)x(k+1) variance-covariance matrix
 
     References
     ----------
@@ -147,9 +144,32 @@ class GSTSLS_Het:
 
     Examples
     --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X = np.array(X).T
+    >>> yd = []
+    >>> yd.append(db.by_col("HOVAL"))
+    >>> yd = np.array(yd).T
+    >>> q = []
+    >>> q.append(db.by_col("DISCBD"))
+    >>> q = np.array(q).T
+    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w.transform = 'r'
+    >>> reg = GSTSLS_Het(y, X, yd, q, w)
+    >>> print np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1)))
+    [[  8.22535188e+01   9.99563735e+01]
+     [  9.18288506e-01   9.30827948e+00]
+     [ -1.56407478e+00   6.07134267e+00]
+     [  5.02913162e-01   8.12910889e+02]]
+    
     """
 
-    def __init__(self,y,x,w,yend,q,cycles=1,constant=True): ######Inserted i parameter here for iterations...
+    def __init__(self,y,x,yend,q,w,cycles=1,constant=True):
         #1a. OLS --> \tilde{betas}
         tsls = TSLS.BaseTSLS(y, x, yend, q, constant)
 
@@ -167,13 +187,13 @@ class GSTSLS_Het:
         self.betas = np.vstack((tsls.betas,lambda3))
         self.vm = GMM.get_Omega_GS2SLS(w, lambda3, tsls, G, vc2)
 
-    def iterate(self, cycles,reg,w,lambda2):
+    def iterate(self,cycles,reg,w,lambda2):
 
-        for n in range(cycles): #### Added loop.
+        for n in range(cycles):
             #2a. reg -->\hat{betas}
-            xs,ys = get_spFilter(w,lambda2,reg.x),get_spFilter(w,lambda2,reg.y)                  
+            xs,ys = get_spFilter(w,lambda2,reg.x),get_spFilter(w,lambda2,reg.y)
             yend_s = get_spFilter(w,lambda2, reg.yend)
-            tsls = TSLS.BaseTSLS(ys, xs, yend_s, q, constant=False)
+            tsls = TSLS.BaseTSLS(ys, xs, yend_s, reg.q, constant=False)
             predy = np.dot(np.hstack((reg.x, reg.yend)), tsls.betas)
             tsls.u = reg.y - predy
             #2b. GMM --> \hat{\lambda}
@@ -189,16 +209,26 @@ def _test():
 
 if __name__ == '__main__':
     _test()
-    from testing_utils import Test_Data as DAT
-    data = DAT()
-    y, x, w = data.y, data.x, data.w
-    #yend = np.random.random((w.n,1))
-    #q = np.random.random((w.n,1))
-    #reg = GSTSLS_Het(y, x, w, yend, q)
-    reg = SWLS_Het(y, x, w, yend, q)    
-    print "Dependent variable: Y"
+    import numpy as np
+    import pysal
+    db=pysal.open("examples/columbus.dbf","r")
+    y = np.array(db.by_col("CRIME"))
+    y = np.reshape(y, (49,1))
+    X = []
+    X.append(db.by_col("INC"))
+    X = np.array(X).T
+    yd = []
+    yd.append(db.by_col("HOVAL"))
+    yd = np.array(yd).T
+    q = []
+    q.append(db.by_col("DISCBD"))
+    q = np.array(q).T
+    w = pysal.rook_from_shapefile("examples/columbus.shp")
+    w.transform = 'r'
+    reg = GSTSLS_Het(y, X, yd, q, w)
+    print "Dependent variable: CRIME"
     print "Variable  Coef.  S.E."
     print "Constant %5.4f %5.4f" % (reg.betas[0],np.sqrt(reg.vm.diagonal())[0])
-    for i in range(x.shape[1]+1):
+    for i in range(X.shape[1]+1):
         print "Var_%s %5.4f %5.4f" % (i+1,reg.betas[i+1],np.sqrt(reg.vm.diagonal())[i+1])
     print "Lambda: %5.4f %5.4f" % (reg.betas[-1],np.sqrt(reg.vm.diagonal())[-1])
