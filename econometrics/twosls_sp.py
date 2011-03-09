@@ -158,7 +158,7 @@ class BaseSTSLS(TSLS.BaseTSLS):
             yend = yl
         else:
             raise Exception, "invalid value passed to yend"
-        TSLS.BaseTSLS.__init__(self, y, x, yend, q, constant, robust)
+        TSLS.BaseTSLS.__init__(self, y, x, yend, q=q, constant=constant, robust=robust)
         self.sig2 = self.sig2n_k
         if robust == 'gls':
             self.vm = self.vm_gls

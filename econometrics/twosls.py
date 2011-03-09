@@ -92,14 +92,19 @@ class BaseTSLS(RegressionProps):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = BaseTSLS(y, X, yd, q)
+    >>> reg = BaseTSLS(y, X, yd, q=q)
     >>> print reg.betas
     [[ 88.46579584]
      [  0.5200379 ]
      [ -1.58216593]]
     
     """
-    def __init__(self, y, x, yend, q, constant=True, robust=None):
+    def __init__(self, y, x, yend, q=None, h=None, constant=True, robust=None):
+        
+        if issubclass(type(q), np.ndarray) and issubclass(type(h), np.ndarray):  
+            raise Exception, "Please do not provide 'q' and 'h' together"
+        if q==None and h==None:
+            raise Exception, "Please provide either 'q' or 'h'"
         
         self.y = y  
         self.n = y.shape[0]
@@ -110,8 +115,9 @@ class BaseTSLS(RegressionProps):
         self.x = x
         self.kstar = yend.shape[1]        
         z = np.hstack((x,yend))  # including exogenous and endogenous variables   
-        h = np.hstack((x,q))   # including exogenous variables and instrument
-        
+        if type(h).__name__ != 'ndarray':
+            h = np.hstack((x,q))   # including exogenous variables and instrument
+
         self.z = z
         self.h = h
         self.q = q
@@ -303,7 +309,7 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
                         name_x=None, name_yend=None, name_q=None,\
                         name_ds=None, robust=None, vm=False,\
                         pred=False):
-        BaseTSLS.__init__(self, y, x, yend, q, constant, robust)
+        BaseTSLS.__init__(self, y, x, yend, q=q, constant=constant, robust=robust)
         self.title = "TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -347,7 +353,7 @@ if __name__ == '__main__':
     q = []
     q.append(db.by_col("DISCBD"))
     q = np.array(q).T
-    reg = BaseTSLS(y, X, yd, q)
+    reg = BaseTSLS(y, X, yd, q=q)
     print reg.betas
     print reg.vm 
 

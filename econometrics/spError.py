@@ -11,6 +11,8 @@ import numpy.linalg as la
 import pysal.spreg.ols as OLS
 from pysal.spreg.diagnostics import se_betas
 
+from pysal.spreg.diagnostics_sp import LMtests
+
 
 class GMSWLS:
     """
