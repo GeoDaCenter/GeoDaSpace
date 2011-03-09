@@ -161,12 +161,11 @@ class GSTSLS_Het:
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
     >>> reg = GSTSLS_Het(y, X, yd, q, w)
-    >>> print np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1)))
-    [[  8.22535188e+01   9.99563735e+01]
-     [  9.18288506e-01   9.30827948e+00]
-     [ -1.56407478e+00   6.07134267e+00]
-     [  5.02913162e-01   8.12910889e+02]]
-    
+    >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
+    [[  8.22535000e+01   9.99564000e+01]
+     [  9.18300000e-01   9.30830000e+00]
+     [ -1.56410000e+00   6.07130000e+00]
+     [  5.02900000e-01   8.12910900e+02]]
     """
 
     def __init__(self,y,x,yend,q,w,cycles=1,constant=True):
