@@ -159,17 +159,18 @@ class GSTSLS_Het:
     >>> q = np.array(q).T
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
-    >>> reg = GSTSLS_Het(y, X, yd, q, w)
+    >>> reg = GSTSLS_Het(y, X, w, yd, q)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[  8.22535000e+01   9.99564000e+01]
-     [  9.18300000e-01   9.30830000e+00]
-     [ -1.56410000e+00   6.07130000e+00]
-     [  5.02900000e-01   8.12910900e+02]]
+    [[  8.25947000e+01   9.54856000e+01]
+     [  6.94700000e-01   8.92810000e+00]
+     [ -1.49070000e+00   5.79200000e+00]
+     [  4.85700000e-01   9.60023000e+02]]
+    
     """
 
-    def __init__(self,y,x,yend,q,w,cycles=1,constant=True):
+    def __init__(self,y,x,w,yend,q,cycles=1,constant=True):
         #1a. OLS --> \tilde{betas}
-        tsls = TSLS.BaseTSLS(y, x, yend, q, constant)
+        tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=constant)
 
         #1b. GMM --> \tilde{\lambda1}
         moments = moments_het(w, tsls.u)
@@ -190,7 +191,7 @@ class GSTSLS_Het:
             #2a. reg -->\hat{betas}
             xs,ys = GMM.get_spFilter(w,lambda2,reg.x),GMM.get_spFilter(w,lambda2,reg.y)
             yend_s = GMM.get_spFilter(w,lambda2, reg.yend)
-            tsls = TSLS.BaseTSLS(ys, xs, yend_s, reg.q, constant=False)
+            tsls = TSLS.BaseTSLS(ys, xs, yend_s, h=np.hstack((reg.x, reg.q)), constant=False)
             predy = np.dot(np.hstack((reg.x, reg.yend)), tsls.betas)
             tsls.u = reg.y - predy
             #2b. GMM --> \hat{\lambda}
@@ -198,6 +199,35 @@ class GSTSLS_Het:
             vc2 = get_vc_het_tsls(w, tsls, lambda2)
             lambda2 = GMM.optim_moments(moments_i,vc2)
         return tsls.betas,lambda2,tsls.u,vc2,moments_i[0], predy
+
+class GSTSLS_Het_lag(GSTSLS_Het):
+    '''
+    Version of GSTSLS_Het with spatial endogenous var
+    '''
+    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
+                    constant=True, robust=None, cycles=1):
+        # Create spatial lag of y
+        yl = pysal.lag_spatial(w, y)
+        if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
+            lag_vars = np.hstack((x, q))
+            spatial_inst = self.get_lags(lag_vars, w, w_lags)
+            q = np.hstack((q, spatial_inst))
+            yend = np.hstack((yend, yl))
+        elif yend == None:                   # spatial instruments only
+            q = self.get_lags(x, w, w_lags)
+            yend = yl
+        else:
+            raise Exception, "invalid value passed to yend"
+        GSTSLS_Het.__init__(self, y, x, w, yend, q, cycles=cycles, constant=constant)
+
+    def get_lags(self, x, w, w_lags):
+        lag = pysal.lag_spatial(w, x)
+        spat_inst = lag
+        for i in range(w_lags-1):
+            lag = pysal.lag_spatial(w, lag)
+            spat_inst = np.hstack((spat_inst, lag))
+        return spat_inst
+
 
 def moments_het(w, u):
     """
@@ -503,7 +533,7 @@ def _test():
     doctest.testmod()
 
 if __name__ == '__main__':
-    _test()
+    #_test()
     import numpy as np
     import pysal
     db=pysal.open("examples/columbus.dbf","r")
@@ -520,10 +550,18 @@ if __name__ == '__main__':
     q = np.array(q).T
     w = pysal.rook_from_shapefile("examples/columbus.shp")
     w.transform = 'r'
-    reg = GSTSLS_Het(y, X, yd, q, w)
+    reg = GSTSLS_Het(y, X, w, yd, q)
     print "Dependent variable: CRIME"
     print "Variable  Coef.  S.E."
     print "Constant %5.4f %5.4f" % (reg.betas[0],np.sqrt(reg.vm.diagonal())[0])
     for i in range(X.shape[1]+1):
+        print "Var_%s %5.4f %5.4f" % (i+1,reg.betas[i+1],np.sqrt(reg.vm.diagonal())[i+1])
+    print "Lambda: %5.4f %5.4f" % (reg.betas[-1],np.sqrt(reg.vm.diagonal())[-1])
+    print '$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'
+    reg = GSTSLS_Het_lag(y, X, w, yd, q)
+    print "Dependent variable: CRIME"
+    print "Variable  Coef.  S.E."
+    print "Constant %5.4f %5.4f" % (reg.betas[0],np.sqrt(reg.vm.diagonal())[0])
+    for i in range(X.shape[1]+2):
         print "Var_%s %5.4f %5.4f" % (i+1,reg.betas[i+1],np.sqrt(reg.vm.diagonal())[i+1])
     print "Lambda: %5.4f %5.4f" % (reg.betas[-1],np.sqrt(reg.vm.diagonal())[-1])
