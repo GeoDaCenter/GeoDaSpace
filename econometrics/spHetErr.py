@@ -64,7 +64,7 @@ class SWLS_Het:
 
     def __init__(self,y,x,w,cycles=1,constant=True): ######Inserted i parameter here for iterations...
         #1a. OLS --> \tilde{betas}
-        ols = OLS.BaseOLS(y, x,constant)
+        ols = OLS.BaseOLS(y, x, constant=constant)
 
         #1b. GMM --> \tilde{\lambda1}
         moments = moments_het(w, ols.u)
@@ -192,7 +192,7 @@ class GSTSLS_Het:
             xs,ys = GMM.get_spFilter(w,lambda2,reg.x),GMM.get_spFilter(w,lambda2,reg.y)
             yend_s = GMM.get_spFilter(w,lambda2, reg.yend)
             tsls = TSLS.BaseTSLS(ys, xs, yend_s, h=reg.h, constant=False)
-            predy = np.dot(np.hstack((reg.x, reg.yend)), tsls.betas)
+            predy = np.dot(reg.z, tsls.betas)
             tsls.u = reg.y - predy
             #2b. GMM --> \hat{\lambda}
             moments_i = moments_het(w, tsls.u)
@@ -482,7 +482,7 @@ def get_Omega_GS2SLS(w, lamb, reg, G, psi):
     omega_right=np.hstack((np.vstack((reg.pfora1a2, np.zeros((om_2_s[0],p_s[1])))), 
                np.vstack((np.zeros((p_s[0], om_2_s[1])), omega_2))))
     omega=np.dot(np.dot(omega_left, psi_o), omega_right)    
-    return omega
+    return omega / w.n
 
 def get_a1a2(w,reg,lambdapar):
     """
