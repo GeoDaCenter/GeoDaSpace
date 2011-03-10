@@ -19,8 +19,15 @@ class BaseTSLS(RegressionProps):
     yend        : array
                   endogenous variables
     q           : array
-                  array of external exogenous variables to use as instruments
-                  (note: this should not contain any variables from x)
+                  array of external exogenous variables to use as instruments;
+                  (note: this should not contain any variables from x; all x
+                  variables will be added by default as instruments (see h))
+                  (note: user must provide either q or h, but not both)
+    h           : array
+                  array of all exogenous variables to use as instruments
+                  (note: this is the entire instrument set, no additional
+                  variables will be added (see q))
+                  (note: user must provide either q or h, but not both)
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)            
@@ -74,6 +81,10 @@ class BaseTSLS(RegressionProps):
                   inverse of np.dot(xp.T,xp), used to compute vm
     pfora1a2    : array
                   used to compute a1, a2
+    
+    Notes
+    -----
+    Sigma squared calculated using n in the denominator. 
     
     Examples
     --------
@@ -265,20 +276,10 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
                   variables and constant
     kstar       : int
                   Number of endogenous variables. 
-    zth         : array
-                  z.T * h
-    hth         : array
-                  h.T * h
-    htz         : array
-                  h.T * z
-    hthi        : array
-                  inverse of h.T * h
-    xp          : array
-                  h * np.dot(hthi, htz)           
-    xptxpi      : array
-                  inverse of np.dot(xp.T,xp), used to compute vm
-    pfora1a2    : array
-                  used to compute a1, a2
+
+    Notes
+    -----
+    Sigma squared calculated using n in the denominator. 
     
     Examples
     --------
@@ -309,6 +310,8 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
                         name_x=None, name_yend=None, name_q=None,\
                         name_ds=None, robust=None, vm=False,\
                         pred=False):
+        USER.check_arrays(y, x, yend, q)
+        USER.check_weights(w, y)
         BaseTSLS.__init__(self, y, x, yend, q=q, constant=constant, robust=robust)
         self.title = "TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
