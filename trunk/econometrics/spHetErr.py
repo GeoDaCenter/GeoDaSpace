@@ -191,7 +191,7 @@ class GSTSLS_Het:
             #2a. reg -->\hat{betas}
             xs,ys = GMM.get_spFilter(w,lambda2,reg.x),GMM.get_spFilter(w,lambda2,reg.y)
             yend_s = GMM.get_spFilter(w,lambda2, reg.yend)
-            tsls = TSLS.BaseTSLS(ys, xs, yend_s, h=np.hstack((reg.x, reg.q)), constant=False)
+            tsls = TSLS.BaseTSLS(ys, xs, yend_s, h=reg.h, constant=False)
             predy = np.dot(np.hstack((reg.x, reg.yend)), tsls.betas)
             tsls.u = reg.y - predy
             #2b. GMM --> \hat{\lambda}
@@ -550,18 +550,20 @@ if __name__ == '__main__':
     q = np.array(q).T
     w = pysal.rook_from_shapefile("examples/columbus.shp")
     w.transform = 'r'
-    reg = GSTSLS_Het(y, X, w, yd, q)
+    reg = SWLS_Het(y, X, w)
+    print "Exogenous variables only:"
     print "Dependent variable: CRIME"
     print "Variable  Coef.  S.E."
     print "Constant %5.4f %5.4f" % (reg.betas[0],np.sqrt(reg.vm.diagonal())[0])
-    for i in range(X.shape[1]+1):
+    for i in range(len(reg.betas)-2):
         print "Var_%s %5.4f %5.4f" % (i+1,reg.betas[i+1],np.sqrt(reg.vm.diagonal())[i+1])
     print "Lambda: %5.4f %5.4f" % (reg.betas[-1],np.sqrt(reg.vm.diagonal())[-1])
     print '$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'
+    print "Spatial Lag:"
     reg = GSTSLS_Het_lag(y, X, w, yd, q)
     print "Dependent variable: CRIME"
     print "Variable  Coef.  S.E."
     print "Constant %5.4f %5.4f" % (reg.betas[0],np.sqrt(reg.vm.diagonal())[0])
-    for i in range(X.shape[1]+2):
+    for i in range(len(reg.betas)-2):
         print "Var_%s %5.4f %5.4f" % (i+1,reg.betas[i+1],np.sqrt(reg.vm.diagonal())[i+1])
     print "Lambda: %5.4f %5.4f" % (reg.betas[-1],np.sqrt(reg.vm.diagonal())[-1])
