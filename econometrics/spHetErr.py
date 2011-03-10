@@ -48,18 +48,23 @@ class SWLS_Het:
     Examples
     --------
     >>> import numpy as np
-    >>> from testing_utils import Test_Data as DAT
-    >>> data = DAT()
-    >>> y, x, w = data.y, data.x, data.w
-    >>> reg = SWLS_Het(y, x, w)
-    >>> print np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(7,1)))
-    [[ 0.08028647  0.09883845]
-     [-0.17811755  0.10271992]
-     [-0.05991007  0.12766904]
-     [-0.01487806  0.10826346]
-     [ 0.09024685  0.09246069]
-     [ 0.14459452  0.10005024]
-     [ 0.00068073  0.08663456]]
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w.transform = 'r'
+    >>> reg = SWLS_Het(y, X, w)
+    >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
+    [[ 62.5528   4.7153]
+     [ -1.1214   0.4431]
+     [ -0.2986   0.1612]
+     [  0.5402   9.7418]]
+    
     """
 
     def __init__(self,y,x,w,cycles=1,constant=True): ######Inserted i parameter here for iterations...
@@ -161,10 +166,11 @@ class GSTSLS_Het:
     >>> w.transform = 'r'
     >>> reg = GSTSLS_Het(y, X, w, yd, q)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[  8.25947000e+01   9.54856000e+01]
-     [  6.94700000e-01   8.92810000e+00]
-     [ -1.49070000e+00   5.79200000e+00]
-     [  4.85700000e-01   9.60023000e+02]]
+    [[  82.5947   13.6408]
+     [   0.6947    1.2754]
+     [  -1.4907    0.8274]
+     [   0.4857  137.1461]]
+    
     
     """
 
@@ -533,7 +539,7 @@ def _test():
     doctest.testmod()
 
 if __name__ == '__main__':
-    #_test()
+    _test()
     import numpy as np
     import pysal
     db=pysal.open("examples/columbus.dbf","r")
