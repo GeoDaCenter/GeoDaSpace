@@ -51,12 +51,12 @@ mods = 'spHetErr', 'twosls', 'twosls_sp',\
 """at this time all exisitng unit tests have been moved to pysal. we need to
 rewrite this unit tesing script to follow the pysal standard.  talk to Phil
 when the next unit tests are added.
-
-import tests.test_ols as test_ols
-suite.addTest(test_ols.suite)
-import tests.test_user_output as test_user_output
-suite.addTest(test_user_output.suite)
 """
+
+import test_tsls
+suite.addTest(test_tsls.suite)
+#import tests.test_user_output as test_user_output
+#suite.addTest(test_user_output.suite)
 
 
 
