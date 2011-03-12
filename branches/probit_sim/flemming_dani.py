@@ -8,23 +8,30 @@ import pysal as ps
 from scipy.stats import norm
 from scipy import sparse as sp
 import scipy.optimize as op
+from econometrics.probit import probit
 
 class ProbitGMMerr:
-    def __init__(self, y, x, w, u='gen'):
+    def __init__(self, y, x, w, uused='gen'):
         self.y = y
         self.x = x
         w.transform = 'r'
-        print 'W has been row-standardized'
         self.w = w
         self.n, self.k = x.shape
 
+        self.betas = probit(y, x, constant=False).betas
+        print 'Betas Probit'
+        print self.betas
+        y = y[:, 0]
         self.betas = op.fmin_l_bfgs_b(self._s,[0.0]*self.k,args=[y, x],approx_grad=True,bounds=[(None, None), (None, None)])[0]
+        print 'Betas GMM'
+        print self.betas
+
         self.lat_y = np.dot(x, self.betas)
         predy = norm.cdf(self.lat_y)
         u_naive = y - predy
         u = u_naive
 
-        if u == 'gen':
+        if uused == 'gen':
             phiy = norm.pdf(self.lat_y)
             Phi_prod = predy * (1 - predy)
             u_gen = phiy * (u_naive / Phi_prod)
@@ -114,23 +121,26 @@ class ProbitGMMerr:
         return sum(vv**2)
 
 if __name__ == '__main__':
+
     import sys
     sys.path.append('/Users/pedroamaral/Documents/Academico/GeodaCenter/python/SVN/spreg/trunk/')
     from econometrics import power_expansion as PE
-    w = ps.lat2W(10, 10)
-    r = np.random.random((100, 1))
-    c = np.ones((100, 1))
+    np.random.seed(10)
+    w = ps.lat2W(30, 30)
+    w.transform='r'
+    r = np.random.normal( -1, 1, (900, 1))
+    c = np.ones((900, 1))
     x = np.hstack((c, r))
     betas = np.array([[1.] * x.shape[1]]).T
-    np.random.seed(10)
-    e = np.random.normal(0,1,(n,1)) #Build residuals vector
+
+    e = np.random.normal(0,1,(w.n,1)) #Build residuals vector
     ys = np.dot(x, betas) + PE.power_expansion(w, e, 0.5) #Build y_{star}    
-    y = np.zeros((n,1),float) #Binary y
+    y = np.zeros((w.n, 1),float) #Binary y
     for yi in range(len(y)):
         if ys[yi]>0:
             y[yi] = 1    
     
-    p = ProbitGMMerr(y, x, w)
+    p = ProbitGMMerr(y, x, w, uused='naive')
     print 'Lambda: %f'%p.lamb
 
 
