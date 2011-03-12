@@ -3,6 +3,21 @@ Pedro's part of porting Madsen's code
 '''
 import numpy as np
 from scipy.special import beta, psi
+
+
+
+
+
+# T is the mx1 vector of exponentials in the log expected likelihood.
+T=np.zeros((1,m),float) 
+for j in range(m):
+    T[j]=np.exp(-0.5*np.dot(z[:,j],np.dot((SigmaInv-np.eye(n)),z[:,j])))
+meanT=np.mean(T)
+
+# Calculate the negative log expected likelihood.
+NLEL=1./2.*logdetSigma-sum(np.log(p(y,phi,mu)))-np.log(meanT)
+
+# p(y,phi,mu) is the negative binomial probability mass function with parameters phi and mu.
 def p(y,phi,mu):
     p=np.zeros((y.shape),float)
     if mu.shape[0]==1:
@@ -14,6 +29,7 @@ def p(y,phi,mu):
             p[i]=1./(y[i]*beta(y[i],phi**2.*mu[i]))*(phi**2/(1+phi**2))**(phi**2.*mu[i])*(1./(1+phi**2)**y[i]) #beta?
     return p
 
+# dpdphi(y,phi,mu) is the derivative of p(y,phi,mu) with respect to phi.
 def dpdphi(y,phi,mu):
     dpdphi=np.zeros((y.shape),float)
     if mu.shape[0]==1:
@@ -36,6 +52,7 @@ def dpdphi(y,phi,mu):
             dpdphi[i] = fac1*fac2+fac3*fac4/fac5*fac6
     return dpdphi
 
+# dpdmu(y,phi,mu) is the derivative of p(y,phi,mu) with respect to mu.
 def dpdmu=dpdmu(y,phi,mu):           
     dpdmu=np.zeros((y.shape),float)    
     if mu.shape[0]==1:
