@@ -65,9 +65,52 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi):
     # Calculate the negative log expected likelihood.
     NLEL=1./2.*logdetSigma-sum(np.log(p(y,phi,mu)))-np.log(meanT)
 
-    if nargout > 1 % If derivatives are requested, calculate them.
+    #if nargout > 1 % If derivatives are requested, calculate them
     # Finish lines 93 - 121
+    eg = None
+    if want_derivatives:
+        dSigmadalphaR = np.multiply(-alphaN * H, np.exp(-H * alphaR))
+        dSigmadalphaN = np.exp(-H * alphaR)
+        for ij in np.nonzero(H==0):
+            dSigmadalphaR[ij] = 0.
+            dSigmadalphaN[ij] = 0.
 
+        dTdalphaR = np.zeros((1, m))
+        dTdalphaN = np.zeros((1, m))
+        dTdbeta = np.zeros((dimbeta, m))
+        dTdphi = np.zeros(1, m)
+        dldbeta = np.zeros((1,dimbeta))
+
+        for j in range(m):
+            dTdalphaR[0, j] = np.dot(np.exp(-np.dot(z[:, j].T, \
+                    np.dot(SigmaInv - np.eye(n), z[:, j])) / 2.).T, \
+                    np.dot(np.dot(z[:, j].T, SigmaInv), \
+                    np.dot(dSigmadalphaR, np.dot(SigmaInv, z[:,j]))) / 2.)
+             dTdalphaN[0, j] = np.dot(np.exp(-np.dot(z[:, j].T, \
+                    np.dot(SigmaInv - np.eye(n), z[:, j])) / 2.).T, \
+                    np.dot(np.dot(z[:, j].T, SigmaInv), \
+                    np.dot(dSigmadalphaN, np.dot(SigmaInv, z[:,j]))) / 2.)    
+             dTdphi[0, j] = np.dot(np.dot(T[0, j], dzdphi[:, j]).T, \
+                     np.dot(SigmaInv - np.eye(n), z[:, j]))
+             for i in range(dimbeta):
+                 dTdbeta[i, j] = np.dot(np.dot(T[0, j], dzdbeta[:, j, i]).T, \
+                         np.dot(SigmaInb - np.eye(n), z[:, j]))
+
+         tr_dldalphaR = np.sum(np.diagonal(np.dot(SigmaInv, dSigmadalphaR)))
+         dldalphaR = (tr_dldalphaR - 1.) / (2. * meanT * np.mean(dTdalphaR))
+         tr_dldalphaN = np.sum(np.diagonal(np.dot(SigmaInv, dSigmadalphaN)))
+         dldalphaN = (tr_dldalphaN - 1.) / (2. * meanT * np.mean(dTdalphaN))
+         dldphi = (np.mean(dtdphi) / meanT) - np.sum(dpdphi(y, phi, mu) / \
+                 p(y, phi, mu))
+         for i in range(dimbeta):
+             dldbeta[0, i] = (np.mean(dTdbeta[i, :].T) / meanT) - \
+                     np.sum(np.divide(np.multiply(np.multiply( \
+                     dpdmu(y, phi, mu), mu), XX[:, i]), \
+                     p(y,phi,mu)))
+         eg0 = np.dot(dldalphaN, (alphaN*(1-alphaN)))
+         eg1 = np.dot(dldalphaR, (alphaR*(1-(alphaR / B))))
+         eg2 = dldphi * phi * (1 - phi / Bphi)
+         eg = np.array([[eg0, eg1, eg2, dldbeta]]).T
     return nlel, eg
 
 # p(y,phi,mu) is the negative binomial probability mass function with parameters phi and mu.
