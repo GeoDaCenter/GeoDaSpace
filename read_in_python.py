@@ -39,6 +39,6 @@ dimbeta = beta0.shape[0]
 numu = 10
 U = np.random.uniform(0, 1, (n, numu))
 
-l = negLogEL(theta0, y, U, XX, H, dimbeta, B, Bphi)
+l = negLogEL(theta0, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=1)
 print '$$$$$$$$$$$$$$$$$$$$$$'
 print l
