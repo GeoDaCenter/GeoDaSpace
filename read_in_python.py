@@ -12,16 +12,15 @@ for line in txt:
 txt.close()
 a = np.array(a)
 
-xy = a[:, :1]
+xy = a[:, :2]
 n = a.shape[0]
 Zx = np.dot(xy[:, :1], np.ones(xy[:, :1].T.shape))
 Zy = np.dot(xy[:, 1:2], np.ones(xy[:, 1:2].T.shape))
 H = np.sqrt((Zx - Zx.T)**2 + (Zy - Zy.T)**2)
-
 B = 0.1958
 Bphi = 100
 
-XX = a[:, 1:2]
+XX = a[:, 2:3]
 XX = np.hstack((np.ones((n, 1)), XX, XX**2, XX**3))
 alphaN0 = 0.5
 alphaR0 = 0.1052
