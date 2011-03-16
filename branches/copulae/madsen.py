@@ -29,11 +29,9 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
     for i, j in zip(np.nonzero(H==0)[0], np.nonzero(H==0)[1]):
         Sigma[i, j] = 1.
     SigmaInv = inv(Sigma)
-    logdetSigma = np.sum(np.log(det(Sigma)))
+    logdetSigma = np.log(det(Sigma))
     mu = np.exp(np.dot(XX, betanew))
-
     n, m = U.shape
-
     F = np.zeros((n, m))
     z = np.zeros((n, m))
     dFdphi = np.zeros((n,m))
@@ -44,6 +42,7 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
     for i in range(n):
         F[i, :] = np.array([np.sum(p(np.array(range(y[i])), phi, np.array(mu[i])))] * m) \
                  + U[i, :] * p(np.array([y[i]]), phi, np.array(mu[i]))
+        #print '#########', y[i], np.array([np.sum(p(np.array(range(y[i])), phi, np.array(mu[i])))] * m)        
         z[i, :] = np.array([norm.ppf(j, 0) for j in F[i, :]])
         dFdphi[i, :] = np.array([np.sum(dpdphi(np.array(range(y[i])), phi, np.array(mu[i])))] * m) \
                 + U[i, :] * dpdphi(np.array([y[i]]), phi, np.array(mu[i]))
@@ -51,7 +50,7 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
                 + U[i, :] * dpdmu(np.array([y[i]]), phi, np.array(mu[i]))
         dzdphi[i, :] = dFdphi[i, :] / norm.pdf(z[i, :])
         dzdmu[i, :] = dFdmu[i, :] / norm.pdf(z[i, :])
-
+    #print F
     dzdbeta = np.zeros((n, m, dimbeta))
     dmudbeta = np.zeros((n, dimbeta))
     for i in range(dimbeta):
@@ -62,14 +61,9 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
     for j in range(m):
         zj = np.reshape(z[:,j], (n, 1))
         T[0, j]=np.exp(-0.5*np.dot(zj.T,np.dot((SigmaInv-np.eye(n)),zj)))
-        print np.exp(-0.5*np.dot(zj.T,np.dot((SigmaInv-np.eye(n)),zj)))
-        print zj
     meanT=np.mean(T)
 
     # Calculate the negative log expected likelihood.
-    print logdetSigma
-    print sum(np.log(p(y,phi,mu)))
-    print np.log(meanT)
     NLEL=1./2.*logdetSigma-sum(np.log(p(y,phi,mu)))-np.log(meanT)
 
     #if nargout > 1 % If derivatives are requested, calculate them
@@ -123,6 +117,7 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
 # p(y,phi,mu) is the negative binomial probability mass function with parameters phi and mu.
 def p(y,phi,mu):
     p=np.zeros((y.shape),float)
+    #print y, phi, mu
     if mu.shape[0]==1:
         mu=mu*np.ones((y.shape))
     for i in range(y.shape[0]):
@@ -130,6 +125,7 @@ def p(y,phi,mu):
             p[i]=(phi**2./(1+phi**2))**(phi**2.*mu[i])
         else:
             p[i]=1./(y[i]*beta(y[i],phi**2.*mu[i]))*(phi**2/(1+phi**2))**(phi**2.*mu[i])*(1./(1+phi**2)**y[i]) #beta?
+    #print 'p:', p
     return p
 
 # dpdphi(y,phi,mu) is the derivative of p(y,phi,mu) with respect to phi.
