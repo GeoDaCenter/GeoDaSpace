@@ -40,21 +40,22 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
     dzdmu = np.zeros((n,m))
 
     for i in range(n):
+        Ui = np.reshape(U[i, :],(1,m))
         F[i, :] = np.array([np.sum(p(np.array(range(y[i])), phi, np.array(mu[i])))] * m) \
-                 + U[i, :] * p(np.array([y[i]]), phi, np.array(mu[i]))
+                 + Ui * p(np.array([y[i]]), phi, np.array(mu[i]))        
         z[i, :] = np.array([norm.ppf(j, 0) for j in F[i, :]])
         dFdphi[i, :] = np.array([np.sum(dpdphi(np.array(range(y[i])), phi, np.array(mu[i])))] * m) \
-                + U[i, :] * dpdphi(np.array([y[i]]), phi, np.array(mu[i]))
-        dFdmu[i, :] = np.array([np.sum(dpdmu(np.array(range(y[i])), phi, np.array(mu[i])))]) * m \
-                + U[i, :] * dpdmu(np.array([y[i]]), phi, np.array(mu[i]))
+                + Ui * dpdphi(np.array([y[i]]), phi, np.array(mu[i]))
+        dFdmu[i, :] = np.array([np.sum(dpdmu(np.array(range(y[i])), phi, np.array(mu[i])))] * m) \
+                + Ui * dpdmu(np.array([y[i]]), phi, np.array(mu[i])) #Wrong!
         dzdphi[i, :] = dFdphi[i, :] / norm.pdf(z[i, :])
         dzdmu[i, :] = dFdmu[i, :] / norm.pdf(z[i, :])
+        #print dzdmu[i, :]
     dzdbeta = np.zeros((n, m, dimbeta))
     dmudbeta = np.zeros((n, dimbeta))
     for i in range(dimbeta):
         dmudbeta[:, i] = np.reshape(np.multiply(mu, np.reshape(XX[:, i], (n, 1))),(n,))
         dzdbeta[:,:,i] = dzdmu * np.array([dmudbeta[:,i]] * m).T
-
     T=np.zeros((1,m),float) 
     for j in range(m):
         zj = np.reshape(z[:,j], (n, 1))
@@ -70,46 +71,45 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
     if want_derivatives:
         dSigmadalphaR = np.multiply(-alphaN * H, np.exp(-H * alphaR))
         dSigmadalphaN = np.exp(-H * alphaR)
-        for ij in np.nonzero(H==0):
-            dSigmadalphaR[ij] = 0.
-            dSigmadalphaN[ij] = 0.
-
+        for i, j in zip(np.nonzero(H==0)[0], np.nonzero(H==0)[1]):
+            dSigmadalphaR[i,j] = 0.
+            dSigmadalphaN[i,j] = 0.
         dTdalphaR = np.zeros((1, m))
         dTdalphaN = np.zeros((1, m))
         dTdbeta = np.zeros((dimbeta, m))
-        dTdphi = np.zeros(1, m)
+        dTdphi = np.zeros((1, m))
         dldbeta = np.zeros((1,dimbeta))
-
+        SigmaInv1 = SigmaInv - np.eye(n)
         for j in range(m):
-            dTdalphaR[0, j] = np.dot(np.exp(-np.dot(z[:, j].T, \
-                    np.dot(SigmaInv - np.eye(n), z[:, j])) / 2.).T, \
-                    np.dot(np.dot(z[:, j].T, SigmaInv), \
-                    np.dot(dSigmadalphaR, np.dot(SigmaInv, z[:,j]))) / 2.)
-            dTdalphaN[0, j] = np.dot(np.exp(-np.dot(z[:, j].T, \
-                    np.dot(SigmaInv - np.eye(n), z[:, j])) / 2.).T, \
-                    np.dot(np.dot(z[:, j].T, SigmaInv), \
-                    np.dot(dSigmadalphaN, np.dot(SigmaInv, z[:,j]))) / 2.)    
-            dTdphi[0, j] = np.dot(np.dot(T[0, j], dzdphi[:, j]).T, \
-                    np.dot(SigmaInv - np.eye(n), z[:, j]))
+            zj = np.reshape(z[:,j], (n, 1))            
+            dTdalpha0 = np.dot(np.exp(np.dot(zj.T, np.dot(SigmaInv1, zj))/-2.), np.dot(zj.T, SigmaInv)) / 2.
+            dTdalphaR1 = np.dot(dSigmadalphaR, np.dot(SigmaInv, zj))
+            dTdalphaR[0, j] = np.dot(dTdalpha0,dTdalphaR1)
+            dTdalphaN1 = np.dot(dSigmadalphaN, np.dot(SigmaInv, zj))
+            dTdalphaN[0, j] = np.dot(dTdalpha0,dTdalphaN1)
+            dTdphi[0, j] = T[0, j]*np.dot(np.reshape(dzdphi[:, j], (1, n)), np.dot(SigmaInv1, zj))
             for i in range(dimbeta):
-                dTdbeta[i, j] = np.dot(np.dot(T[0, j], dzdbeta[:, j, i]).T, \
-                         np.dot(SigmaInb - np.eye(n), z[:, j]))
-
+                dTdbeta[i, j] = T[0, j]*np.dot(np.reshape(dzdbeta[:, j, i],(1,n)), \
+                         np.dot(SigmaInv1, zj))
         tr_dldalphaR = np.sum(np.diagonal(np.dot(SigmaInv, dSigmadalphaR)))
-        dldalphaR = (tr_dldalphaR - 1.) / (2. * meanT * np.mean(dTdalphaR))
+        dldalphaR = tr_dldalphaR / 2. - 1./ meanT * np.mean(dTdalphaR)
         tr_dldalphaN = np.sum(np.diagonal(np.dot(SigmaInv, dSigmadalphaN)))
-        dldalphaN = (tr_dldalphaN - 1.) / (2. * meanT * np.mean(dTdalphaN))
-        dldphi = (np.mean(dtdphi) / meanT) - np.sum(dpdphi(y, phi, mu) / \
+        dldalphaN = tr_dldalphaN / 2. -1. / meanT * np.mean(dTdalphaN)
+        dldphi = (np.mean(dTdphi) / meanT) - np.sum(dpdphi(y, phi, mu) / \
                 p(y, phi, mu))
         for i in range(dimbeta):
+            pdpdmumu = np.divide(np.multiply(np.reshape(dpdmu(y, phi, mu),(n,1)), mu),np.reshape(p(y,phi,mu),(n,1)))
             dldbeta[0, i] = (np.mean(dTdbeta[i, :].T) / meanT) - \
-                    np.sum(np.divide(np.multiply(np.multiply( \
-                    dpdmu(y, phi, mu), mu), XX[:, i]), \
-                    p(y,phi,mu)))
+                    np.sum(np.multiply(pdpdmumu, np.reshape(XX[:, i],(n,1))))
+        print p(y,phi,mu).shape, dpdmu(y, phi, mu).shape, XX[:, i].shape
+        eg = []
         eg0 = np.dot(dldalphaN, (alphaN*(1-alphaN)))
+        eg.append(eg0)
         eg1 = np.dot(dldalphaR, (alphaR*(1-(alphaR / B))))
+        eg.append(eg1)
         eg2 = dldphi * phi * (1 - phi / Bphi)
-        eg = np.array([[eg0, eg1, eg2, dldbeta]]).T
+        eg.append(eg2)
+        eg.append(dldbeta)
     return NLEL, eg
 
 # p(y,phi,mu) is the negative binomial probability mass function with parameters phi and mu.
@@ -138,13 +138,16 @@ def dpdphi(y,phi,mu):
             fac3 = ((1+phi2)**y[i])-2.*prodphi**(phi2*mu[i])/((1+phi2)**y[i])*y[i]*phi/(1+phi2)
             dpdphi[i] = fac1*fac2/fac3
         else:
+            '''
             fac1 = -1./y[i]/beta(phi2*mu[i],y[i])*prodphi**(phi2*mu[i])/((1+phi2)**y[i])
-            fac2 = 2.*phi*mu[i]*psi(phi2*mu[i])-2.*phi*mu[i]*psi(y[i]+phi2*mu[i])
-            fac3 = 1./y[i]/beta(phi2*mu[i],y[i])*prodphi**(phi2*mu[i])
-            fac4 = 2.*phi*mu[i]*np.log(prodphi)+mu[i]*(2.*phi/(1+phi2)-2.*phi**3./(1+phi2)**2)*(1+phi**2)
+            fac2 = 2.*phi*mu[i]*psi(phi2*mu[i])-2.*phi*mu[i]*psi(y[i]+phi2*mu[i])+1./y[i]
+            fac3 = beta(phi2*mu[i],y[i])*prodphi**(phi2*mu[i])
+            fac4 = 2.*phi*mu[i]*np.log(prodphi)+mu[i]*(2.*phi/(1+phi2)-2.*phi**3./(1+phi2)**2)*(1+phi2)
             fac5 = ((1+phi2)**y[i])-2./beta(phi2*mu[i],y[i])
             fac6 = prodphi**(phi2*mu[i])/((1+phi2)**y[i])*phi/(1+phi2)
-            dpdphi[i] = fac1*fac2+fac3*fac4/fac5*fac6
+            dpdphi[i] = fac1*fac2/fac3*fac4/fac5*fac6
+            '''
+            dpdphi[i] = -1./y[i]/beta(phi2*mu[i],y[i])*prodphi**(phi2*mu[i])/((1+phi2)**y[i])*(2.*phi*mu[i]*psi(phi2*mu[i])-2.*phi*mu[i]*psi(y[i]+phi2*mu[i]))+1./y[i]/beta(phi2*mu[i],y[i])*prodphi**(phi2*mu[i])*(2.*phi*mu[i]*np.log(prodphi)+mu[i]*(2.*phi/(1+phi2)-2.*phi**3./(1+phi2)**2)*(1+phi2))/((1+phi2)**y[i])-2./beta(phi2*mu[i],y[i])*prodphi**(phi2*mu[i])/((1+phi2)**y[i])*phi/(1+phi2)
     return dpdphi
 
 # dpdmu(y,phi,mu) is the derivative of p(y,phi,mu) with respect to mu.
