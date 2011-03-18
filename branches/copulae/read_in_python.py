@@ -1,6 +1,8 @@
 import pysal
 import numpy as np
 from madsen import negLogEL
+from scipy.optimize import fmin_l_bfgs_b
+import scipy.optimize as op
 
 a = []
 txt_link = 'matlab/LocOMGrubs.txt'
@@ -32,15 +34,24 @@ muY = np.exp(np.dot(XX, beta0))
 vy = (y - muY)**2
 
 phi0 = 4.3478
-
-theta0 = [np.log(alphaN0/(1-alphaN0)), np.log((alphaR0/B)/(1-alphaR0/B)), np.log((phi0/Bphi)/(1-phi0/Bphi)), beta0]
+theta0 = []
+theta0.append(np.log(alphaN0/(1-alphaN0)))
+theta0.append(np.log((alphaR0/B)/(1-alphaR0/B)))
+theta0.append(np.log((phi0/Bphi)/(1-phi0/Bphi)))
+for i in beta0:
+    theta0.append(float(i))
+#theta0 = [np.log(alphaN0/(1-alphaN0)), np.log((alphaR0/B)/(1-alphaR0/B)), np.log((phi0/Bphi)/(1-phi0/Bphi)), beta0]
 dimbeta = beta0.shape[0]
-
-numu = 10
-U = np.random.uniform(0, 1, (n, numu))
+numu = 20
+#U = np.random.uniform(0, 1, (n, numu))
 #np.savetxt('U.txt',U,delimiter=",")
-#U = np.loadtxt('U.txt',delimiter=",")
+U = np.loadtxt('U.txt',delimiter=",")
+print np.array(theta0)
+bounds=[(0.,1.),(None,B),(None,Bphi),(None,None),(None,None),(None,None),(None,None)]
+par_hat = negLogEL(np.array(theta0), y, U, XX, H, dimbeta, B, Bphi, want_derivatives=1)
+ll_func = lambda par: negLogEL(par, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=1)
+par_hat = fmin_l_bfgs_b(ll_func, np.array(theta0), iprint=1)
+#par_hat = op.fmin(ll_func, np.array(theta0), retall=True)
 
-l = negLogEL(theta0, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=1)
 print '$$$$$$$$$$$$$$$$$$$$$$'
-print l
+print par_hat

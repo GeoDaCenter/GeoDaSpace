@@ -23,8 +23,7 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
         phi = Bphi
     else:
         phi = Bphi * np.exp(theta[2]) / (1 + np.exp(theta[2]))
-    betanew = theta[3]
-
+    betanew = np.reshape(np.array(theta[3:]),(dimbeta,1))
     Sigma = alphaN * np.exp(-H * alphaR)
     for i, j in zip(np.nonzero(H==0)[0], np.nonzero(H==0)[1]):
         Sigma[i, j] = 1.
@@ -38,15 +37,15 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
     dFdmu = np.zeros((n,m))
     dzdphi = np.zeros((n,m))
     dzdmu = np.zeros((n,m))
-
     for i in range(n):
         Ui = np.reshape(U[i, :],(1,m))
-        F[i, :] = np.array([np.sum(p(np.array(range(y[i])), phi, np.array(mu[i])))] * m) \
-                 + Ui * p(np.array([y[i]]), phi, np.array(mu[i]))        
+        F[i, :] = np.array([np.sum(p(np.array(range(int(round(y[i])))), phi, np.array(mu[i])))] * m) \
+                 + Ui * p(np.array([y[i]]), phi, np.array(mu[i]))
+        print np.sum(p(np.array(range(int(round(y[i])))), phi, np.array(mu[i]))),Ui, p(np.array([y[i]]), phi, np.array(mu[i]))
         z[i, :] = np.array([norm.ppf(j, 0) for j in F[i, :]])
-        dFdphi[i, :] = np.array([np.sum(dpdphi(np.array(range(y[i])), phi, np.array(mu[i])))] * m) \
+        dFdphi[i, :] = np.array([np.sum(dpdphi(np.array(range(int(round(y[i])))), phi, np.array(mu[i])))] * m) \
                 + Ui * dpdphi(np.array([y[i]]), phi, np.array(mu[i]))
-        dFdmu[i, :] = np.array([np.sum(dpdmu(np.array(range(y[i])), phi, np.array(mu[i])))] * m) \
+        dFdmu[i, :] = np.array([np.sum(dpdmu(np.array(range(int(round(y[i])))), phi, np.array(mu[i])))] * m) \
                 + Ui * dpdmu(np.array([y[i]]), phi, np.array(mu[i]))
         dzdphi[i, :] = dFdphi[i, :] / norm.pdf(z[i, :])
         dzdmu[i, :] = dFdmu[i, :] / norm.pdf(z[i, :])
@@ -60,8 +59,12 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
         zj = np.reshape(z[:,j], (n, 1))
         T[0, j]=np.exp(-0.5*np.dot(zj.T,np.dot((SigmaInv-np.eye(n)),zj)))
     meanT=np.mean(T)
+    #print zj.T
     # Calculate the negative log expected likelihood.
     NLEL=1./2.*logdetSigma-sum(np.log(p(y,phi,mu)))-np.log(meanT)
+    print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+    print NLEL
+    print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
 
     #if nargout > 1 % If derivatives are requested, calculate them
     eg = None
@@ -105,8 +108,9 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
         eg.append(eg1)
         eg2 = dldphi * phi * (1 - phi / Bphi)
         eg.append(eg2)
-        eg.append(dldbeta)
-    return NLEL, eg
+        for i in dldbeta.T:
+            eg.append(float(i))
+    return NLEL, np.array(eg)
 
 # p(y,phi,mu) is the negative binomial probability mass function with parameters phi and mu.
 def p(y,phi,mu):
@@ -117,7 +121,7 @@ def p(y,phi,mu):
         if y[i]==0:
             p[i]=(phi**2./(1+phi**2))**(phi**2.*mu[i])
         else:
-            p[i]=1./(y[i]*beta(y[i],phi**2.*mu[i]))*(phi**2/(1+phi**2))**(phi**2.*mu[i])*(1./(1+phi**2)**y[i]) #beta?
+            p[i]=1./(y[i]*beta(y[i],phi**2.*mu[i]))*(phi**2/(1+phi**2))**(phi**2.*mu[i])*(1./(1+phi**2)**y[i])
     return p
 
 # dpdphi(y,phi,mu) is the derivative of p(y,phi,mu) with respect to phi.
