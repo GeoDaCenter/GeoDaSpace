@@ -25,7 +25,7 @@ XX = np.hstack((np.ones((n, 1)), XX, XX**2, XX**3))
 alphaN0 = 0.5
 alphaR0 = 0.1052
 
-beta0 = np.array([[-25.3649],[12.5260],[-1.9425],[0.0936]])
+beta0 = np.array([[-25.3640],[12.5260],[-1.9425],[0.0936]])
 
 y = a[:, 3]
 muY = np.exp(np.dot(XX, beta0))
@@ -36,10 +36,10 @@ phi0 = 4.3478
 theta0 = [np.log(alphaN0/(1-alphaN0)), np.log((alphaR0/B)/(1-alphaR0/B)), np.log((phi0/Bphi)/(1-phi0/Bphi)), beta0]
 dimbeta = beta0.shape[0]
 
-numu = 2
-#U = np.random.uniform(0, 1, (n, numu))
+numu = 10
+U = np.random.uniform(0, 1, (n, numu))
 #np.savetxt('U.txt',U,delimiter=",")
-U = np.loadtxt('U.txt',delimiter=",")
+#U = np.loadtxt('U.txt',delimiter=",")
 
 l = negLogEL(theta0, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=1)
 print '$$$$$$$$$$$$$$$$$$$$$$'
