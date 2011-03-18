@@ -47,10 +47,9 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
         dFdphi[i, :] = np.array([np.sum(dpdphi(np.array(range(y[i])), phi, np.array(mu[i])))] * m) \
                 + Ui * dpdphi(np.array([y[i]]), phi, np.array(mu[i]))
         dFdmu[i, :] = np.array([np.sum(dpdmu(np.array(range(y[i])), phi, np.array(mu[i])))] * m) \
-                + Ui * dpdmu(np.array([y[i]]), phi, np.array(mu[i])) #Wrong!
+                + Ui * dpdmu(np.array([y[i]]), phi, np.array(mu[i]))
         dzdphi[i, :] = dFdphi[i, :] / norm.pdf(z[i, :])
         dzdmu[i, :] = dFdmu[i, :] / norm.pdf(z[i, :])
-        #print dzdmu[i, :]
     dzdbeta = np.zeros((n, m, dimbeta))
     dmudbeta = np.zeros((n, dimbeta))
     for i in range(dimbeta):
@@ -61,12 +60,10 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
         zj = np.reshape(z[:,j], (n, 1))
         T[0, j]=np.exp(-0.5*np.dot(zj.T,np.dot((SigmaInv-np.eye(n)),zj)))
     meanT=np.mean(T)
-
     # Calculate the negative log expected likelihood.
     NLEL=1./2.*logdetSigma-sum(np.log(p(y,phi,mu)))-np.log(meanT)
 
     #if nargout > 1 % If derivatives are requested, calculate them
-    # Finish lines 93 - 121
     eg = None
     if want_derivatives:
         dSigmadalphaR = np.multiply(-alphaN * H, np.exp(-H * alphaR))
@@ -101,7 +98,6 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
             pdpdmumu = np.divide(np.multiply(np.reshape(dpdmu(y, phi, mu),(n,1)), mu),np.reshape(p(y,phi,mu),(n,1)))
             dldbeta[0, i] = (np.mean(dTdbeta[i, :].T) / meanT) - \
                     np.sum(np.multiply(pdpdmumu, np.reshape(XX[:, i],(n,1))))
-        print p(y,phi,mu).shape, dpdmu(y, phi, mu).shape, XX[:, i].shape
         eg = []
         eg0 = np.dot(dldalphaN, (alphaN*(1-alphaN)))
         eg.append(eg0)
@@ -138,15 +134,6 @@ def dpdphi(y,phi,mu):
             fac3 = ((1+phi2)**y[i])-2.*prodphi**(phi2*mu[i])/((1+phi2)**y[i])*y[i]*phi/(1+phi2)
             dpdphi[i] = fac1*fac2/fac3
         else:
-            '''
-            fac1 = -1./y[i]/beta(phi2*mu[i],y[i])*prodphi**(phi2*mu[i])/((1+phi2)**y[i])
-            fac2 = 2.*phi*mu[i]*psi(phi2*mu[i])-2.*phi*mu[i]*psi(y[i]+phi2*mu[i])+1./y[i]
-            fac3 = beta(phi2*mu[i],y[i])*prodphi**(phi2*mu[i])
-            fac4 = 2.*phi*mu[i]*np.log(prodphi)+mu[i]*(2.*phi/(1+phi2)-2.*phi**3./(1+phi2)**2)*(1+phi2)
-            fac5 = ((1+phi2)**y[i])-2./beta(phi2*mu[i],y[i])
-            fac6 = prodphi**(phi2*mu[i])/((1+phi2)**y[i])*phi/(1+phi2)
-            dpdphi[i] = fac1*fac2/fac3*fac4/fac5*fac6
-            '''
             dpdphi[i] = -1./y[i]/beta(phi2*mu[i],y[i])*prodphi**(phi2*mu[i])/((1+phi2)**y[i])*(2.*phi*mu[i]*psi(phi2*mu[i])-2.*phi*mu[i]*psi(y[i]+phi2*mu[i]))+1./y[i]/beta(phi2*mu[i],y[i])*prodphi**(phi2*mu[i])*(2.*phi*mu[i]*np.log(prodphi)+mu[i]*(2.*phi/(1+phi2)-2.*phi**3./(1+phi2)**2)*(1+phi2))/((1+phi2)**y[i])-2./beta(phi2*mu[i],y[i])*prodphi**(phi2*mu[i])/((1+phi2)**y[i])*phi/(1+phi2)
     return dpdphi
 
