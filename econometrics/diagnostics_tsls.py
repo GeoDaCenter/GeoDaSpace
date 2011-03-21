@@ -6,7 +6,9 @@ Diagnostics for two stage least squares regression estimations.
 import pysal
 from pysal.common import *
 from math import sqrt
-import pysal.spreg.ols as OLS
+from econometrics.twosls import BaseTSLS as TSLS
+from pysal.spreg.ols import BaseOLS as OLS
+
 
 
 def f_stat_tsls(reg):
@@ -60,7 +62,7 @@ def f_stat_tsls(reg):
     predy = reg.predy    # (array) vector of predicted values (n x 1)
     mean_y = reg.mean_y  # (scalar) mean of dependent observations
     Q = utu
-    ssr_intercept = OLS.BaseOLS(reg.y, np.ones(reg.y.shape), constant=False).utu
+    ssr_intercept = OLS(reg.y, np.ones(reg.y.shape), constant=False).utu
     u_2nd_stage = reg.y - np.dot(reg.xp, reg.betas)
     ssr_2nd_stage = np.sum(u_2nd_stage**2)
     U = ssr_intercept - ssr_2nd_stage
@@ -143,57 +145,91 @@ def t_stat(reg, z_stat=False):
 
 
 
-def hausman(olsreg,tslsreg):
+def wuhausman(tslsreg):
     """
-    Computes the Hausman specification test in the form of a Wald statistic.
+    Computes the Wu-Hausman specification test in the form of an F test as 
+    formulated by Wu. The Wald statistic advocated by Hausman is avoided 
+    due to the fact that it requires a potentially unstable inverse. 
 
     Parameters
     ----------
-    olsreg          : ordinary least squares regression object
-                      output instance from an ordinary least squares
-                      regression model
-    tlsreg          : two stage least squares regression object
-                      output instance from a two stage least squares
-                      regression model
+    tlsreg              : two stage least squares regression object
+                          output instance from a two stage least squares
+                          regression model
 
     Returns
     -------
-    hausman_result  : dictionary
-                      contains the statistic (hausman), degrees of freedom
-                     (df) and the associated p-value (pvalue) for the test. 
-    hausman         : float
-                      scalar value for the Hausman test statistic.
-    df              : integer
-                      degrees of freedom associated with the test
-    pvalue          : float
-                      p-value associated with the statistic (chi^2
-                      distributed with kstar degrees of freedom)
+    wuhausman_result    : dictionary
+                          contains the statistic (stat) and the associated
+                          p-value (pvalue) for the test. 
+    stat                : float
+                          scalar value for the F test statistic associated 
+                          with the formulation of the test by Wu.
+    pvalue              : float
+                          p-value associated with the statistic (F-
+                          distributed with kstar and n-k-kstar degrees of
+                          freedom)
                       
     References
     ----------
-    .. [1] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper
+    .. [1] D. Wu. 1973. Alternative tests of independence between
+       stochastic regressors and disturbances. Econometrica. 41(4):733-750. 
+    .. [2] W. Greene. 2003. Econometric Analysis. Prentice Hall, Upper
        Saddle River.
 
     Examples
     --------
-
+    >>> db = pysal.open("examples/greene5_1.csv","r")
+    >>> y = []
+    >>> y.append(db.by_col('ct'))
+    >>> y = np.array(y).T
+    >>> X = []
+    >>> X.append(db.by_col('tbilrate'))
+    >>> X.append(db.by_col('clag'))
+    >>> X = np.array(X).T
+    >>> yd = []
+    >>> yd.append(db.by_col('yt'))
+    >>> yd = np.array(yd).T
+    >>> q = []
+    >>> q.append(db.by_col('ylag'))
+    >>> q = np.array(q).T
+    >>> tslsreg = TSLS(y, X, yd, q=q)
+    >>> result = wuhausman(tslsreg)
+    >>> print("%2.6f"%result['stat'])
+    28.576893
+    >>> print("%2.6f"%result['pvalue'])
+    0.000000
     """
-    b_iv = tlsreg.delta
-    b_ls = olsreg.betas
-    v_iv = tlsreg.xptxpi
-    v_ls = olsreg.xtxi
-    sig2 = olsreg.sig2n_k   # Greene specifies this is the correct sig2 to use, Stata gives an option     
-    df = tlsreg.kstar       # degrees of freedom specified by Greene, Stata uses tlsreg.k 
+    kstar = tslsreg.kstar
+    k = tslsreg.k
+    n = tslsreg.n
+    y = tslsreg.y
+    yd = tslsreg.yend
+    z = tslsreg.h   #matrix of exogenous x and instruments for endogenous
+    x = tslsreg.z   #matrix of exogenous x and endogenous
 
-    d = b_iv-b_ls
-    dt = d.T
-    part1 = la.pinv(v_iv-v_ls)
-    part2 = np.dot(dt,part1)
-    part3 = np.dot(part2,d)
-    hausman = part3/sig2
-    pvalue=stats.chisqprob(hausman,df)
-    hausman_result = {'hausman':hausman,'df':df,'pvalue':pvalue}
-    return hausman_result
+    # creating predictions for X* in Greene's equation 5-24
+    # NOTE - not currently sure how to handle multiple endogenous and
+    # instruments, this needs to be discussed
+    full = x
+    for i in range(kstar):
+        part1 = OLS(yd[:,i],z,constant=False)
+        ydhat = np.reshape(part1.predy,(n,1))
+        full = np.hstack((full,ydhat))
+
+    # although a t-statistic could be used in the case of
+    # a single variable, it was simpler to just use an F
+    # test for all cases
+    ssr_ur = OLS(y,full,constant=False).utu
+    ssr_r = OLS(y,x,constant=False).utu
+
+    # calculate the F test and significance
+    num = (ssr_r-ssr_ur)/kstar
+    den = ssr_ur/(n-k-kstar)
+    fstat = num/den
+    pvalue = stats.f.sf(fstat,kstar,(n-k-kstar))
+    wuhausman_result = {'stat':fstat,'pvalue':pvalue}
+    return wuhausman_result 
 
 
 
