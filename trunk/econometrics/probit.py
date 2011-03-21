@@ -201,6 +201,19 @@ class probit: #DEV class required.
             self._cache['LR'] = (LR,stats.chisqprob(LR,self.k))
         return self._cache['LR']
     @property
+    def u_naive(self):
+        if 'u_naive' not in self._cache:
+            u_naive = self.y - self.predy
+            self._cache['u_naive'] = u_naive
+        return self._cache['u_naive']
+    @property
+    def u_gen(self):
+        if 'u_gen' not in self._cache:
+            Phi_prod = self.predy * (1 - self.predy)
+            u_gen = self.phiy * (self.u_naive / Phi_prod)
+            self._cache['u_gen'] = u_gen
+        return self._cache['u_gen']
+    @property
     def LM_error(self): #LM error and Moran's I tests are calculated together.
         if 'LM_error' not in self._cache: 
             if self.w:
@@ -209,8 +222,8 @@ class probit: #DEV class required.
                 Phi = self.predy
                 #LM_error:
                 Phi_prod = Phi * (1 - Phi)
-                u_naive = self.y - Phi
-                u_gen = phi * (u_naive / Phi_prod)
+                u_naive = self.u_naive
+                u_gen = self.u_gen
                 sig2 = np.sum((phi * phi) / Phi_prod) / self.n
                 LM_err_num = np.dot(u_gen.T,(w * u_gen))**2
                 trWW_WpW = np.sum(((w*w)+(w.T*w)).diagonal())
