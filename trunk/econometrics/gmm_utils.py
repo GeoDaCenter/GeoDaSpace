@@ -79,14 +79,19 @@ def optim_moments(moments, vcX=np.array([0])):
         moments[0] = np.dot(Ec,moments[0])
         moments[1] = np.dot(Ec,moments[1])
     if moments[0].shape[0] == 2:
-        lambdaX = op.fmin_l_bfgs_b(foptim_2par,[0.0],args=[moments],approx_grad=True,bounds=[(-1.0,1.0)])
+        optim_par = lambda par: foptim_par(np.array([[float(par[0]),float(par[0])**2.]]).T,moments)
+        start = [0.0]
+        bounds=[(-1.0,1.0)]
     if moments[0].shape[0] == 3:
-        lambdaX = op.fmin_l_bfgs_b(foptim_3par,[0.0,0.0],args=[moments],approx_grad=True,bounds=[(-1.0,1.0),(None,None)])
+        optim_par = lambda par: foptim_par(np.array([[float(lambdapar[0]),float(lambdapar[0])**2.,lambdapar[1]]]).T,moments)
+        start = [0.0,0.0]
+        bounds=[(-1.0,1.0),(0,None)]        
+    lambdaX = op.fmin_l_bfgs_b(optim_par,start,approx_grad=True,bounds=bounds)
     return lambdaX[0][0]
 
-def foptim_2par(lambdapar,moments):
+def foptim_par(par,moments):
     """ 
-    Preparation of the function of 2 moments for minimization
+    Preparation of the function of moments for minimization
     ...
 
     Parameters
@@ -104,25 +109,13 @@ def foptim_2par(lambdapar,moments):
                       sum of square residuals (e) of the equation system 
                       moments.g - moments.G * lambdapar = e
     """
-    par=np.array([float(lambdapar[0]),float(lambdapar[0])**float(2)])
-    vv=np.inner(moments[0],par)
-    vv2=np.reshape(vv,[2,1])-moments[1]
+    vv=np.dot(moments[0],par)
+    vv2=vv-moments[1]
     return sum(vv2**2)
-
-def foptim_3par(lambdapar,moments):
-    """
-    Preparation of moments for minimization in a GMSWLS framework
-    """
-    par=np.array([[float(lambdapar[0]),float(lambdapar[0])**2., lambdapar[1]]]).T
-    vv = np.dot(moments[0], par)
-    vv = vv - moments[1]
-    return sum(vv**2)
 
 def get_spFilter(w,lamb,sf):
     '''
-    [COPIED to spError] --> Duplicated!!!
-
-    compute the spatially filtered variables
+    Compute the spatially filtered variables
     
     Parameters
     ----------
