@@ -113,7 +113,7 @@ def akTest(iv, w, spDcache):
     nztpzi = w.n * la.inv(ztpz)
     a = np.dot((etwz / w.n), np.dot(nztpzi, (etwz.T / w.n)))
     s12 = (w.s0 / w.n)**2
-    # s2
+    ## s2
     s2 = w.sparse + w.sparse.T
     s2 = s2 * s2
     s2 = np.sum(s2.diagonal()) / w.n

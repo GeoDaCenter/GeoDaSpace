@@ -10,6 +10,8 @@ import numpy as np
 import numpy.linalg as la
 import pysal.spreg.ols as OLS
 from pysal.spreg.diagnostics import se_betas
+from econometrics.gmm_utils import get_A1, optim_moments, get_spFilter
+import econometrics.twosls as TSLS
 
 from pysal.spreg.diagnostics_sp import LMtests
 
@@ -108,7 +110,7 @@ class GMSWLS:
         ols = OLS.BaseOLS(y, x, constant=False)
 
         #1b. GMM --> \tilde{\lambda1}
-        moments = self._momentsGMSWLS(w, ols.u)
+        moments = _momentsGMSWLS(w, ols.u)
         lambda1 = self._optimizer_gmswls(moments)[0][0]
 
         #2a. OLS -->\hat{betas}
@@ -121,38 +123,9 @@ class GMSWLS:
         self.lamb = lambda1
         self.sig2 = ols.sig2n
         self.u = ols.u
-        self.se_betas, self.z, self.pvals = self._inference(ols)
+
+        self.se_betas, self.z, self.pvals = _inference(ols)
         self.step2OLS = ols
-
-    def _inference(self, ols):
-        """
-        Inference for estimated coefficients
-        Coded as in GMerrorsar from R (which matches) using se_betas from diagnostics module
-        """
-        c = np.sqrt((ols.n-ols.k) / float(ols.n))
-        ses = np.array([se_betas(ols) * c]).T
-        zs = ols.betas / ses
-        pvals = norm.sf(abs(zs)) * 2.
-        return [ses, zs, pvals]
-
-    def _momentsGMSWLS(self, w, u):
-
-        u2 = np.dot(u.T, u)
-        wu = w.sparse * u
-        uwu = np.dot(u.T, wu)
-        wu2 = np.dot(wu.T, wu)
-        wwu = w.sparse * wu
-        uwwu = np.dot(u.T, wwu)
-        wwu2 = np.dot(wwu.T, wwu)
-        wuwwu = np.dot(wu.T, wwu)
-        wtw = w.sparse.T * w.sparse
-        trWtW = np.sum(wtw.diagonal())
-
-        g = np.array([[u2[0][0], wu2[0][0], uwu[0][0]]]).T / w.n
-
-        G = np.array([[2 * uwu[0][0], -wu2[0][0], w.n], [2 * wuwwu[0][0], -wwu2[0][0], trWtW], [uwwu[0][0] + wu2[0][0], -wuwwu[0][0], 0.]]) / w.n
-
-        return [G, g]
 
     def _optimizer_gmswls(self, moments):
         """
@@ -194,6 +167,90 @@ class GMSWLS:
         vv = np.dot(moments[0], par)
         vv = vv - moments[1]
         return sum(vv**2)
+
+
+def _inference(ols):
+    """
+    Inference for estimated coefficients
+    Coded as in GMerrorsar from R (which matches) using se_betas from diagnostics module
+    """
+    c = np.sqrt((ols.n-ols.k) / float(ols.n))
+    ses = np.array([se_betas(ols) * c]).T
+    zs = ols.betas / ses
+    pvals = norm.sf(abs(zs)) * 2.
+    return [ses, zs, pvals]
+
+def _momentsGMSWLS(w, u):
+
+    u2 = np.dot(u.T, u)
+    wu = w.sparse * u
+    uwu = np.dot(u.T, wu)
+    wu2 = np.dot(wu.T, wu)
+    wwu = w.sparse * wu
+    uwwu = np.dot(u.T, wwu)
+    wwu2 = np.dot(wwu.T, wwu)
+    wuwwu = np.dot(wu.T, wwu)
+    wtw = w.sparse.T * w.sparse
+    trWtW = np.sum(wtw.diagonal())
+
+    g = np.array([[u2[0][0], wu2[0][0], uwu[0][0]]]).T / w.n
+
+    G = np.array([[2 * uwu[0][0], -wu2[0][0], w.n], [2 * wuwwu[0][0], -wwu2[0][0], trWtW], [uwwu[0][0] + wu2[0][0], -wuwwu[0][0], 0.]]) / w.n
+
+    return [G, g]
+
+class GSTSLS:
+    '''
+    Examples
+    --------
+
+    >>> dbf = pysal.open('examples/columbus.dbf','r')
+    >>> y = np.array([dbf.by_col('CRIME')]).T
+    >>> x = np.array([dbf.by_col('INC')]).T
+    >>> yend = np.array([dbf.by_col('HOVAL')]).T
+    >>> q = np.array([dbf.by_col('DISCBD')]).T
+    >>> w = pysal.open('examples/columbus.gal', 'r').read() 
+    >>> w.transform='r'
+    >>> model = GSTSLS(y, x, w, yend, q)
+    >>> np.around(model.betas, decimals=6)
+    array([[ 47.694634],
+           [  0.710453],
+           [ -0.550527]])
+    >>> np.around(model.se_betas, decimals=6)
+    array([[ 12.412039],
+           [  0.504443],
+           [  0.178496]])
+
+    '''
+    def __init__(self, y, x, w, yend, q, constant=True):
+        w.A1 = get_A1(w.sparse)
+
+        if constant:
+            x = np.hstack((np.ones(y.shape),x))
+        n, k = x.shape
+
+        #1a. TSLS --> \tilde{betas}
+        tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=False)
+
+        #1b. GMM --> \tilde{\lambda1}
+        moments = _momentsGMSWLS(w, tsls.u)
+        lambda1 = optim_moments(moments)
+
+        #2a. OLS -->\hat{betas}
+        x_s,y_s = get_spFilter(w, lambda1, x),get_spFilter(w, lambda1, y)
+        yend_s = get_spFilter(w, lambda1, yend)
+
+        tsls2 = TSLS.BaseTSLS(y_s, x_s, yend_s, h=tsls.h, constant=False)
+
+        #Output
+        self.betas = np.vstack((tsls2.betas, np.array([[lambda1]])))
+        self.u = y - np.dot(tsls.z, tsls2.betas)
+        sig2 = np.dot(tsls2.u.T,tsls2.u) / n
+        vc = sig2 * la.inv(np.dot(tsls2.z.T,tsls2.z))
+        print np.sqrt(vc.diagonal())
+        self.se_betas, z, self.pvals = _inference(tsls2)
+        print self.se_betas
+
 
 def get_A1(S):
     """
