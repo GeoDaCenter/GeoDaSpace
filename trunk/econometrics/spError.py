@@ -168,6 +168,106 @@ class GMSWLS:
         vv = vv - moments[1]
         return sum(vv**2)
 
+class GSTSLS:
+    '''
+    Generalized Spatial Two Stages Least Squares (TSLS + GMM) using spatial
+    error from Kelejian and Prucha (1998) [1]_ and Kelejian and Prucha (1999) [2]_
+    ...
+
+    Parameters
+    ----------
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  nxk array of independent variables (assumed to be aligned with y)
+    w           : W
+                  Spatial weights instance 
+    yend        : array
+                  endogenous variables
+    q           : array
+                  array of external exogenous variables to use as instruments;
+                  (note: this should not contain any variables from x; all x
+    constant    : boolean
+                  If true it appends a vector of ones to the independent variables
+                  to estimate intercept (set to True by default)
+
+    Attributes
+    ----------
+
+    betas       : array
+                  (k+1)x1 array with estimated coefficients (betas + lambda)
+    se_betas    : array
+                  kx1 array with standard errors for estimated coefficients
+    pvals       : array
+                  kx1 array with p-values of the estimated coefficients
+    u           : array
+                  Vector of residuals (Note it employs original x and y
+                  instead of the spatially filtered ones)
+    sig2        : float
+                  Sigma squared for the residuals of the transformed model 
+
+
+    References
+    ----------
+
+    .. [1] Kelejian, H.R., Prucha, I.R. (1998) "A generalized spatial
+    two-stage least squares procedure for estimating a spatial autoregressive
+    model with autoregressive disturbances". The Journal of Real State
+    Finance and Economics, 17, 1.
+
+    .. [2] Kelejian, H.R., Prucha, I.R. (1999) "A Generalized Moments
+    Estimator for the Autoregressive Parameter in a Spatial Model".
+    International Economic Review, 40, 2.
+
+    Examples
+    --------
+
+    >>> dbf = pysal.open('examples/columbus.dbf','r')
+    >>> y = np.array([dbf.by_col('CRIME')]).T
+    >>> x = np.array([dbf.by_col('INC')]).T
+    >>> yend = np.array([dbf.by_col('HOVAL')]).T
+    >>> q = np.array([dbf.by_col('DISCBD')]).T
+    >>> w = pysal.open('examples/columbus.gal', 'r').read() 
+    >>> w.transform='r'
+    >>> model = GSTSLS(y, x, w, yend, q)
+    >>> np.around(model.betas, decimals=6)
+    array([[ 82.57298 ],
+           [  0.580959],
+           [ -1.448077],
+           [  0.349917]])
+    >>> np.around(model.se_betas, decimals=6)
+    array([[ 9.90073 ],
+           [ 0.667087],
+           [ 0.190239]])
+    '''
+    def __init__(self, y, x, w, yend, q, constant=True):
+        w.A1 = get_A1(w.sparse)
+
+        if constant:
+            x = np.hstack((np.ones(y.shape),x))
+        n, k = x.shape
+
+        #1a. TSLS --> \tilde{betas}
+        tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=False)
+
+        #1b. GMM --> \tilde{\lambda1}
+        moments = _momentsGMSWLS(w, tsls.u)
+        lambda1 = optim_moments(moments)
+
+        #2a. OLS -->\hat{betas}
+        x_s,y_s = get_spFilter(w, lambda1, x),get_spFilter(w, lambda1, y)
+        yend_s = get_spFilter(w, lambda1, yend)
+
+        tsls2 = TSLS.BaseTSLS(y_s, x_s, yend_s, h=tsls.h, constant=False)
+
+        #Output
+        self.betas = np.vstack((tsls2.betas, np.array([[lambda1]])))
+        self.u = y - np.dot(tsls.z, tsls2.betas)
+        sig2 = np.dot(tsls2.u.T,tsls2.u) / n
+        vc = sig2 * la.inv(np.dot(tsls2.z.T,tsls2.z))
+        self.se_betas = np.sqrt(vc.diagonal()).reshape(tsls2.betas.shape)
+        zs = tsls2.betas / self.se_betas
+        self.pvals = norm.sf(abs(zs)) * 2.
 
 def _inference(ols):
     """
@@ -198,59 +298,6 @@ def _momentsGMSWLS(w, u):
     G = np.array([[2 * uwu[0][0], -wu2[0][0], w.n], [2 * wuwwu[0][0], -wwu2[0][0], trWtW], [uwwu[0][0] + wu2[0][0], -wuwwu[0][0], 0.]]) / w.n
 
     return [G, g]
-
-class GSTSLS:
-    '''
-    Examples
-    --------
-
-    >>> dbf = pysal.open('examples/columbus.dbf','r')
-    >>> y = np.array([dbf.by_col('CRIME')]).T
-    >>> x = np.array([dbf.by_col('INC')]).T
-    >>> yend = np.array([dbf.by_col('HOVAL')]).T
-    >>> q = np.array([dbf.by_col('DISCBD')]).T
-    >>> w = pysal.open('examples/columbus.gal', 'r').read() 
-    >>> w.transform='r'
-    >>> model = GSTSLS(y, x, w, yend, q)
-    >>> np.around(model.betas, decimals=6)
-    array([[ 47.694634],
-           [  0.710453],
-           [ -0.550527]])
-    >>> np.around(model.se_betas, decimals=6)
-    array([[ 12.412039],
-           [  0.504443],
-           [  0.178496]])
-
-    '''
-    def __init__(self, y, x, w, yend, q, constant=True):
-        w.A1 = get_A1(w.sparse)
-
-        if constant:
-            x = np.hstack((np.ones(y.shape),x))
-        n, k = x.shape
-
-        #1a. TSLS --> \tilde{betas}
-        tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=False)
-
-        #1b. GMM --> \tilde{\lambda1}
-        moments = _momentsGMSWLS(w, tsls.u)
-        lambda1 = optim_moments(moments)
-
-        #2a. OLS -->\hat{betas}
-        x_s,y_s = get_spFilter(w, lambda1, x),get_spFilter(w, lambda1, y)
-        yend_s = get_spFilter(w, lambda1, yend)
-
-        tsls2 = TSLS.BaseTSLS(y_s, x_s, yend_s, h=tsls.h, constant=False)
-
-        #Output
-        self.betas = np.vstack((tsls2.betas, np.array([[lambda1]])))
-        self.u = y - np.dot(tsls.z, tsls2.betas)
-        sig2 = np.dot(tsls2.u.T,tsls2.u) / n
-        vc = sig2 * la.inv(np.dot(tsls2.z.T,tsls2.z))
-        print np.sqrt(vc.diagonal())
-        self.se_betas, z, self.pvals = _inference(tsls2)
-        print self.se_betas
-
 
 def get_A1(S):
     """
@@ -381,13 +428,13 @@ if __name__ == '__main__':
 
     _test()
 
+    """
     dbf = pysal.open('examples/columbus.dbf','r')
     y = np.array([dbf.by_col('HOVAL')]).T
     x = np.array([dbf.by_col('INC'), dbf.by_col('CRIME')]).T
     w = pysal.open('examples/columbus.gal', 'r').read()
     w.transform='r' #Needed to match R
 
-    """
     print '\n\tGMSWLS model Example'
     model = GMSWLS(x, y, w)
     print '\n### Betas ###'
