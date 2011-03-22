@@ -12,8 +12,6 @@ import gstwosls as gst
 
 def get_A1(S):
     """
-    [COPIED to spError] --> Duplicated!!!
-
     Builds A1 as in Arraiz et al [1]_
 
     .. math::
@@ -82,6 +80,8 @@ def optim_moments(moments, vcX=np.array([0])):
         moments[1] = np.dot(Ec,moments[1])
     if moments[0].shape[0] == 2:
         lambdaX = op.fmin_l_bfgs_b(foptim_2par,[0.0],args=[moments],approx_grad=True,bounds=[(-1.0,1.0)])
+    if moments[0].shape[0] == 3:
+        lambdaX = op.fmin_l_bfgs_b(foptim_3par,[0.0,0.0],args=[moments],approx_grad=True,bounds=[(-1.0,1.0),(None,None)])
     return lambdaX[0][0]
 
 def foptim_2par(lambdapar,moments):
@@ -108,6 +108,15 @@ def foptim_2par(lambdapar,moments):
     vv=np.inner(moments[0],par)
     vv2=np.reshape(vv,[2,1])-moments[1]
     return sum(vv2**2)
+
+def foptim_3par(lambdapar,moments):
+    """
+    Preparation of moments for minimization in a GMSWLS framework
+    """
+    par=np.array([[float(lambdapar[0]),float(lambdapar[0])**2., lambdapar[1]]]).T
+    vv = np.dot(moments[0], par)
+    vv = vv - moments[1]
+    return sum(vv**2)
 
 def get_spFilter(w,lamb,sf):
     '''
