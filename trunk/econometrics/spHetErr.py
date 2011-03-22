@@ -4,6 +4,7 @@ import pysal.spreg.ols as OLS
 import twosls as TSLS
 from scipy import sparse as SP
 import numpy.linalg as la
+from pysal import lag_spatial
 
 class SWLS_Het:
     """
@@ -116,11 +117,10 @@ class GSTSLS_Het:
     y           : array
                   nx1 array with dependent variables
     yend        : array
-                  non-spatial endogenous variables
+                  Endogenous variables
     q           : array
                   array of instruments for yend (note: this should not contain
-                  any variables from x; spatial instruments are computed by 
-                  default)
+                  any variables from x;
     w           : W
                   PySAL weights instance aligned with y and with instances S
                   and A1 created
@@ -170,12 +170,10 @@ class GSTSLS_Het:
      [   0.6947    1.2754]
      [  -1.4907    0.8274]
      [   0.4857  137.1461]]
-    
-    
     """
 
-    def __init__(self,y,x,w,yend,q,cycles=1,constant=True):
-        #1a. OLS --> \tilde{betas}
+    def __init__(self,y,x,w,yend,q,cycles=1,constant=True): 
+        #1a. OLS --> \tilde{betas} 
         tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=constant)
 
         #1b. GMM --> \tilde{\lambda1}
@@ -207,13 +205,94 @@ class GSTSLS_Het:
         return tsls.betas,lambda2,tsls.u,vc2,moments_i[0], predy
 
 class GSTSLS_Het_lag(GSTSLS_Het):
-    '''
-    Version of GSTSLS_Het with spatial endogenous var
-    '''
+    """
+    GMM method for a spatial lang and error model with heteroskedasticity and endogenous variables  
+
+    Based on Arraiz et al [1]_
+
+    ...
+
+    Parameters
+    ----------
+
+    x           : array
+                  nxk array with independent variables aligned with y
+    y           : array
+                  nx1 array with dependent variables
+    yend        : array
+                  Optional. Additional non-spatial endogenous variables (spatial lag is added by default)
+    q           : array
+                  array of instruments for yend (note: this should not contain
+                  any variables from x; spatial instruments are computed by 
+                  default)
+    w           : W
+                  PySAL weights instance aligned with y and with instances S
+                  and A1 created
+    cycles      : int
+                  Optional. Number of iterations of steps 2a. and 2b. Set to 1
+                  by default
+
+    Attributes
+    ----------
+    
+    betas       : array
+                  (k+1)x1 array with estimates for betas and lambda
+    u           : array
+                  nx1 array with residuals
+    vm          : array
+                  (k+1)x(k+1) variance-covariance matrix
+
+    References
+    ----------
+
+    .. [1] Arraiz, I., Drukker, D. M., Kelejian, H., Prucha, I. R. (2010) "A
+    Spatial Cliff-Ord-Type Model with Heteroskedastic Innovations: Small and
+    Large Sample Results". Journal of Regional Science, Vol. 60, No. 2, pp.
+    592-614.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X = np.array(X).T
+    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w.transform = 'r'
+
+    Example only with spatial lag
+
+    >>> reg = GSTSLS_Het_lag(y, X, w)
+    >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
+    [[ 38.5869   8.2998]
+     [ -1.3779   0.3296]
+     [  0.469    0.146 ]
+     [  0.0786   8.4522]]
+        
+    Example with both spatial lag and other endogenous variables
+
+    >>> yd = []
+    >>> yd.append(db.by_col("HOVAL"))
+    >>> yd = np.array(yd).T
+    >>> q = []
+    >>> q.append(db.by_col("DISCBD"))
+    >>> q = np.array(q).T
+    >>> reg = GSTSLS_Het_lag(y, X, w, yd, q)
+    >>> betas = np.array([['Intercept'],['INC'],['HOVAL'],['W_CRIME'],['lambda']])
+    >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
+    [['Intercept' '50.12804' '12.21066']
+     ['INC' '-0.25189' '0.58235']
+     ['HOVAL' '-0.68863' '0.31831']
+     ['W_CRIME' '0.43547' '0.19054']
+     ['lambda' '0.28525' '8.84325']]
+        """
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
                     constant=True, robust=None, cycles=1):
         # Create spatial lag of y
-        yl = pysal.lag_spatial(w, y)
+        yl = lag_spatial(w, y)
         if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
             lag_vars = np.hstack((x, q))
             spatial_inst = self.get_lags(lag_vars, w, w_lags)
@@ -227,10 +306,10 @@ class GSTSLS_Het_lag(GSTSLS_Het):
         GSTSLS_Het.__init__(self, y, x, w, yend, q, cycles=cycles, constant=constant)
 
     def get_lags(self, x, w, w_lags):
-        lag = pysal.lag_spatial(w, x)
+        lag = lag_spatial(w, x)
         spat_inst = lag
         for i in range(w_lags-1):
-            lag = pysal.lag_spatial(w, lag)
+            lag = lag_spatial(w, lag)
             spat_inst = np.hstack((spat_inst, lag))
         return spat_inst
 
