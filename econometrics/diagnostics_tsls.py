@@ -6,7 +6,7 @@ Diagnostics for two stage least squares regression estimations.
 import pysal
 from pysal.common import *
 from math import sqrt
-from econometrics.twosls import BaseTSLS as TSLS
+from twosls import BaseTSLS as TSLS
 from pysal.spreg.ols import BaseOLS as OLS
 
 
