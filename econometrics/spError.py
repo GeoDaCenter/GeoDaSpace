@@ -2,18 +2,15 @@
 Spatial Error Models module
 """
 import pysal
-import time
-import scipy.optimize as op
-from scipy import sparse as SP
 from scipy.stats import norm
 import numpy as np
 import numpy.linalg as la
 import pysal.spreg.ols as OLS
 from pysal.spreg.diagnostics import se_betas
+from pysal import lag_spatial
 from econometrics.gmm_utils import get_A1, optim_moments, get_spFilter
 import econometrics.twosls as TSLS
-
-from pysal.spreg.diagnostics_sp import LMtests
+from econometrics.utils import get_lags
 
 
 class GMSWLS:
@@ -39,7 +36,8 @@ class GMSWLS:
     ----------
 
     betas       : array
-                  kx1 array with estimated coefficients
+                  kx1 array with estimated coefficients (including spatial
+                  parameter)
     se_betas    : array
                   kx1 array with standard errors for estimated coefficients
                   NOTE: it corrects by sqrt( (n-k)/n ) as in R's spdep
@@ -47,14 +45,14 @@ class GMSWLS:
                   kx1 array with estimated coefficients divided by the standard errors
     pvals       : array
                   kx1 array with p-values of the estimated coefficients
-    lamb        : float
-                  Point estimate for the spatially autoregressive parameter in
-                  the error
     u           : array
                   Vector of residuals
     sig2        : float
                   Sigma squared for the residuals of the transformed model (as
                   in R's spdep)
+    step2OLS    : ols
+                  Regression object from the OLS step with spatially filtered
+                  variables
 
     References
     ----------
@@ -80,7 +78,8 @@ class GMSWLS:
     >>> np.around(model.betas, decimals=6)
     array([[ 47.694634],
            [  0.710453],
-           [ -0.550527]])
+           [ -0.550527],
+           [  0.32573 ]])
     >>> np.around(model.se_betas, decimals=6)
     array([[ 12.412039],
            [  0.504443],
@@ -93,8 +92,6 @@ class GMSWLS:
     array([[  1.22000000e-04],
            [  1.59015000e-01],
            [  2.04100000e-03]])
-    >>> np.around(model.lamb, decimals=6)
-    0.32573000000000002
     >>> np.around(model.sig2, decimals=6)
     198.559595
 
@@ -119,8 +116,7 @@ class GMSWLS:
         ols = OLS.BaseOLS(ys, xs, constant=False)
 
         #Output
-        self.betas = ols.betas
-        self.lamb = lambda1
+        self.betas = np.vstack((ols.betas, np.array([[lambda1]])))
         self.sig2 = ols.sig2n
         self.u = ols.u
 
@@ -162,8 +158,8 @@ class GSTSLS:
     u           : array
                   Vector of residuals (Note it employs original x and y
                   instead of the spatially filtered ones)
-    sig2        : float
-                  Sigma squared for the residuals of the transformed model 
+    vm          : array
+                  Variance-covariance matrix
 
 
     References
@@ -200,7 +196,6 @@ class GSTSLS:
            [ 0.190239]])
     '''
     def __init__(self, y, x, w, yend, q, constant=True):
-        w.A1 = get_A1(w.sparse)
 
         if constant:
             x = np.hstack((np.ones(y.shape),x))
@@ -223,10 +218,129 @@ class GSTSLS:
         self.betas = np.vstack((tsls2.betas, np.array([[lambda1]])))
         self.u = y - np.dot(tsls.z, tsls2.betas)
         sig2 = np.dot(tsls2.u.T,tsls2.u) / n
-        vc = sig2 * la.inv(np.dot(tsls2.z.T,tsls2.z))
-        self.se_betas = np.sqrt(vc.diagonal()).reshape(tsls2.betas.shape)
+        self.vm = sig2 * la.inv(np.dot(tsls2.z.T,tsls2.z))
+        self.se_betas = np.sqrt(self.vm.diagonal()).reshape(tsls2.betas.shape)
         zs = tsls2.betas / self.se_betas
         self.pvals = norm.sf(abs(zs)) * 2.
+
+class GSTSLS_lag(GSTSLS):
+    """
+    Generalized Spatial Two Stages Least Squares (TSLS + GMM) with spatial lag using spatial
+    error from Kelejian and Prucha (1998) [1]_ and Kelejian and Prucha (1999) [2]_
+    ...
+
+    Parameters
+    ----------
+
+    y           : array
+                  nx1 array with dependent variables
+    x           : array
+                  nxk array with independent variables aligned with y
+    w           : W
+                  PySAL weights instance aligned with y
+    yend        : array
+                  Optional. Additional non-spatial endogenous variables (spatial lag is added by default)
+    q           : array
+                  array of instruments for yend (note: this should not contain
+                  any variables from x; spatial instruments are computed by 
+                  default)
+    w_lags      : int
+                  Number of orders to power W when including it as intrument
+                  for the spatial lag (e.g. if w_lags=1, then the only
+                  instrument is WX; if w_lags=2, the instrument is WWX; and so
+                  on)
+    constant    : boolean
+                  If true it appends a vector of ones to the independent variables
+                  to estimate intercept (set to True by default)
+
+    Attributes
+    ----------
+    
+    betas       : array
+                  (k+1)x1 array with estimated coefficients (betas + lambda)
+    se_betas    : array
+                  kx1 array with standard errors for estimated coefficients
+    pvals       : array
+                  kx1 array with p-values of the estimated coefficients
+    u           : array
+                  Vector of residuals (Note it employs original x and y
+                  instead of the spatially filtered ones)
+    vm          : array
+                  Variance-covariance matrix
+
+    References
+    ----------
+
+    .. [1] Kelejian, H.R., Prucha, I.R. (1998) "A generalized spatial
+    two-stage least squares procedure for estimating a spatial autoregressive
+    model with autoregressive disturbances". The Journal of Real State
+    Finance and Economics, 17, 1.
+
+    .. [2] Kelejian, H.R., Prucha, I.R. (1999) "A Generalized Moments
+    Estimator for the Autoregressive Parameter in a Spatial Model".
+    International Economic Review, 40, 2.
+
+    Examples
+    --------
+
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X = np.array(X).T
+    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w.transform = 'r'
+
+    Example only with spatial lag
+
+    >>> reg = GSTSLS_lag(y, X, w)
+
+    Print the betas
+
+    >>> print np.around(np.hstack((reg.betas[:-1],np.sqrt(reg.vm.diagonal()).reshape(3,1))),3)
+    [[ 39.06    9.533]
+     [ -1.404   0.345]
+     [  0.467   0.155]]
+
+    And lambda
+
+    >>> print 'Lamda: ', np.around(reg.betas[-1], 3)
+    Lamda:  [-0.048]
+        
+    Example with both spatial lag and other endogenous variables
+
+    >>> yd = []
+    >>> yd.append(db.by_col("HOVAL"))
+    >>> yd = np.array(yd).T
+    >>> q = []
+    >>> q.append(db.by_col("DISCBD"))
+    >>> q = np.array(q).T
+    >>> reg = GSTSLS_lag(y, X, w, yd, q)
+    >>> betas = np.array([['Intercept'],['INC'],['HOVAL'],['W_CRIME']])
+    >>> print np.hstack((betas, np.around(np.hstack((reg.betas[:-1], np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)))
+    [['Intercept' '50.0944' '10.7064']
+     ['INC' '-0.2552' '0.4064']
+     ['HOVAL' '-0.6885' '0.1079']
+     ['W_CRIME' '0.4375' '0.1912']]
+        """
+    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
+                    constant=True):
+        # Create spatial lag of y
+        yl = lag_spatial(w, y)
+        if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
+            lag_vars = np.hstack((x, q))
+            spatial_inst = get_lags(w, lag_vars, w_lags)
+            q = np.hstack((q, spatial_inst))
+            yend = np.hstack((yend, yl))
+        elif yend == None:                   # spatial instruments only
+            q = get_lags(w, x, w_lags)
+            yend = yl
+        else:
+            raise Exception, "invalid value passed to yend"
+        GSTSLS.__init__(self, y, x, w, yend, q, constant=constant)
 
 def _inference(ols):
     """
