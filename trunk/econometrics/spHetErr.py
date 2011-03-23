@@ -1,5 +1,5 @@
 import numpy as np
-import gmm_utils as GMM
+import utils as GMM
 import pysal.spreg.ols as OLS
 import twosls as TSLS
 from scipy import sparse as SP
@@ -122,8 +122,7 @@ class GSTSLS_Het:
                   array of instruments for yend (note: this should not contain
                   any variables from x;
     w           : W
-                  PySAL weights instance aligned with y and with instances S
-                  and A1 created
+                  PySAL weights instance aligned with y
     cycles      : int
                   Optional. Number of iterations of steps 2a. and 2b. Set to 1
                   by default
@@ -215,19 +214,26 @@ class GSTSLS_Het_lag(GSTSLS_Het):
     Parameters
     ----------
 
+    y           : array
+                  nx1 array with dependent variable
     x           : array
                   nxk array with independent variables aligned with y
-    y           : array
-                  nx1 array with dependent variables
+    w           : W
+                  PySAL weights instance aligned with y
     yend        : array
                   Optional. Additional non-spatial endogenous variables (spatial lag is added by default)
     q           : array
                   array of instruments for yend (note: this should not contain
                   any variables from x; spatial instruments are computed by 
                   default)
-    w           : W
-                  PySAL weights instance aligned with y and with instances S
-                  and A1 created
+    w_lags      : int
+                  Number of orders to power W when including it as intrument
+                  for the spatial lag (e.g. if w_lags=1, then the only
+                  instrument is WX; if w_lags=2, the instrument is WWX; and so
+                  on)    
+    constant    : boolean
+                  If true it appends a vector of ones to the independent variables
+                  to estimate intercept (set to True by default)
     cycles      : int
                   Optional. Number of iterations of steps 2a. and 2b. Set to 1
                   by default
@@ -290,33 +296,24 @@ class GSTSLS_Het_lag(GSTSLS_Het):
      ['lambda' '0.28525' '8.84325']]
         """
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True, robust=None, cycles=1):
+                    constant=True, cycles=1):
         # Create spatial lag of y
         yl = lag_spatial(w, y)
         if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
             lag_vars = np.hstack((x, q))
-            spatial_inst = self.get_lags(lag_vars, w, w_lags)
+            spatial_inst = GMM.get_lags(w ,lag_vars, w_lags)
             q = np.hstack((q, spatial_inst))
             yend = np.hstack((yend, yl))
         elif yend == None:                   # spatial instruments only
-            q = self.get_lags(x, w, w_lags)
+            q = GMM.get_lags(w, x, w_lags)
             yend = yl
         else:
             raise Exception, "invalid value passed to yend"
         GSTSLS_Het.__init__(self, y, x, w, yend, q, cycles=cycles, constant=constant)
 
-    def get_lags(self, x, w, w_lags):
-        lag = lag_spatial(w, x)
-        spat_inst = lag
-        for i in range(w_lags-1):
-            lag = lag_spatial(w, lag)
-            spat_inst = np.hstack((spat_inst, lag))
-        return spat_inst
-
-
 def moments_het(w, u):
     """
-    Class to compute all six components of the system of equations for a
+    Function to compute all six components of the system of equations for a
     spatial error model with heteroskedasticity estimated by GMM as in Arraiz
     et al [1]_
 
