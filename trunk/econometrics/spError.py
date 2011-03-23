@@ -3,7 +3,7 @@ Spatial Error Models module
 """
 from scipy.stats import norm
 import numpy as np
-import numpy.linalg as la
+from numpy import linalg as la
 import pysal.spreg.ols as OLS
 from pysal.spreg.diagnostics import se_betas
 from pysal import lag_spatial
