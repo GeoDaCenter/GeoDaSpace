@@ -5,6 +5,7 @@ import numpy.linalg as la
 import twosls as TSLS
 import robust as ROBUST
 import pysal.spreg.user_output as USER
+from utils import get_lags
 
 class BaseSTSLS(TSLS.BaseTSLS):
     """
@@ -150,11 +151,11 @@ class BaseSTSLS(TSLS.BaseTSLS):
         yl = pysal.lag_spatial(w, y)
         if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
             lag_vars = np.hstack((x, q))
-            spatial_inst = self.get_lags(lag_vars, w, w_lags)
+            spatial_inst = get_lags(w, lag_vars, w_lags)
             q = np.hstack((q, spatial_inst))
             yend = np.hstack((yend, yl))
         elif yend == None:                   # spatial instruments only
-            q = self.get_lags(x, w, w_lags)
+            q = get_lags(w, x, w_lags)
             yend = yl
         else:
             raise Exception, "invalid value passed to yend"
@@ -163,15 +164,7 @@ class BaseSTSLS(TSLS.BaseTSLS):
         if robust == 'gls':
             self.vm = self.vm_gls
         elif robust == 'white':
-            self.vm = self.vm_white
-        
-    def get_lags(self, x, w, w_lags):
-        lag = pysal.lag_spatial(w, x)
-        spat_inst = lag
-        for i in range(w_lags-1):
-            lag = pysal.lag_spatial(w, lag)
-            spat_inst = np.hstack((spat_inst, lag))
-        return spat_inst
+            self.vm = self.vm_white       
 
     @property
     def vm_gls(self):
@@ -298,6 +291,3 @@ def _test():
 
 if __name__ == '__main__':
     _test()
-
-
-

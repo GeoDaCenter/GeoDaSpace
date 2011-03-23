@@ -170,7 +170,8 @@ def get_lags(w, x, w_lags):
               nxk*(w_lags+1) array with original and spatially lagged variables
 
     '''
-    spat_lags = lag_spatial(w, x)
+    lag = lag_spatial(w, x)
+    spat_lags = lag
     for i in range(w_lags-1):
         lag = lag_spatial(w, lag)
         spat_lags = np.hstack((spat_lags, lag))
