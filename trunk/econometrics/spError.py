@@ -1,7 +1,6 @@
 """
 Spatial Error Models module
 """
-import pysal
 from scipy.stats import norm
 import numpy as np
 import numpy.linalg as la
@@ -68,6 +67,8 @@ class GMSWLS:
     Examples
     --------
 
+    >>> import pysal
+    >>> import numpy as np
     >>> dbf = pysal.open('examples/columbus.dbf','r')
     >>> y = np.array([dbf.by_col('HOVAL')]).T
     >>> x = np.array([dbf.by_col('INC'), dbf.by_col('CRIME')]).T
@@ -176,6 +177,8 @@ class GSTSLS:
     Examples
     --------
 
+    >>> import pysal
+    >>> import numpy as np
     >>> dbf = pysal.open('examples/columbus.dbf','r')
     >>> y = np.array([dbf.by_col('CRIME')]).T
     >>> x = np.array([dbf.by_col('INC')]).T
