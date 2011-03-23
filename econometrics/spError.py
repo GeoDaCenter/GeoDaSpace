@@ -8,9 +8,8 @@ import numpy.linalg as la
 import pysal.spreg.ols as OLS
 from pysal.spreg.diagnostics import se_betas
 from pysal import lag_spatial
-from econometrics.gmm_utils import get_A1, optim_moments, get_spFilter
-import econometrics.twosls as TSLS
-from econometrics.utils import get_lags
+from utils import get_A1, optim_moments, get_spFilter, get_lags
+import twosls as TSLS
 
 
 class GMSWLS:
