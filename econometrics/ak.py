@@ -59,15 +59,15 @@ class AKtest:
         if case == 'gen':
             cache = spDcache(iv, w)
             self.mi, self.ak, self.p = akTest(iv, w, cache)
-        elif case == 'nsp':
+        elif case == 'nosp':
             cache = spDcache(iv, w)
             self.mi = get_mI(iv, w, cache)
             self.ak, self.p = lmErr(iv, w, cache)
         else:
             print """\n
             Fix the optional argument 'case' to match the requirements:
-                * 0: General case (spatial lag + end. reg.)
-                * 1: No spatial end. reg.
+                * 'gen': General case (spatial lag + end. reg.)
+                * 'nosp': No spatial end. reg.
             \n"""
 
 def akTest(iv, w, spDcache):
