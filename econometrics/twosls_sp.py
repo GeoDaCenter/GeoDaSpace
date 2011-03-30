@@ -262,21 +262,17 @@ class STSLS(BaseSTSLS, USER.DiagnosticBuilder):
                     name_yend=None, name_q=None, name_ds=None,\
                     robust=None, vm=False, pred=False):
 
+        USER.check_arrays(y, x, yend, q)
+        USER.check_weights(w, y)
         BaseSTSLS.__init__(self, y, x, w, yend, q, w_lags, constant, robust)
         self.title = "SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x, constant)
-        if yend != None:
-            self.name_yend = USER.set_name_yend(name_yend, yend)
-        else:
-            self.name_yend = []
+        self.name_yend = USER.set_name_yend(name_yend, yend)
         self.name_yend.append(USER.set_name_yend_sp(self.name_y))
         self.name_z = self.name_x + self.name_yend
-        if q != None:
-            self.name_q = USER.set_name_q(name_q, q)
-        else:
-            self.name_q = []
+        self.name_q = USER.set_name_q(name_q, q)
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         USER.DiagnosticBuilder.__init__(self, x=x, constant=constant, w=w,\
