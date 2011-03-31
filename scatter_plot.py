@@ -7,6 +7,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from workbench import get_sar_vector_random
 
+class Scatter_plot:
+    def __init__(self, w, rho=None, y=None, standardize=True):
+        self.y, self.wy = scatter_pts(w, rho=rho, y=None) 
+        self.scatter = scatter_plot(self.y, self.wy, standardize=False, rho=rho)
+
 def scatter_pts(w, rho=None, y=None, standardize=True):
     '''
     Build y and wy for a scatter plot
@@ -42,7 +47,7 @@ def scatter_pts(w, rho=None, y=None, standardize=True):
     wy = ps.lag_spatial(w, y)
     return y, wy
 
-def scatter_plot(y, wy, show=False, standardize=True):
+def scatter_plot(y, wy, show=False, standardize=True, rho=None):
     '''
     Builds scatter plot graph with option to plot it
     ...
@@ -71,18 +76,26 @@ def scatter_plot(y, wy, show=False, standardize=True):
     if standardize:
         y = (y - np.mean(y)) / np.std(y)
         wy = (wy - np.mean(wy)) / np.std(wy)
-    scatter = plt.scatter(y, wy)
-    vbar = plt.axvline(0, color='black')
-    hbar = plt.axhline(0, color='black')
-    title = plt.title("Moran's I: %.4f"%mi.I)
+    scat = plt.figure()
+    sub = plt.subplot(111)
+    sub.scatter(y, wy)
+    vbar = sub.axvline(0, color='black')
+    hbar = sub.axhline(0, color='black')
+    if rho:
+        title = plt.suptitle("Population $\\rho$: %.2f"%rho)
+    subtitle = plt.title("Moran's I: %.4f"%mi.I)
+
+    b, a = np.polyfit(y, wy, 1)
+    x = np.linspace(np.min(y), np.max(y), 2)
+    fit_line = sub.plot(x, a + b*x, color='red')
     if show:
         plt.show()
-    return scatter
-
+    return scat
 
 if __name__ == '__main__':
 
-    w = ps.lat2W(5, 5)
-    y, wy = scatter_pts(w, rho=0.5)
-    scatter = scatter_plot(y, wy, show=True, standardize=False)
+    w = ps.lat2W(25, 25)
+    rho = 0.5
+    scat = Scatter_plot(w, rho=0.5, standardize=False)
+    plt.show()
 
