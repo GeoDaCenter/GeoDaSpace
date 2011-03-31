@@ -134,7 +134,7 @@ def akTest(iv, w, spDcache):
     print 'trace 1 ', np.sum(s2.diagonal()) 
     print 'trace 2 ', spDcache.t
     #s2 = np.sum(s2.diagonal()) / w.n
-    s2 = spDcache.t / w.n
+    s2 = 2.0 * spDcache.t / w.n
     phi2 = (s2 / 2. * s12) + (4. / (s12 * iv.sig2n)) * a
     ak = w.n * mi**2 / phi2 # ak = (N^{1/2} * I* / phi)^2
     pval = chisqprob(ak, 1)
