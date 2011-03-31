@@ -129,10 +129,10 @@ def akTest(iv, w, spDcache):
     print '$$$$$$$$$$$$$$$$$$$$$$$$'
 
     ## s2
-    #s2 = w.sparse + w.sparse.T
-    #s2 = s2 * s2
-    #print np.sum(s2.diagonal()) 
-    #print spDcache.t
+    s2 = w.sparse + w.sparse.T
+    s2 = s2 * s2
+    print 'trace 1 ', np.sum(s2.diagonal()) 
+    print 'trace 2 ', spDcache.t
     #s2 = np.sum(s2.diagonal()) / w.n
     s2 = spDcache.t / w.n
     phi2 = (s2 / 2. * s12) + (4. / (s12 * iv.sig2n)) * a
