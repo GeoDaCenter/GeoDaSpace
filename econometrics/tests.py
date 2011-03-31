@@ -40,11 +40,11 @@ suite = unittest.TestSuite()
 import spHetErr, twosls
 import twosls_sp, robust
 import probit, ak, diagnostics_tsls
-import spError
+import spError, gs_dispatcher
 # add modules to this list
 mods = 'spHetErr', 'twosls', 'twosls_sp',\
        'robust', 'probit', 'spError',\
-       'ak', 'diagnostics_tsls'
+       'ak', 'diagnostics_tsls', 'gs_dispatcher'
 
 
 # add unit tests here
