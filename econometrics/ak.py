@@ -120,6 +120,7 @@ def akTest(iv, w, spDcache):
     #print '$$$$$$$$$'
     #print 'a first time ',a
     a = np.dot((etwz/w.n),np.dot(nztpzi,(etwz.T/w.n)))
+    a = np.dot(etwz,np.dot(iv.varb,etwz.T))
     #a2 = a 
     #print 'a second time ',a2
     #print 'equal? ', a == a2
@@ -132,11 +133,13 @@ def akTest(iv, w, spDcache):
     #s2 = w.sparse + w.sparse.T
     #s2 = s2 * s2
     #print 'trace 1 ', np.sum(s2.diagonal()) 
-    # print 'trace 2 ', spDcache.t
+     # print 'trace 2 ', spDcache.t
     #s2 = np.sum(s2.diagonal()) / w.n
     s2 = 2.0 * spDcache.t / w.n
+    s2 = 2.0 * spDcache.t
     phi2 = (s2 / 2. * s12) + (4. / (s12 * iv.sig2n)) * a
     ak = w.n * mi**2 / phi2 # ak = (N^{1/2} * I* / phi)^2
+    ak = w.n * mi**2 / (phi2 / w.n)
     pval = chisqprob(ak, 1)
     return (mi, ak[0][0], pval[0][0])
 
