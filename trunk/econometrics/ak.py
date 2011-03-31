@@ -106,33 +106,33 @@ def akTest(iv, w, spDcache):
     mi = get_mI(iv, w, spDcache)
     # Phi2
     etwz = np.dot(iv.u.T, (w.sparse * iv.z))
-    p = la.inv(np.dot(iv.h.T, iv.h))
-    p = np.dot(p, iv.h.T)
-    p = np.dot(iv.h, p)
-    ztpz = np.dot(iv.z.T, np.dot(p, iv.z))
-    nztpzi = w.n * la.inv(ztpz)
-    print '$$$$$'
-    print 'nztpzi  ',nztpzi
+    #p = la.inv(np.dot(iv.h.T, iv.h))
+    #p = np.dot(p, iv.h.T)
+    #p = np.dot(iv.h, p)
+    #ztpz = np.dot(iv.z.T, np.dot(p, iv.z))
+    #nztpzi = w.n * la.inv(ztpz)
+    #print '$$$$$'
+    #print 'nztpzi  ',nztpzi
     
     nztpzi = w.n * iv.varb
-    print 'iv.varb ', iv.varb
-    a = np.dot((etwz / w.n), np.dot(nztpzi, (etwz.T / w.n)))
-    print '$$$$$$$$$'
-    print 'a first time ',a
-    a2 = np.dot((etwz/w.n),np.dot(nztpzi,(etwz.T/w.n)))
+    #print 'iv.varb ', iv.varb
+    #a = np.dot((etwz / w.n), np.dot(nztpzi, (etwz.T / w.n)))
+    #print '$$$$$$$$$'
+    #print 'a first time ',a
+    a = np.dot((etwz/w.n),np.dot(nztpzi,(etwz.T/w.n)))
     #a2 = a 
-    print 'a second time ',a2
-    print 'equal? ', a == a2
+    #print 'a second time ',a2
+    #print 'equal? ', a == a2
     s12 = (w.s0 / w.n)**2
-    print '$$$$$$$$$$$$$$$$$$$$$$$$'
-    print 's12: ', s12
-    print '$$$$$$$$$$$$$$$$$$$$$$$$'
+    #print '$$$$$$$$$$$$$$$$$$$$$$$$'
+    #print 's12: ', s12
+    #print '$$$$$$$$$$$$$$$$$$$$$$$$'
 
     ## s2
-    s2 = w.sparse + w.sparse.T
-    s2 = s2 * s2
-    print 'trace 1 ', np.sum(s2.diagonal()) 
-    print 'trace 2 ', spDcache.t
+    #s2 = w.sparse + w.sparse.T
+    #s2 = s2 * s2
+    #print 'trace 1 ', np.sum(s2.diagonal()) 
+    # print 'trace 2 ', spDcache.t
     #s2 = np.sum(s2.diagonal()) / w.n
     s2 = 2.0 * spDcache.t / w.n
     phi2 = (s2 / 2. * s12) + (4. / (s12 * iv.sig2n)) * a
