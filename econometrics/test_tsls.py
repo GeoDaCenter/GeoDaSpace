@@ -47,10 +47,10 @@ class Test_TSLS(unittest.TestCase):
         np.testing.assert_array_almost_equal(tsls.predy[0:5], predy_sub, decimal=8)
         self.assertEquals(tsls.n, 49)
         self.assertEquals(tsls.k, 3)
-        self.assertAlmostEquals(tsls.utu, 27028.12701223691, places=10)
-        self.assertAlmostEquals(tsls.sig2n, 551.59442882116139, places=10)
-        self.assertAlmostEquals(tsls.sig2n_k, 587.56797852688931, places=10)
-        self.assertAlmostEquals(tsls.sig2, 551.59442882116139, places=10)
+        self.assertAlmostEquals(tsls.utu, 27028.127012242025, places=10)
+        self.assertAlmostEquals(tsls.sig2n, 551.59442882126586, places=10)
+        self.assertAlmostEquals(tsls.sig2n_k, 587.56797852700049, places=10)
+        self.assertAlmostEquals(tsls.sig2, 551.59442882126586, places=10)
         vm = np.array([[ 229.05640809,   10.36945783,   -9.54463414],
                         [  10.36945783,    2.0013142 ,   -1.01826408],
                         [  -9.54463414,   -1.01826408,    0.62914915]])
@@ -81,10 +81,10 @@ class Test_TSLS(unittest.TestCase):
         np.testing.assert_array_almost_equal(tsls.predy[0:5], predy_sub, decimal=8)
         self.assertEquals(tsls.n, 49)
         self.assertEquals(tsls.k, 3)
-        self.assertAlmostEquals(tsls.utu, 27028.12701223691, places=10)
-        self.assertAlmostEquals(tsls.sig2n, 551.59442882116139, places=10)
-        self.assertAlmostEquals(tsls.sig2n_k, 587.56797852688931, places=10)
-        self.assertAlmostEquals(tsls.sig2, 551.59442882116139, places=10)
+        self.assertAlmostEquals(tsls.utu, 27028.127012242025, places=10)
+        self.assertAlmostEquals(tsls.sig2n, 551.59442882126586, places=10)
+        self.assertAlmostEquals(tsls.sig2n_k, 587.56797852700049, places=10)
+        self.assertAlmostEquals(tsls.sig2, 551.59442882126586, places=10)
         vm = np.array([[ 229.05640809,   10.36945783,   -9.54463414],
                         [  10.36945783,    2.0013142 ,   -1.01826408],
                         [  -9.54463414,   -1.01826408,    0.62914915]])
@@ -99,7 +99,7 @@ class Test_TSLS(unittest.TestCase):
                   (0.36760156683559597, 0.71317034634659371),
                   (-1.9946891307831864, 0.046076795581400903)]
         np.testing.assert_array_almost_equal(tsls.z_stat, z_stat, decimal=8)
-        self.assertAlmostEquals(tsls.sig2, 551.59442882116139, places=10)
+        self.assertAlmostEquals(tsls.sig2, 551.59442882126586, places=10)
         ##########################################################    
         # currently does not include non-spatial model diagnostics
         ##########################################################  
