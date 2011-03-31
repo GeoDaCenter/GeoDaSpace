@@ -119,8 +119,8 @@ def akTest(iv, w, spDcache):
     a = np.dot((etwz / w.n), np.dot(nztpzi, (etwz.T / w.n)))
     print '$$$$$$$$$'
     print 'a first time ',a
-    a = np.dot(etwz,np.dot(nztpzi,etwz.T))
-    a2 = a 
+    a2 = np.dot((etwz/w.n),np.dot(nztpzi,(etwz.T/w.n)))
+    #a2 = a 
     print 'a second time ',a2
     print 'equal? ', a == a2
     s12 = (w.s0 / w.n)**2
