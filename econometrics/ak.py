@@ -111,7 +111,11 @@ def akTest(iv, w, spDcache):
     p = np.dot(iv.h, p)
     ztpz = np.dot(iv.z.T, np.dot(p, iv.z))
     nztpzi = w.n * la.inv(ztpz)
+    print '$$$$$'
+    print 'nztpzi  ',nztpzi
+    
     nztpzi = iv.varb
+    print 'iv.varb ', iv.varb
     a = np.dot((etwz / w.n), np.dot(nztpzi, (etwz.T / w.n)))
     print '$$$$$$$$$'
     print 'a first time ',a
