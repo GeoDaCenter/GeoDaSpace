@@ -173,6 +173,9 @@ class BaseTSLS(RegressionProps):
         self.htz = htz
         self.hthi =hthi
         
+        #LA add varb to this
+        #self.varb = varb
+        
         self.factor = np.dot(hthi, htz)
         xp = np.dot(h, self.factor)
         xptxp = np.dot(xp.T,xp)
@@ -200,7 +203,7 @@ class BaseTSLS(RegressionProps):
         return self._cache['pfora1a2']    
         
     @property
-    def m(self):
+    def m(self):     #this needs to be removed is N by N
         if 'm' not in self._cache:
             xtxixt = np.dot(self.xptxpi,self.xp.T)
             xxtxixt = np.dot(self.xp, xtxixt)
