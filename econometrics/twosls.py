@@ -141,8 +141,9 @@ class BaseTSLS(RegressionProps):
         zth = np.dot(z.T,h)  
         # LA suggestion
         #zty = np.dot(z.T,y)
+        hty = np.dot(h.T,y)
         
-        
+        '''
         factor_1 = np.dot(zth,hthi)
         factor_2 = np.dot(factor_1,h.T)
         factor_2 = np.dot(factor_2,z)
@@ -151,14 +152,15 @@ class BaseTSLS(RegressionProps):
         factor_2 = np.dot(factor_2,h.T)       
         betas = np.dot(factor_2,y)
         self.betas = betas
-        
+        '''
         #LA suggestion
-        #factor_1 = np.dot(zth,hthi)
-        #factor_2 = np.dot(factor_1,htz)
-        #varb = la.inv(factor_2)          # this one needs to be in cache to be used in AK
-        #factor_2 = np.dot(varb,factor_1)
+        factor_1 = np.dot(zth,hthi)
+        factor_2 = np.dot(factor_1,htz)
+        varb = la.inv(factor_2)          # this one needs to be in cache to be used in AK
+        factor_2 = np.dot(varb,factor_1)
         #betas = np.dot(factor_2,zty)
-        #self.betas = betas
+        betas = np.dot(factor_2,hty)
+        self.betas = betas
         
         # predicted values
         self.predy = np.dot(z,betas)
@@ -174,7 +176,7 @@ class BaseTSLS(RegressionProps):
         self.hthi =hthi
         
         #LA add varb to this
-        #self.varb = varb
+        self.varb = varb
         
         self.factor = np.dot(hthi, htz)
         xp = np.dot(h, self.factor)

@@ -30,7 +30,7 @@ class BaseSTSLS(TSLS.BaseTSLS):
                   default)
     w_lags      : integer
                   Number of spatial lags of the exogenous variables to be
-                  included as spatial instruments (defaul set to 1)
+                  included as spatial instruments (default set to 1)
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
@@ -40,6 +40,10 @@ class BaseSTSLS(TSLS.BaseTSLS):
                   generalized least squares is performed resulting in new
                   coefficient estimates along with a new variance-covariance
                   matrix. 
+    spat_lags   : string
+                  If 'xq' (default) then spatial lags of all exogenous
+                  variables are used as instruments (i.e. lags of x and q); if
+                  'x' then just spatial lags of x are included
 
     Attributes
     ----------
@@ -57,7 +61,7 @@ class BaseSTSLS(TSLS.BaseTSLS):
     yend        : array
                   endogenous variables (including spatial lag)
     q           : array
-                  array of external exogenous variables (including spatil
+                  array of external exogenous variables (including spatial
                   lags)
     betas       : array
                   kx1 array of estimated coefficients
@@ -141,16 +145,21 @@ class BaseSTSLS(TSLS.BaseTSLS):
     ----------
 
     .. [1] Kelejian, H.H., Prucha, I.R. and Yuzefovich, Y. (2004)
-    "Instrumental variable estimation of a spatial autorgressive model with
+    "Instrumental variable estimation of a spatial autoregressive model with
     autoregressive disturbances: large and small sample results". Advances in
     Econometrics, 18, 163-198.
     """
 
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True, robust=None):
+                    constant=True, robust=None, spat_lags='xq'):
         yl = pysal.lag_spatial(w, y)
         if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
-            lag_vars = np.hstack((x, q))
+            if spat_lags == 'xq':
+                lag_vars = np.hstack((x, q))
+            elif spat_lags == 'x':
+                lag_vars = np.hstack((x))
+            else:
+                raise Exception, "invalid value passed to spat_lags"
             spatial_inst = get_lags(w, lag_vars, w_lags)
             q = np.hstack((q, spatial_inst))
             yend = np.hstack((yend, yl))
@@ -264,7 +273,8 @@ class STSLS(BaseSTSLS, USER.DiagnosticBuilder):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
-        BaseSTSLS.__init__(self, y, x, w, yend, q, w_lags, constant, robust)
+        BaseSTSLS.__init__(self, y=y, x=x, w=w, yend=yend, q=q,\
+                            w_lags=w_lags, constant=constant, robust=robust)
         self.title = "SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
