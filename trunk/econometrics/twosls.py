@@ -139,28 +139,15 @@ class BaseTSLS(RegressionProps):
         hthi = la.inv(hth)
         htz = np.dot(h.T,z)
         zth = np.dot(z.T,h)  
-        # LA suggestion
-        #zty = np.dot(z.T,y)
         hty = np.dot(h.T,y)
         
-        '''
-        factor_1 = np.dot(zth,hthi)
-        factor_2 = np.dot(factor_1,h.T)
-        factor_2 = np.dot(factor_2,z)
-        factor_2 = la.inv(factor_2)        
-        factor_2 = np.dot(factor_2,factor_1)        
-        factor_2 = np.dot(factor_2,h.T)       
-        betas = np.dot(factor_2,y)
-        self.betas = betas
-        '''
-        #LA suggestion
         factor_1 = np.dot(zth,hthi)
         factor_2 = np.dot(factor_1,htz)
         varb = la.inv(factor_2)          # this one needs to be in cache to be used in AK
         factor_2 = np.dot(varb,factor_1)
-        #betas = np.dot(factor_2,zty)
         betas = np.dot(factor_2,hty)
         self.betas = betas
+        self.varb = varb
         
         # predicted values
         self.predy = np.dot(z,betas)
@@ -174,9 +161,6 @@ class BaseTSLS(RegressionProps):
         self.hth = hth
         self.htz = htz
         self.hthi =hthi
-        
-        #LA add varb to this
-        self.varb = varb
         
         self.factor = np.dot(hthi, htz)
         xp = np.dot(h, self.factor)
@@ -203,15 +187,7 @@ class BaseTSLS(RegressionProps):
             factor_4 = np.dot(self.zth, self.factor)
             self._cache['pfora1a2'] = self.n*np.dot(self.factor, la.inv(factor_4))
         return self._cache['pfora1a2']    
-        
-    @property
-    def m(self):     #this needs to be removed is N by N
-        if 'm' not in self._cache:
-            xtxixt = np.dot(self.xptxpi,self.xp.T)
-            xxtxixt = np.dot(self.xp, xtxixt)
-            self._cache['m'] = np.eye(self.n) - xxtxixt
-        return self._cache['m']    
-    
+            
     @property
     def vm(self):
         if 'vm' not in self._cache:
