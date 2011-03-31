@@ -125,8 +125,8 @@ def t_stat(reg, z_stat=False):
     >>> reg = TSLS(y, X, yd, q)
     >>> # z-stat for TSLS
     >>> testresult = diagnostics.t_stat(reg, z_stat=True)
-    >>> print("%12.12f"%testresult[0][0], "%12.12f"%testresult[0][1], "%12.12f"%testresult[1][0], "%12.12f"%testresult[1][1], "%12.12f"%testresult[2][0], "%12.12f"%testresult[2][1])
-    ('5.845264470459', '0.000000005058', '0.367601566836', '0.713170346347', '-1.994689130783', '0.046076795581')
+    >>> print("%12.10f"%testresult[0][0], "%12.10f"%testresult[0][1], "%12.10f"%testresult[1][0], "%12.10f"%testresult[1][1], "%12.10f"%testresult[2][0], "%12.10f"%testresult[2][1])
+    ('5.8452644705', '0.0000000051', '0.3676015668', '0.7131703463', '-1.9946891308', '0.0460767956')
     """ 
     
     k = reg.k           # (scalar) number of ind. vas (includes constant)
