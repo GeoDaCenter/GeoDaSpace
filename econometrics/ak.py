@@ -23,7 +23,7 @@ class AKtest:
                   Spatial weights instance 
     case        : string
                   Flag for special cases (default to 'nosp'):
-                    * 'nsp': Only NO spatial end. reg.
+                    * 'nosp': Only NO spatial end. reg.
                     * 'gen': General case (spatial lag + end. reg.)
 
     Attributes
@@ -38,7 +38,7 @@ class AKtest:
 
                         ak = \dfrac{N \times I^*}{\phi^2}
 
-                  Note: if case='nsp' then it simplifies to the LMerror
+                  Note: if case='nosp' then it simplifies to the LMerror
     p           : float
                   P-value of the test
 
