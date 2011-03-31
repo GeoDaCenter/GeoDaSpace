@@ -111,7 +111,6 @@ def akTest(iv, w, spDcache):
     phi2 = ( spDcache.t + (4.0 / iv.sig2n) * a ) / (s12 * w.n)
     ak = w.n * mi**2 / phi2
     pval = chisqprob(ak, 1)
-    print 'haha ',mi,ak[0][0],pval[0][0]
     return (mi, ak[0][0], pval[0][0])
 
 def akTest_legacy(iv, w, spDcache):
