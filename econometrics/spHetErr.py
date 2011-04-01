@@ -10,7 +10,8 @@ import pysal.spreg.user_output as USER
 
 class BaseSWLS_Het:
     """
-    GMM method for a spatial error model with heteroskedasticity
+    GMM method for a spatial error model with heteroskedasticity (note: no
+    consistency checks)
 
     Based on Arraiz et al [1]_
 
@@ -32,13 +33,23 @@ class BaseSWLS_Het:
 
     Attributes
     ----------
-    
+
+    x           : array
+                  nxk array of independent variables
+    y           : array
+                  nx1 array of dependent variable  
     betas       : array
                   (k+1)x1 array with estimates for betas and lambda
+    n           : int
+                  Number of observations
+    k           : int
+                  Number of variables (constant included)
     u           : array
                   nx1 array with residuals
     vm          : array
                   (k+1)x(k+1) variance-covariance matrix
+    predy       : array
+                  nx1 array of predicted values
 
     References
     ----------
@@ -73,6 +84,9 @@ class BaseSWLS_Het:
     def __init__(self,y,x,w,cycles=1,constant=True): ######Inserted i parameter here for iterations...
         #1a. OLS --> \tilde{betas}
         ols = OLS.BaseOLS(y, x, constant=constant)
+        self.x = ols.x
+        self.y = y
+        self.n, self.k = ols.x.shape
 
         #1b. GMM --> \tilde{\lambda1}
         moments = moments_het(w, ols.u)
@@ -83,11 +97,23 @@ class BaseSWLS_Het:
         vc1 = get_vc_het(w, sigma)
         lambda2 = GMM.optim_moments(moments,vc1)
         
-        ols.betas, lambda3, ols.u, vc2, G, ols.predy = self.iterate(cycles,ols,w,lambda2)
+        ols.betas, lambda3, vc2, G, ols.u = self.iterate(cycles,ols,w,lambda2)
         #Output
         self.betas = np.vstack((ols.betas,lambda3))
         self.vm = get_vm_het(G,lambda3,ols,w,vc2)
-        self.u = ols.u
+        self._cache = {}
+
+        @property
+        def predy(self):
+            if 'predy' not in self._cache:
+                self._cache['predy'] = np.dot(self.x,self.betas[0:-1])
+            return self._cache['predy']
+
+        @property
+        def u(self):
+            if 'u' not in self._cache:
+                self._cache['u'] = self.y - self.predy
+            return self._cache['u']
 
     def iterate(self,cycles,reg,w,lambda2):
         for n in range(cycles):
@@ -101,10 +127,62 @@ class BaseSWLS_Het:
             sigma_i =  get_psi_sigma(w, u, lambda2)
             vc2 = get_vc_het(w, sigma_i)
             lambda2 = GMM.optim_moments(moments_i,vc2)
-        return beta_i,lambda2,u,vc2,moments_i[0], predy
+        return beta_i,lambda2,vc2,moments_i[0], u
 
 class SWLS_Het(BaseSWLS_Het):
     """
+    GMM method for a spatial error model with heteroskedasticity
+    Based on Arraiz et al [1]_
+
+    ...
+
+    Parameters
+    ----------
+
+    x           : array
+                  nxk array with independent variables aligned with y
+    y           : array
+                  nx1 array with dependent variables
+    w           : W
+                  PySAL weights instance aligned with y and with instances S
+                  and A1 created
+    cycles      : int
+                  Optional. Number of iterations of steps 2a. and 2b. Set to 1
+                  by default
+    name_ds     : string
+                  dataset's name
+    name_y      : string
+                  Dependent variable's name
+    name_x      : tuple
+                  Independent variables' names
+
+    Attributes
+    ----------
+
+    x           : array
+                  nxk array of independent variables
+    y           : array
+                  nx1 array of dependent variable  
+    betas       : array
+                  (k+1)x1 array with estimates for betas and lambda
+    n           : int
+                  Number of observations
+    k           : int
+                  Number of variables (constant included)
+    u           : array
+                  nx1 array with residuals
+    vm          : array
+                  (k+1)x(k+1) variance-covariance matrix
+    predy       : array
+                  nx1 array of predicted values
+
+    References
+    ----------
+
+    .. [1] Arraiz, I., Drukker, D. M., Kelejian, H., Prucha, I. R. (2010) "A
+    Spatial Cliff-Ord-Type Model with Heteroskedastic Innovations: Small and
+    Large Sample Results". Journal of Regional Science, Vol. 60, No. 2, pp.
+    592-614.
 
     Examples
     --------
@@ -142,10 +220,10 @@ class SWLS_Het(BaseSWLS_Het):
         self.name_x.append('lambda')
         
 
-
 class BaseGSTSLS_Het:
     """
-    GMM method for a spatial error model with heteroskedasticity and endogenous variables
+    GMM method for a spatial error model with heteroskedasticity and
+    endogenous variables (note: no consistency checks)
 
     Based on Arraiz et al [1]_
 
@@ -172,10 +250,30 @@ class BaseGSTSLS_Het:
     Attributes
     ----------
     
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  array of independent variables (with constant added if
+                  constant parameter set to True)
+    z           : array
+                  nxk array of variables (combination of x and yend)
+    h           : array
+                  nxl array of instruments (combination of x and q)
+    yend        : array
+                  endogenous variables
+    q           : array
+                  array of external exogenous variables
     betas       : array
                   (k+1)x1 array with estimates for betas and lambda
     u           : array
-                  nx1 array with residuals
+                  nx1 array of residuals 
+    predy       : array
+                  nx1 array of predicted values 
+    n           : integer
+                  number of observations
+    k           : int
+                  Number of variables, including exogenous and endogenous
+                  variables and constant
     vm          : array
                   (k+1)x(k+1) variance-covariance matrix
 
@@ -216,6 +314,11 @@ class BaseGSTSLS_Het:
     def __init__(self,y,x,w,yend,q,cycles=1,constant=True): 
         #1a. OLS --> \tilde{betas} 
         tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=constant)
+        self.x = tsls.x
+        self.y = y
+        self.yend = yend
+        self.q = tsls.q
+        self.n, self.k = tsls.x.shape
 
         #1b. GMM --> \tilde{\lambda1}
         moments = moments_het(w, tsls.u)
@@ -225,11 +328,36 @@ class BaseGSTSLS_Het:
         vc1 = get_vc_het_tsls(w, tsls, lambda1)
         lambda2 = GMM.optim_moments(moments,vc1)
         
-        tsls.betas, lambda3, tsls.u, vc2, G, tsls.predy = self.iterate(cycles,tsls,w,lambda2)
+        tsls.betas, lambda3, vc2, G, tsls.u = self.iterate(cycles,tsls,w,lambda2)
         self.u = tsls.u
         #Output
         self.betas = np.vstack((tsls.betas,lambda3))
         self.vm = get_Omega_GS2SLS(w, lambda3, tsls, G, vc2)
+        self._cache = {}
+
+        @property
+        def predy(self):
+            if 'predy' not in self._cache:
+                self._cache['predy'] = np.dot(np.hstack((self.x,self.yend)),self.betas[0:-1])
+            return self._cache['predy']
+
+        @property
+        def u(self):
+            if 'u' not in self._cache:
+                self._cache['u'] = self.y - self.predy
+            return self._cache['u']
+
+        @property
+        def z(self):
+            if 'z' not in self._cache:
+                self._cache['z'] = np.hstack((self.x,self.yend))
+            return self._cache['z']
+
+        @property
+        def h(self):
+            if 'h' not in self._cache:
+                self._cache['h'] = np.hstack((self.x,self.q))
+            return self._cache['h']
 
     def iterate(self,cycles,reg,w,lambda2):
         for n in range(cycles):
@@ -243,10 +371,81 @@ class BaseGSTSLS_Het:
             moments_i = moments_het(w, tsls.u)
             vc2 = get_vc_het_tsls(w, tsls, lambda2)
             lambda2 = GMM.optim_moments(moments_i,vc2)
-        return tsls.betas,lambda2,tsls.u,vc2,moments_i[0], predy
+        return tsls.betas,lambda2,vc2,moments_i[0], tsls.u
 
 class GSTSLS_Het(BaseGSTSLS_Het):
     """
+    GMM method for a spatial error model with heteroskedasticity and endogenous variables
+
+    Based on Arraiz et al [1]_
+
+    ...
+
+    Parameters
+    ----------
+
+    x           : array
+                  nxk array with independent variables aligned with y
+    y           : array
+                  nx1 array with dependent variables
+    yend        : array
+                  Endogenous variables
+    q           : array
+                  array of instruments for yend (note: this should not contain
+                  any variables from x;
+    w           : W
+                  PySAL weights instance aligned with y
+    cycles      : int
+                  Optional. Number of iterations of steps 2a. and 2b. Set to 1
+                  by default
+    name_y      : string
+                  Name of dependent variables for use in output
+    name_x      : list of strings
+                  Names of independent variables for use in output
+    name_yend   : list of strings
+                  Names of endogenous variables for use in output
+    name_q      : list of strings
+                  Names of instruments for use in output
+    name_ds     : string
+                  Name of dataset for use in output
+
+    Attributes
+    ----------
+    
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  array of independent variables (with constant added if
+                  constant parameter set to True)
+    z           : array
+                  nxk array of variables (combination of x and yend)
+    h           : array
+                  nxl array of instruments (combination of x and q)
+    yend        : array
+                  endogenous variables
+    q           : array
+                  array of external exogenous variables
+    betas       : array
+                  (k+1)x1 array with estimates for betas and lambda
+    u           : array
+                  nx1 array of residuals 
+    predy       : array
+                  nx1 array of predicted values 
+    n           : integer
+                  number of observations
+    k           : int
+                  Number of variables, including exogenous and endogenous
+                  variables and constant
+    vm          : array
+                  (k+1)x(k+1) variance-covariance matrix
+
+    References
+    ----------
+
+    .. [1] Arraiz, I., Drukker, D. M., Kelejian, H., Prucha, I. R. (2010) "A
+    Spatial Cliff-Ord-Type Model with Heteroskedastic Innovations: Small and
+    Large Sample Results". Journal of Regional Science, Vol. 60, No. 2, pp.
+    592-614.
 
 
     Examples
@@ -298,7 +497,8 @@ class GSTSLS_Het(BaseGSTSLS_Het):
 
 class BaseGSTSLS_Het_lag(BaseGSTSLS_Het):
     """
-    GMM method for a spatial lang and error model with heteroskedasticity and endogenous variables  
+    GMM method for a spatial lang and error model with heteroskedasticity and
+    endogenous variables  (note: no consistency checks) 
 
     Based on Arraiz et al [1]_
 
@@ -334,10 +534,30 @@ class BaseGSTSLS_Het_lag(BaseGSTSLS_Het):
     Attributes
     ----------
     
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  array of independent variables (with constant added if
+                  constant parameter set to True)
+    z           : array
+                  nxk array of variables (combination of x and yend)
+    h           : array
+                  nxl array of instruments (combination of x and q)
+    yend        : array
+                  endogenous variables
+    q           : array
+                  array of external exogenous variables
     betas       : array
                   (k+1)x1 array with estimates for betas and lambda
     u           : array
-                  nx1 array with residuals
+                  nx1 array of residuals 
+    predy       : array
+                  nx1 array of predicted values 
+    n           : integer
+                  number of observations
+    k           : int
+                  Number of variables, including exogenous and endogenous
+                  variables and constant
     vm          : array
                   (k+1)x(k+1) variance-covariance matrix
 
@@ -405,10 +625,81 @@ class BaseGSTSLS_Het_lag(BaseGSTSLS_Het):
             raise Exception, "invalid value passed to yend"
         BaseGSTSLS_Het.__init__(self, y, x, w, yend, q, cycles=cycles, constant=constant)
 
-
 class GSTSLS_Het_lag(BaseGSTSLS_Het_lag):
     """
+    GMM method for a spatial lang and error model with heteroskedasticity and
+    endogenous variables  (note: no consistency checks) 
 
+    Based on Arraiz et al [1]_
+
+    ...
+
+    Parameters
+    ----------
+
+    y           : array
+                  nx1 array with dependent variable
+    x           : array
+                  nxk array with independent variables aligned with y
+    w           : W
+                  PySAL weights instance aligned with y
+    yend        : array
+                  Optional. Additional non-spatial endogenous variables (spatial lag is added by default)
+    q           : array
+                  array of instruments for yend (note: this should not contain
+                  any variables from x; spatial instruments are computed by 
+                  default)
+    w_lags      : int
+                  Number of orders to power W when including it as intrument
+                  for the spatial lag (e.g. if w_lags=1, then the only
+                  instrument is WX; if w_lags=2, the instrument is WWX; and so
+                  on)    
+    constant    : boolean
+                  If true it appends a vector of ones to the independent variables
+                  to estimate intercept (set to True by default)
+    cycles      : int
+                  Optional. Number of iterations of steps 2a. and 2b. Set to 1
+                  by default
+    name_y      : string
+                  Name of dependent variables for use in output
+    name_x      : list of strings
+                  Names of independent variables for use in output
+    name_yend   : list of strings
+                  Names of endogenous variables for use in output
+    name_q      : list of strings
+                  Names of instruments for use in output
+    name_ds     : string
+                  Name of dataset for use in output
+
+    Attributes
+    ----------
+    
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  array of independent variables (with constant added if
+                  constant parameter set to True)
+    z           : array
+                  nxk array of variables (combination of x and yend)
+    h           : array
+                  nxl array of instruments (combination of x and q)
+    yend        : array
+                  endogenous variables
+    q           : array
+                  array of external exogenous variables
+    betas       : array
+                  (k+1)x1 array with estimates for betas and lambda
+    u           : array
+                  nx1 array of residuals 
+    predy       : array
+                  nx1 array of predicted values 
+    n           : integer
+                  number of observations
+    k           : int
+                  Number of variables, including exogenous and endogenous
+                  variables and constant
+    vm          : array
+                  (k+1)x(k+1) variance-covariance matrix
 
     Examples
     --------
