@@ -23,11 +23,11 @@ class BaseSTSLS(TSLS.BaseTSLS):
     w           : spatial weights object
                   pysal spatial weights object
     yend        : array
-                  non-spatial endogenous variables
+                  non-spatial endogenous variables [optional]
     q           : array
                   array of instruments for yend (note: this should not contain
                   any variables from x; spatial instruments are computed by 
-                  default)
+                  default) [only if 'yend' passed]
     w_lags      : integer
                   Number of spatial lags of the exogenous variables to be
                   included as spatial instruments (default set to 1)
