@@ -22,10 +22,10 @@ class BaseGMSWLS:
     Parameters
     ----------
 
-    x           : array
-                  nxk array of independent variables (assumed to be aligned with y)
     y           : array
                   nx1 array of dependent variable
+    x           : array
+                  nxk array of independent variables (assumed to be aligned with y)
     w           : W
                   Spatial weights instance 
     constant    : boolean
