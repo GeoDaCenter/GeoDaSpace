@@ -2,6 +2,7 @@
 # NOTE: it only compares OLS and spatial diagnostics
 
 library(spdep)
+library(sphet)
 
 test.large.olsSPd <- function(s, k){
     n <- s**2
@@ -170,10 +171,54 @@ test.large.sp.models  <- function(s, k){
 
 }
 
+test.large.spHet.models  <- function(s, k){
+    n <- s**2
+    mes <- paste('N:', n)
+    print(mes)
+    model <- 'Model: Het'
+    print(model)
+
+    ti <- proc.time()
+    t0 <- proc.time()
+    y <- rnorm(n)
+    x <- replicate(k, rnorm(n))
+    t1 <- proc.time()
+    time <- t1 - t0
+    print('Create data:')
+    print(time[3])
+
+    t0 <- proc.time()
+    w <- cell2nb(s, s)
+    w <- nb2listw(w)
+    t1 <- proc.time()
+    time <- t1 - t0
+    print('Created weights:')
+    print(time[3])
+
+    t0 <- proc.time()
+    ols <- gstslshet(y ~ x, data=list(), w, sarar=FALSE)
+    t1 <- proc.time()
+    time <- t1 - t0
+    print('SWLS_Het:')
+    print(time[3])
+
+    t0 <- proc.time()
+    ols <- gstslshet(y ~ x, data=list(), w)
+    t1 <- proc.time()
+    time <- t1 - t0
+    print('GSTSLS_Het_lag:')
+    print(time[3])
+
+    total <- t1 - ti
+    print('Total time:')
+    print(total[3])
+
+}
+
 k <- 10
 sizes <- cbind(150, 300, 450, 600, 750, 800, 900, 1000)
 sizes <- cbind(1150, 1300, 1450, 1600, 1750, 1900, 2000)
-sizes <- cbind(150, 300, 450)
+sizes <- cbind(15)
 #sizes <- cbind(15)
 
 for(size in sizes){
@@ -188,7 +233,7 @@ for(size in sizes){
 #   sink()
 
     sink('logs/sp_models.log', append=TRUE)
-    test.large.sp.models(size, k)
+    test.large.spHet.models(size, k)
     sink()
 
 }
