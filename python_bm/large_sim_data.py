@@ -541,7 +541,7 @@ for side in sizes:
     #gmswls = test_large_GMSWLS(side, 10, log='logs/gmswls_py.log', a=True, base=True, sw=False)
     #stsls = test_large_STSLS(side, 10, log='logs/stsls_py.log', a=True, base=True, sw=False)
     #sp_models = test_large_sp_models(side, 10, log='logs/sp_models.log', a=True, base=True, sw=False)
-    sp_models = test_large_spHet_models(side, 10, log='logs/sp_models.log',
+    sp_models = test_large_spHet_models(side, 10, log='logs/spHet_models.log',
             a=False, base=True, sw=False)
 
 
