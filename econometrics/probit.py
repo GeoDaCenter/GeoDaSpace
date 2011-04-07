@@ -70,13 +70,13 @@ class probit: #DEV class required.
     LR          : tupe
                   Likelihood Ratio test of all coefficients = 0
                   (test statistics, p-value)
-    LM_error    : float
+    Pinkse_error: float
                   Lagrange Multiplier test against spatial error correlation.
                   Implemented as presented in Pinkse (2009)
-    moran       : float
+    KP_error    : float
                   Moran's I type test against spatial error correlation.
                   Implemented as presented in Kelejian and Prucha (2001)
-    pinkse_slade: float
+    PS_error    : float
                   Lagrange Multiplier test against spatial error correlation.
                   Implemented as presented in Pinkse and Slade (1998)
     warning     : boolean
@@ -214,8 +214,8 @@ class probit: #DEV class required.
             self._cache['u_gen'] = u_gen
         return self._cache['u_gen']
     @property
-    def LM_error(self): #LM error and Moran's I tests are calculated together.
-        if 'LM_error' not in self._cache: 
+    def Pinkse_error(self): #LM error and Moran's I tests are calculated together.
+        if 'Pinkse_error' not in self._cache: 
             if self.w:
                 w = self.w.sparse
                 phi = self.phiy
@@ -226,8 +226,8 @@ class probit: #DEV class required.
                 u_gen = self.u_gen
                 sig2 = np.sum((phi * phi) / Phi_prod) / self.n
                 LM_err_num = np.dot(u_gen.T,(w * u_gen))**2
-                trWW_WpW = np.sum(((w*w)+(w.T*w)).diagonal())
-                LM_err = float(1.0 * LM_err_num / (sig2**2 * trWW_WpW))
+                trWW = np.sum((w*w).diagonal())
+                LM_err = float(1.0 * LM_err_num / (sig2**2 * (trWW + np.sum((w*w.T).diagonal()))))
                 LM_err = np.array([LM_err,stats.chisqprob(LM_err,1)])
                 #Moran's I:
                 E = SP.lil_matrix(w.get_shape()) #There's a similar code in gmm_utils to create the Sigma matrix for the Psi.
@@ -241,24 +241,24 @@ class probit: #DEV class required.
                 #Pinkse-Slade:
                 u_std = u_naive / np.sqrt(Phi_prod)
                 ps_num = np.dot(u_std.T, (w * u_std))**2
-                ps = float(ps_num / trWW_WpW)
+                ps = float(ps_num / (trWW+np.sum((w.T*w).diagonal())))
                 ps = np.array([ps,stats.chisqprob(ps,1)]) #chi-square instead of bootstrap.
-                self._cache['LM_error'] = LM_err
-                self._cache['moran'] = moran
-                self._cache['pinkse_slade'] = ps
+                self._cache['Pinkse_error'] = LM_err
+                self._cache['KP_error'] = moran
+                self._cache['PS_error'] = ps
             else:
                 print "W not specified."
-        return self._cache['LM_error']
+        return self._cache['Pinkse_error']
     @property
-    def moran(self): #All tests for spatial error correlation are calculated together.
-        if 'moran' not in self._cache:
-            self._cache['LM_error'] = self.LM_error
-        return self._cache['moran']
+    def KP_error(self): #All tests for spatial error correlation are calculated together.
+        if 'KP_error' not in self._cache:
+            self._cache['Pinkse_error'] = self.Pinkse_error
+        return self._cache['KP_error']
     @property
-    def pinkse_slade(self): #All tests for spatial error correlation are calculated together.
-        if 'pinkse_slade' not in self._cache:
-            self._cache['LM_error'] = self.LM_error
-        return self._cache['pinkse_slade']
+    def PS_error(self): #All tests for spatial error correlation are calculated together.
+        if 'PS_error' not in self._cache:
+            self._cache['Pinkse_error'] = self.Pinkse_error
+        return self._cache['PS_error']
 
     def par_est(self):
         start = np.dot(la.inv(np.dot(self.x.T,self.x)),np.dot(self.x.T,self.y))
