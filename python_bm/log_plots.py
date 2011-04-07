@@ -10,6 +10,9 @@ def load_log_py(log_file):
     k = []
     creDa = []
     creWe = []
+    ols = []
+    lm = []
+    moran = []
     gmswls = []
     stsls = []
     total = []
@@ -27,6 +30,13 @@ def load_log_py(log_file):
                 creDa.append(line[2])
             if line[0] == 'Created':
                 creWe.append(line[2])
+            if line[0] == 'Regression:':
+                print line
+                ols.append(line[1])
+            if line[0] == 'LM':
+                lm.append(line[2])
+            if line[0] == 'Moran':
+                moran.append(line[2])
             if line[0] == 'GMSWLS:':
                 gmswls.append(float(line[1]))
             if line[0] == 'STSLS:':
@@ -34,7 +44,7 @@ def load_log_py(log_file):
             if line[0] == 'Total':
                 total.append(line[3])
     log.close()
-    return model, n, k, creDa, creWe, gmswls, stsls, total
+    return model, n, k, creDa, creWe, ols, lm, moran, gmswls, stsls, total
 
 def load_log_r(log_file):
     log = open(log_file)
@@ -48,6 +58,8 @@ def load_log_r(log_file):
     gmswls = []
     stsls = []
     lm = []
+    ols = []
+    moran = []
     model = None
     for i in range(len(lines)):
         line = lines[i].strip('\n').strip('[1] ').strip('"').split(' ')
@@ -61,13 +73,19 @@ def load_log_r(log_file):
             creDa.append(float(lines[i+2]))
         if line[0] == 'Created':
             creWe.append(float(lines[i+2]))
+        if line[0] == 'Regression:':
+            ols.append(float(lines[i+2]))
+        if line[0] == 'Moran':
+            moran.append(float(lines[i+2]))
+        if line[0] == 'LM':
+            lm.append(float(lines[i+2]))
         if line[0] == 'GMSWLS:':
             gmswls.append(float(lines[i+2]))
         if line[0] == 'STSLS:':
             stsls.append(float(lines[i+2]))
         if line[0] == 'Total':
             total.append(float(lines[i+2]))
-    return model, n, k, creDa, creWe, gmswls, stsls, total
+    return model, n, k, creDa, creWe, ols, lm, moran, gmswls, stsls, total
 
 
 def plot_all(log_file, title='SPREG benchmarking', pic=None):
