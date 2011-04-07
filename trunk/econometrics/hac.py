@@ -129,9 +129,9 @@
            hacflag: 1 for HAC, 0 for White       
            returns HAC variance
         """        # initialize X as array
-        kx = nm.array(self.X)            # N by K array of X
+        kx = nm.array(self.X)            # N by K array of X  -- is reg.x
         # initialize residuals as array
-        ke = nm.array(self.results['e'])   # N by 1 array of OLS residuals
+        ke = nm.array(self.results['e'])   # N by 1 array of OLS residuals  -- is reg.u
         # kernel cross-products
         kxe = kx * ke   # this is not matrix multiplication but each X is multiplied by e, so x(ik)*e(i)
         if hacflag:
@@ -142,7 +142,7 @@
         else:
             kphi = nm.inner(kxe,kxe)  # just the cross product of x*e for White
         # variance matrix as (X'X)-1 Phi (X'X)-1
-        kdd = nm.dot(kphi,self.results['xd'])   # xd is (X'X)-1 so this is Phi*(X'X)-1 
+        kdd = nm.dot(kphi,self.results['xd'])   # xd is (X'X)-1 so this is Phi*(X'X)-1  -- xd is our reg.xtxi
         phi = nm.dot(self.results['xd'],kdd) # this is (X'X)-1 (XeKXe) (X'X)-1 the variance matrix for OLS case
         return phi
         
@@ -154,9 +154,9 @@
            returns HAC variance
         """
         # initialize X as array
-        kx = nm.array(self.H) # N by P array of instruments H
+        kx = nm.array(self.H) # N by P array of instruments H -- our reg.h
         # initialize residuals as array
-        ke = nm.array(self.results['e']) # N by 1 array of 2SLS residuals
+        ke = nm.array(self.results['e']) # N by 1 array of 2SLS residuals  -- reg.u
         # kernel cross-products
         kxe = kx * ke   # note kx here is H so this is h(ik)*e(i)
         #print 'THIS IS KXE'
@@ -171,7 +171,8 @@
             kphi = nm.inner(kxe,kxe)  # just the white thing -- we may not need
         # variance matrix as (Zh'Zh)-1Z'H(H'H)-1 Phi (H'H)-1 H'Z(Zh'Zh)-1
         # see theorem 3
-        kdd = nm.dot(self.results['xdp'],kphi)  # xdp is  [Z'H (H'H)-1 H'Z]-1 Z'H(H'H)-1 kphi is Phi
+        kdd = nm.dot(self.results['xdp'],kphi)  # xdp is  [Z'H (H'H)-1 H'Z]-1 Z'H(H'H)-1 kphi is Phi 
+        # xdp is product of our reg.varb and reg.factor1 from twosls.py (needs to be added to cache is p by p so ok)
         print 'THIS IS KDD'
         print kdd
         phi = nm.dot(kdd,nm.transpose(self.results['xdp']))  #  [Z'H (H'H)-1 H'Z]-1 Z'H(H'H)-1 kphi (H'H)-1 H'Z [Z'H (H'H)-1 H'Z]-1 
