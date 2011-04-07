@@ -7,8 +7,7 @@ import numpy.linalg as la
 from pysal import lag_spatial
 import pysal.spreg.user_output as USER
 
-
-class BaseSWLS_Het:
+class BaseGM_Error_Het:
     """
     GMM method for a spatial error model with heteroskedasticity (note: no
     consistency checks)
@@ -72,7 +71,7 @@ class BaseSWLS_Het:
     >>> X = np.array(X).T
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
-    >>> reg = BaseSWLS_Het(y, X, w)
+    >>> reg = BaseGM_Error_Het(y, X, w)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[ 62.5528   4.7153]
      [ -1.1214   0.4431]
@@ -129,7 +128,7 @@ class BaseSWLS_Het:
             lambda2 = GMM.optim_moments(moments_i,vc2)
         return beta_i,lambda2,vc2,moments_i[0], u
 
-class SWLS_Het(BaseSWLS_Het):
+class GM_Error_Het(BaseGM_Error_Het):
     """
     GMM method for a spatial error model with heteroskedasticity
     Based on Arraiz et al [1]_
@@ -197,7 +196,7 @@ class SWLS_Het(BaseSWLS_Het):
     >>> X = np.array(X).T
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
-    >>> reg = SWLS_Het(y, X, w, name_y='crime', name_x=['income', 'home value'], name_ds='columbus')
+    >>> reg = GM_Error_Het(y, X, w, name_y='crime', name_x=['income', 'home value'], name_ds='columbus')
     >>> print reg.name_x
     ['CONSTANT', 'income', 'home value', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
@@ -212,7 +211,7 @@ class SWLS_Het(BaseSWLS_Het):
                         name_y=None, name_x=None, name_ds=None):
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
-        BaseSWLS_Het.__init__(self, y, x, w, cycles=cycles, constant=constant)
+        BaseGM_Error_Het.__init__(self, y, x, w, cycles=cycles, constant=constant)
         self.title = "SPATIALLY WEIGHTED LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -220,7 +219,7 @@ class SWLS_Het(BaseSWLS_Het):
         self.name_x.append('lambda')
         
 
-class BaseGSTSLS_Het:
+class BaseGM_Endog_Error_Het:
     """
     GMM method for a spatial error model with heteroskedasticity and
     endogenous variables (note: no consistency checks)
@@ -303,7 +302,7 @@ class BaseGSTSLS_Het:
     >>> q = np.array(q).T
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
-    >>> reg = BaseGSTSLS_Het(y, X, w, yd, q)
+    >>> reg = BaseGM_Endog_Error_Het(y, X, w, yd, q)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[  82.5947   13.6408]
      [   0.6947    1.2754]
@@ -373,7 +372,7 @@ class BaseGSTSLS_Het:
             lambda2 = GMM.optim_moments(moments_i,vc2)
         return tsls.betas,lambda2,vc2,moments_i[0], tsls.u
 
-class GSTSLS_Het(BaseGSTSLS_Het):
+class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
     """
     GMM method for a spatial error model with heteroskedasticity and endogenous variables
 
@@ -466,7 +465,7 @@ class GSTSLS_Het(BaseGSTSLS_Het):
     >>> q = np.array(q).T
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
-    >>> reg = GSTSLS_Het(y, X, w, yd, q, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
+    >>> reg = GM_Endog_Error_Het(y, X, w, yd, q, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'hoval', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
@@ -481,7 +480,7 @@ class GSTSLS_Het(BaseGSTSLS_Het):
                         name_q=None, name_ds=None):
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
-        BaseGSTSLS_Het.__init__(self, y, x, w, yend, q, cycles=cycles,\
+        BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend, q, cycles=cycles,\
                                        constant=constant)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"
         self.name_ds = USER.set_name_ds(name_ds)
@@ -495,7 +494,7 @@ class GSTSLS_Het(BaseGSTSLS_Het):
         
 
 
-class BaseGSTSLS_Het_lag(BaseGSTSLS_Het):
+class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     """
     GMM method for a spatial lang and error model with heteroskedasticity and
     endogenous variables  (note: no consistency checks) 
@@ -584,7 +583,7 @@ class BaseGSTSLS_Het_lag(BaseGSTSLS_Het):
 
     Example only with spatial lag
 
-    >>> reg = BaseGSTSLS_Het_lag(y, X, w)
+    >>> reg = BaseGM_Combo_Het(y, X, w)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[ 38.5869   8.2998]
      [ -1.3779   0.3296]
@@ -599,7 +598,7 @@ class BaseGSTSLS_Het_lag(BaseGSTSLS_Het):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = BaseGSTSLS_Het_lag(y, X, w, yd, q)
+    >>> reg = BaseGM_Combo_Het(y, X, w, yd, q)
     >>> betas = np.array([['CONSTANT'],['inc'],['hoval'],['lag_crime'],['lambda']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
     [['CONSTANT' '50.12804' '12.21066']
@@ -623,9 +622,9 @@ class BaseGSTSLS_Het_lag(BaseGSTSLS_Het):
             yend = yl
         else:
             raise Exception, "invalid value passed to yend"
-        BaseGSTSLS_Het.__init__(self, y, x, w, yend, q, cycles=cycles, constant=constant)
+        BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend, q, cycles=cycles, constant=constant)
 
-class GSTSLS_Het_lag(BaseGSTSLS_Het_lag):
+class GM_Combo_Het(BaseGM_Combo_Het):
     """
     GMM method for a spatial lang and error model with heteroskedasticity and
     endogenous variables  (note: no consistency checks) 
@@ -716,7 +715,7 @@ class GSTSLS_Het_lag(BaseGSTSLS_Het_lag):
 
     Example only with spatial lag
 
-    >>> reg = GSTSLS_Het_lag(y, X, w, name_y='crime', name_x=['income'], name_ds='columbus')
+    >>> reg = GM_Combo_Het(y, X, w, name_y='crime', name_x=['income'], name_ds='columbus')
     >>> print reg.name_z
     ['CONSTANT', 'income', 'lag_crime', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
@@ -733,7 +732,7 @@ class GSTSLS_Het_lag(BaseGSTSLS_Het_lag):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = GSTSLS_Het_lag(y, X, w, yd, q, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
+    >>> reg = GM_Combo_Het(y, X, w, yd, q, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'hoval', 'lag_crime', 'lambda']
     >>> print reg.betas
@@ -752,7 +751,7 @@ class GSTSLS_Het_lag(BaseGSTSLS_Het_lag):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
-        BaseGSTSLS_Het_lag.__init__(self, y, x, w, yend, q, w_lags,\
+        BaseGM_Combo_Het.__init__(self, y, x, w, yend, q, w_lags,\
                                            constant, cycles)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
@@ -1088,7 +1087,7 @@ if __name__ == '__main__':
     q = np.array(q).T
     w = pysal.rook_from_shapefile("examples/columbus.shp")
     w.transform = 'r'
-    reg = SWLS_Het(y, X, w)
+    reg = GM_Error_Het(y, X, w)
     print "Exogenous variables only:"
     print "Dependent variable: CRIME"
     print "Variable  Coef.  S.E."
@@ -1098,7 +1097,7 @@ if __name__ == '__main__':
     print "Lambda: %5.4f %5.4f" % (reg.betas[-1],np.sqrt(reg.vm.diagonal())[-1])
     print '$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'
     print "Spatial Lag:"
-    reg = GSTSLS_Het_lag(y, X, w, yd, q)
+    reg = GM_Combo_Het(y, X, w, yd, q)
     print "Dependent variable: CRIME"
     print "Variable  Coef.  S.E."
     print "Constant %5.4f %5.4f" % (reg.betas[0],np.sqrt(reg.vm.diagonal())[0])
