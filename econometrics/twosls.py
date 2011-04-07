@@ -163,9 +163,7 @@ class BaseTSLS(RegressionProps):
         self.htz = htz
         self.hthi =hthi
         
-        self.factor = np.dot(hthi, htz)    #self.factor is self.zthhthi.T
-
-        xp = np.dot(h, self.factor)
+        xp = np.dot(h, self.zthhthi.T)
         xptxp = np.dot(xp.T,xp)
         xptxpi = la.inv(xptxp)
         self.xp = xp
@@ -186,8 +184,8 @@ class BaseTSLS(RegressionProps):
     def pfora1a2(self):
         if 'pfora1a2' not in self._cache:
             # pfora1a2
-            factor_4 = np.dot(self.zth, self.factor)
-            self._cache['pfora1a2'] = self.n*np.dot(self.factor, la.inv(factor_4))
+            factor_4 = np.dot(self.zth, self.zthhthi.T)
+            self._cache['pfora1a2'] = self.n*np.dot(self.zthhthi.T, la.inv(factor_4))
         return self._cache['pfora1a2']    
             
     @property
