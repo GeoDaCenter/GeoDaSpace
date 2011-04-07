@@ -161,13 +161,13 @@
         kxe = kx * ke   # note kx here is H so this is h(ik)*e(i)
         #print 'THIS IS KXE'
         #print kxe
-        if hacflag:
-            wkxe = self.kw1.ksplagl(kxe.tolist())  # kernel lag applied to the He
+        if hacflag:    #(same as for OLS)
+            wkxe = self.kw1.ksplagl(kxe.tolist())  # kernel lag applied to the He, 
             #print 'this is wkxe'
             #print wkxe
             wkxe = nm.array(wkxe)  # need to turn into an array from a list -- not crucial
             kphi = nm.inner(kxe,wkxe)  # cross product Sumi Sum hir hjs ui uj K(ij)  equation 8 p. 141 in KP
-        else:
+        else:    #(same as for OLS)
             kphi = nm.inner(kxe,kxe)  # just the white thing -- we may not need
         # variance matrix as (Zh'Zh)-1Z'H(H'H)-1 Phi (H'H)-1 H'Z(Zh'Zh)-1
         # see theorem 3

@@ -148,6 +148,7 @@ class BaseTSLS(RegressionProps):
         betas = np.dot(factor_2,hty)
         self.betas = betas
         self.varb = varb
+        self.zthhthi = factor_1   # need this for HAC
         
         # predicted values
         self.predy = np.dot(z,betas)
@@ -162,7 +163,8 @@ class BaseTSLS(RegressionProps):
         self.htz = htz
         self.hthi =hthi
         
-        self.factor = np.dot(hthi, htz)
+        self.factor = np.dot(hthi, htz)    #self.factor is self.zthhthi.T
+
         xp = np.dot(h, self.factor)
         xptxp = np.dot(xp.T,xp)
         xptxpi = la.inv(xptxp)
