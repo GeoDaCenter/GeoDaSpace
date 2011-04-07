@@ -57,7 +57,7 @@ def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
     spat_tests  : boolean
                   Boolean indicating whether spatial tests should be run
     std_err     : string
-                  Options: 'White', 'HAC', 'KP HAC', ''; the empty string will
+                  Options: 'White', 'HAC', 'KP HAC', ''; the empty string will    LA: Note, should be KP HET?
                   return unadjusted standard errors
 
     Returns
@@ -169,6 +169,8 @@ def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
                     return TSLS(y=y, x=x, yend=ye, q=h, w=w, robust='white',\
                                 name_y=name_y, name_x=name_x, name_yend=name_ye,\
                                 name_q=name_h, name_ds=name_ds)
+                elif std_err == 'HAC':  # LA standard 2SLS needs HAC
+                    raise Exception, "not yet implemented"
                 elif std_err == '':
                     # 2SLS with spatial diagnostics
                     return TSLS(y=y, x=x, yend=ye, q=h, w=w,\
@@ -180,12 +182,14 @@ def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
                     return TSLS(y=y, x=x, yend=ye, q=h, robust='White',\
                                 name_y=name_y, name_x=name_x, name_yend=name_ye,\
                                 name_q=name_h, name_ds=name_ds)
-                if std_err == '':
+                elif std_err == 'HAC':  # LA standard 2SLS needs HAC
+                    raise Exception, "not yet implemented"
+                elif std_err == '':
                     # 2SLS
                     return TSLS(y=y, x=x, yend=ye, q=h,\
                                 name_y=name_y, name_x=name_x, name_yend=name_ye,\
                                 name_q=name_h, name_ds=name_ds)
-        else:
+        else:   # LA NOTE: OLS needs White and HAC
             if spat_tests:
                 # OLS with spatial diagnostics
                 return OLS(y=y, x=x, w=w,\
@@ -211,7 +215,7 @@ def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
                              name_y=name_y, name_x=name_x, name_ds=name_ds,\
                              robust='white')
         elif std_err == 'HAC':
-            raise Exception, "not a valid combination"
+            raise Exception, "not yet implemented"  # LA: HAC is valid with spatial lag
         elif std_err == '':
             if endog:
                #GM Spatial lag with non-spatial endog variables
@@ -238,8 +242,8 @@ def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
                              name_y=name_y, name_x=name_x, name_ds=name_ds)
         elif std_err == 'White':
             raise Exception, "not yet implemented"
-        elif std_err == 'HAC':
-            raise Exception, "not yet implemented"
+        elif std_err == 'HAC':    # NOTE LA: HAC should not be for spatial error
+            raise Exception, "not a valid combination"
         elif std_err == '':
             if endog:
                 #GM Spatial error with non-spatial endogenous variable
@@ -254,7 +258,7 @@ def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
             raise Exception, "invalid option passed to std_err"
 
     elif model_type == 'Spatial Lag+Error':
-        if std_err == 'KP HET':
+        if std_err == 'KP HET':  
             if endog:
                 #GM Spatial combo with het with non-spatial endogenous variables
                 return GSTSLS_Het_lag(y=y, x=x, w=w, yend=ye, q=h,\
@@ -265,9 +269,9 @@ def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
                 return GSTSLS_Het_lag(y=y, x=x, w=w,\
                              name_y=name_y, name_x=name_x, name_ds=name_ds)
         elif std_err == 'White':
-            raise Exception, "not yet implemented"
+            raise Exception, "not a valid combination"  # no white with lag-error model, subsumed in KP-HET
         elif std_err == 'HAC':
-            raise Exception, "not yet implemented"
+            raise Exception, "not a valid combination"  # HAC should be in spatial lag, not here
         elif std_err == '':
             if endog:
                 #GM Spatial combo with non-spatial endogenous variables
