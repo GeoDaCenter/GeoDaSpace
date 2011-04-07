@@ -268,8 +268,12 @@ class KernelKNN(W):
             self.kernel=z
         elif self.function=='quadratic':
             self.kernel=[(3./4)*(1-z**2) for z in zs]
+        elif self.function=='epanechnikov':
+            self.kernel=[(1-z**2) for z in zs]
         elif self.function=='quartic':
             self.kernel=[(15./16)*(1-z**2)**2 for z in zs]
+        elif self.function=='bisquare':
+            self.kernel=[(1-z**2)**2 for z in zs]
         elif self.function=='gaussian':
             c=np.pi*2
             c=c**(-0.5)

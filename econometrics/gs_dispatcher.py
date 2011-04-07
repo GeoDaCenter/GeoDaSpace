@@ -241,7 +241,7 @@ def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
                 return SWLS_Het(y=y, x=x, w=w,\
                              name_y=name_y, name_x=name_x, name_ds=name_ds)
         elif std_err == 'White':
-            raise Exception, "not yet implemented"
+            raise Exception, "not a valid combination"
         elif std_err == 'HAC':    # NOTE LA: HAC should not be for spatial error
             raise Exception, "not a valid combination"
         elif std_err == '':
