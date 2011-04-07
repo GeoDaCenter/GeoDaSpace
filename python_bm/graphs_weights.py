@@ -1,5 +1,5 @@
 '''
-Plot performance in running OLS
+Plot performance in creating lattice (queen) weights
 '''
 
 from log_plots import load_log_py, load_log_r
@@ -21,13 +21,13 @@ model_r, n_r, k_r, creDa_r, creWe_r, ols_r, lm_r, moran_r, gmswls_r, stsls_r, to
 
 reg_fig = plt.figure(1)
 reg_sub = plt.subplot(111)
-plt.plot(n_r[:len(ols_r)], ols_r, label='R')
-plt.plot(n_py[:len(ols_py)], ols_py, label='Spreg')
+plt.plot(n_r[:len(creWe_r)], creWe_r, label='R')
+plt.plot(n_py[:len(creWe_py)], creWe_py, label='Spreg')
 plt.legend(loc=2)
-plt.title('Computation time for OLS', weight='bold')
+plt.title('Computation time to create lattice (queen) weights', weight='bold')
 plt.xlabel('N')
 plt.ylabel('Seconds')
-plt.savefig(comp + 'dani/Dropbox/aagGraphs/ols.png')
+plt.savefig(comp + 'dani/Dropbox/aagGraphs/weights.png')
 
 #plt.show()
 
