@@ -1,10 +1,7 @@
-
-
-
 from pysal.spreg.ols import OLS
 from twosls import TSLS
 from twosls_sp import STSLS
-from spHetErr import SWLS_Het, GSTSLS_Het, GSTSLS_Het_lag
+from spHetErr import GM_Error_Het, GM_Endog_Error_Het, GM_Combo_Het
 from spError import GSTSLS, GMSWLS, GSTSLS_lag
 
 def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
@@ -233,12 +230,12 @@ def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
         if std_err == 'KP HET':
             if endog:
                 #GM Spatial error with het and with non-spatial endogenous variable
-                return GSTSLS_Het(y=y, x=x, w=w, yend=ye, q=h,\
+                return GM_Endog_Error_Het(y=y, x=x, w=w, yend=ye, q=h,\
                             name_y=name_y, name_x=name_x, name_yend=name_ye,\
                             name_q=name_h, name_ds=name_ds)
             else:
                 #GM Spatial error with het
-                return SWLS_Het(y=y, x=x, w=w,\
+                return GM_Error_Het(y=y, x=x, w=w,\
                              name_y=name_y, name_x=name_x, name_ds=name_ds)
         elif std_err == 'White':
             raise Exception, "not a valid combination"
@@ -261,12 +258,12 @@ def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
         if std_err == 'KP HET':  
             if endog:
                 #GM Spatial combo with het with non-spatial endogenous variables
-                return GSTSLS_Het_lag(y=y, x=x, w=w, yend=ye, q=h,\
+                return GM_Combo_Het(y=y, x=x, w=w, yend=ye, q=h,\
                              name_y=name_y, name_x=name_x, name_yend=name_ye,\
                              name_q=name_h, name_ds=name_ds)
             else:
                 #GM Spatial combo with het
-                return GSTSLS_Het_lag(y=y, x=x, w=w,\
+                return GM_Combo_Het(y=y, x=x, w=w,\
                              name_y=name_y, name_x=name_x, name_ds=name_ds)
         elif std_err == 'White':
             raise Exception, "not a valid combination"  # no white with lag-error model, subsumed in KP-HET
