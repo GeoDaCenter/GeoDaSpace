@@ -31,7 +31,6 @@ def load_log_py(log_file):
             if line[0] == 'Created':
                 creWe.append(line[2])
             if line[0] == 'Regression:':
-                print line
                 ols.append(line[1])
             if line[0] == 'LM':
                 lm.append(line[2])
