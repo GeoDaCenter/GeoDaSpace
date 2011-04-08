@@ -38,7 +38,7 @@ def load_log_py(log_file):
                 moran.append(line[2])
             if line[0] == 'GMSWLS:':
                 gmswls.append(float(line[1]))
-            if line[0] == 'STSLS:':
+            if line[1] == 'STSLSk:':
                 stsls.append(float(line[1]))
             if line[0] == 'Total':
                 total.append(line[3])
