@@ -115,15 +115,15 @@ class BaseGMSWLS:
         #2a. OLS -->\hat{betas}
         xs,ys = get_spFilter(w, lambda1, x),get_spFilter(w, lambda1, y)
 
-        ols = OLS.BaseOLS(ys, xs, constant=False)
+        ols2 = OLS.BaseOLS(ys, xs, constant=False)
 
         #Output
-        self.betas = np.vstack((ols.betas, np.array([[lambda1]])))
-        self.sig2 = ols.sig2n
-        self.u = ols.u
+        self.u = y - np.dot(ols.x, ols2.betas)
+        self.betas = np.vstack((ols2.betas, np.array([[lambda1]])))
+        self.sig2 = ols2.sig2n
 
         self.se_betas, self.z, self.pvals = _inference(ols)
-        self.step2OLS = ols
+        self.step2OLS = ols2
 
 class GMSWLS(BaseGMSWLS):
     """
