@@ -16,7 +16,7 @@ def load_log_py(log_file):
     gmswls = []
     stsls = []
     total = []
-    model = None
+    model = 0
     for line in log:
         line = line.strip('\n').split()
         if len(line) > 0:
@@ -43,7 +43,9 @@ def load_log_py(log_file):
             if line[0] == 'Total':
                 total.append(line[3])
     log.close()
-    return model, n, k, creDa, creWe, ols, lm, moran, gmswls, stsls, total
+    els =  [model], n, k, creDa, creWe, ols, lm, moran, gmswls, stsls, total
+    els = [map(float, i) for i in els]
+    return els
 
 def load_log_r(log_file):
     log = open(log_file)
@@ -59,7 +61,7 @@ def load_log_r(log_file):
     lm = []
     ols = []
     moran = []
-    model = None
+    model = 0
     for i in range(len(lines)):
         line = lines[i].strip('\n').strip('[1] ').strip('"').split(' ')
         if line[0] == 'Model:':
@@ -84,7 +86,9 @@ def load_log_r(log_file):
             stsls.append(float(lines[i+2]))
         if line[0] == 'Total':
             total.append(float(lines[i+2]))
-    return model, n, k, creDa, creWe, ols, lm, moran, gmswls, stsls, total
+    els = [model], n, k, creDa, creWe, ols, lm, moran, gmswls, stsls, total
+    els = [map(float, i) for i in els]
+    return els
 
 
 def plot_all(log_file, title='SPREG benchmarking', pic=None):
