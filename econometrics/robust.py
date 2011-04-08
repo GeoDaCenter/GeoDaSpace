@@ -38,7 +38,7 @@ def gls4tsls(y, z, h, u):
 
     >>> import numpy as np
     >>> import pysal
-    >>> from twosls_sp import BaseSTSLS
+    >>> from twosls_sp import BaseGM_Lag
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
     >>> db=pysal.open("examples/columbus.dbf","r")
@@ -50,7 +50,7 @@ def gls4tsls(y, z, h, u):
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
     >>> # run gls4tsls manually
-    >>> reg=BaseSTSLS(y, X, w, w_lags=2)
+    >>> reg=BaseGM_Lag(y, X, w, w_lags=2)
     >>> reg.betas
     array([[ 45.45909249],
            [ -1.0410089 ],
@@ -63,7 +63,7 @@ def gls4tsls(y, z, h, u):
            [ -0.28543096],
            [  0.32904005]])
     >>> # run gls4tsls directly using 2SLS
-    >>> reg=BaseSTSLS(y, X, w, w_lags=2, robust='gls')
+    >>> reg=BaseGM_Lag(y, X, w, w_lags=2, robust='gls')
     >>> reg.betas
     array([[ 51.16882977],
            [ -1.12721019],

@@ -13,7 +13,7 @@ import pysal.spreg.user_output as USER
 
 
 
-class BaseGMSWLS:
+class BaseGM_Error:
     """
     Generalized Moments Spatially Weighted Least Squares (OLS + GMM) as in Kelejian and Prucha
     (1998) [1]_ and Kelejian and Prucha (1999) [2]_
@@ -76,7 +76,7 @@ class BaseGMSWLS:
     >>> x = np.array([dbf.by_col('INC'), dbf.by_col('CRIME')]).T
     >>> w = pysal.open('examples/columbus.gal', 'r').read() 
     >>> w.transform='r'
-    >>> model = BaseGMSWLS(y, x, w)
+    >>> model = BaseGM_Error(y, x, w)
     >>> np.around(model.betas, decimals=6)
     array([[ 47.694634],
            [  0.710453],
@@ -109,7 +109,7 @@ class BaseGMSWLS:
         ols = OLS.BaseOLS(y, x, constant=False)
 
         #1b. GMM --> \tilde{\lambda1}
-        moments = _momentsGMSWLS(w, ols.u)
+        moments = _momentsGM_Error(w, ols.u)
         lambda1 = optim_moments(moments)
 
         #2a. OLS -->\hat{betas}
@@ -122,10 +122,10 @@ class BaseGMSWLS:
         self.betas = np.vstack((ols2.betas, np.array([[lambda1]])))
         self.sig2 = ols2.sig2n
 
-        self.se_betas, self.z, self.pvals = _inference(ols)
+        self.se_betas, self.z, self.pvals = _inference(ols2)
         self.step2OLS = ols2
 
-class GMSWLS(BaseGMSWLS):
+class GM_Error(BaseGM_Error):
     """
 
 
@@ -139,7 +139,7 @@ class GMSWLS(BaseGMSWLS):
     >>> x = np.array([dbf.by_col('INC'), dbf.by_col('CRIME')]).T
     >>> w = pysal.open('examples/columbus.gal', 'r').read() 
     >>> w.transform='r'
-    >>> model = GMSWLS(y, x, w, name_y='hoval', name_x=['income', 'crime'], name_ds='columbus')
+    >>> model = GM_Error(y, x, w, name_y='hoval', name_x=['income', 'crime'], name_ds='columbus')
     >>> print model.name_x
     ['CONSTANT', 'income', 'crime', 'lambda']
     >>> np.around(model.betas, decimals=6)
@@ -167,7 +167,7 @@ class GMSWLS(BaseGMSWLS):
                         name_x=None, name_ds=None):
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
-        BaseGMSWLS.__init__(self, y, x, w, constant=constant) 
+        BaseGM_Error.__init__(self, y, x, w, constant=constant) 
         self.title = "SPATIALLY WEIGHTED LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -175,7 +175,7 @@ class GMSWLS(BaseGMSWLS):
         self.name_x.append('lambda')
 
 
-class BaseGSTSLS:
+class BaseGM_Endog_Error:
     '''
     Generalized Spatial Two Stages Least Squares (TSLS + GMM) using spatial
     error from Kelejian and Prucha (1998) [1]_ and Kelejian and Prucha (1999) [2]_
@@ -238,7 +238,7 @@ class BaseGSTSLS:
     >>> q = np.array([dbf.by_col('DISCBD')]).T
     >>> w = pysal.open('examples/columbus.gal', 'r').read() 
     >>> w.transform='r'
-    >>> model = BaseGSTSLS(y, x, w, yend, q)
+    >>> model = BaseGM_Endog_Error(y, x, w, yend, q)
     >>> np.around(model.betas, decimals=6)
     array([[ 82.57298 ],
            [  0.580959],
@@ -259,7 +259,7 @@ class BaseGSTSLS:
         tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=False)
 
         #1b. GMM --> \tilde{\lambda1}
-        moments = _momentsGMSWLS(w, tsls.u)
+        moments = _momentsGM_Error(w, tsls.u)
         lambda1 = optim_moments(moments)
 
         #2a. OLS -->\hat{betas}
@@ -278,7 +278,7 @@ class BaseGSTSLS:
         self.pvals = norm.sf(abs(zs)) * 2.
 
 
-class GSTSLS(BaseGSTSLS):
+class GM_Endog_Error(BaseGM_Endog_Error):
     '''
 
 
@@ -294,7 +294,7 @@ class GSTSLS(BaseGSTSLS):
     >>> q = np.array([dbf.by_col('DISCBD')]).T
     >>> w = pysal.open('examples/columbus.gal', 'r').read() 
     >>> w.transform='r'
-    >>> model = GSTSLS(y, x, w, yend, q, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
+    >>> model = GM_Endog_Error(y, x, w, yend, q, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
     >>> print model.name_z
     ['CONSTANT', 'inc', 'hoval', 'lambda']
     >>> np.around(model.betas, decimals=6)
@@ -312,7 +312,7 @@ class GSTSLS(BaseGSTSLS):
                         name_ds=None):
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
-        BaseGSTSLS.__init__(self, y, x, w, yend, q, constant=constant)
+        BaseGM_Endog_Error.__init__(self, y, x, w, yend, q, constant=constant)
         self.title = "GENERALIZED SPATIAL STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -324,7 +324,7 @@ class GSTSLS(BaseGSTSLS):
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         
 
-class BaseGSTSLS_lag(BaseGSTSLS):
+class BaseGM_Combo(BaseGM_Endog_Error):
     """
     Generalized Spatial Two Stages Least Squares (TSLS + GMM) with spatial lag using spatial
     error from Kelejian and Prucha (1998) [1]_ and Kelejian and Prucha (1999) [2]_
@@ -397,7 +397,7 @@ class BaseGSTSLS_lag(BaseGSTSLS):
 
     Example only with spatial lag
 
-    >>> reg = BaseGSTSLS_lag(y, X, w)
+    >>> reg = BaseGM_Combo(y, X, w)
 
     Print the betas
 
@@ -419,7 +419,7 @@ class BaseGSTSLS_lag(BaseGSTSLS):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = BaseGSTSLS_lag(y, X, w, yd, q)
+    >>> reg = BaseGM_Combo(y, X, w, yd, q)
     >>> betas = np.array([['Intercept'],['INC'],['HOVAL'],['W_CRIME']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas[:-1], np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)))
     [['Intercept' '50.0944' '10.7064']
@@ -441,10 +441,10 @@ class BaseGSTSLS_lag(BaseGSTSLS):
             yend = yl
         else:
             raise Exception, "invalid value passed to yend"
-        BaseGSTSLS.__init__(self, y, x, w, yend, q, constant=constant)
+        BaseGM_Endog_Error.__init__(self, y, x, w, yend, q, constant=constant)
 
 
-class GSTSLS_lag(BaseGSTSLS_lag):
+class GM_Combo(BaseGM_Combo):
     """
 
 
@@ -464,7 +464,7 @@ class GSTSLS_lag(BaseGSTSLS_lag):
 
     Example only with spatial lag
 
-    >>> reg = GSTSLS_lag(y, X, w, name_y='crime', name_x=['income'], name_ds='columbus')
+    >>> reg = GM_Combo(y, X, w, name_y='crime', name_x=['income'], name_ds='columbus')
 
     Print the betas
 
@@ -488,7 +488,7 @@ class GSTSLS_lag(BaseGSTSLS_lag):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = GSTSLS_lag(y, X, w, yd, q, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
+    >>> reg = GM_Combo(y, X, w, yd, q, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'hoval', 'lag_crime', 'lambda']
     >>> names = np.array(reg.name_z).reshape(5,1)
@@ -507,7 +507,7 @@ class GSTSLS_lag(BaseGSTSLS_lag):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
-        BaseGSTSLS_lag.__init__(self, y, x, w, yend, q, w_lags, constant)
+        BaseGM_Combo.__init__(self, y, x, w, yend, q, w_lags, constant)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -532,7 +532,7 @@ def _inference(ols):
     pvals = norm.sf(abs(zs)) * 2.
     return [ses, zs, pvals]
 
-def _momentsGMSWLS(w, u):
+def _momentsGM_Error(w, u):
 
     u2 = np.dot(u.T, u)
     wu = w.sparse * u
@@ -566,8 +566,8 @@ if __name__ == '__main__':
     w = pysal.open('examples/columbus.gal', 'r').read()
     w.transform='r' #Needed to match R
 
-    print '\n\tGMSWLS model Example'
-    model = GMSWLS(x, y, w)
+    print '\n\tGM_Error model Example'
+    model = GM_Error(x, y, w)
     print '\n### Betas ###'
     print model.betas
     print '\n### Std. Errors ###'
