@@ -7,7 +7,7 @@ import robust as ROBUST
 import pysal.spreg.user_output as USER
 from utils import get_lags
 
-class BaseSTSLS(TSLS.BaseTSLS):
+class BaseGM_Lag(TSLS.BaseTSLS):
     """
     Spatial 2SLS class to do all the computations
 
@@ -108,7 +108,7 @@ class BaseSTSLS(TSLS.BaseTSLS):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> reg=BaseSTSLS(y, X, w, w_lags=2)
+    >>> reg=BaseGM_Lag(y, X, w, w_lags=2)
     >>> reg.betas
     array([[ 45.45909249],
            [ -1.0410089 ],
@@ -116,7 +116,7 @@ class BaseSTSLS(TSLS.BaseTSLS):
            [  0.41929355]])
     >>> D.se_betas(reg)
     array([ 11.19151175,   0.38861224,   0.09240593,   0.18758518])
-    >>> reg=BaseSTSLS(y, X, w, w_lags=2, robust='white')
+    >>> reg=BaseGM_Lag(y, X, w, w_lags=2, robust='white')
     >>> reg.betas
     array([[ 45.45909249],
            [ -1.0410089 ],
@@ -124,7 +124,7 @@ class BaseSTSLS(TSLS.BaseTSLS):
            [  0.41929355]])
     >>> D.se_betas(reg)
     array([ 10.93497906,   0.49943339,   0.17217193,   0.19588229])
-    >>> reg=BaseSTSLS(y, X, w, w_lags=2, robust='gls')
+    >>> reg=BaseGM_Lag(y, X, w, w_lags=2, robust='gls')
     >>> reg.betas
     array([[ 51.16882977],
            [ -1.12721019],
@@ -139,7 +139,7 @@ class BaseSTSLS(TSLS.BaseTSLS):
     >>> yd = np.reshape(yd, (49,1))
     >>> q = np.array(db.by_col("DISCBD"))
     >>> q = np.reshape(q, (49,1))
-    >>> reg=BaseSTSLS(y, X, w, yd, q, w_lags=2)
+    >>> reg=BaseGM_Lag(y, X, w, yd, q, w_lags=2)
 
     References
     ----------
@@ -198,7 +198,7 @@ class BaseSTSLS(TSLS.BaseTSLS):
     #### instruments are included.
 
 
-class STSLS(BaseSTSLS, USER.DiagnosticBuilder):
+class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
     """
     Spatial two stage least squares (S2SLS). Also accommodates the case of
     endogenous explanatory variables.  Note: pure non-spatial 2SLS can be run
@@ -231,7 +231,7 @@ class STSLS(BaseSTSLS, USER.DiagnosticBuilder):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> reg=STSLS(y, X, w, w_lags=2, name_x=['inc', 'hoval'], name_y='crime', name_ds='columbus')
+    >>> reg=GM_Lag(y, X, w, w_lags=2, name_x=['inc', 'hoval'], name_y='crime', name_ds='columbus')
     >>> reg.betas
     array([[ 45.45909249],
            [ -1.0410089 ],
@@ -239,7 +239,7 @@ class STSLS(BaseSTSLS, USER.DiagnosticBuilder):
            [  0.41929355]])
     >>> D.se_betas(reg)
     array([ 11.19151175,   0.38861224,   0.09240593,   0.18758518])
-    >>> reg=STSLS(y, X, w, w_lags=2, robust='white', name_x=['inc', 'hoval'], name_y='crime', name_ds='columbus')
+    >>> reg=GM_Lag(y, X, w, w_lags=2, robust='white', name_x=['inc', 'hoval'], name_y='crime', name_ds='columbus')
     >>> reg.betas
     array([[ 45.45909249],
            [ -1.0410089 ],
@@ -247,7 +247,7 @@ class STSLS(BaseSTSLS, USER.DiagnosticBuilder):
            [  0.41929355]])
     >>> D.se_betas(reg)
     array([ 10.93497906,   0.49943339,   0.17217193,   0.19588229])
-    >>> reg=STSLS(y, X, w, w_lags=2, robust='gls', name_x=['inc', 'hoval'], name_y='crime', name_ds='columbus')
+    >>> reg=GM_Lag(y, X, w, w_lags=2, robust='gls', name_x=['inc', 'hoval'], name_y='crime', name_ds='columbus')
     >>> reg.betas
     array([[ 51.16882977],
            [ -1.12721019],
@@ -262,7 +262,7 @@ class STSLS(BaseSTSLS, USER.DiagnosticBuilder):
     >>> yd = np.reshape(yd, (49,1))
     >>> q = np.array(db.by_col("DISCBD"))
     >>> q = np.reshape(q, (49,1))
-    >>> reg=STSLS(y, X, w, yd, q, w_lags=2, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
+    >>> reg=GM_Lag(y, X, w, yd, q, w_lags=2, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
 
 
     """
@@ -273,7 +273,7 @@ class STSLS(BaseSTSLS, USER.DiagnosticBuilder):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
-        BaseSTSLS.__init__(self, y=y, x=x, w=w, yend=yend, q=q,\
+        BaseGM_Lag.__init__(self, y=y, x=x, w=w, yend=yend, q=q,\
                             w_lags=w_lags, constant=constant, robust=robust,\
                             spat_lags=spat_lags)
         self.title = "SPATIAL TWO STAGE LEAST SQUARES"        

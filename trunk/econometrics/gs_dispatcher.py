@@ -1,8 +1,8 @@
 from pysal.spreg.ols import OLS
 from twosls import TSLS
-from twosls_sp import STSLS
+from twosls_sp import GM_Lag
 from spHetErr import GM_Error_Het, GM_Endog_Error_Het, GM_Combo_Het
-from spError import GSTSLS, GMSWLS, GSTSLS_lag
+from spError import GM_Endog_Error, GM_Error, GM_Combo
 
 def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
                 h, name_h, r, name_r, s, name_s, t, name_t,\
@@ -202,13 +202,13 @@ def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
         elif std_err == 'White':
             if endog:
                #GM Spatial lag with White std. errors with non-spatial endog variables
-                return STSLS(y=y, x=x, w=w, yend=ye, q=h,\
+                return GM_Lag(y=y, x=x, w=w, yend=ye, q=h,\
                              name_y=name_y, name_x=name_x, name_yend=name_ye,\
                              name_q=name_h, name_ds=name_ds,\
                              robust='white')
             else:
                #GM Spatial lag with White std. errors
-                return STSLS(y=y, x=x, w=w,\
+                return GM_Lag(y=y, x=x, w=w,\
                              name_y=name_y, name_x=name_x, name_ds=name_ds,\
                              robust='white')
         elif std_err == 'HAC':
@@ -216,12 +216,12 @@ def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
         elif std_err == '':
             if endog:
                #GM Spatial lag with non-spatial endog variables
-                return STSLS(y=y, x=x, w=w, yend=ye, q=h,\
+                return GM_Lag(y=y, x=x, w=w, yend=ye, q=h,\
                              name_y=name_y, name_x=name_x, name_yend=name_ye,\
                              name_q=name_h, name_ds=name_ds)
             else:
                #GM Spatial lag
-                return STSLS(y=y, x=x, w=w,\
+                return GM_Lag(y=y, x=x, w=w,\
                              name_y=name_y, name_x=name_x, name_ds=name_ds)
         else:
             raise Exception, "invalid option passed to std_err"
@@ -244,12 +244,12 @@ def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
         elif std_err == '':
             if endog:
                 #GM Spatial error with non-spatial endogenous variable
-                return GSTSLS(y=y, x=x, w=w, yend=ye, q=h,\
+                return GM_Endog_Error(y=y, x=x, w=w, yend=ye, q=h,\
                               name_y=name_y, name_x=name_x, name_yend=name_ye,\
                               name_q=name_h, name_ds=name_ds)
             else:
                 #GM Spatial error
-                return GMSWLS(y=y, x=x, w=w,\
+                return GM_Error(y=y, x=x, w=w,\
                            name_y=name_y, name_x=name_x, name_ds=name_ds)
         else:
             raise Exception, "invalid option passed to std_err"
@@ -272,12 +272,12 @@ def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
         elif std_err == '':
             if endog:
                 #GM Spatial combo with non-spatial endogenous variables
-                return GSTSLS_lag(y=y, x=x, w=w, yend=ye, q=h,\
+                return GM_Combo(y=y, x=x, w=w, yend=ye, q=h,\
                               name_y=name_y, name_x=name_x, name_yend=name_ye,\
                               name_q=name_h, name_ds=name_ds)
             else:
                 #GM Spatial combo
-                return GSTSLS_lag(y=y, x=x, w=w,\
+                return GM_Combo(y=y, x=x, w=w,\
                            name_y=name_y, name_x=name_x, name_ds=name_ds)
         else:
             raise Exception, "invalid option passed to std_err"
