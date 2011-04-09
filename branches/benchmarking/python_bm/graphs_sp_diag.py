@@ -4,6 +4,7 @@ Plot performance in computing Spatial Diagnostics
 
 from log_plots import load_log_py, load_log_r
 import matplotlib.pylab as plt
+import numpy as np
 import os
 
 if os.uname()[0] == 'Darwin':
@@ -43,9 +44,15 @@ plt.xlim(-(xmax-xmin)*0.15, xmax)
 ymin, ymax = plt.ylim()
 plt.ylim(-(ymax-ymin)*0.15, ymax)
 
+locs, labels = plt.yticks()
+labs = np.arange(6)*1000 / 60
+lab = ['']
+lab.extend(map(str, map(round, labs)))
+plt.yticks(locs, tuple(lab))
+
 plt.suptitle("Computation time: Spatial Diagnostics", weight='bold')
 plt.xlabel('N')
-plt.ylabel('Seconds')
+plt.ylabel('Minutes')
 plt.savefig(comp + 'dani/Dropbox/aagGraphs/sp_diag.png')
 
 #plt.show()
