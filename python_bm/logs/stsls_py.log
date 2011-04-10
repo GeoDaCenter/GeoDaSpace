@@ -1,0 +1,70 @@
+n: 22500
+Model: STSLSk: 10
+Create data:			0.05887 seconds
+Created Weights:		0.26401 seconds
+STSLS:			0.37805 seconds
+Total final time:		0.70133 seconds
+n: 90000
+Model: STSLSk: 10
+Create data:			0.32048 seconds
+Created Weights:		1.05311 seconds
+STSLS:			1.54579 seconds
+Total final time:		2.91973 seconds
+n: 202500
+Model: STSLSk: 10
+Create data:			0.59819 seconds
+Created Weights:		2.40343 seconds
+STSLS:			3.45882 seconds
+Total final time:		6.46069 seconds
+n: 360000
+Model: STSLSk: 10
+Create data:			1.07223 seconds
+Created Weights:		4.30743 seconds
+STSLS:			6.18781 seconds
+Total final time:		11.56787 seconds
+n: 562500
+Model: STSLSk: 10
+Create data:			1.64956 seconds
+Created Weights:		6.64225 seconds
+STSLS:			9.65014 seconds
+Total final time:		17.94219 seconds
+n: 640000
+Model: STSLSk: 10
+Create data:			1.86932 seconds
+Created Weights:		7.71777 seconds
+STSLS:			11.33944 seconds
+Total final time:		20.92678 seconds
+n: 722500
+Model: STSLSk: 10
+Create data:			2.12259 seconds
+Created Weights:		8.94812 seconds
+STSLS:			12.68935 seconds
+Total final time:		23.76048 seconds
+n: 810000
+Model: STSLSk: 10
+Create data:			2.48721 seconds
+Created Weights:		9.93623 seconds
+STSLS:			14.26275 seconds
+Total final time:		26.68644 seconds
+n: 1000000
+Model: STSLSk: 10
+Create data:			2.94679 seconds
+Created Weights:		12.25776 seconds
+STSLS:			17.61472 seconds
+Total final time:		32.81969 seconds
+n: 1322500
+Model: STSLSk: 10
+Create data:			3.02580 seconds
+Created Weights:		14.19049 seconds
+STSLS:			22.10569 seconds
+Total final time:		39.32239 seconds
+n: 1690000
+Model: STSLSk: 10
+Create data:			4.98298 seconds
+Created Weights:		20.00612 seconds
+STSLS:			29.40316 seconds
+Total final time:		54.39251 seconds
+n: 2102500
+Model: STSLSk: 10
+Create data:			6.15311 seconds
+Created Weights:		24.98588 seconds

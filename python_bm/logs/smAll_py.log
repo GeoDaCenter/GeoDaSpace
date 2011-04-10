@@ -1,0 +1,49 @@
+n: 900
+Model: smallk: 10
+Create data:			0.00231 seconds
+Created Weights:		0.01140 seconds
+Regression:			0.00202 seconds
+LM diagnostics:			0.01505 seconds
+Moran test:			0.00475 seconds
+GMSWLS:			0.01057 seconds
+STSLS:			0.00340 seconds
+SWLS_Het:			0.08586 seconds
+STSLS_het:			0.15390 seconds
+Total final time:		0.28966 seconds
+n: 2500
+Model: smallk: 10
+Create data:			0.00614 seconds
+Created Weights:		0.03281 seconds
+Regression:			0.00288 seconds
+LM diagnostics:			0.04861 seconds
+Moran test:			0.05598 seconds
+GMSWLS:			0.03245 seconds
+STSLS:			0.01264 seconds
+SWLS_Het:			0.22764 seconds
+STSLS_het:			0.28636 seconds
+Total final time:		0.70644 seconds
+n: 4900
+Model: smallk: 10
+Create data:			0.01130 seconds
+Created Weights:		0.06395 seconds
+Regression:			0.00422 seconds
+LM diagnostics:			0.07846 seconds
+Moran test:			0.02041 seconds
+GMSWLS:			0.06154 seconds
+STSLS:			0.04360 seconds
+SWLS_Het:			0.43812 seconds
+STSLS_het:			0.58591 seconds
+Total final time:		1.31033 seconds
+
+n: 10000
+Model: smallk: 10
+Create data:			0.02289 seconds
+Created Weights:		0.13873 seconds
+Regression:			0.00771 seconds
+LM diagnostics:			0.15800 seconds
+Moran test:			0.03095 seconds
+GMSWLS:			0.07507 seconds
+STSLS:			0.04424 seconds
+SWLS_Het:			1.12002 seconds
+STSLS_het:			1.18430 seconds
+Total final time:		2.78317 seconds

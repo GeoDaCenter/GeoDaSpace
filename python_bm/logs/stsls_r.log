@@ -1,0 +1,135 @@
+[1] "N: 22500"
+[1] "Model: STSLS"
+[1] "Create data:"
+elapsed 
+  0.163 
+[1] "Created weights:"
+elapsed 
+ 31.509 
+[1] "STSLS:"
+elapsed 
+  1.575 
+[1] "Total time:"
+elapsed 
+ 33.249 
+[1] "N: 90000"
+[1] "Model: STSLS"
+[1] "Create data:"
+elapsed 
+   0.29 
+[1] "Created weights:"
+elapsed 
+ 127.46 
+[1] "STSLS:"
+elapsed 
+  4.518 
+[1] "Total time:"
+elapsed 
+132.269 
+[1] "N: 202500"
+[1] "Model: STSLS"
+[1] "Create data:"
+elapsed 
+  0.529 
+[1] "Created weights:"
+elapsed 
+290.806 
+[1] "STSLS:"
+elapsed 
+  9.271 
+[1] "Total time:"
+elapsed 
+300.608 
+[1] "N: 360000"
+[1] "Model: STSLS"
+[1] "Create data:"
+elapsed 
+  0.923 
+[1] "Created weights:"
+elapsed 
+534.044 
+[1] "STSLS:"
+elapsed 
+ 16.084 
+[1] "Total time:"
+elapsed 
+551.052 
+[1] "N: 562500"
+[1] "Model: STSLS"
+[1] "Create data:"
+elapsed 
+  1.391 
+[1] "Created weights:"
+elapsed 
+ 864.55 
+[1] "STSLS:"
+elapsed 
+ 25.923 
+[1] "Total time:"
+elapsed 
+891.865 
+[1] "N: 640000"
+[1] "Model: STSLS"
+[1] "Create data:"
+elapsed 
+  1.232 
+[1] "Created weights:"
+elapsed 
+966.145 
+[1] "STSLS:"
+elapsed 
+ 31.074 
+[1] "Total time:"
+elapsed 
+998.451 
+[1] "N: 810000"
+[1] "Model: STSLS"
+[1] "Create data:"
+elapsed 
+  1.553 
+[1] "Created weights:"
+ elapsed 
+1344.459 
+[1] "STSLS:"
+elapsed 
+ 37.859 
+[1] "Total time:"
+ elapsed 
+1383.872 
+[1] "N: 1e+06"
+[1] "Model: STSLS"
+[1] "Create data:"
+elapsed 
+  1.904 
+[1] "Created weights:"
+ elapsed 
+1603.577 
+[1] "STSLS:"
+elapsed 
+ 47.202 
+[1] "Total time:"
+ elapsed 
+1652.685 
+[1] "N: 1322500"
+[1] "Model: STSLS"
+[1] "Create data:"
+elapsed 
+  3.337 
+[1] "Created weights:"
+ elapsed 
+2343.837 
+[1] "STSLS:"
+elapsed 
+ 63.116 
+[1] "Total time:"
+ elapsed 
+2410.291 
+[1] "N: 1690000"
+[1] "Model: STSLS"
+[1] "Create data:"
+elapsed 
+  4.156 
+[1] "Created weights:"
+ elapsed 
+2987.866 
+

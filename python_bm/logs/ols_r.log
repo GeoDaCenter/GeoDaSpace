@@ -1,0 +1,217 @@
+[1] "N: 22500"
+[1] "Create data:"
+elapsed 
+  0.157 
+[1] "Created weights:"
+elapsed 
+  31.46 
+[1] "Regression:"
+elapsed 
+      1 
+[1] "LM diagnostics:"
+elapsed 
+ 15.862 
+[1] "Moran test:"
+elapsed 
+ 10.719 
+[1] "Total time:"
+elapsed 
+ 59.202 
+[1] "N: 90000"
+[1] "Create data:"
+elapsed 
+  0.317 
+[1] "Created weights:"
+elapsed 
+127.808 
+[1] "Regression:"
+elapsed 
+  2.415 
+[1] "LM diagnostics:"
+elapsed 
+ 63.796 
+[1] "Moran test:"
+elapsed 
+ 43.636 
+[1] "Total time:"
+elapsed 
+237.975 
+[1] "N: 202500"
+[1] "Create data:"
+elapsed 
+  0.545 
+[1] "Created weights:"
+elapsed 
+289.164 
+[1] "Regression:"
+elapsed 
+  4.813 
+[1] "LM diagnostics:"
+elapsed 
+147.159 
+[1] "Moran test:"
+elapsed 
+102.423 
+[1] "Total time:"
+elapsed 
+544.105 
+[1] "N: 360000"
+[1] "Create data:"
+elapsed 
+  0.933 
+[1] "Created weights:"
+elapsed 
+532.936 
+[1] "Regression:"
+elapsed 
+  7.822 
+[1] "LM diagnostics:"
+elapsed 
+265.127 
+[1] "Moran test:"
+elapsed 
+186.186 
+[1] "Total time:"
+elapsed 
+993.005 
+[1] "N: 562500"
+[1] "Create data:"
+elapsed 
+   1.55 
+[1] "Created weights:"
+elapsed 
+853.242 
+[1] "Regression:"
+elapsed 
+ 13.357 
+[1] "LM diagnostics:"
+elapsed 
+427.459 
+[1] "Moran test:"
+elapsed 
+ 313.73 
+[1] "Total time:"
+ elapsed 
+1609.339 
+[1] "N: 640000"
+[1] "Create data:"
+elapsed 
+  1.192 
+[1] "Created weights:"
+elapsed 
+969.626 
+[1] "Regression:"
+elapsed 
+ 14.889 
+[1] "LM diagnostics:"
+elapsed 
+493.485 
+[1] "Moran test:"
+elapsed 
+366.176 
+[1] "Total time:"
+elapsed 
+1845.37 
+[1] "N: 810000"
+[1] "Create data:"
+elapsed 
+  2.362 
+[1] "Created weights:"
+ elapsed 
+1253.668 
+[1] "Regression:"
+elapsed 
+ 19.373 
+[1] "LM diagnostics:"
+elapsed 
+624.016 
+[1] "Moran test:"
+elapsed 
+464.856 
+[1] "Total time:"
+ elapsed 
+2364.277 
+[1] "N: 1e+06"
+[1] "Create data:"
+elapsed 
+  1.844 
+[1] "Created weights:"
+ elapsed 
+1636.133 
+[1] "Regression:"
+elapsed 
+ 24.018 
+[1] "LM diagnostics:"
+elapsed 
+772.334 
+[1] "Moran test:"
+elapsed 
+576.082 
+[1] "Total time:"
+ elapsed 
+3010.413 
+[1] "N: 1322500"
+[1] "Create data:"
+elapsed 
+  3.337 
+[1] "Created weights:"
+ elapsed 
+2339.595 
+[1] "Regression:"
+elapsed 
+ 29.919 
+[1] "LM diagnostics:"
+elapsed 
+997.383 
+[1] "Moran test:"
+elapsed 
+741.088 
+[1] "Total time:"
+ elapsed 
+4111.323 
+[1] "N: 1690000"
+[1] "Create data:"
+elapsed 
+  4.349 
+[1] "Created weights:"
+ elapsed 
+2839.375 
+[1] "Regression:"
+elapsed 
+ 39.356 
+[1] "LM diagnostics:"
+ elapsed 
+1323.085 
+[1] "Moran test:"
+ elapsed 
+1008.018 
+[1] "Total time:"
+ elapsed 
+5214.185 
+[1] "N: 2102500"
+[1] "Create data:"
+elapsed 
+  3.887 
+[1] "Created weights:"
+ elapsed 
+3463.874 
+[1] "Regression:"
+elapsed 
+ 47.263 
+[1] "LM diagnostics:"
+ elapsed 
+1630.516 
+[1] "Moran test:"
+ elapsed 
+1245.056 
+[1] "Total time:"
+ elapsed 
+6390.598 
+[1] "N: 2560000"
+[1] "Create data:"
+elapsed 
+  6.557 
+[1] "Created weights:"
+ elapsed 
+4655.873 
+

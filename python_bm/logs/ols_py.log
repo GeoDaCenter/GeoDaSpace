@@ -1,0 +1,102 @@
+n: 22500
+k: 10
+Create data:			0.01687 seconds
+Created Weights:		0.24641 seconds
+Regression:			0.01494 seconds
+LM diagnostics:			0.38958 seconds
+Moran test:			0.10475 seconds
+Total final time:		0.77304 seconds
+n: 90000
+k: 10
+Create data:			0.07361 seconds
+Created Weights:		1.05468 seconds
+Regression:			0.07005 seconds
+LM diagnostics:			1.41770 seconds
+Moran test:			0.29577 seconds
+Total final time:		2.91253 seconds
+n: 202500
+k: 10
+Create data:			0.15048 seconds
+Created Weights:		2.36474 seconds
+Regression:			0.15469 seconds
+LM diagnostics:			3.16487 seconds
+Moran test:			0.68792 seconds
+Total final time:		6.52324 seconds
+n: 360000
+k: 10
+Create data:			0.26635 seconds
+Created Weights:		4.25892 seconds
+Regression:			0.26720 seconds
+LM diagnostics:			5.69719 seconds
+Moran test:			1.21711 seconds
+Total final time:		11.70715 seconds
+n: 562500
+k: 10
+Create data:			0.41483 seconds
+Created Weights:		6.71871 seconds
+Regression:			0.43325 seconds
+LM diagnostics:			8.98273 seconds
+Moran test:			1.84944 seconds
+Total final time:		18.39955 seconds
+n: 640000
+k: 10
+Create data:			0.47383 seconds
+Created Weights:		7.63628 seconds
+Regression:			0.51553 seconds
+LM diagnostics:			10.54047 seconds
+Moran test:			2.15521 seconds
+Total final time:		21.32170 seconds
+n: 722500
+k: 10
+Create data:			0.53345 seconds
+Created Weights:		8.79665 seconds
+Regression:			0.54482 seconds
+LM diagnostics:			11.82728 seconds
+Moran test:			2.39780 seconds
+Total final time:		24.10040 seconds
+n: 810000
+k: 10
+Create data:			0.59777 seconds
+Created Weights:		9.95305 seconds
+Regression:			0.60420 seconds
+LM diagnostics:			13.33117 seconds
+Moran test:			2.74096 seconds
+Total final time:		27.22754 seconds
+n: 1000000
+k: 10
+Create data:			0.73953 seconds
+Created Weights:		12.82110 seconds
+Regression:			0.76897 seconds
+LM diagnostics:			16.53510 seconds
+Moran test:			3.38898 seconds
+Total final time:		34.25425 seconds
+
+n: 1322500
+k: 10
+Create data:			0.97666 seconds
+Created Weights:		14.23168 seconds
+Regression:			1.03491 seconds
+LM diagnostics:			20.83031 seconds
+Moran test:			4.53750 seconds
+Total final time:		41.61147 seconds
+n: 1690000
+k: 10
+Create data:			1.24778 seconds
+Created Weights:		19.92486 seconds
+Regression:			1.27701 seconds
+LM diagnostics:			27.57091 seconds
+Moran test:			5.97293 seconds
+Total final time:		55.99389 seconds
+n: 2102500
+k: 10
+Create data:			1.55524 seconds
+Created Weights:		25.29456 seconds
+Regression:			1.60525 seconds
+LM diagnostics:			34.96864 seconds
+Moran test:			7.54044 seconds
+Total final time:		70.96455 seconds
+n: 2560000
+k: 10
+Create data:			1.88735 seconds
+Created Weights:		31.09630 seconds
+Regression:			1.97942 seconds

@@ -1,0 +1,57 @@
+
+n: 22500
+Model: STSLSk: 10
+Create data:			0.05179 seconds
+Created Weights:		0.24132 seconds
+GMSWLS:			0.45169 seconds
+STSLS:			0.11177 seconds
+Total final time:		0.85689 seconds
+n: 90000
+Model: STSLSk: 10
+Create data:			0.28564 seconds
+Created Weights:		1.04500 seconds
+GMSWLS:			1.85250 seconds
+STSLS:			0.37705 seconds
+Total final time:		3.56070 seconds
+n: 202500
+Model: STSLSk: 10
+Create data:			0.59604 seconds
+Created Weights:		2.36028 seconds
+GMSWLS:			4.18129 seconds
+STSLS:			0.81272 seconds
+Total final time:		7.95066 seconds
+n: 360000
+Model: STSLSk: 10
+Create data:			1.06093 seconds
+Created Weights:		4.25245 seconds
+GMSWLS:			7.58908 seconds
+STSLS:			1.46032 seconds
+Total final time:		14.36329 seconds
+n: 562500
+Model: STSLSk: 10
+Create data:			1.65956 seconds
+Created Weights:		6.58904 seconds
+GMSWLS:			12.09309 seconds
+STSLS:			2.32106 seconds
+Total final time:		22.66332 seconds
+n: 640000
+Model: STSLSk: 10
+Create data:			1.87835 seconds
+Created Weights:		7.65859 seconds
+GMSWLS:			13.55447 seconds
+STSLS:			2.73206 seconds
+Total final time:		25.82382 seconds
+n: 810000
+Model: STSLSk: 10
+Create data:			2.41839 seconds
+Created Weights:		9.76907 seconds
+GMSWLS:			17.45453 seconds
+STSLS:			3.17191 seconds
+Total final time:		32.81458 seconds
+n: 1000000
+Model: STSLSk: 10
+Create data:			2.99138 seconds
+Created Weights:		12.08195 seconds
+GMSWLS:			21.62077 seconds
+STSLS:			4.04283 seconds
+Total final time:		40.73766 seconds

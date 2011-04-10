@@ -1,0 +1,128 @@
+[1] "N: 900"
+[1] "Model: Het"
+[1] "Create data:"
+elapsed 
+  0.002 
+[1] "Created weights:"
+elapsed 
+  1.213 
+[1] "Regression:"
+elapsed 
+  0.009 
+[1] "LM diagnostics:"
+elapsed 
+  0.349 
+[1] "Moran test:"
+elapsed 
+  0.222 
+[1] "GMSWLS:"
+elapsed 
+  0.057 
+[1] "STSLS:"
+elapsed 
+  0.113 
+[1] "SWLS_Het:"
+elapsed 
+  0.721 
+[1] "GSTSLS_Het_lag:"
+elapsed 
+  0.905 
+[1] "Total time:"
+elapsed 
+  3.596 
+[1] "N: 2500"
+[1] "Model: Het"
+[1] "Create data:"
+elapsed 
+  0.004 
+[1] "Created weights:"
+elapsed 
+  3.432 
+[1] "Regression:"
+elapsed 
+  0.017 
+[1] "LM diagnostics:"
+elapsed 
+  0.942 
+[1] "Moran test:"
+elapsed 
+  0.612 
+[1] "GMSWLS:"
+elapsed 
+  0.283 
+[1] "STSLS:"
+elapsed 
+  0.142 
+[1] "SWLS_Het:"
+elapsed 
+  1.246 
+[1] "GSTSLS_Het_lag:"
+elapsed 
+  1.649 
+[1] "Total time:"
+elapsed 
+   8.33 
+[1] "N: 4900"
+[1] "Model: Het"
+[1] "Create data:"
+elapsed 
+  0.008 
+[1] "Created weights:"
+elapsed 
+  6.567 
+[1] "Regression:"
+elapsed 
+  0.037 
+[1] "LM diagnostics:"
+elapsed 
+  1.849 
+[1] "Moran test:"
+elapsed 
+  1.203 
+[1] "GMSWLS:"
+elapsed 
+  0.383 
+[1] "STSLS:"
+elapsed 
+  0.281 
+[1] "SWLS_Het:"
+elapsed 
+  1.666 
+[1] "GSTSLS_Het_lag:"
+elapsed 
+  2.494 
+[1] "Total time:"
+elapsed 
+ 14.493 
+[1] "N: 10000"
+[1] "Model: Het"
+[1] "Create data:"
+elapsed 
+  0.019 
+[1] "Created weights:"
+elapsed 
+  13.44 
+[1] "Regression:"
+elapsed 
+  0.061 
+[1] "LM diagnostics:"
+elapsed 
+  3.927 
+[1] "Moran test:"
+elapsed 
+  2.452 
+[1] "GMSWLS:"
+elapsed 
+  0.959 
+[1] "STSLS:"
+elapsed 
+   0.58 
+[1] "SWLS_Het:"
+elapsed 
+  3.537 
+[1] "GSTSLS_Het_lag:"
+elapsed 
+  4.712 
+[1] "Total time:"
+elapsed 
+ 29.692 
