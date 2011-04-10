@@ -16,6 +16,8 @@ def load_log_py(log_file):
     gmswls = []
     stsls = []
     total = []
+    swls_het = []
+    stsls_het = []
     model = 0
     for line in log:
         line = line.strip('\n').split()
@@ -40,10 +42,14 @@ def load_log_py(log_file):
                 gmswls.append(float(line[1]))
             if line[0] == 'STSLS:':
                 stsls.append(float(line[1]))
+            if line[0] == 'STSLS_het:':
+                stsls_het.append(float(line[1]))
+            if line[0] == 'SWLS_Het:':
+                swls_het.append(float(line[1]))
             if line[0] == 'Total':
                 total.append(line[3])
     log.close()
-    els =  [model], n, k, creDa, creWe, ols, lm, moran, gmswls, stsls, total
+    els =  [model], n, k, creDa, creWe, ols, lm, moran, gmswls, swls_het, stsls_het, stsls, total
     els = [map(float, i) for i in els]
     return els
 
@@ -58,6 +64,8 @@ def load_log_r(log_file):
     total = []
     gmswls = []
     stsls = []
+    swls_het = []
+    stsls_het = []
     lm = []
     ols = []
     moran = []
@@ -84,12 +92,30 @@ def load_log_r(log_file):
             gmswls.append(float(lines[i+2]))
         if line[0] == 'STSLS:':
             stsls.append(float(lines[i+2]))
+        if line[0] == 'GSTSLS_Het_lag:':
+            stsls_het.append(float(lines[i+2]))
+        if line[0] == 'SWLS_Het:':
+            swls_het.append(float(lines[i+2]))
         if line[0] == 'Total':
             total.append(float(lines[i+2]))
-    els = [model], n, k, creDa, creWe, ols, lm, moran, gmswls, stsls, total
+    els = [model], n, k, creDa, creWe, ols, lm, moran, gmswls, swls_het, stsls_het, stsls, total
     elsf = [model]
     elsf.extend([map(float, i) for i in els[1:]])
     return elsf
+
+def load_ak(log_file):
+    log = open(log_file)
+    n = []
+    ak = []
+    for line in log:
+        line = line.strip('\n').split()
+        if len(line) > 0:
+            if line[0] == 'AK':
+                ak.append(line[-2])
+            if line[0] == 'n:':
+                n.append(line[1])
+    log.close()
+    return map(float, n), map(float, ak)
 
 
 def plot_all(log_file, title='SPREG benchmarking', pic=None):

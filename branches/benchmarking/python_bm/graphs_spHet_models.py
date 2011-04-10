@@ -1,35 +1,96 @@
 '''
-Plot performance in running spatial Het error models
+Plot performance in computing spHet models
 '''
 
 from log_plots import load_log_py, load_log_r
 import matplotlib.pylab as plt
+import numpy as np
+import os
+from mpl_toolkits.axes_grid.axislines import Subplot
 
-py_link = 'logs/spHet_models.log'
-model, n, k, creDa, creWe, gmswls_py, stsls_py, total = load_log_py(py_link)
-r_link = '../r_bm/logs/spHet_models.log'
-model, n, k, creDa, creWe, gmswls_r, stsls_r, total = load_log_r(r_link)
+if os.uname()[0] == 'Darwin':
+    print 'Running MacOSX'
+    comp = '/Users/'
+elif os.uname()[0] == 'Linux':
+    print 'Running Linux'
+    comp = '/home/'
 
-gmswls_fig = plt.figure(1)
-gmswls_sub = plt.subplot(111)
-plt.plot(n[:len(gmswls_r)], gmswls_r, label='R')
-plt.plot(n[:len(gmswls_py)], gmswls_py, label='Spreg')
-plt.legend(loc=2)
-plt.title('Computation time for Spatial Het Error - GMSWLS', weight='bold')
+def convert(x, lims):
+    return x / (lims[1] - lims[0])
+
+py_link = comp + 'dani/Dropbox/aagLogs/spHet_error_py.log'
+model_py, n_py, k_py, creDa_py, creWe_py, ols_py, lm_py, moran_py, gmswls_py, swls_het_py, stsls_het_py, stsls_py, total_py = load_log_py(py_link)
+r_link = comp + 'dani/Dropbox/aagLogs/spHet_error_r.log'
+model_r, n_r, k_r, creDa_r, creWe_r, ols_r, lm_r, moran_r, gmswls_r, swls_het_r, stsls_het_r, stsls_r, total_r = load_log_r(r_link)
+
+reg_fig = plt.figure(1)
+#reg_sub = plt.subplot(111)
+reg_sub = Subplot(reg_fig, 111)
+reg_fig.add_subplot(reg_sub)
+
+reg_sub.axis["right"].set_visible(False)
+reg_sub.axis["top"].set_visible(False)
+#plt.plot(-1, -1, color='white')
+
+plt.plot(n_r[:len(swls_het_r)], swls_het_r, label='R', color='red', lw=2)
+
+ymin, ymax = plt.ylim()
+plt.ylim(-(ymax-ymin)*0.15, ymax)
+
+plt.text(n_r[len(swls_het_r) - 1], swls_het_r[-1], 'SP Het Error')
+plt.axvline(x = n_r[len(swls_het_r) - 1], ymax = 
+        convert(swls_het_r[-1]-reg_sub.get_ylim()[0], reg_sub.get_ylim()), 
+        c='black', lw=0.5, ls='--')
+
+plt.plot(n_py[:-1], swls_het_py, label='Spreg', color='blue', lw=2)
+plt.text(n_py[len(swls_het_py) - 1], swls_het_py[-1], 'SP Het Error',\
+        verticalalignment='center')
+plt.axvline(x = n_py[len(swls_het_py) - 1], ymax = 
+        convert(swls_het_py[-1]-reg_sub.get_ylim()[0], reg_sub.get_ylim()), 
+        c='black', lw=0.5, ls='--')
+
+plt.legend(loc=2, frameon=False)
+maxy = max(map(max, [swls_het_py, swls_het_r]))
+
+ymin, ymax = plt.ylim()
+plt.ylim(ymin, maxy)
+
+py_link = comp + 'dani/Dropbox/aagLogs/spHet_sarar_py.log'
+model_py, n_py, k_py, creDa_py, creWe_py, ols_py, lm_py, moran_py, gmswls_py, swls_het_py, stsls_het_py, stsls_py, total_py = load_log_py(py_link)
+r_link = comp + 'dani/Dropbox/aagLogs/spHet_sarar_r.log'
+model_r, n_r, k_r, creDa_r, creWe_r, ols_r, lm_r, moran_r, gmswls_r, swls_het_r, stsls_het_r, stsls_r, total_r = load_log_r(r_link)
+
+plt.plot(n_r[:len(stsls_het_r)], stsls_het_r, color='red', lw=2)
+plt.text(n_py[len(stsls_het_r) - 1], stsls_het_r[-1], 'Sp Het Combo', verticalalignment='bottom')
+plt.axvline(x = n_r[len(stsls_het_r) - 1], ymax = 
+        convert(stsls_het_r[-1]-reg_sub.get_ylim()[0], reg_sub.get_ylim()), 
+        c='black', lw=0.5, ls='--')
+
+ymin, ymax = plt.ylim()
+maxy = max(map(max, [stsls_het_py, stsls_het_r, [maxy]]))
+plt.ylim(ymin, maxy)
+
+
+plt.plot(n_py[:len(stsls_het_py)], stsls_het_py, color='blue', lw=2)
+plt.text(n_py[len(stsls_het_py) - 1], stsls_het_py[-1], 'Sp Het Combo', verticalalignment='center')
+plt.axvline(x = n_py[len(stsls_het_py) - 1], ymax = 
+        convert(stsls_het_py[-1]-reg_sub.get_ylim()[0], reg_sub.get_ylim()), 
+        c='black', lw=0.5, ls='--')
+
+xmin, xmax = plt.xlim()
+plt.xlim(-(xmax-xmin)*0.15, xmax)
+
+ymin, ymax = plt.ylim()
+maxy = max(map(max, [stsls_het_py, stsls_het_r, [maxy]]))
+plt.ylim(ymin, maxy)
+
+xt = reg_sub.get_xticks()
+reg_sub.set_xticks(xt[1:])
+plt.suptitle("Computation time: Sp Het Models", weight='bold')
 plt.xlabel('N')
 plt.ylabel('Seconds')
-plt.savefig('/home/dani/Desktop/gmswls.png')
-
-stsls_fig = plt.figure(2)
-stsls_sub = plt.subplot(111)
-plt.plot(n, stsls_r, label='R')
-plt.plot(n, stsls_py, label='Spreg')
-plt.title('Computation time for Spatial Lag - STSLS', weight='bold')
-plt.xlabel('N')
-plt.ylabel('Seconds')
-plt.legend(loc=2)
-plt.savefig('/home/dani/Desktop/stsls.png')
-
+plt.savefig(comp + 'dani/Dropbox/aagGraphs/spHet_lag.png')
 
 #plt.show()
+
 

@@ -2,9 +2,10 @@
 Plot performance in computing Spatial Diagnostics
 '''
 
-from log_plots import load_log_py, load_log_r
+from log_plots import load_log_py, load_log_r, load_ak
 import matplotlib.pylab as plt
 import numpy as np
+from mpl_toolkits.axes_grid.axislines import Subplot
 import os
 
 if os.uname()[0] == 'Darwin':
@@ -15,13 +16,21 @@ elif os.uname()[0] == 'Linux':
     comp = '/home/'
 
 py_link = comp + 'dani/Dropbox/aagLogs/ols_py.log'
-model_py, n_py, k_py, creDa_py, creWe_py, ols_py, lm_py, moran_py, gmswls_py, stsls_py, total_py = load_log_py(py_link)
+model_py, n_py, k_py, creDa_py, creWe_py, ols_py, lm_py, moran_py, gmswls_py, swls_het_py, stsls_het_py, stsls_py, total_py = load_log_py(py_link)
 r_link = comp + 'dani/Dropbox/aagLogs/ols_r.log'
-model_r, n_r, k_r, creDa_r, creWe_r, ols_r, lm_r, moran_r, gmswls_r, stsls_r, total_r = load_log_r(r_link)
+model_r, n_r, k_r, creDa_r, creWe_r, ols_r, lm_r, moran_r, gmswls_r, swls_het_r, stsls_het_r, stsls_r, total_r = load_log_r(r_link)
+
+ak_link = comp + 'dani/Dropbox/aagLogs/ak_py.log'
+n, ak = load_ak(ak_link)
 
 
 reg_fig = plt.figure(1)
-reg_sub = plt.subplot(111)
+#reg_sub = plt.subplot(111)
+reg_sub = Subplot(reg_fig, 111)
+reg_fig.add_subplot(reg_sub)
+
+reg_sub.axis["right"].set_visible(False)
+reg_sub.axis["top"].set_visible(False)
 
 plt.plot(-1, -1, color='white')
 
@@ -32,6 +41,10 @@ plt.plot(n_py[:-1], moran_py, label='Spreg', color='blue', lw=2)
 plt.text(n_py[len(moran_py) - 1], moran_py[-1], 'Moran', verticalalignment='top')
 
 plt.legend(loc=2, frameon=False)
+
+plt.plot(n[:-1], ak, label='Spreg', color='blue', lw=2)
+plt.text(n[len(ak) - 1], ak[-1], 'AK', verticalalignment='top')
+
 
 plt.plot(n_r[:len(lm_r)], lm_r, color='red', lw=2)
 plt.text(n_py[len(lm_r)], lm_r[-1], 'LM', verticalalignment='bottom')
