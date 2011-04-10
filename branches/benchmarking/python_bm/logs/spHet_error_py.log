@@ -1,0 +1,52 @@
+n: 22500
+Model: Het errork: 10
+Create data:			0.05398 seconds
+Created Weights:		0.32621 seconds
+SWLS_Het:			2.34252 seconds
+Total final time:		2.72293 seconds
+n: 90000
+Model: Het errork: 10
+Create data:			0.28759 seconds
+Created Weights:		1.52512 seconds
+SWLS_Het:			9.76314 seconds
+Total final time:		11.57606 seconds
+n: 202500
+Model: Het errork: 10
+Create data:			0.61311 seconds
+Created Weights:		3.48034 seconds
+SWLS_Het:			24.61202 seconds
+Total final time:		28.70570 seconds
+n: 360000
+Model: Het errork: 10
+Create data:			1.08111 seconds
+Created Weights:		6.61428 seconds
+SWLS_Het:			50.04231 seconds
+Total final time:		57.73816 seconds
+n: 562500
+Model: Het errork: 10
+Create data:			1.68155 seconds
+Created Weights:		11.89225 seconds
+SWLS_Het:			90.30818 seconds
+Total final time:		103.88224 seconds
+n: 640000
+Model: Het errork: 10
+Create data:			1.92077 seconds
+Created Weights:		14.62698 seconds
+SWLS_Het:			109.73334 seconds
+Total final time:		126.28135 seconds
+n: 722500
+Model: Het errork: 10
+Create data:			2.16027 seconds
+Created Weights:		18.54030 seconds
+SWLS_Het:			134.24158 seconds
+Total final time:		154.94242 seconds
+n: 810000
+Model: Het errork: 10
+Create data:			2.41765 seconds
+Created Weights:		21.18476 seconds
+SWLS_Het:			160.53225 seconds
+Total final time:		184.13492 seconds
+n: 1000000
+Model: Het errork: 10
+Create data:			2.94365 seconds
+Created Weights:		27.65987 seconds

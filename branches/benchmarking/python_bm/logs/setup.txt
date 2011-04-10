@@ -1,0 +1,53 @@
+	######################
+	###### Hardware ######
+	###################### 
+ Model Name:	Mac Pro
+  Model Identifier:	MacPro1,1
+  Processor Name:	Dual-Core Intel Xeon
+  Processor Speed:	3 GHz
+  Number Of Processors:	2
+  Total Number Of Cores:	4
+  L2 Cache (per processor):	4 MB
+  Memory:	16 GB
+  Bus Speed:	1.33 GHz
+  Boot ROM Version:	MP11.005C.B08
+  SMC Version (system):	1.7f10
+  Serial Number (system):	G8635640UPZ
+  Hardware UUID:	00000000-0000-1000-8000-0017F2027760
+
+	######################
+	###### Software ######
+	###################### 
+
+# R
+    * R version 2.12.0 (2010-10-15)
+    * Platform: i386-apple-darwin9.8.0/i386 (32-bit)
+    * "spdep, version 0.5-29, 2011-03-13"
+    * 'sphet' version 1.0-0
+
+# Python
+    * Python 2.6.5 |EPD 6.2-2 (32-bit)|
+    * Numpy version 1.4.0
+    * Scipy version 0.8.0b1
+    * spreg
+
+	########################
+	###### Simulation ######
+	######################## 
+
+- Regular square lattices of the following sizes:
+    * 150 x 150 = 22500
+    * 300 x 300 = 90000
+    * 450 x 450 = 202500
+    * 600 x 600 = 360000
+    * 750 x 750 = 562500
+    * 800 x 800 = 640000
+    * 850 x 850 = 722500
+    * 900 x 900 = 810000
+    * 1000 x 1000 = 1000000
+
+- Queen contiguity Ws
+- 5 exogenous variables and one endogenous one drawn from normal distributions with mean=0. and
+  std_devs=1.
+
+

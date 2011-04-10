@@ -1,0 +1,121 @@
+[1] "N: 22500"
+[1] "Model: GMSWLS"
+[1] "Create data:"
+elapsed 
+   0.16 
+[1] "Created weights:"
+elapsed 
+ 31.457 
+[1] "GMSWLS:"
+elapsed 
+  2.876 
+[1] "Total time:"
+elapsed 
+ 34.494 
+[1] "N: 90000"
+[1] "Model: GMSWLS"
+[1] "Create data:"
+elapsed 
+  0.298 
+[1] "Created weights:"
+elapsed 
+127.425 
+[1] "GMSWLS:"
+elapsed 
+  8.999 
+[1] "Total time:"
+elapsed 
+136.722 
+[1] "N: 202500"
+[1] "Model: GMSWLS"
+[1] "Create data:"
+elapsed 
+  0.578 
+[1] "Created weights:"
+elapsed 
+ 292.06 
+[1] "GMSWLS:"
+elapsed 
+ 18.792 
+[1] "Total time:"
+elapsed 
+311.431 
+[1] "N: 360000"
+[1] "Model: GMSWLS"
+[1] "Create data:"
+elapsed 
+  0.983 
+[1] "Created weights:"
+elapsed 
+525.079 
+[1] "GMSWLS:"
+elapsed 
+ 33.511 
+[1] "Total time:"
+elapsed 
+559.573 
+[1] "N: 562500"
+[1] "Model: GMSWLS"
+[1] "Create data:"
+elapsed 
+  1.541 
+[1] "Created weights:"
+elapsed 
+881.404 
+[1] "GMSWLS:"
+elapsed 
+ 48.955 
+[1] "Total time:"
+elapsed 
+931.902 
+[1] "N: 640000"
+[1] "Model: GMSWLS"
+[1] "Create data:"
+elapsed 
+   1.89 
+[1] "Created weights:"
+elapsed 
+ 966.12 
+[1] "GMSWLS:"
+elapsed 
+ 59.478 
+[1] "Total time:"
+ elapsed 
+1027.488 
+[1] "N: 810000"
+[1] "Model: GMSWLS"
+[1] "Create data:"
+elapsed 
+  2.246 
+[1] "Created weights:"
+ elapsed 
+1320.303 
+[1] "GMSWLS:"
+elapsed 
+ 68.374 
+[1] "Total time:"
+ elapsed 
+1390.923 
+[1] "N: 1e+06"
+[1] "Model: GMSWLS"
+[1] "Create data:"
+elapsed 
+  2.824 
+[1] "Created weights:"
+elapsed 
+1625.72 
+[1] "GMSWLS:"
+elapsed 
+ 85.917 
+[1] "Total time:"
+ elapsed 
+1714.461 
+[1] "N: 1322500"
+[1] "Model: GMSWLS"
+[1] "Create data:"
+elapsed 
+  3.339 
+[1] "Created weights:"
+elapsed 
+2339.43 
+

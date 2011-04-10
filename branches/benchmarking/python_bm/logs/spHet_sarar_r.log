@@ -1,0 +1,51 @@
+[1] "N: 22500"
+[1] "Model: Het"
+[1] "Create data:"
+elapsed 
+  0.158 
+[1] "Created weights:"
+elapsed 
+ 31.396 
+[1] "GSTSLS_Het_lag:"
+elapsed 
+ 17.384 
+[1] "Total time:"
+elapsed 
+ 48.939 
+[1] "N: 90000"
+[1] "Model: Het"
+[1] "Create data:"
+elapsed 
+  0.178 
+[1] "Created weights:"
+elapsed 
+127.971 
+[1] "GSTSLS_Het_lag:"
+elapsed 
+ 61.191 
+[1] "Total time:"
+elapsed 
+ 189.34 
+[1] "N: 202500"
+[1] "Model: Het"
+[1] "Create data:"
+elapsed 
+  0.367 
+[1] "Created weights:"
+elapsed 
+294.246 
+[1] "GSTSLS_Het_lag:"
+elapsed 
+137.913 
+[1] "Total time:"
+elapsed 
+432.527 
+[1] "N: 360000"
+[1] "Model: Het"
+[1] "Create data:"
+elapsed 
+  0.633 
+[1] "Created weights:"
+elapsed 
+532.484 
+

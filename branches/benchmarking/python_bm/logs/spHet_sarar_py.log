@@ -1,0 +1,40 @@
+n: 22500
+Model: Het SARARk: 10
+Create data:			0.05280 seconds
+Created Weights:		0.32699 seconds
+STSLS_het:			2.99128 seconds
+Total final time:		3.37131 seconds
+n: 90000
+Model: Het SARARk: 10
+Create data:			0.29902 seconds
+Created Weights:		1.50683 seconds
+STSLS_het:			12.51121 seconds
+Total final time:		14.31730 seconds
+n: 202500
+Model: Het SARARk: 10
+Create data:			0.61268 seconds
+Created Weights:		3.49754 seconds
+STSLS_het:			31.04865 seconds
+Total final time:		35.15912 seconds
+n: 360000
+Model: Het SARARk: 10
+Create data:			1.08225 seconds
+Created Weights:		6.56302 seconds
+STSLS_het:			61.53736 seconds
+Total final time:		69.18305 seconds
+n: 562500
+Model: Het SARARk: 10
+Create data:			1.69024 seconds
+Created Weights:		12.03152 seconds
+STSLS_het:			108.05388 seconds
+Total final time:		121.77608 seconds
+n: 640000
+Model: Het SARARk: 10
+Create data:			1.91812 seconds
+Created Weights:		14.77049 seconds
+STSLS_het:			130.75608 seconds
+Total final time:		147.44497 seconds
+n: 722500
+Model: Het SARARk: 10
+Create data:			2.15543 seconds
+Created Weights:		18.10422 seconds

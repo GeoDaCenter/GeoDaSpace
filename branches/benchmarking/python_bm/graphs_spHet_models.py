@@ -8,19 +8,12 @@ import numpy as np
 import os
 from mpl_toolkits.axes_grid.axislines import Subplot
 
-if os.uname()[0] == 'Darwin':
-    print 'Running MacOSX'
-    comp = '/Users/'
-elif os.uname()[0] == 'Linux':
-    print 'Running Linux'
-    comp = '/home/'
-
 def convert(x, lims):
     return x / (lims[1] - lims[0])
 
-py_link = comp + 'dani/Dropbox/aagLogs/spHet_error_py.log'
+py_link = 'logs/spHet_error_py.log'
 model_py, n_py, k_py, creDa_py, creWe_py, ols_py, lm_py, moran_py, gmswls_py, swls_het_py, stsls_het_py, stsls_py, total_py = load_log_py(py_link)
-r_link = comp + 'dani/Dropbox/aagLogs/spHet_error_r.log'
+r_link = 'logs/spHet_error_r.log'
 model_r, n_r, k_r, creDa_r, creWe_r, ols_r, lm_r, moran_r, gmswls_r, swls_het_r, stsls_het_r, stsls_r, total_r = load_log_r(r_link)
 
 reg_fig = plt.figure(1)
@@ -55,9 +48,9 @@ maxy = max(map(max, [swls_het_py, swls_het_r]))
 ymin, ymax = plt.ylim()
 plt.ylim(ymin, maxy)
 
-py_link = comp + 'dani/Dropbox/aagLogs/spHet_sarar_py.log'
+py_link = 'logs/spHet_sarar_py.log'
 model_py, n_py, k_py, creDa_py, creWe_py, ols_py, lm_py, moran_py, gmswls_py, swls_het_py, stsls_het_py, stsls_py, total_py = load_log_py(py_link)
-r_link = comp + 'dani/Dropbox/aagLogs/spHet_sarar_r.log'
+r_link = 'logs/spHet_sarar_r.log'
 model_r, n_r, k_r, creDa_r, creWe_r, ols_r, lm_r, moran_r, gmswls_r, swls_het_r, stsls_het_r, stsls_r, total_r = load_log_r(r_link)
 
 plt.plot(n_r[:len(stsls_het_r)], stsls_het_r, color='red', lw=2)
@@ -89,7 +82,7 @@ reg_sub.set_xticks(xt[1:])
 plt.suptitle("Computation time: Sp Het Models", weight='bold')
 plt.xlabel('N')
 plt.ylabel('Seconds')
-plt.savefig(comp + 'dani/Dropbox/aagGraphs/spHet_lag.png')
+plt.savefig('logs/spHet_lag.png')
 
 #plt.show()
 

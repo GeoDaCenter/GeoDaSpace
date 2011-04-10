@@ -1,0 +1,75 @@
+n: 22500
+Model: STSLSk: 10
+Create data:			0.05233 seconds
+Created Weights:		0.24147 seconds
+Regression:			0.36596 seconds
+AK test:			0.08822 seconds
+Total final time:		0.74827 seconds
+n: 90000
+Model: STSLSk: 10
+Create data:			0.28513 seconds
+Created Weights:		1.05897 seconds
+Regression:			1.52222 seconds
+AK test:			0.28848 seconds
+Total final time:		3.15529 seconds
+n: 202500
+Model: STSLSk: 10
+Create data:			0.60381 seconds
+Created Weights:		2.35919 seconds
+Regression:			3.48267 seconds
+AK test:			0.64040 seconds
+Total final time:		7.08640 seconds
+n: 360000
+Model: STSLSk: 10
+Create data:			1.09646 seconds
+Created Weights:		4.27534 seconds
+Regression:			6.17110 seconds
+AK test:			1.14747 seconds
+Total final time:		12.69069 seconds
+n: 562500
+Model: STSLSk: 10
+Create data:			1.68180 seconds
+Created Weights:		6.64727 seconds
+Regression:			9.63957 seconds
+AK test:			1.82863 seconds
+Total final time:		19.79760 seconds
+n: 640000
+Model: STSLSk: 10
+Create data:			1.90576 seconds
+Created Weights:		7.59506 seconds
+Regression:			11.52799 seconds
+AK test:			2.08457 seconds
+Total final time:		23.11371 seconds
+n: 722500
+Model: STSLSk: 10
+Create data:			2.15246 seconds
+Created Weights:		8.84255 seconds
+Regression:			12.73674 seconds
+AK test:			2.35446 seconds
+Total final time:		26.08656 seconds
+n: 810000
+Model: STSLSk: 10
+Create data:			2.44355 seconds
+Created Weights:		9.94004 seconds
+Regression:			14.19586 seconds
+AK test:			2.65448 seconds
+Total final time:		29.23425 seconds
+n: 1000000
+Model: STSLSk: 10
+Create data:			3.01400 seconds
+Created Weights:		12.26029 seconds
+Regression:			17.52080 seconds
+AK test:			3.34311 seconds
+Total final time:		36.13854 seconds
+n: 1322500
+Model: STSLSk: 10
+Create data:			3.07163 seconds
+Created Weights:		14.17182 seconds
+Regression:			22.12593 seconds
+AK test:			4.51332 seconds
+Total final time:		43.88304 seconds
+n: 1690000
+Model: STSLSk: 10
+Create data:			5.02576 seconds
+Created Weights:		19.85858 seconds
+Regression:			29.43953 seconds
