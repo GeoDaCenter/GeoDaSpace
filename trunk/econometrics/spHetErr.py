@@ -1,11 +1,12 @@
 import numpy as np
-import utils as GMM
-import pysal.spreg.ols as OLS
-import twosls as TSLS
-from scipy import sparse as SP
 import numpy.linalg as la
-from pysal import lag_spatial
+import pysal.spreg.ols as OLS
 import pysal.spreg.user_output as USER
+import utils as GMM
+import twosls as TSLS
+from power_expansion import power_expansion
+from scipy import sparse as SP
+from pysal import lag_spatial
 
 class BaseGM_Error_Het:
     """
@@ -585,11 +586,11 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
 
     >>> reg = BaseGM_Combo_Het(y, X, w)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 38.5869   8.2998]
-     [ -1.3779   0.3296]
+    [[ 38.5899   8.2994]
+     [ -1.3781   0.3295]
      [  0.469    0.146 ]
-     [  0.0786   8.4522]]
-        
+     [  0.0786   8.4434]]
+
     Example with both spatial lag and other endogenous variables
 
     >>> yd = []
@@ -719,10 +720,11 @@ class GM_Combo_Het(BaseGM_Combo_Het):
     >>> print reg.name_z
     ['CONSTANT', 'income', 'lag_crime', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 38.5869   8.2998]
-     [ -1.3779   0.3296]
+    [[ 38.5899   8.2994]
+     [ -1.3781   0.3295]
      [  0.469    0.146 ]
-     [  0.0786   8.4522]]
+     [  0.0786   8.4434]]
+        
         
     Example with both spatial lag and other endogenous variables
 
@@ -1054,15 +1056,10 @@ def get_a1a2(w,reg,lambdapar):
     us = GMM.get_spFilter(w,lambdapar, reg.u)
     alpha1 = (-2.0/w.n) * (np.dot((zst * GMM.get_A1(w.sparse)), us))
     alpha2 = (-1.0/w.n) * (np.dot((zst * (w.sparse + w.sparse.T)), us))
-    v1t = np.dot(np.dot(reg.h, reg.pfora1a2), alpha1).T
-    v2t = np.dot(np.dot(reg.h, reg.pfora1a2), alpha2).T
-    a1t = 0
-    a2t = 0
-    pe = 0
-    while (lambdapar**pe > 1e-10):
-        a1t = a1t + (lambdapar**pe) * v1t * (w.sparse**pe)
-        a2t = a2t + (lambdapar**pe) * v2t * (w.sparse**pe)
-        pe = pe + 1
+    v1 = np.dot(np.dot(reg.h, reg.pfora1a2), alpha1)
+    v2 = np.dot(np.dot(reg.h, reg.pfora1a2), alpha2)
+    a1t = power_expansion(w, v1, lambdapar, transpose=True)
+    a2t = power_expansion(w, v2, lambdapar, transpose=True)
     return [a1t.T, a2t.T]
 
 def _test():
