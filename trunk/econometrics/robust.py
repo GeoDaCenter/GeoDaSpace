@@ -1,7 +1,6 @@
 import numpy as np
 import numpy.linalg as la
-
-
+from pysal import lag_spatial
 
 def gls4tsls(y, z, h, u):
     """
@@ -87,8 +86,44 @@ def get_omega(rhs, u):
     u2 = u**2
     v = u2 * rhs
     return np.dot(rhs.T, v)           # weighting matrix (omega)
-    
 
+def robust_vm(reg,wk=None):
+    """
+    Robust estimation of the variance-covariance matrix. Estimated by White (default) or HAC (if wk is provided). 
+        
+    Parameters
+    ----------
+    reg             : Regression object (OLS or TSLS)
+                      output instance from a regression model
+
+    wk              : PySAL weights object
+                      Optional. Spatial weights based on kernel functions
+                      If provided, returns the HAC variance estimation
+    Returns
+    --------
+    psi             : kxk array
+                      Robust estimation of the variance-covariance
+    """
+    if hasattr(reg, 'h'): #If reg has H, do 2SLS estimator. OLS otherwise.
+        tsls = True
+        xu = reg.h * reg.u
+    else:
+        tsls = False
+        xu = reg.x * reg.u
+        
+    if wk: #If wk do HAC. White otherwise.
+        wkxu = lag_spatial(wk,xu)
+        psi0 = np.dot(xu.T,wkxu)
+    else:
+        psi0 = np.dot(xu.T,xu)
+        
+    if tsls:
+        psi1 = np.dot(reg.varb,reg.zthhthi)
+    else:
+        psi1 = reg.xtxi
+        
+    return np.dot(psi1,np.dot(psi0,psi1))
+    
 def _test():
     import doctest
     doctest.testmod()
