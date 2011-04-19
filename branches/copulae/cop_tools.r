@@ -8,8 +8,9 @@ sp.data <- function(s, lambda){
     w <- cell2nb(s, s)
     e <- runif(s**2)
     u <- invIrM(w, rho=lambda, method="chol", feasible=TRUE) %*% e
-    wu <- lag.listw(nb2listw(w), u)
-    matrix(cbind(u, wu), nrow=length(u), ncol=2)
+    w <- nb2listw(w)
+    wu <- lag.listw(w, u)
+    list(dat=matrix(cbind(u, wu), nrow=length(u), ncol=2), w=w
 }
 
 cop.norm <- function(x, copula){
@@ -50,7 +51,8 @@ cop.norm <- function(x, copula){
 }
 
 coPlot <- function(s, lambda, copula){
-    f <- cop.norm(sp.data(s, lambda), copula)
+	dat <- sp.data(s, lambda)
+	f <- cop.norm(dat$dat)
     n <- paste('N:', s**2)
     l <- paste('Lda:', lambda)
     p <- paste('Theta:', round(f@estimate[5],2))
