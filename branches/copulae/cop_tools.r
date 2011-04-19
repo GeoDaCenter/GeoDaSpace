@@ -8,16 +8,17 @@ sp.data <- function(s, lambda){
     w <- cell2nb(s, s)
     e <- runif(s**2)
     u <- invIrM(w, rho=lambda, method="chol", feasible=TRUE) %*% e
-    w <- nb2listw(w)
-    wu <- lag.listw(w, u)
-    list(dat=matrix(cbind(u, wu), nrow=length(u), ncol=2), w=w
+    w <- nb2listw(w)
+    wu <- lag.listw(w, u)
+    list(dat=matrix(cbind(u, wu), nrow=length(u), ncol=2), w=w)
 }
 
 cop.norm <- function(x, copula){
 	if (copula == "normal") {
     	cop <- normalCopula(0.3,dim=2,dispstr="un")
     } else {
-    	cop <- archmCopula(family=copula,param=2)	}
+    	cop <- archmCopula(family=copula,param=2)
+    }
     nor <- mvdc(copula=cop, margins=c('norm', 'norm'), paramMargins=list(list(mean=0, sd=1), list(mean=0, sd=1)))               
     print('Copula generated, estimating...')
     if (copula == "frank" | copula == "gumbel") {
@@ -51,8 +52,8 @@ cop.norm <- function(x, copula){
 }
 
 coPlot <- function(s, lambda, copula){
-	dat <- sp.data(s, lambda)
-	f <- cop.norm(dat$dat)
+    dat <- sp.data(s, lambda)
+    f <- cop.norm(dat$dat, copula)
     n <- paste('N:', s**2)
     l <- paste('Lda:', lambda)
     p <- paste('Theta:', round(f@estimate[5],2))
