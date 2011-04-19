@@ -27,7 +27,7 @@ nor <- mvdc(copula=cop,
 rn <- rmvdc(nor, 1000)
 
 ##### Clayton #####
-clc <- archmCopula(family='clayton', dim=2, param=1)
+clc <- archmCopula(family='clayton', dim=2, param=0.5)
 cl <- mvdc(copula=clc,
             margins=c('norm', 'norm'),
             paramMargins=list(list(mean=0, sd=1), list(mean=0, sd=1))
@@ -40,7 +40,7 @@ rc <- rmvdc(cl, 100)
 #points(rc)
 #c <- contour(nor, dmvdc, xlim=c(-3, 3), ylim=c(-3, 3))
 
-fit.clc <- archmCopula(family='clayton', dim=2, param=0)
+fit.clc <- archmCopula(family='clayton', dim=2, param=0.5)
 fit.cl <- mvdc(copula=fit.clc,
             margins=c('norm', 'norm'),
             paramMargins=list(list(mean=2, sd=10), list(mean=2, sd=10))
@@ -59,5 +59,6 @@ resC <- mvdc(copula=eclc,
             )
 c <- contour(resC, dmvdc, xlim=c(-3, 3), ylim=c(-3, 3))
 points(rc)
+#plot(rc)
 
 

@@ -8,8 +8,9 @@ sp.data <- function(s, lambda){
     w <- cell2nb(s, s)
     e <- runif(s**2)
     u <- invIrM(w, rho=lambda, method="chol", feasible=TRUE) %*% e
-    wu <- lag.listw(nb2listw(w), u)
-    matrix(cbind(u, wu), nrow=length(u), ncol=2)
+    w <- nb2listw(w)
+    wu <- lag.listw(w, u)
+    list(dat=matrix(cbind(u, wu), nrow=length(u), ncol=2), w=w)
 }
 
 cop.norm <- function(x){
@@ -35,24 +36,26 @@ cop.norm <- function(x){
     c <- contour(emvdc, dmvdc, 
         xlim=c(min(x[, 1]), max(x[, 1])), 
         ylim=c(min(x[, 2]), max(x[, 2])),
-        lwd=0.2
+        lwd=0.5, col='red'
         )
     points(x, pch=20)
     fitC
 }
 
 coPlot <- function(s, lambda){
-    f <- cop.norm(sp.data(s, lambda))
+    dat <- sp.data(s, lambda)
+    f <- cop.norm(dat$dat)
     n <- paste('N:', s**2)
     l <- paste('Lambda:', lambda)
-    p <- paste('Theta:', f@estimate[5])
-    tit <- paste(n, l, p, sep='     ')
+    m <- paste('Moran:', round(moran.test(dat$dat[, 1], dat$w)$statistic,4))
+    p <- paste('Theta:', round(f@estimate[5],4))
+    tit <- paste(n, m, l, p, sep='     ')
     t <- title(tit)
 }
 
 ###################################
 lambdas <- cbind(0, 0.25, 0.5, 0.75)
-s <- 4
+s <- 40 
 ###################################
 par(mfrow = c(2, 2))
 for(lambda in lambdas){
