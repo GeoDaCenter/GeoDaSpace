@@ -32,7 +32,7 @@ class BaseTSLS(RegressionProps):
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)            
     robust      : string
-                  If 'white' then a White consistent estimator of the
+                  If 'white' or 'hac' then a White consistent or HAC estimator of the
                   variance-covariance matrix is given. If 'gls' then
                   generalized least squares is performed resulting in new
                   coefficient estimates along with a new variance-covariance
@@ -168,13 +168,14 @@ class BaseTSLS(RegressionProps):
         xptxpi = la.inv(xptxp)
         self.xp = xp
         self.xptxpi = xptxpi
-        
-       
+      
         if robust == 'gls':
             self.betas, self.xptxpi = ROBUST.gls4tsls(y, z, h, self.u)
             self.predy = np.dot(z, self.betas)   # using original data and GLS betas
             self.u = y - self.predy              # using original data and GLS betas
             ### need to verify the VM for the non-spatial case
+        if robust == 'white':
+            self.vm = ROBUST.robust_vm(self)
 
         self._cache = {}
         RegressionProps()
@@ -347,7 +348,7 @@ if __name__ == '__main__':
     q = []
     q.append(db.by_col("DISCBD"))
     q = np.array(q).T
-    reg = BaseTSLS(y, X, yd, q=q)
+    reg = BaseTSLS(y, X, yd, q=q, robust='white')
     print reg.betas
     print reg.vm 
 

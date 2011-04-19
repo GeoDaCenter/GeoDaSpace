@@ -93,16 +93,57 @@ def robust_vm(reg,wk=None):
         
     Parameters
     ----------
+    
     reg             : Regression object (OLS or TSLS)
                       output instance from a regression model
 
     wk              : PySAL weights object
                       Optional. Spatial weights based on kernel functions
                       If provided, returns the HAC variance estimation
+                      
     Returns
     --------
+    
     psi             : kxk array
                       Robust estimation of the variance-covariance
+                      
+    Examples
+    --------
+    
+    >>> import numpy as np
+    >>> import pysal
+    >>> from pysal.spreg.ols import BaseOLS
+    >>> from twosls import BaseTSLS
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X = np.array(X).T
+
+    #Example with OLS and White
+    
+    #>>> ols = BaseOLS(y,X, robust='white')
+    #>>> ols.vm
+    #These values must be are from the TSLS and must be updated:
+    #array([[ 229.05640809,   10.36945783,   -9.54463414],
+           [  10.36945783,    2.0013142 ,   -1.01826408],
+           [  -9.54463414,   -1.01826408,    0.62914915]])
+
+    Example with 2SLS and White
+
+    >>> yd = []
+    >>> yd.append(db.by_col("HOVAL"))
+    >>> yd = np.array(yd).T
+    >>> q = []
+    >>> q.append(db.by_col("DISCBD"))
+    >>> q = np.array(q).T
+    >>> tsls = BaseTSLS(y, X, yd, q=q)
+    >>> tsls.vm
+    array([[ 229.05640809,   10.36945783,   -9.54463414],
+           [  10.36945783,    2.0013142 ,   -1.01826408],
+           [  -9.54463414,   -1.01826408,    0.62914915]])
+    
     """
     if hasattr(reg, 'h'): #If reg has H, do 2SLS estimator. OLS otherwise.
         tsls = True
@@ -119,10 +160,11 @@ def robust_vm(reg,wk=None):
         
     if tsls:
         psi1 = np.dot(reg.varb,reg.zthhthi)
+        psi = np.dot(psi1,np.dot(psi0,psi1.T))
     else:
-        psi1 = reg.xtxi
+        psi = np.dot(reg.xtxi,np.dot(psi0,reg.xtxi))
         
-    return np.dot(psi1,np.dot(psi0,psi1))
+    return psi
     
 def _test():
     import doctest
