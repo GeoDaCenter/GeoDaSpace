@@ -2,29 +2,64 @@
 
 library(foreign)
 library(spdep)
+source('cop_tools.r')
 
-w <- read.gal('/Volumes/GeoDa/Workspace/CopulaData/county_geoda2.gal')
+biPlot <- function(x, mnttl, std=FALSE){
+    par(mfrow = c(1, 2))
+    cops <- cbind('normal', 'clayton')
+    for(copula in cops){
+        print(paste('Estimating', copula))
+        c <- est.cop(x, copula, std=std)
+        abline(v=mean(x[,1]), cex=0.5)
+        abline(h=mean(x[,2]), cex=0.5)
+        plot(lm(x[, 1] ~ x[, 2]))
+        tit <- paste(copula, 'Theta:', c$estimate[5])
+        title(tit)
+    }
+    title(main=mnttl)
+}
+
+#w <- read.gal('/Volumes/GeoDa/Workspace/CopulaData/county_geoda2.gal')
+w <- read.gal('/home/dani/AAA/LargeData/CopulaData/county_geoda2.gal')
 w <- nb2listw(w)
 
-dbf.link <- '/Volumes/GeoDa/Workspace/CopulaData/county_geoda2.dbf'
+#dbf.link <- '/Volumes/GeoDa/Workspace/CopulaData/county_geoda2.dbf'
+dbf.link <- '/home/dani/AAA/LargeData/CopulaData/county_geoda2.dbf'
 
 dbf <- read.dbf(dbf.link)
 vars <- cbind('CSCREEE', 'CSCREEL', 'SSCREEE', 'SSCREEL')
+vars <- cbind('CSCREEE')
 
-png('~/Desktop/copulaPlots.png', width=960, height=960)
-par(mfrow = c(2, 2))
 for(var in vars){
-    v <- dbf[, var]
-    wv <- lag.listw(w, v)
-    v <- (v - mean(v)) / sqrt(var(v))
-    # Standardize
-    wv <- (wv - mean(wv)) / sqrt(var(wv))
-    x <- matrix(cbind(v, wv), nrow=length(v))
-    plot(x, xlab='y', ylab='wy', pch=20)
-    mi <- moran.test(v, w)$statistic
-    tit <- paste(var, mi)
-    title(tit)
-    abline(v=0)
-    abline(h=0)
+        v <- dbf[, var]
+        wvar <- lag.listw(w, v)
+        x <- matrix(cbind(var, wvar), nrow=length(v))
+
+        png.link <- paste('~/Desktop/copulaPlots', var, '.png', sep='')
+        png(png.link, width=960, height=480)
+        biPlot(x, var)
+        dev.off()
+
+        png.link <- paste('~/Desktop/copulaPlots', var, '_std.png', sep='')
+        png(png.link, width=960, height=480)
+        biPlot(x, var, std=TRUE)
+        dev.off()
 }
-dev.off()
+
+#   png('~/Desktop/copulaPlots.png', width=960, height=960)
+#   par(mfrow = c(2, 2))
+#   for(var in vars){
+#       v <- dbf[, var]
+#       wv <- lag.listw(w, v)
+#       v <- (v - mean(v)) / sqrt(var(v))
+#       # Standardize
+#       wv <- (wv - mean(wv)) / sqrt(var(wv))
+#       x <- matrix(cbind(v, wv), nrow=length(v))
+#       plot(x, xlab='y', ylab='wy', pch=20)
+#       mi <- moran.test(v, w)$statistic
+#       tit <- paste(var, mi)
+#       title(tit)
+#       abline(v=0)
+#       abline(h=0)
+#   }
+#   dev.off()

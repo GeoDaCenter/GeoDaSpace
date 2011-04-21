@@ -13,7 +13,7 @@ sp.data <- function(s, lambda){
     list(dat=matrix(cbind(u, wu), nrow=length(u), ncol=2), w=w)
 }
 
-cop.norm <- function(x, copula){
+est.cop <- function(x, copula, std=FALSE){
 	if (copula == "normal") {
     	cop <- normalCopula(0.3,dim=2,dispstr="un")
     } else {
@@ -36,24 +36,30 @@ cop.norm <- function(x, copula){
 	if (copula == "normal") {
     	enor <- normalCopula(pa,dim=2,dispstr="un")
     } else {
-    	enor <- archmCopula(family=copula,param=pa,dim=2,dispstr="un")	}
+    	enor <- archmCopula(family=copula,param=pa,dim=2,dispstr="un")
+    }
     	
     emvdc <- mvdc(copula=enor,
-                margins=c('norm', 'norm'),
-                paramMargins=list(list(mean=m1, sd=v1), list(mean=m2, sd=v2))
-                )
+        margins=c('norm', 'norm'),
+        paramMargins=list(list(mean=m1, sd=v1), list(mean=m2, sd=v2))
+        )
+    # Graphics
+    if(std==TRUE){
+        x[, 1] <- (x[, 1] - mean(x[, 1])) / sqrt(var(x[, 1]))
+        x[, 2] <- (x[, 2] - mean(x[, 2])) / sqrt(var(x[, 2]))
+    }
     c <- contour(emvdc, dmvdc, 
         xlim=c(min(x[, 1]), max(x[, 1])), 
         ylim=c(min(x[, 2]), max(x[, 2])),
         lwd=0.5, col="red"
         )
-    points(x, pch=20, col="grey")
+    points(x, pch=20, col="black", cex=0.25)
     fitC
 }
 
 coPlot <- function(s, lambda, copula){
     dat <- sp.data(s, lambda)
-    f <- cop.norm(dat$dat, copula)
+    f <- est.cop(dat$dat, copula)
     n <- paste('N:', s**2)
     l <- paste('Lda:', lambda)
     p <- paste('Theta:', round(f@estimate[5],2))
@@ -64,11 +70,13 @@ coPlot <- function(s, lambda, copula){
 
 ###################################
 lambdas <- cbind(0, 0.25, 0.5, 0.75)
-s <- 4
-copula <- "clayton" #(clayton, frank, gumbel, normal)
+s <- 10
+copula <- "gumbel" #(clayton, frank, gumbel, normal)
 ###################################
-par(mfrow = c(2, 2))
-for(lambda in lambdas){
-    coPlot(s, lambda, copula)
-}
+#   par(mfrow = c(2, 2))
+#   for(lambda in lambdas){
+#       dat <- sp.data(s, lambda)
+#       f <- est.cop(dat$dat, copula)
+#       #coPlot(s, lambda, copula)
+#   }
 
