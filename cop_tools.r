@@ -46,10 +46,12 @@ est.cop <- function(x, copula){
         paramMargins=list(list(mean=m1, sd=v1), list(mean=m2, sd=v2))
         )
     # Graphics
+    z = dmvdc(emvdc, x)
     c <- contour(emvdc, dmvdc, 
         xlim=c(min(x[, 1]), max(x[, 1])), 
         ylim=c(min(x[, 2]), max(x[, 2])),
-        lwd=0.5, col="red"
+        zlim=c(min(z), max(z)),
+        lwd=1.5, col="red"
         )
     points(x, pch=20, col="black", cex=0.25)
     fitC
@@ -68,13 +70,14 @@ coPlot <- function(s, lambda, copula){
 
 #   ###################################
 #   lambdas <- cbind(0, 0.25, 0.5, 0.75)
+#   lambdas <- cbind(0.25, 0.75)
 #   s <- 10
 #   copula <- "clayton" #(clayton, frank, gumbel, normal)
 #   ###################################
-#       par(mfrow = c(2, 2))
+#       par(mfrow = c(1, 2))
 #       for(lambda in lambdas){
-#           dat <- sp.data(s, lambda)
-#           f <- est.cop(dat$dat, copula)
+#          #dat <- sp.data(s, lambda)
+#          #f <- est.cop(dat$dat, copula)
 #           coPlot(s, lambda, copula)
 #       }
 
