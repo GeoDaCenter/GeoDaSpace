@@ -7,39 +7,37 @@ source('cop_tools.r')
 biPlot <- function(x, mnttl){
     par(mfrow = c(1, 2))
     cops <- cbind('normal', 'clayton')
-    #cops <- cbind('clayton')
     for(copula in cops){
         print(paste('Estimating', copula))
         c <- est.cop(x, copula)
-        abline(v=mean(x[,1]), cex=0.5)
-        abline(h=mean(x[,2]), cex=0.5)
-        plot(lm(x[, 1] ~ x[, 2]))
+        abline(v=mean(x[,1]), cex=0.5, lty=2)
+        abline(h=mean(x[,2]), cex=0.5, lty=2)
+        abline(lm(x[, 1] ~ x[, 2]))
+        lines(lowess(x), col='blue')
         tit <- paste(copula, 'Theta:', c@estimate[5])
         title(tit)
     }
-    title(main=mnttl)
+    text(0.5, 1, mnttl)
 }
 
-w <- read.gal('/Volumes/GeoDa/Workspace/CopulaData/county_geoda2.gal')
-#w <- read.gal('/home/dani/AAA/LargeData/CopulaData/county_geoda2.gal')
+#w <- read.gal('/Volumes/GeoDa/Workspace/CopulaData/county_geoda2.gal')
+w <- read.gal('/home/dani/AAA/LargeData/CopulaData/county_geoda2.gal')
 w <- nb2listw(w)
 
 dbf.link <- '/Volumes/GeoDa/Workspace/CopulaData/county_geoda2.dbf'
-#dbf.link <- '/home/dani/AAA/LargeData/CopulaData/county_geoda2.dbf'
+dbf.link <- '/home/dani/AAA/LargeData/CopulaData/county_geoda2.dbf'
 
 dbf <- read.dbf(dbf.link)
 vars <- cbind('CSCREEE', 'CSCREEL', 'SSCREEE', 'SSCREEL')
-vars <- cbind('CSCREEE')
+#vars <- cbind('SSCREEE')
 
 for(var in vars){
+        print(paste('Running', var))
         v <- dbf[, var]
-        #wvar <- lag.listw(w, v)
-        #x <- matrix(cbind(var, wvar), nrow=length(v))
-        dat <- sp.data(10, 0.5)
-        w <- dat$w
-        x <- dat$dat
+        wvar <- lag.listw(w, v)
+        x <- matrix(cbind(v, wvar), nrow=length(v))
 
-        png.link <- paste('~/Desktop/copulaPlots', var, '.png', sep='')
+        png.link <- paste('~/Desktop/copulaPlots_', var, '.png', sep='')
         png(png.link, width=960, height=480)
         biPlot(x, var)
         dev.off()
@@ -47,7 +45,7 @@ for(var in vars){
         vs <- (x[, 1] - mean(x[, 1])) / sqrt(var(x[, 1]))
         wvs <- lag.listw(w, vs)
         x <- matrix(cbind(vs, wvs), nrow=length(vs))
-        png.link <- paste('~/Desktop/copulaPlots', var, '_std.png', sep='')
+        png.link <- paste('~/Desktop/copulaPlots_', var, '_std.png', sep='')
         png(png.link, width=960, height=480)
         biPlot(x, var)
         dev.off()
