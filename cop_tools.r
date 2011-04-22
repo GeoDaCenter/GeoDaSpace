@@ -13,19 +13,21 @@ sp.data <- function(s, lambda){
     list(dat=matrix(cbind(u, wu), nrow=length(u), ncol=2), w=w)
 }
 
-est.cop <- function(x, copula, std=FALSE){
+est.cop <- function(x, copula){
+    #copula     : clayton, frank, gumbel, normal
 	if (copula == "normal") {
     	cop <- normalCopula(0.3,dim=2,dispstr="un")
     } else {
     	cop <- archmCopula(family=copula,param=2)
     }
-    nor <- mvdc(copula=cop, margins=c('norm', 'norm'), paramMargins=list(list(mean=0, sd=1), list(mean=0, sd=1)))               
+    copd <- mvdc(copula=cop, margins=c('norm', 'norm'), paramMargins=list(list(mean=0, sd=1), list(mean=0, sd=1)))               
     print('Copula generated, estimating...')
     if (copula == "frank" | copula == "gumbel") {
-    	fitC <- fitMvdc(x, nor, start=c(0, 1, 0, 1, 2))
+        theta <- 2
     } else {
-    	fitC <- fitMvdc(x, nor, start=c(0, 1, 0, 1, 0))
+        theta <- 0
     }
+    fitC <- fitMvdc(x, copd, start=c(0, 1, 0, 1, theta))
     print('Estimated!!!')
     m1 <- fitC@estimate[1]
     v1 <- fitC@estimate[2]
@@ -44,10 +46,6 @@ est.cop <- function(x, copula, std=FALSE){
         paramMargins=list(list(mean=m1, sd=v1), list(mean=m2, sd=v2))
         )
     # Graphics
-    if(std==TRUE){
-        x[, 1] <- (x[, 1] - mean(x[, 1])) / sqrt(var(x[, 1]))
-        x[, 2] <- (x[, 2] - mean(x[, 2])) / sqrt(var(x[, 2]))
-    }
     c <- contour(emvdc, dmvdc, 
         xlim=c(min(x[, 1]), max(x[, 1])), 
         ylim=c(min(x[, 2]), max(x[, 2])),
@@ -68,15 +66,15 @@ coPlot <- function(s, lambda, copula){
     t <- title(tit)
 }
 
-###################################
-lambdas <- cbind(0, 0.25, 0.5, 0.75)
-s <- 10
-copula <- "gumbel" #(clayton, frank, gumbel, normal)
-###################################
-#   par(mfrow = c(2, 2))
-#   for(lambda in lambdas){
-#       dat <- sp.data(s, lambda)
-#       f <- est.cop(dat$dat, copula)
-#       #coPlot(s, lambda, copula)
-#   }
+#   ###################################
+#   lambdas <- cbind(0, 0.25, 0.5, 0.75)
+#   s <- 10
+#   copula <- "clayton" #(clayton, frank, gumbel, normal)
+#   ###################################
+#       par(mfrow = c(2, 2))
+#       for(lambda in lambdas){
+#           dat <- sp.data(s, lambda)
+#           f <- est.cop(dat$dat, copula)
+#           coPlot(s, lambda, copula)
+#       }
 
