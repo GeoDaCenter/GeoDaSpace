@@ -177,6 +177,65 @@ def get_lags(w, x, w_lags):
         spat_lags = np.hstack((spat_lags, lag))
     return spat_lags
 
+class RegressionProps:
+    """
+    Helper class that adds common regression properties to any regression
+    class that inherits it.  It takes no parameters.  See BaseOLS for example
+    usage.
+
+    Parameters
+    ----------
+
+    Attributes
+    ----------
+    utu     : float
+              Sum of the squared residuals
+    sig2n    : float
+              Sigma squared with n in the denominator
+    sig2n_k : float
+              Sigma squared with n-k in the denominator
+    vm      : array
+              Variance-covariance matrix (kxk)
+    mean_y  : float
+              Mean of the dependent variable
+    std_y   : float
+              Standard deviation of the dependent variable
+              
+    """
+
+    @property
+    def utu(self):
+        if 'utu' not in self._cache:
+            self._cache['utu'] = np.sum(self.u**2)
+        return self._cache['utu']
+    @property
+    def sig2n(self):
+        if 'sig2n' not in self._cache:
+            self._cache['sig2n'] = self.utu / self.n
+        return self._cache['sig2n']
+    @property
+    def sig2n_k(self):
+        if 'sig2n_k' not in self._cache:
+            self._cache['sig2n_k'] = self.utu / (self.n-self.k)
+        return self._cache['sig2n_k']
+    @property
+    def vm(self):
+        if 'vm' not in self._cache:
+            self._cache['vm'] = np.dot(self.sig2, self.xtxi)
+        return self._cache['vm']
+    
+    @property
+    def mean_y(self):
+        if 'mean_y' not in self._cache:
+            self._cache['mean_y']=np.mean(self.y)
+        return self._cache['mean_y']
+    @property
+    def std_y(self):
+        if 'std_y' not in self._cache:
+            self._cache['std_y']=np.std(self.y, ddof=1)
+        return self._cache['std_y']
+
+
 def _test():
     import doctest
     doctest.testmod()
