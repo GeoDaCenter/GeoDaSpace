@@ -112,38 +112,57 @@ def robust_vm(reg,wk=None):
     
     >>> import numpy as np
     >>> import pysal
-    >>> from pysal.spreg.ols import BaseOLS
+    >>> from ols import BaseOLS
     >>> from twosls import BaseTSLS
-    >>> db=pysal.open("examples/columbus.dbf","r")
-    >>> y = np.array(db.by_col("CRIME"))
-    >>> y = np.reshape(y, (49,1))
+    >>> db=pysal.open("examples/NAT.dbf","r")
+    >>> y = np.array(db.by_col("HR90"))
+    >>> y = np.reshape(y, (y.shape[0],1))
     >>> X = []
-    >>> X.append(db.by_col("INC"))
-    >>> X = np.array(X).T
+    >>> X.append(db.by_col("RD90"))
+    >>> X.append(db.by_col("DV90"))
+    >>> X = np.array(X).T                       
 
-    #Example with OLS and White
+    Example with OLS and White
     
-    #>>> ols = BaseOLS(y,X, robust='white')
-    #>>> ols.vm
-    #These values must be are from the TSLS and must be updated:
-    #array([[ 229.05640809,   10.36945783,   -9.54463414],
-           [  10.36945783,    2.0013142 ,   -1.01826408],
-           [  -9.54463414,   -1.01826408,    0.62914915]])
+    >>> ols = BaseOLS(y,X, robust='white')
+    >>> ols.vm
+    array([[ 0.24491641,  0.01092258, -0.03438619],
+           [ 0.01092258,  0.01796867, -0.00071345],
+           [-0.03438619, -0.00071345,  0.00501042]])
+    
+    Example with OLS and HAC
+
+    >>> wk = pysal.open("examples/kernel_knn15_epanechnikov_3085_random_points.gwt","r").read()
+    >>> ols = BaseOLS(y,X, robust='hac')
+    >>> ols.vm
+    array([[ 0.17004545,  0.00226532, -0.02243898],
+           [ 0.00226532,  0.00941319, -0.00031638],
+           [-0.02243898, -0.00031638,  0.00313386]])
 
     Example with 2SLS and White
 
     >>> yd = []
-    >>> yd.append(db.by_col("HOVAL"))
+    >>> yd.append(db.by_col("UE90"))
     >>> yd = np.array(yd).T
     >>> q = []
-    >>> q.append(db.by_col("DISCBD"))
+    >>> q.append(db.by_col("UE80"))
     >>> q = np.array(q).T
-    >>> tsls = BaseTSLS(y, X, yd, q=q)
+    >>> tsls = BaseTSLS(y, X, yd, q=q, robust='white')
     >>> tsls.vm
-    array([[ 229.05640809,   10.36945783,   -9.54463414],
-           [  10.36945783,    2.0013142 ,   -1.01826408],
-           [  -9.54463414,   -1.01826408,    0.62914915]])
-    
+    array([[ 0.29569954,  0.04119843, -0.02496858, -0.01640185],
+           [ 0.04119843,  0.03647762,  0.004702  , -0.00987345],
+           [-0.02496858,  0.004702  ,  0.00648262, -0.00292891],
+           [-0.01640185, -0.00987345, -0.00292891,  0.0053322 ]])
+
+    Example with 2SLS and HAC
+
+    >>> tsls = BaseTSLS(y, X, yd, q=q, robust='hac', wk=wk)
+    >>> tsls.vm
+    array([[ 0.32274654,  0.03947159, -0.02786886, -0.01724549],
+           [ 0.03894785,  0.03572799,  0.00504059, -0.00989053],
+           [-0.02793197,  0.00495583,  0.00668599, -0.00268852],
+           [-0.01718763, -0.0098797 , -0.00269626,  0.00518021]])
+
     """
     if hasattr(reg, 'h'): #If reg has H, do 2SLS estimator. OLS otherwise.
         tsls = True

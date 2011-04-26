@@ -1,8 +1,8 @@
 import numpy as np
 import numpy.linalg as la
-from pysal.spreg.ols import RegressionProps
 import robust as ROBUST
 import pysal.spreg.user_output as USER
+from utils import RegressionProps
 
 class BaseTSLS(RegressionProps):
     """
@@ -37,6 +37,8 @@ class BaseTSLS(RegressionProps):
                   generalized least squares is performed resulting in new
                   coefficient estimates along with a new variance-covariance
                   matrix. 
+    wk          : spatial weights object
+                  pysal kernel weights object
 
     Attributes
     ----------
@@ -110,7 +112,8 @@ class BaseTSLS(RegressionProps):
      [ -1.58216593]]
     
     """
-    def __init__(self, y, x, yend, q=None, h=None, constant=True, robust=None):
+    def __init__(self, y, x, yend, q=None, h=None, constant=True, \
+            robust=None, wk=None):
         
         if issubclass(type(q), np.ndarray) and issubclass(type(h), np.ndarray):  
             raise Exception, "Please do not provide 'q' and 'h' together"
@@ -176,6 +179,9 @@ class BaseTSLS(RegressionProps):
             ### need to verify the VM for the non-spatial case
         if robust == 'white':
             self.vm = ROBUST.robust_vm(self)
+
+        if robust == 'hac':
+            self.vm = ROBUST.robust_vm(self, wk=wk)
 
         self._cache = {}
         RegressionProps()
