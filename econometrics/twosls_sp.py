@@ -35,8 +35,8 @@ class BaseGM_Lag(TSLS.BaseTSLS):
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
     robust      : string
-                  If 'white' then a White consistent estimator of the
-                  variance-covariance matrix is given. If 'gls' then
+                  If 'white' or 'hac' then a White consistent or HAC estimator
+                  of the variance-covariance matrix is given. If 'gls' then
                   generalized least squares is performed resulting in new
                   coefficient estimates along with a new variance-covariance
                   matrix. 
@@ -44,6 +44,8 @@ class BaseGM_Lag(TSLS.BaseTSLS):
                   If 'xq' (default) then spatial lags of all exogenous
                   variables are used as instruments (i.e. lags of x and q); if
                   'x' then just spatial lags of x are included
+    wk          : spatial weights object
+                  pysal kernel weights object
 
     Attributes
     ----------
@@ -151,7 +153,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
     """
 
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True, robust=None, spat_lags='xq'):
+                    constant=True, robust=None, spat_lags='xq', wk=None):
         yl = pysal.lag_spatial(w, y)
         if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
             if spat_lags == 'xq':
@@ -174,7 +176,8 @@ class BaseGM_Lag(TSLS.BaseTSLS):
             self.vm = self.vm_gls
         elif robust == 'white':
             self.vm = self.vm_white       
-
+        elif robust == 'hac':
+            self.vm = ROBUST.robust_vm(self, wk=wk)
     @property
     def vm_gls(self):
         # follows stsls in R spdep
@@ -298,3 +301,24 @@ def _test():
 
 if __name__ == '__main__':
     _test()
+    import numpy as np
+    import pysal
+    import pysal.spreg.diagnostics as D
+    w = pysal.rook_from_shapefile("examples/columbus.shp")
+    w.transform = 'r'
+    db=pysal.open("examples/columbus.dbf","r")
+    y = np.array(db.by_col("CRIME"))
+    y = np.reshape(y, (49,1))
+    # no non-spatial endogenous variables
+    X = []
+    X.append(db.by_col("INC"))
+    X.append(db.by_col("HOVAL"))
+    X = np.array(X).T
+    reg=BaseGM_Lag(y, X, w, w_lags=2)
+    print reg.betas
+    print reg.vm
+    reg=BaseGM_Lag(y, X, w, w_lags=2, robust='white')
+    print reg.betas
+    print reg.vm
+    from robust import robust_vm
+    print robust_vm(reg)
