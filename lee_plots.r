@@ -17,7 +17,6 @@ biPlot <- function(x, mnttl){
         tit <- paste(copula, 'Theta:', c@estimate[5])
         title(tit)
     }
-    text(0.5, 1, mnttl)
 }
 
 #w <- read.gal('/Volumes/GeoDa/Workspace/CopulaData/county_geoda2.gal')
