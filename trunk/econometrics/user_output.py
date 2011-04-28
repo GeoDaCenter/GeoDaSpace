@@ -405,6 +405,10 @@ def summary_results(reg, spat_diag, vm, pred, instruments):
             strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.z_stat[i][0],reg.z_stat[i][1])
             i += 1
         for name in reg.name_yend:        
+            print reg.betas[i][0]
+            print reg.std_err[i]
+            print reg.z_stat[i][0]
+            print reg.z_stat[i][1]
             strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.z_stat[i][0],reg.z_stat[i][1])
             i += 1
         strSummary += "----------------------------------------------------------------------------\n"
