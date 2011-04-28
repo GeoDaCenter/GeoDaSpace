@@ -103,33 +103,33 @@ class BaseGM_Lag(TSLS.BaseTSLS):
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
     >>> db=pysal.open("examples/columbus.dbf","r")
-    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
     >>> # no non-spatial endogenous variables
     >>> X = []
     >>> X.append(db.by_col("INC"))
-    >>> X.append(db.by_col("HOVAL"))
+    >>> X.append(db.by_col("CRIME"))
     >>> X = np.array(X).T
     >>> reg=BaseGM_Lag(y, X, w, w_lags=2)
     >>> reg.betas
-    array([[ 45.45909249],
-           [ -1.0410089 ],
-           [ -0.25953844],
-           [  0.41929355]])
+    array([[  4.53017056e+01],
+           [  6.20888617e-01],
+           [ -4.80723451e-01],
+           [  2.83622122e-02]])
     >>> D.se_betas(reg)
-    array([ 11.19151175,   0.38861224,   0.09240593,   0.18758518])
+    array([ 18.69196608,   0.54769142,   0.19021045,   0.33120731])
     >>> reg=BaseGM_Lag(y, X, w, w_lags=2, robust='white')
     >>> reg.betas
-    array([[ 45.45909249],
-           [ -1.0410089 ],
-           [ -0.25953844],
-           [  0.41929355]])
+    array([[  4.53017056e+01],
+           [  6.20888617e-01],
+           [ -4.80723451e-01],
+           [  2.83622122e-02]])
     >>> D.se_betas(reg)
-    array([ 10.93497906,   0.49943339,   0.17217193,   0.19588229])
+    array([ 26.46540238,   0.54128829,   0.20836574,   0.607184  ])
     >>> # instrument for HOVAL with DISCBD
     >>> X = np.array(db.by_col("INC"))
     >>> X = np.reshape(X, (49,1))
-    >>> yd = np.array(db.by_col("HOVAL"))
+    >>> yd = np.array(db.by_col("CRIME"))
     >>> yd = np.reshape(yd, (49,1))
     >>> q = np.array(db.by_col("DISCBD"))
     >>> q = np.reshape(q, (49,1))
@@ -218,37 +218,37 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
     >>> db=pysal.open("examples/columbus.dbf","r")
-    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
     >>> # no non-spatial endogenous variables
     >>> X = []
     >>> X.append(db.by_col("INC"))
-    >>> X.append(db.by_col("HOVAL"))
+    >>> X.append(db.by_col("CRIME"))
     >>> X = np.array(X).T
-    >>> reg=GM_Lag(y, X, w, w_lags=2, name_x=['inc', 'hoval'], name_y='crime', name_ds='columbus')
+    >>> reg=GM_Lag(y, X, w, w_lags=2, name_x=['inc', 'crime'], name_y='hoval', name_ds='columbus')
     >>> reg.betas
-    array([[ 45.45909249],
-           [ -1.0410089 ],
-           [ -0.25953844],
-           [  0.41929355]])
+    array([[  4.53017056e+01],
+           [  6.20888617e-01],
+           [ -4.80723451e-01],
+           [  2.83622122e-02]])
     >>> D.se_betas(reg)
-    array([ 11.19151175,   0.38861224,   0.09240593,   0.18758518])
-    >>> reg=GM_Lag(y, X, w, w_lags=2, robust='white', name_x=['inc', 'hoval'], name_y='crime', name_ds='columbus')
+    array([ 18.69196608,   0.54769142,   0.19021045,   0.33120731])
+    >>> reg=GM_Lag(y, X, w, w_lags=2, robust='white', name_x=['inc', 'crime'], name_y='hoval', name_ds='columbus')
     >>> reg.betas
-    array([[ 45.45909249],
-           [ -1.0410089 ],
-           [ -0.25953844],
-           [  0.41929355]])
+    array([[  4.53017056e+01],
+           [  6.20888617e-01],
+           [ -4.80723451e-01],
+           [  2.83622122e-02]])
     >>> D.se_betas(reg)
-    array([ 10.93497906,   0.49943339,   0.17217193,   0.19588229])
+    array([ 26.46540238,   0.54128829,   0.20836574,   0.607184  ])
     >>> # instrument for HOVAL with DISCBD
     >>> X = np.array(db.by_col("INC"))
     >>> X = np.reshape(X, (49,1))
-    >>> yd = np.array(db.by_col("HOVAL"))
+    >>> yd = np.array(db.by_col("CRIME"))
     >>> yd = np.reshape(yd, (49,1))
     >>> q = np.array(db.by_col("DISCBD"))
     >>> q = np.reshape(q, (49,1))
-    >>> reg=GM_Lag(y, X, w, yd, q, w_lags=2, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
+    >>> reg=GM_Lag(y, X, w, yd, q, w_lags=2, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
 
 
     """
@@ -295,12 +295,12 @@ if __name__ == '__main__':
     w = pysal.rook_from_shapefile("examples/columbus.shp")
     w.transform = 'r'
     db=pysal.open("examples/columbus.dbf","r")
-    y = np.array(db.by_col("CRIME"))
+    y = np.array(db.by_col("HOVAL"))
     y = np.reshape(y, (49,1))
     # no non-spatial endogenous variables
     X = []
     X.append(db.by_col("INC"))
-    X.append(db.by_col("HOVAL"))
+    X.append(db.by_col("CRIME"))
     X = np.array(X).T
     reg=BaseGM_Lag(y, X, w, w_lags=2)
     print reg.betas
