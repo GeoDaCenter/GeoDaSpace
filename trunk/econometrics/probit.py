@@ -253,7 +253,7 @@ class probit: #DEV class required.
                 W1 = w*np.ones((self.n,1))
                 Jnb0 = muxb*sum(W1)*sig2
                 LM_lag_den0 = np.dot(Jnb0*xmean.T,np.dot(Jbb,Jnb0*xmean))
-                Jnn0 = trWpW*np.dot(self.betas.T,np.dot(self.vm,self.betas))
+                Jnn0 = trWpW*np.dot(self.betas.T,np.dot(np.cov(self.x,rowvar=0,bias=1),self.betas))
                 Jnn = ((sig2*trWWWWp) + Jnn0 + ((muxb**2)*(la.norm(W1)**2)))*sig2
                 LM_lag = Fn2 / (Jnn - LM_lag_den0)
                 LM_lag = np.array([LM_lag,stats.chisqprob(LM_lag,1)])
@@ -412,3 +412,5 @@ if __name__ == '__main__':
     print "Pinkse Spatial Error:", round(probit1.Pinkse_error[0],3), "; pvalue:", round(probit1.Pinkse_error[1],4)
     print "Pinkse Spatial Lag:", round(probit1.Pinkse_lag[0],3), "; pvalue:", round(probit1.Pinkse_lag[1],4)
     print "KP Spatial Error:", round(probit1.KP_error[0],3), "; pvalue:", round(probit1.KP_error[1],4)
+    print "PS Spatial Error:", round(probit1.PS_error[0],3), "; pvalue:", round(probit1.PS_error[1],4)
+    
