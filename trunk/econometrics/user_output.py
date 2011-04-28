@@ -579,34 +579,6 @@ def check_weights(w, y):
         if w.n != y.shape[0]:
             raise Exception, "y must be nx1, and w must be an nxn PySAL W object"
 
-        # set size of matrix
-        n = w.n
-
-        # get matrix diagonal
-        diag = w.sparse.diagonal()
-        dmin = diag.min()
-        dmax = diag.max()
-
-        # check to make sure all entries equal 1
-        if dmin < 1.0:
-            raise Exception, "All entries on kernel diagonal must equal 1."
-        if dmax > 1.0:
-            raise Exception, "All entries on kernel diagonal must equal 1."
-
-        # ensure off-diagonal entries are in the set of real numbers [0,1)
-        wegt = w.weights
-        for i in range(1,n+1):
-            vals = np.array(wegt[str(i)])
-            vmin = vals.min()
-            vmax = vals.max()
-
-            if vmin < 0.0:
-                raise Exception, "Kernel off-diagonal entries must be \
-                greater than or equal to 0."
-            if vmax >= 1.0:
-                raise Exception, "Kernel off-diagonal entries must be less\
-                than 1."
-
 
 def check_robust(robust, wk):
     """Check if the combination of robust and wk parameters passed by the user
@@ -653,6 +625,31 @@ def check_robust(robust, wk):
         elif robust.lower() == 'white':
             if wk:
                 raise Exception, "White requires that wk be set to None"
+
+        # set size of matrix
+        n = w.n
+        # get matrix diagonal
+        diag = w.sparse.diagonal()
+        dmin = diag.min()
+        dmax = diag.max()
+        # check to make sure all entries equal 1
+        if dmin < 1.0:
+            raise Exception, "All entries on diagonal must equal 1."
+        if dmax > 1.0:
+            raise Exception, "All entries on diagonal must equal 1."
+        # ensure off-diagonal entries are in the set of real numbers [0,1)
+        wegt = w.weights
+        for i in range(1,n+1):
+            vals = np.array(wegt[str(i)])
+            vmin = vals.min()
+            vmax = vals.max()
+            if vmin < 0.0:
+                raise Exception, "Off-diagonal entries must be \
+                greater than or equal to 0."
+            if vmax >= 1.0:
+                raise Exception, "Off-diagonal entries must be less\
+                than 1."
+
         else:
             raise Exception, "invalid value passed to robust, see docs for valid options"
 
