@@ -521,6 +521,59 @@ class GM_Combo(BaseGM_Combo):
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
 
+class BaseGM_Endog_Error_2S:
+    '''
+    Two step estimation of spatial error with endogenous regressors. Based on 
+
+    Based on Drukker et al. (2010) [1]_
+    ...
+
+    Parameters
+    ----------
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  nxk array of independent variables (assumed to be aligned with y)
+    w           : W
+                  Spatial weights instance 
+    yend        : array
+                  endogenous variables
+    q           : array
+                  array of external exogenous variables to use as instruments;
+                  (note: this should not contain any variables from x; all x
+    constant    : boolean
+                  If true it appends a vector of ones to the independent variables
+                  to estimate intercept (set to True by default)
+
+
+    Attributes
+    ----------
+
+    References
+    ----------
+
+    .. [1] Drukker, D. M., Egger, P., Prucha, I. R. (2010) "On Two-step
+    Estimation of a Spatial Autoregressive Model with Autoregressive
+    Disturbances and Endogenous Regressors". Working paper.
+
+    Examples
+    --------
+
+    '''
+    def __init__(self, y, x, w, yend, q, constant=True):
+
+        if constant:
+            x = np.hstack((np.ones(y.shape),x))
+        n, k = x.shape
+
+        # 1a. S2SLS --> \tilde{\delta}
+        tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=False)
+
+        # 1b. GM --> \tilde{\rho}
+
+        # 2a. GS2SLS --> \hat{\delta}
+
+        # 2b. GM 2nd iteration --> \hat{\rho}
 
 def _inference(ols):
     """
