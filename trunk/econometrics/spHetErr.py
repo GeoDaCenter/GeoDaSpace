@@ -64,20 +64,20 @@ class BaseGM_Error_Het:
     >>> import numpy as np
     >>> import pysal
     >>> db=pysal.open("examples/columbus.dbf","r")
-    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
     >>> X = []
     >>> X.append(db.by_col("INC"))
-    >>> X.append(db.by_col("HOVAL"))
+    >>> X.append(db.by_col("CRIME"))
     >>> X = np.array(X).T
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
     >>> reg = BaseGM_Error_Het(y, X, w)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 62.5528   4.7153]
-     [ -1.1214   0.4431]
-     [ -0.2986   0.1612]
-     [  0.5402   9.7418]]
+    [[ 47.9963  11.479 ]
+     [  0.7105   0.3681]
+     [ -0.5588   0.1616]
+     [  0.4118  14.4391]]
     
     """
 
@@ -189,22 +189,22 @@ class GM_Error_Het(BaseGM_Error_Het):
     >>> import numpy as np
     >>> import pysal
     >>> db=pysal.open("examples/columbus.dbf","r")
-    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
     >>> X = []
     >>> X.append(db.by_col("INC"))
-    >>> X.append(db.by_col("HOVAL"))
+    >>> X.append(db.by_col("CRIME"))
     >>> X = np.array(X).T
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
-    >>> reg = GM_Error_Het(y, X, w, name_y='crime', name_x=['income', 'home value'], name_ds='columbus')
+    >>> reg = GM_Error_Het(y, X, w, name_y='home value', name_x=['income', 'crime'], name_ds='columbus')
     >>> print reg.name_x
-    ['CONSTANT', 'income', 'home value', 'lambda']
+    ['CONSTANT', 'income', 'crime', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 62.5528   4.7153]
-     [ -1.1214   0.4431]
-     [ -0.2986   0.1612]
-     [  0.5402   9.7418]]
+    [[ 47.9963  11.479 ]
+     [  0.7105   0.3681]
+     [ -0.5588   0.1616]
+     [  0.4118  14.4391]]
 
     """
 
@@ -290,13 +290,13 @@ class BaseGM_Endog_Error_Het:
     >>> import numpy as np
     >>> import pysal
     >>> db=pysal.open("examples/columbus.dbf","r")
-    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X = np.array(X).T
     >>> yd = []
-    >>> yd.append(db.by_col("HOVAL"))
+    >>> yd.append(db.by_col("CRIME"))
     >>> yd = np.array(yd).T
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
@@ -305,10 +305,10 @@ class BaseGM_Endog_Error_Het:
     >>> w.transform = 'r'
     >>> reg = BaseGM_Endog_Error_Het(y, X, w, yd, q)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[  82.5947   13.6408]
-     [   0.6947    1.2754]
-     [  -1.4907    0.8274]
-     [   0.4857  137.1461]]
+    [[ 55.3971  22.9247]
+     [  0.4656   0.6863]
+     [ -0.6704   0.3504]
+     [  0.4137  13.1586]]
     """
 
     def __init__(self,y,x,w,yend,q,cycles=1,constant=True): 
@@ -453,27 +453,27 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
     >>> import numpy as np
     >>> import pysal
     >>> db=pysal.open("examples/columbus.dbf","r")
-    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X = np.array(X).T
     >>> yd = []
-    >>> yd.append(db.by_col("HOVAL"))
+    >>> yd.append(db.by_col("CRIME"))
     >>> yd = np.array(yd).T
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
-    >>> reg = GM_Endog_Error_Het(y, X, w, yd, q, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
+    >>> reg = GM_Endog_Error_Het(y, X, w, yd, q, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
     >>> print reg.name_z
-    ['CONSTANT', 'inc', 'hoval', 'lambda']
+    ['CONSTANT', 'inc', 'crime', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[  82.5947   13.6408]
-     [   0.6947    1.2754]
-     [  -1.4907    0.8274]
-     [   0.4857  137.1461]]
+    [[ 55.3971  22.9247]
+     [  0.4656   0.6863]
+     [ -0.6704   0.3504]
+     [  0.4137  13.1586]]
 
     """
     def __init__(self, y, x, w, yend, q, cycles=1, constant=True,\
@@ -574,7 +574,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     >>> import numpy as np
     >>> import pysal
     >>> db=pysal.open("examples/columbus.dbf","r")
-    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
     >>> X = []
     >>> X.append(db.by_col("INC"))
@@ -586,27 +586,27 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
 
     >>> reg = BaseGM_Combo_Het(y, X, w)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 38.5899   8.2994]
-     [ -1.3781   0.3295]
-     [  0.469    0.146 ]
-     [  0.0786   8.4434]]
+    [[   9.9753   11.8351]
+     [   1.5742    0.3781]
+     [   0.1535    0.3625]
+     [   0.1984  122.1638]]
 
     Example with both spatial lag and other endogenous variables
 
     >>> yd = []
-    >>> yd.append(db.by_col("HOVAL"))
+    >>> yd.append(db.by_col("CRIME"))
     >>> yd = np.array(yd).T
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
     >>> reg = BaseGM_Combo_Het(y, X, w, yd, q)
-    >>> betas = np.array([['CONSTANT'],['inc'],['hoval'],['lag_crime'],['lambda']])
+    >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['lag_hoval'],['lambda']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
-    [['CONSTANT' '50.12804' '12.21066']
-     ['inc' '-0.25189' '0.58235']
-     ['hoval' '-0.68863' '0.31831']
-     ['lag_crime' '0.43547' '0.19054']
-     ['lambda' '0.28525' '8.84325']]
+    [['CONSTANT' '113.91292' '43.19183']
+     ['inc' '-0.34822' '0.89651']
+     ['crime' '-1.35656' '0.49404']
+     ['lag_hoval' '-0.57657' '0.47791']
+     ['lambda' '0.65607' '27.01048']]
     """
 
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
@@ -706,7 +706,7 @@ class GM_Combo_Het(BaseGM_Combo_Het):
     >>> import numpy as np
     >>> import pysal
     >>> db=pysal.open("examples/columbus.dbf","r")
-    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
     >>> X = []
     >>> X.append(db.by_col("INC"))
@@ -716,33 +716,33 @@ class GM_Combo_Het(BaseGM_Combo_Het):
 
     Example only with spatial lag
 
-    >>> reg = GM_Combo_Het(y, X, w, name_y='crime', name_x=['income'], name_ds='columbus')
+    >>> reg = GM_Combo_Het(y, X, w, name_y='hoval', name_x=['income'], name_ds='columbus')
     >>> print reg.name_z
-    ['CONSTANT', 'income', 'lag_crime', 'lambda']
+    ['CONSTANT', 'income', 'lag_hoval', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 38.5899   8.2994]
-     [ -1.3781   0.3295]
-     [  0.469    0.146 ]
-     [  0.0786   8.4434]]
+    [[   9.9753   11.8351]
+     [   1.5742    0.3781]
+     [   0.1535    0.3625]
+     [   0.1984  122.1638]]
         
         
     Example with both spatial lag and other endogenous variables
 
     >>> yd = []
-    >>> yd.append(db.by_col("HOVAL"))
+    >>> yd.append(db.by_col("CRIME"))
     >>> yd = np.array(yd).T
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = GM_Combo_Het(y, X, w, yd, q, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
+    >>> reg = GM_Combo_Het(y, X, w, yd, q, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
     >>> print reg.name_z
-    ['CONSTANT', 'inc', 'hoval', 'lag_crime', 'lambda']
+    ['CONSTANT', 'inc', 'crime', 'lag_hoval', 'lambda']
     >>> print reg.betas
-    [[ 50.12804235]
-     [ -0.2518916 ]
-     [ -0.68863298]
-     [  0.43546996]
-     [  0.28525268]]
+    [[ 113.91292191]
+     [  -0.34821767]
+     [  -1.35655742]
+     [  -0.57656579]
+     [   0.65606923]]
     
     """
     
