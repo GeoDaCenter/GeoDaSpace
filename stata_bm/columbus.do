@@ -28,17 +28,20 @@ ivreg  HOVAL (CRIME =  DISCBD) INC, robust
 spivreg HOVAL INC CRIME, el(w) id(POLYID)
 spreg gs2sls HOVAL INC CRIME, el(w) id(POLYID)
 
-/*
+*/
 /* IV lag (equivalent commands) Matches R */
 spivreg HOVAL INC CRIME, dl(w) id(POLYID)
 spreg gs2sls HOVAL INC CRIME, dl(w) id(POLYID)
 spivreg HOVAL INC (CRIME =  DISCBD), dl(w) id(POLYID)
 
 /* GM error Het */
-spivreg HOVAL INC CRIME, el(w) id(polyidn160) het
+spivreg HOVAL INC CRIME, el(w) id(POLYID) het
 
 /* IV lag Het */
-spivreg HOVAL INC CRIME, dl(w) id(polyidn160) het
+spivreg HOVAL INC CRIME, dl(w) id(POLYID) het
+
+/* IV combo Het */
+spivreg HOVAL INC CRIME, el(w) dl(w) id(POLYID) het
 */
 
 /*cd "/Users/dani/repos/spreg/branches/benchmarking/stata_bm/"*/
