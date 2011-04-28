@@ -163,7 +163,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
         else:
             raise Exception, "invalid value passed to yend"
         TSLS.BaseTSLS.__init__(self, y, x, yend, q=q, constant=constant)
-        self.sig2 = self.sig2n_k
+        self.sig2 = self.sig2n
         if robust == 'white':
             self.vm = self.vm_white       
             #self.vm = ROBUST.robust_vm(self, wk=wk)
