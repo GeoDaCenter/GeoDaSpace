@@ -379,7 +379,7 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
         self.title = "ORDINARY LEAST SQUARES"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
-        self.name_x = USER.set_name_x(COPY.copy(name_x), x, constant)
+        self.name_x = USER.set_name_x(name_x, x, constant)
         self.robust = USER.set_robust(robust)
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=nonspat_diag,\
                                     spat_diag=spat_diag, vm=vm, pred=pred)

@@ -207,6 +207,7 @@ def set_name_x(name_x, x, constant):
     """
     if not name_x:
         name_x = ['var_'+str(i+1) for i in range(len(x[0]))]
+    name_x = name_x[:]
     if constant:
         name_x.insert(0, 'CONSTANT')
     return name_x
