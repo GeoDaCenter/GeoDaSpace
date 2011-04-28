@@ -1,8 +1,7 @@
-import pysal as pysal
 import numpy as np
 import numpy.linalg as la
 import scipy.optimize as op
-import scipy.stats as stats
+from scipy.stats import norm, chisqprob
 import scipy.sparse as SP
 
 class probit: #DEV class required.
@@ -101,13 +100,29 @@ class probit: #DEV class required.
     >>> X.append(db.by_col("TUCE"))
     >>> X.append(db.by_col("PSI"))
     >>> X = np.array(X).T
-    >>> probit1=probit(y,X,scalem='xmean')
+    >>> w = pysal.lat2W(8,4) #Optional spatial weights to run spatial tests 
+    >>> w.transform='r'    
+    >>> probit1=probit(y,X,scalem='xmean',w=w)
     >>> np.around(probit1.betas, decimals=3)
     array([[-7.452],
            [ 1.626],
            [ 0.052],
            [ 1.426]])
-   
+           
+    >>> np.around(probit1.vm, decimals=2)
+    array([[ 6.46, -1.17, -0.1 , -0.59],
+           [-1.17,  0.48, -0.02,  0.11],
+           [-0.1 , -0.02,  0.01,  0.  ],
+           [-0.59,  0.11,  0.  ,  0.35]])
+
+    >>> tests = np.array([['Pinkse_error','KP_error','PS_error','Pinkse_lag']])
+    >>> stats = np.array([[probit1.Pinkse_error[0],probit1.KP_error[0],probit1.PS_error[0],probit1.Pinkse_lag[0]]])
+    >>> pvalue = np.array([[probit1.Pinkse_error[1],probit1.KP_error[1],probit1.PS_error[1],probit1.Pinkse_lag[1]]])
+    >>> print np.hstack((tests.T,np.around(np.hstack((stats.T,pvalue.T)),3)))
+    [['Pinkse_error' '1.278' '0.258']
+     ['KP_error' '-1.194' '0.232']
+     ['PS_error' '0.725' '0.395']
+     ['Pinkse_lag' '0.035' '0.852']]
     """
     def __init__(self,y,x,constant=True,w=None,optim='newton',scalem='phimean'):
         self.y = y        
@@ -137,7 +152,7 @@ class probit: #DEV class required.
             zStat = self.betas.reshape(len(self.betas),)/ np.sqrt(variance)
             rs = {}
             for i in range(len(self.betas)):
-                rs[i] = (zStat[i],stats.norm.sf(abs(zStat[i]))*2)
+                rs[i] = (zStat[i],norm.sf(abs(zStat[i]))*2)
             self._cache['Zstat'] = rs.values()
         return self._cache['Zstat']
     @property
@@ -153,7 +168,7 @@ class probit: #DEV class required.
     @property
     def predy(self):
         if 'predy' not in self._cache:
-            self._cache['predy'] = stats.norm.cdf(self.xb)
+            self._cache['predy'] = norm.cdf(self.xb)
         return self._cache['predy']
     @property
     def predpc(self):
@@ -169,7 +184,7 @@ class probit: #DEV class required.
     @property
     def phiy(self):
         if 'phiy' not in self._cache:
-            self._cache['phiy'] = stats.norm.pdf(self.xb)
+            self._cache['phiy'] = norm.pdf(self.xb)
         return self._cache['phiy']
     @property
     def scale(self):
@@ -177,7 +192,7 @@ class probit: #DEV class required.
             if self.scalem == 'phimean':
                 self._cache['scale'] = float(1.0 * np.sum(self.phiy)/self.n)
             if self.scalem == 'xmean':
-                self._cache['scale'] = float(stats.norm.pdf(np.dot(self.xmean.T,self.betas)))
+                self._cache['scale'] = float(norm.pdf(np.dot(self.xmean.T,self.betas)))
         return self._cache['scale']
     @property
     def slopes(self):
@@ -198,7 +213,7 @@ class probit: #DEV class required.
         if 'LR' not in self._cache:    
             P = 1.0 * np.sum(self.y) / self.n
             LR = float(-2 * (self.n*(P * np.log(P) + (1 - P) * np.log(1 - P)) - self.logl))  #Likeliood ratio test on all betas = zero.
-            self._cache['LR'] = (LR,stats.chisqprob(LR,self.k))
+            self._cache['LR'] = (LR,chisqprob(LR,self.k))
         return self._cache['LR']
     @property
     def u_naive(self):
@@ -229,7 +244,7 @@ class probit: #DEV class required.
                 trWW = np.sum((w*w).diagonal())
                 trWWWWp = trWW + np.sum((w*w.T).diagonal())
                 LM_err = float(1.0 * LM_err_num / (sig2**2 * trWWWWp))
-                LM_err = np.array([LM_err,stats.chisqprob(LM_err,1)])
+                LM_err = np.array([LM_err,chisqprob(LM_err,1)])
                 #KP_error:
                 E = SP.lil_matrix(w.get_shape()) #There's a similar code in gmm_utils to create the Sigma matrix for the Psi.
                 E.setdiag(Phi_prod.flat)
@@ -238,13 +253,13 @@ class probit: #DEV class required.
                 moran_den = np.sqrt(np.sum((WE*WE + (w.T*E)*WE).diagonal()))
                 moran_num = np.dot(u_naive.T, (w * u_naive))
                 moran = float(1.0*moran_num / moran_den)
-                moran = np.array([moran,stats.norm.sf(abs(moran)) * 2.])
+                moran = np.array([moran,norm.sf(abs(moran)) * 2.])
                 #Pinkse-Slade_error:
                 u_std = u_naive / np.sqrt(Phi_prod)
                 ps_num = np.dot(u_std.T, (w * u_std))**2
                 trWpW = np.sum((w.T*w).diagonal())
                 ps = float(ps_num / (trWW + trWpW))
-                ps = np.array([ps,stats.chisqprob(ps,1)]) #chi-square instead of bootstrap.
+                ps = np.array([ps,chisqprob(ps,1)]) #chi-square instead of bootstrap.
                 #Pinkse_lag:
                 Fn2 = np.dot((self.xb + u_gen).T,(w * u_gen))**2
                 Jbb = la.inv(np.dot(self.x.T,self.x)*sig2)
@@ -256,7 +271,7 @@ class probit: #DEV class required.
                 Jnn0 = trWpW*np.dot(self.betas.T,np.dot(np.cov(self.x,rowvar=0,bias=1),self.betas))
                 Jnn = ((sig2*trWWWWp) + Jnn0 + ((muxb**2)*(la.norm(W1)**2)))*sig2
                 LM_lag = Fn2 / (Jnn - LM_lag_den0)
-                LM_lag = np.array([LM_lag,stats.chisqprob(LM_lag,1)])
+                LM_lag = np.array([LM_lag,chisqprob(LM_lag,1)])
                 self._cache['Pinkse_error'] = LM_err
                 self._cache['KP_error'] = moran
                 self._cache['PS_error'] = ps
@@ -325,7 +340,7 @@ class probit: #DEV class required.
         beta = np.reshape(np.array(beta),(self.k,1))
         q = 2 * self.y - 1
         qxb = q * np.dot(self.x,beta)
-        ll = sum(np.log(stats.norm.cdf(qxb)))
+        ll = sum(np.log(norm.cdf(qxb)))
         return ll
 
     def gradient(self,par):        
@@ -335,7 +350,7 @@ class probit: #DEV class required.
         beta = np.reshape(np.array(beta),(self.k,1))
         q = 2 * self.y - 1
         qxb = q * np.dot(self.x,beta)
-        lamb = q * stats.norm.pdf(qxb)/stats.norm.cdf(qxb)
+        lamb = q * norm.pdf(qxb)/norm.cdf(qxb)
         gradient = np.dot(lamb.T,self.x)[0]
         return gradient
 
@@ -350,7 +365,7 @@ class probit: #DEV class required.
         q = 2 * self.y - 1
         xb = np.dot(self.x,beta)
         qxb = q * xb
-        lamb = q * stats.norm.pdf(qxb)/stats.norm.cdf(qxb)
+        lamb = q * norm.pdf(qxb)/norm.cdf(qxb)
         hessian = np.dot((self.x.T),(-lamb * (lamb + xb) * self.x ))
         return hessian
 
@@ -371,8 +386,8 @@ class probit: #DEV class required.
                 x0 = x[int(round(i*nk))]
             if sample=='input':
                 x0 = xave + (i*nk - 0.5)*std*2*xstd
-            marg = self.betas[pos]*stats.norm.pdf(float(x0*self.betas[pos] + pred))
-            cumu = stats.norm.cdf(float(x0*self.betas[pos] + pred))
+            marg = self.betas[pos]*norm.pdf(float(x0*self.betas[pos] + pred))
+            cumu = norm.cdf(float(x0*self.betas[pos] + pred))
             curves.append([x0,marg,cumu])
         return curves
 
@@ -412,5 +427,4 @@ if __name__ == '__main__':
     print "Pinkse Spatial Error:", round(probit1.Pinkse_error[0],3), "; pvalue:", round(probit1.Pinkse_error[1],4)
     print "Pinkse Spatial Lag:", round(probit1.Pinkse_lag[0],3), "; pvalue:", round(probit1.Pinkse_lag[1],4)
     print "KP Spatial Error:", round(probit1.KP_error[0],3), "; pvalue:", round(probit1.KP_error[1],4)
-    print "PS Spatial Error:", round(probit1.PS_error[0],3), "; pvalue:", round(probit1.PS_error[1],4)
-    
+    print "PS Spatial Error:", round(probit1.PS_error[0],3), "; pvalue:", round(probit1.PS_error[1],4)    
