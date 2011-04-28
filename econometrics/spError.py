@@ -3,6 +3,7 @@ Spatial Error Models module
 """
 from scipy.stats import norm
 import numpy as np
+import copy
 from numpy import linalg as la
 import pysal.spreg.ols as OLS
 from pysal.spreg.diagnostics import se_betas
@@ -171,7 +172,7 @@ class GM_Error(BaseGM_Error):
         self.title = "SPATIALLY WEIGHTED LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
-        self.name_x = USER.set_name_x(name_x, x, constant)
+        self.name_x = USER.set_name_x(copy.copy(name_x), x, constant)
         self.name_x.append('lambda')
 
 

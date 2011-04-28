@@ -4,7 +4,7 @@ import pysal
 import numpy.linalg as la
 import twosls as TSLS
 import robust as ROBUST
-import pysal.spreg.user_output as USER
+import user_output as USER
 from utils import get_lags
 
 class BaseGM_Lag(TSLS.BaseTSLS):
@@ -126,14 +126,6 @@ class BaseGM_Lag(TSLS.BaseTSLS):
            [  0.41929355]])
     >>> D.se_betas(reg)
     array([ 10.93497906,   0.49943339,   0.17217193,   0.19588229])
-    >>> reg=BaseGM_Lag(y, X, w, w_lags=2, robust='gls')
-    >>> reg.betas
-    array([[ 51.16882977],
-           [ -1.12721019],
-           [ -0.28543096],
-           [  0.32904005]])
-    >>> D.se_betas(reg)
-    array([ 7.2237932 ,  0.4297434 ,  0.15201063,  0.13208009])
     >>> # instrument for HOVAL with DISCBD
     >>> X = np.array(db.by_col("INC"))
     >>> X = np.reshape(X, (49,1))
@@ -170,12 +162,11 @@ class BaseGM_Lag(TSLS.BaseTSLS):
             yend = yl
         else:
             raise Exception, "invalid value passed to yend"
-        TSLS.BaseTSLS.__init__(self, y, x, yend, q=q, constant=constant, robust=robust)
+        TSLS.BaseTSLS.__init__(self, y, x, yend, q=q, constant=constant)
         self.sig2 = self.sig2n_k
-        if robust == 'gls':
-            self.vm = self.vm_gls
-        elif robust == 'white':
+        if robust == 'white':
             self.vm = self.vm_white       
+            #self.vm = ROBUST.robust_vm(self, wk=wk)
         elif robust == 'hac':
             self.vm = ROBUST.robust_vm(self, wk=wk)
     @property
@@ -250,14 +241,6 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
            [  0.41929355]])
     >>> D.se_betas(reg)
     array([ 10.93497906,   0.49943339,   0.17217193,   0.19588229])
-    >>> reg=GM_Lag(y, X, w, w_lags=2, robust='gls', name_x=['inc', 'hoval'], name_y='crime', name_ds='columbus')
-    >>> reg.betas
-    array([[ 51.16882977],
-           [ -1.12721019],
-           [ -0.28543096],
-           [  0.32904005]])
-    >>> D.se_betas(reg)
-    array([ 7.2237932 ,  0.4297434 ,  0.15201063,  0.13208009])
     >>> # instrument for HOVAL with DISCBD
     >>> X = np.array(db.by_col("INC"))
     >>> X = np.reshape(X, (49,1))
@@ -270,9 +253,9 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
 
     """
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True, name_y=None, name_x=None,\
-                    name_yend=None, name_q=None, name_ds=None,\
-                    robust=None, vm=False, pred=False, spat_lags='xq'):
+                    constant=True, robust=None, wk=None, nonspat_diag=True, name_y=None,
+                    name_x=None, name_yend=None, name_q=None, name_ds=None,\
+                    vm=False, pred=False, spat_lags='xq'):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
@@ -289,9 +272,14 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
         self.name_q = USER.set_name_q(name_q, q)
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        USER.DiagnosticBuilder.__init__(self, x=x, constant=constant, w=w,\
-                                            vm=vm, pred=pred, instruments=True)
+        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=nonspat_diag,\
+                                    vm=vm, pred=pred)
 
+    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
+                              vm=False, pred=False):
+        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
+                                            nonspat_diag=nonspat_diag,\
+                                            vm=vm, pred=pred, instruments=True)
 
 
 

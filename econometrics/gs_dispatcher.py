@@ -1,12 +1,15 @@
-from pysal.spreg.ols import OLS
+import copy as COPY
+from ols import OLS
 from twosls import TSLS
 from twosls_sp import GM_Lag
 from spHetErr import GM_Error_Het, GM_Endog_Error_Het, GM_Combo_Het
 from spError import GM_Endog_Error, GM_Error, GM_Combo
+import robust as ROBUST
 
-def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
+def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                 h, name_h, r, name_r, s, name_s, t, name_t,\
-                model_type, endog, spat_tests, std_err):
+                model_type, endog, nonspat_diag, spat_diag,\
+                white, hac, kp_het, gm):
     """
     A single function to call all the econometric models in pysal.
 
@@ -81,35 +84,75 @@ def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
     
     No non-spatial endogenous variables
     
-    >>> reg = spmodel(name_ds='columbus', w=w, y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Standard', endog=False, spat_tests=False, std_err='')
-    >>> print reg.name_x
+        model_type='Standard', endog=False, nonspat_diag=True, spat_diag=False,\
+        white=False, hac=False, kp_het=False, gm=False)
+    >>> print reg[0].name_x
     ['CONSTANT', 'inc', 'hoval']
-    >>> reg = spmodel(name_ds='columbus', w=w, y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Spatial Lag', endog=False, spat_tests=False, std_err='')
-    >>> print reg.name_z
+        model_type='Standard', endog=False, nonspat_diag=True, spat_diag=False,\
+        white=True, hac=False, kp_het=False, gm=False)
+    >>> print reg[0].name_x
+    ['CONSTANT', 'inc', 'hoval']
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[w], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+        ye=[], name_ye=[], h=[], name_h=[],\
+        r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
+        model_type='Standard', endog=False, nonspat_diag=True, spat_diag=False,\
+        white=False, hac=True, kp_het=False, gm=False)
+    >>> print reg[0].name_x
+    ['CONSTANT', 'inc', 'hoval']
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+        ye=[], name_ye=[], h=[], name_h=[],\
+        r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
+        model_type='Spatial Lag', endog=False, nonspat_diag=True, spat_diag=False,\
+        white=False, hac=False, kp_het=False, gm=False)
+    >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'lag_crime']
-    >>> reg = spmodel(name_ds='columbus', w=w, y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Spatial Error', endog=False, spat_tests=False, std_err='')
-    >>> print reg.name_x
+        model_type='Spatial Lag', endog=False, nonspat_diag=True, spat_diag=False,\
+        white=True, hac=False, kp_het=False, gm=False)
+    >>> print reg[0].name_z
+    ['CONSTANT', 'inc', 'hoval', 'lag_crime']
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+        ye=[], name_ye=[], h=[], name_h=[],\
+        r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
+        model_type='Spatial Lag', endog=False, nonspat_diag=True, spat_diag=False,\
+        white=False, hac=True, kp_het=False, gm=False)
+    >>> print reg[0].name_z
+    ['CONSTANT', 'inc', 'hoval', 'lag_crime']
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+        ye=[], name_ye=[], h=[], name_h=[],\
+        r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
+        model_type='Spatial Error', endog=False, nonspat_diag=True, spat_diag=False,\
+        white=False, hac=False, kp_het=False, gm=False)
+    >>> print reg[0].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w=w, y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Spatial Lag+Error', endog=False, spat_tests=False, std_err='')
-    >>> print reg.name_z
+        model_type='Spatial Error', endog=False, nonspat_diag=True, spat_diag=False,\
+        white=False, hac=False, kp_het=True, gm=False)
+    >>> print reg[0].name_x
+    ['CONSTANT', 'inc', 'hoval', 'lambda']
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+        ye=[], name_ye=[], h=[], name_h=[],\
+        r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
+        model_type='Spatial Lag+Error', endog=False, nonspat_diag=True, spat_diag=False,\
+        white=False, hac=False, kp_het=False, gm=False)
+    >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'lag_crime', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w=w, y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Spatial Lag+Error', endog=False, spat_tests=False, std_err='KP HET')
-    >>> print reg.name_z
+        model_type='Spatial Lag+Error', endog=False, nonspat_diag=True, spat_diag=False,\
+        white=False, hac=False, kp_het=True, gm=False)
+    >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'lag_crime', 'lambda']
     
     Add in non-spatial endogenous variables
@@ -120,169 +163,218 @@ def spmodel(name_ds, w, y, name_y, x, name_x, ye, name_ye,\
     >>> yd = np.reshape(yd, (49,1))
     >>> q = np.array(db.by_col("DISCBD"))
     >>> q = np.reshape(q, (49,1))
-    >>> reg = spmodel(name_ds='columbus', w=w, y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Standard', endog=True, spat_tests=False, std_err='')
-    >>> print reg.name_z
+        model_type='Standard', endog=True, nonspat_diag=True, spat_diag=False,\
+        white=False, hac=False, kp_het=False, gm=False)
+    >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval']
-    >>> reg = spmodel(name_ds='columbus', w=w, y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Spatial Lag', endog=True, spat_tests=False, std_err='')
-    >>> print reg.name_z
+        model_type='Standard', endog=True, nonspat_diag=True, spat_diag=False,\
+        white=True, hac=False, kp_het=False, gm=False)
+    >>> print reg[0].name_z
+    ['CONSTANT', 'inc', 'hoval']
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[w], y=y, name_y='crime', x=X, name_x=['inc'],\
+        ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
+        r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
+        model_type='Standard', endog=True, nonspat_diag=True, spat_diag=False,\
+        white=False, hac=True, kp_het=False, gm=False)
+    >>> print reg[0].name_z
+    ['CONSTANT', 'inc', 'hoval']
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+        ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
+        r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
+        model_type='Spatial Lag', endog=True, nonspat_diag=True, spat_diag=False,\
+        white=False, hac=False, kp_het=False, gm=False)
+    >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'lag_crime']
-    >>> reg = spmodel(name_ds='columbus', w=w, y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Spatial Lag', endog=True, spat_tests=False, std_err='White')
-    >>> print reg.name_z
+        model_type='Spatial Lag', endog=True, nonspat_diag=True, spat_diag=False,\
+        white=True, hac=False, kp_het=False, gm=False)
+    >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'lag_crime']
-    >>> reg = spmodel(name_ds='columbus', w=w, y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Spatial Error', endog=True, spat_tests=False, std_err='')
-    >>> print reg.name_z
+        model_type='Spatial Lag', endog=True, nonspat_diag=True, spat_diag=False,\
+        white=False, hac=True, kp_het=False, gm=False)
+    >>> print reg[0].name_z
+    ['CONSTANT', 'inc', 'hoval', 'lag_crime']
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+        ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
+        r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
+        model_type='Spatial Error', endog=True, nonspat_diag=True, spat_diag=False,\
+        white=False, hac=False, kp_het=False, gm=False)
+    >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w=w, y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Spatial Lag+Error', endog=True, spat_tests=False, std_err='')
-    >>> print reg.name_z
+        model_type='Spatial Error', endog=True, nonspat_diag=True, spat_diag=False,\
+        white=False, hac=False, kp_het=True, gm=False)
+    >>> print reg[0].name_z
+    ['CONSTANT', 'inc', 'hoval', 'lambda']
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+        ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
+        r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
+        model_type='Spatial Lag+Error', endog=True, nonspat_diag=True, spat_diag=False,\
+        white=False, hac=False, kp_het=False, gm=False)
+    >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'lag_crime', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w=w, y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Spatial Lag+Error', endog=True, spat_tests=False, std_err='KP HET')
-    >>> print reg.name_z
+        model_type='Spatial Lag+Error', endog=True, nonspat_diag=True, spat_diag=False,\
+        white=False, hac=False, kp_het=True, gm=False)
+    >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'lag_crime', 'lambda']
 
     """
+    output = []
     if model_type == 'Standard':
         if endog:
-            if spat_tests:
-                if std_err == 'White':
-                    # 2SLS with White std errors and with spatial diagnostics
-                    return TSLS(y=y, x=x, yend=ye, q=h, w=w, robust='white',\
-                                name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                                name_q=name_h, name_ds=name_ds)
-                elif std_err == 'HAC':  # LA standard 2SLS needs HAC
-                    raise Exception, "not yet implemented"
-                elif std_err == '':
-                    # 2SLS with spatial diagnostics
-                    return TSLS(y=y, x=x, yend=ye, q=h, w=w,\
-                                name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                                name_q=name_h, name_ds=name_ds)
-            else:
-                if std_err == 'White':
-                    # 2SLS with White std errors
-                    return TSLS(y=y, x=x, yend=ye, q=h, robust='White',\
-                                name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                                name_q=name_h, name_ds=name_ds)
-                elif std_err == 'HAC':  # LA standard 2SLS needs HAC
-                    raise Exception, "not yet implemented"
-                elif std_err == '':
-                    # 2SLS
-                    return TSLS(y=y, x=x, yend=ye, q=h,\
-                                name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                                name_q=name_h, name_ds=name_ds)
-        else:   # LA NOTE: OLS needs White and HAC
-            if spat_tests:
-                # OLS with spatial diagnostics
-                return OLS(y=y, x=x, w=w,\
-                           name_y=name_y, name_x=name_x, name_ds=name_ds)
-            else:
-                # OLS without spatial diagnostics
-                return OLS(y=y, x=x,\
-                           name_y=name_y, name_x=name_x, name_ds=name_ds)
+            # run 2SLS regression; with or without nonspatial diagnostics
+            reg = TSLS(y=y, x=x, yend=ye, q=h,\
+                        nonspat_diag=nonspat_diag, spat_diag=False,\
+                        name_y=name_y, name_x=name_x, name_yend=name_ye,\
+                        name_q=name_h, name_ds=name_ds)
+        else:
+            # run OLS regression; with or without nonspatial diagnostics
+            reg = OLS(y=y, x=x,\
+                       nonspat_diag=nonspat_diag, spat_diag=False,\
+                       name_y=name_y, name_x=name_x, name_ds=name_ds)
+        if w_list and spat_diag:
+            for w in w_list:
+                # add spatial diagnostics for each W
+                reg_spat = COPY.copy(reg)
+                reg_spat._get_diagnostics(w=w, beta_diag=False,\
+                                          nonspat_diag=False, spat_diag=True)
+                output.append(reg_spat)
+        else:
+            output.append(reg)
+        if white:
+            # compute White std errors
+            output.append(get_robust(reg))
+        if hac:
+            for wk in wk_list:
+                # compute HAC std errors
+                output.append(get_robust(reg, wk))
+        return output
+
+
 
     elif model_type == 'Spatial Lag':
-        if std_err == 'KP HET':
-            raise Exception, "not a valid combination"
-        elif std_err == 'White':
-            if endog:
-               #GM Spatial lag with White std. errors with non-spatial endog variables
-                return GM_Lag(y=y, x=x, w=w, yend=ye, q=h,\
-                             name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                             name_q=name_h, name_ds=name_ds,\
-                             robust='white')
-            else:
-               #GM Spatial lag with White std. errors
-                return GM_Lag(y=y, x=x, w=w,\
-                             name_y=name_y, name_x=name_x, name_ds=name_ds,\
-                             robust='white')
-        elif std_err == 'HAC':
-            raise Exception, "not yet implemented"  # LA: HAC is valid with spatial lag
-        elif std_err == '':
+        for w in w_list:
             if endog:
                #GM Spatial lag with non-spatial endog variables
-                return GM_Lag(y=y, x=x, w=w, yend=ye, q=h,\
+                output.append(GM_Lag(y=y, x=x, w=w, yend=ye, q=h,\
                              name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                             name_q=name_h, name_ds=name_ds)
+                             name_q=name_h, name_ds=name_ds))
             else:
                #GM Spatial lag
-                return GM_Lag(y=y, x=x, w=w,\
-                             name_y=name_y, name_x=name_x, name_ds=name_ds)
-        else:
-            raise Exception, "invalid option passed to std_err"
+                output.append(GM_Lag(y=y, x=x, w=w,\
+                             name_y=name_y, name_x=name_x, name_ds=name_ds))
+        white_regs = []
+        if white:
+            for reg in output:
+                # compute White std errors
+                white_regs.append(get_robust(reg))
+        hac_regs = []
+        if hac:
+            for reg in output:
+                for wk in wk_list:
+                    # compute HAC std errors
+                    hac_regs.append(get_robust(reg, wk))
+        output.extend(white_regs)
+        output.extend(hac_regs)
+        return output
+
+
 
     elif model_type == 'Spatial Error':
-        if std_err == 'KP HET':
-            if endog:
-                #GM Spatial error with het and with non-spatial endogenous variable
-                return GM_Endog_Error_Het(y=y, x=x, w=w, yend=ye, q=h,\
-                            name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                            name_q=name_h, name_ds=name_ds)
-            else:
-                #GM Spatial error with het
-                return GM_Error_Het(y=y, x=x, w=w,\
-                             name_y=name_y, name_x=name_x, name_ds=name_ds)
-        elif std_err == 'White':
-            raise Exception, "not a valid combination"
-        elif std_err == 'HAC':    # NOTE LA: HAC should not be for spatial error
-            raise Exception, "not a valid combination"
-        elif std_err == '':
+        gm_regs = []
+        kp_het_regs = []
+        for w in w_list:
             if endog:
                 #GM Spatial error with non-spatial endogenous variable
-                return GM_Endog_Error(y=y, x=x, w=w, yend=ye, q=h,\
+                output.append(GM_Endog_Error(y=y, x=x, w=w, yend=ye, q=h,\
                               name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                              name_q=name_h, name_ds=name_ds)
+                              name_q=name_h, name_ds=name_ds))
             else:
                 #GM Spatial error
-                return GM_Error(y=y, x=x, w=w,\
-                           name_y=name_y, name_x=name_x, name_ds=name_ds)
-        else:
-            raise Exception, "invalid option passed to std_err"
+                output.append(GM_Error(y=y, x=x, w=w,\
+                              name_y=name_y, name_x=name_x, name_ds=name_ds))
+        if gm:
+            for w in w_list:
+                raise Exception, "not yet implimneted"
+        if kp_het:
+            for w in w_list:
+                if endog:
+                    #GM Spatial error with het and with non-spatial endogenous variable
+                    kp_het_regs.append(GM_Endog_Error_Het(y=y, x=x, w=w, yend=ye, q=h,\
+                                        name_y=name_y, name_x=name_x, name_yend=name_ye,\
+                                        name_q=name_h, name_ds=name_ds))
+                else:
+                    #GM Spatial error with het
+                    kp_het_regs.append(GM_Error_Het(y=y, x=x, w=w,\
+                                         name_y=name_y, name_x=name_x, name_ds=name_ds))
+        elif gm:
+            raise Exception, "not yet implimneted"
+        output.extend(gm_regs)
+        output.extend(kp_het_regs)
+        return output
+
+
 
     elif model_type == 'Spatial Lag+Error':
-        if std_err == 'KP HET':  
-            if endog:
-                #GM Spatial combo with het with non-spatial endogenous variables
-                return GM_Combo_Het(y=y, x=x, w=w, yend=ye, q=h,\
-                             name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                             name_q=name_h, name_ds=name_ds)
-            else:
-                #GM Spatial combo with het
-                return GM_Combo_Het(y=y, x=x, w=w,\
-                             name_y=name_y, name_x=name_x, name_ds=name_ds)
-        elif std_err == 'White':
-            raise Exception, "not a valid combination"  # no white with lag-error model, subsumed in KP-HET
-        elif std_err == 'HAC':
-            raise Exception, "not a valid combination"  # HAC should be in spatial lag, not here
-        elif std_err == '':
+        gm_regs = []
+        kp_het_regs = []
+        for w in w_list:
             if endog:
                 #GM Spatial combo with non-spatial endogenous variables
-                return GM_Combo(y=y, x=x, w=w, yend=ye, q=h,\
+                output.append(GM_Combo(y=y, x=x, w=w, yend=ye, q=h,\
                               name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                              name_q=name_h, name_ds=name_ds)
+                              name_q=name_h, name_ds=name_ds))
             else:
                 #GM Spatial combo
-                return GM_Combo(y=y, x=x, w=w,\
-                           name_y=name_y, name_x=name_x, name_ds=name_ds)
-        else:
-            raise Exception, "invalid option passed to std_err"
+                output.append(GM_Combo(y=y, x=x, w=w,\
+                              name_y=name_y, name_x=name_x, name_ds=name_ds))
+        if gm:
+            for w in w_list:
+                raise Exception, "not yet implimneted"
+        if kp_het:
+            for w in w_list:
+                if endog:
+                    #GM Spatial combo with het with non-spatial endogenous variables
+                    kp_het_regs.append(GM_Combo_Het(y=y, x=x, w=w_list[0], yend=ye, q=h,\
+                                         name_y=name_y, name_x=name_x, name_yend=name_ye,\
+                                         name_q=name_h, name_ds=name_ds))
+                else:
+                    #GM Spatial combo with het
+                    kp_het_regs.append(GM_Combo_Het(y=y, x=x, w=w_list[0],\
+                                         name_y=name_y, name_x=name_x, name_ds=name_ds))
+        output.extend(gm_regs)
+        output.extend(kp_het_regs)
+        return output
     
-        
+
+def get_robust(reg, wk=None):
+    """Creates a new regression object, computes the robust standard errors,
+    resets the regression object's internal cache and recompute the non-spatial 
+    diagnostics.
+    """
+    reg_robust = COPY.copy(reg)
+    reg_robust._cache = {}
+    reg_robust.vm = ROBUST.robust_vm(reg=reg_robust, wk=wk)
+    reg_robust._get_diagnostics()
+    return reg_robust
+
+
 def _test():
     import doctest
     doctest.testmod()

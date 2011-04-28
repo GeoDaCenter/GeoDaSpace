@@ -3,7 +3,7 @@
 __author__ = "Luc Anselin luc.anselin@asu.edu, David C. Folch david.folch@asu.edu"
 import numpy as np
 import numpy.linalg as la
-import pysal.spreg.user_output as USER
+import user_output as USER
 import robust as ROBUST
 from utils import RegressionProps
 
@@ -72,7 +72,7 @@ class BaseOLS(RegressionProps):
 
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("../examples/columbus.dbf","r")
+    >>> db=pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
     >>> X = []
@@ -99,11 +99,8 @@ class BaseOLS(RegressionProps):
         self.y = y
         self.n, self.k = x.shape
 
-        if robust == 'white':
-            self.vm = ROBUST.robust_vm(self)
-            
-        if robust == 'HAC':
-            self.vm = ROBUST.robust_vm(self, wk=wk)
+        if robust:
+            self.vm = ROBUST.robust_vm(reg=self, wk=wk)
 
         RegressionProps()
         self._cache = {}
@@ -248,7 +245,7 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     requires data to be passed in as numpy arrays so the user can read their
     data in using any method.  
 
-    >>> db=pysal.open("../examples/columbus.dbf","r")
+    >>> db=pysal.open("examples/columbus.dbf","r")
     
     Extract the HOVAL column (home values) from the DBF file and make it the
     dependent variable for the regression. Note that PySAL requires this to be
@@ -275,7 +272,7 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     variables respectively.  To make the printed results more meaningful, the
     user can pass in explicit names for the variables used; this is optional.
 
-    >>> ols = pysal.spreg.OLS(y, X, name_y='home value', name_x=['income','crime'], name_ds='columbus')
+    >>> ols = OLS(y, X, name_y='home value', name_x=['income','crime'], name_ds='columbus')
 
     pysal.spreg.OLS computes the regression coefficients and their standard
     errors, t-stats and p-values. It also computes a large battery of
@@ -341,19 +338,19 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     ========================= END OF REPORT ==============================
 
 
-    If the optional parameter w is passed to pysal.spreg.OLS, spatial
-    diagnostics will also be computed for the regression.  These include
-    Lagrange multiplier tests and Moran's I of the residuals.  The w parameter
-    is a PySAL spatial weights matrix. In this example, w is built directly
-    from the shapefile columbus.shp, but w can also be read in from a GAL or
-    GWT file.  In this case a rook contiguity weights matrix is built, but
-    PySAL also offers queen contiguity, distance weights and k nearest
+    If the optional parameters w and spat_diag are passed to pysal.spreg.OLS,
+    spatial diagnostics will also be computed for the regression.  These
+    include Lagrange multiplier tests and Moran's I of the residuals.  The w
+    parameter is a PySAL spatial weights matrix. In this example, w is built
+    directly from the shapefile columbus.shp, but w can also be read in from a
+    GAL or GWT file.  In this case a rook contiguity weights matrix is built,
+    but PySAL also offers queen contiguity, distance weights and k nearest
     neighbor weights among others. In the example, the Moran's I of the
     residuals is 0.2037 with a standardized value of 2.5918 and a p-value of
     0.009547.
 
-    >>> w = pysal.weights.rook_from_shapefile("../examples/columbus.shp")
-    >>> ols = pysal.spreg.OLS(y, X, w, name_y='home value', name_x=['income','crime'], name_ds='columbus')
+    >>> w = pysal.weights.rook_from_shapefile("examples/columbus.shp")
+    >>> ols = OLS(y, X, w, spat_diag=True, name_y='home value', name_x=['income','crime'], name_ds='columbus')
     >>> ols.betas
     array([[ 46.42818268],
            [  0.62898397],
@@ -366,17 +363,29 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     0.00954740031251
 
     """
-    def __init__(self, y, x, w=None, constant=True, name_y=None, name_x=None,\
-                        name_ds=None, vm=False, pred=False):
+    def __init__(self, y, x, w=None, constant=True, robust=None, wk=None,\
+                        nonspat_diag=True, spat_diag=False,\
+                        name_y=None, name_x=None, name_ds=None,\
+                        vm=False, pred=False):
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
-        BaseOLS.__init__(self, y, x, constant) 
-        self.title = "ORDINARY LEAST SQUARES"        
+        USER.check_robust(robust, wk)
+        USER.check_spat_diag(spat_diag, w)
+        BaseOLS.__init__(self, y=y, x=x, constant=constant, robust=robust, wk=wk) 
+        self.title = "ORDINARY LEAST SQUARES"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x, constant)
-        USER.DiagnosticBuilder.__init__(self, x=x, constant=constant, w=w,\
-                                            vm=vm, pred=pred)
+        self.robust = USER.set_robust(robust)
+        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=nonspat_diag,\
+                                    spat_diag=spat_diag, vm=vm, pred=pred)
+
+    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
+                              spat_diag=False, vm=False, pred=False):
+        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
+                                            nonspat_diag=nonspat_diag,\
+                                            spat_diag=spat_diag, vm=vm,\
+                                            pred=pred)
 
 def _test():
     import doctest
