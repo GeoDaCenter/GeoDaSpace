@@ -84,7 +84,10 @@ class BaseOLS(RegressionProps):
     array([[ 68.6189611 ],
            [ -1.59731083],
            [ -0.27393148]])
-    
+    >>> ols.vm
+    array([[  2.24248289e+01,  -9.42351346e-01,  -1.61567494e-01],
+           [ -9.42351346e-01,   1.11643366e-01,  -1.72367399e-02],
+           [ -1.61567494e-01,  -1.72367399e-02,   1.06499683e-02]])
     """
     def __init__(self, y, x, constant=True, robust=None, wk=None):
         if constant:
