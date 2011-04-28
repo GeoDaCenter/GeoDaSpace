@@ -1,7 +1,8 @@
 import numpy as np
+import copy
 import numpy.linalg as la
 import robust as ROBUST
-import pysal.spreg.user_output as USER
+import user_output as USER
 from utils import RegressionProps
 
 class BaseTSLS(RegressionProps):
@@ -110,10 +111,11 @@ class BaseTSLS(RegressionProps):
     [[ 88.46579584]
      [  0.5200379 ]
      [ -1.58216593]]
+    >>> reg = BaseTSLS(y, X, yd, q=q, robust="white")
     
     """
     def __init__(self, y, x, yend, q=None, h=None, constant=True, \
-            robust=None, wk=None):
+                        robust=None, wk=None):
         
         if issubclass(type(q), np.ndarray) and issubclass(type(h), np.ndarray):  
             raise Exception, "Please do not provide 'q' and 'h' together"
@@ -172,16 +174,8 @@ class BaseTSLS(RegressionProps):
         self.xp = xp
         self.xptxpi = xptxpi
       
-        if robust == 'gls':
-            self.betas, self.xptxpi = ROBUST.gls4tsls(y, z, h, self.u)
-            self.predy = np.dot(z, self.betas)   # using original data and GLS betas
-            self.u = y - self.predy              # using original data and GLS betas
-            ### need to verify the VM for the non-spatial case
-        if robust == 'white':
-            self.vm = ROBUST.robust_vm(self)
-
-        if robust == 'hac':
-            self.vm = ROBUST.robust_vm(self, wk=wk)
+        if robust:
+            self.vm = ROBUST.robust_vm(reg=self, wk=wk)
 
         self._cache = {}
         RegressionProps()
@@ -304,13 +298,17 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
     
 
     """
-    def __init__(self, y, x, yend, q, w=None, constant=True, name_y=None,\
-                        name_x=None, name_yend=None, name_q=None,\
-                        name_ds=None, robust=None, vm=False,\
-                        pred=False):
+    def __init__(self, y, x, yend, q, w=None, constant=True,\
+                        robust=None, wk=None,\
+                        nonspat_diag=True, spat_diag=False,\
+                        name_y=None, name_x=None, name_yend=None, name_q=None,\
+                        name_ds=None, vm=False, pred=False):
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
-        BaseTSLS.__init__(self, y, x, yend, q=q, constant=constant, robust=robust)
+        USER.check_robust(robust, wk)
+        USER.check_spat_diag(spat_diag, w)
+        BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q, constant=constant,\
+                              robust=robust, wk=wk)
         self.title = "TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -319,8 +317,16 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
         self.name_z = self.name_x + self.name_yend
         self.name_q = USER.set_name_q(name_q, q)
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        USER.DiagnosticBuilder.__init__(self, x=x, constant=constant, w=w,\
-                                            vm=vm, pred=pred, instruments=True)
+        self.robust = USER.set_robust(robust)
+        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=nonspat_diag,\
+                                    spat_diag=spat_diag, vm=vm, pred=pred)
+
+    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
+                              spat_diag=False, vm=False, pred=False):
+        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
+                                            nonspat_diag=nonspat_diag,\
+                                            spat_diag=spat_diag, vm=vm,\
+                                            pred=pred, instruments=True)
         
         ### tsls.summary output needs to be checked. Currently uses z-stats
         ### and prints names of instruments. Need to replace R squared with
