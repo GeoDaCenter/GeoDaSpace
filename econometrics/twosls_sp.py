@@ -117,7 +117,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
            [ -4.80723451e-01],
            [  2.83622122e-02]])
     >>> D.se_betas(reg)
-    array([ 18.69196608,   0.54769142,   0.19021045,   0.33120731])
+    array([ 17.91278862,   0.52486082,   0.1822815 ,   0.31740089])
     >>> reg=BaseGM_Lag(y, X, w, w_lags=2, robust='white')
     >>> reg.betas
     array([[  4.53017056e+01],
@@ -232,7 +232,7 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
            [ -4.80723451e-01],
            [  2.83622122e-02]])
     >>> D.se_betas(reg)
-    array([ 18.69196608,   0.54769142,   0.19021045,   0.33120731])
+    array([ 17.91278862,   0.52486082,   0.1822815 ,   0.31740089])
     >>> reg=GM_Lag(y, X, w, w_lags=2, robust='white', name_x=['inc', 'crime'], name_y='hoval', name_ds='columbus')
     >>> reg.betas
     array([[  4.53017056e+01],
