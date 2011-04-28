@@ -169,7 +169,7 @@ class probit_sp:
             if self.core == 'multi':
                 sump += sum(pool.map(p_runs, [(R/cores,self.n,V,B,self.verbose,self.scale)] * cores))
             if self.core == 'grid':
-                cores = 100 #amount of runs each core will get.
+                cores = 50 #amount of runs each core will get.
                 IDs = range(R/cores)
                 sump += sum(get_grid((self.n,V,B,self.scale),cores,IDs))               
             if self.core == 'multi' or self.core == 'grid':
@@ -216,7 +216,6 @@ def p_runs(att):
                 while nn[n] >= vn[n]:
                     nn[n] = np.random.normal(0,1)
                     if time.time() - tdraw > 15:
-                        #sumPhi = 1e-320
                         if verbose:
                             print '### Time limit reached. Artificial value assigned to ln(p). ###'
                             print 'Failed boundary:', vn[n] 
