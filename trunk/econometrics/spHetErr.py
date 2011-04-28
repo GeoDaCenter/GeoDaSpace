@@ -737,12 +737,13 @@ class GM_Combo_Het(BaseGM_Combo_Het):
     >>> reg = GM_Combo_Het(y, X, w, yd, q, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'crime', 'lag_hoval', 'lambda']
-    >>> print reg.betas
-    [[ 113.91292191]
-     [  -0.34821767]
-     [  -1.35655742]
-     [  -0.57656579]
-     [   0.65606923]]
+    >>> print np.round(reg.betas,4)
+    [[ 113.9129]
+     [  -0.3482]
+     [  -1.3566]
+     [  -0.5766]
+     [   0.6561]]
+    
     
     """
     
