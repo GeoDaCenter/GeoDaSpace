@@ -73,21 +73,21 @@ class BaseOLS(RegressionProps):
     >>> import numpy as np
     >>> import pysal
     >>> db=pysal.open("examples/columbus.dbf","r")
-    >>> y = np.array(db.by_col("CRIME"))
+    >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
     >>> X = []
     >>> X.append(db.by_col("INC"))
-    >>> X.append(db.by_col("HOVAL"))
+    >>> X.append(db.by_col("CRIME"))
     >>> X = np.array(X).T
     >>> ols=BaseOLS(y,X)
     >>> ols.betas
-    array([[ 68.6189611 ],
-           [ -1.59731083],
-           [ -0.27393148]])
+    array([[ 46.42818268],
+           [  0.62898397],
+           [ -0.48488854]])
     >>> ols.vm
-    array([[  2.24248289e+01,  -9.42351346e-01,  -1.61567494e-01],
-           [ -9.42351346e-01,   1.11643366e-01,  -1.72367399e-02],
-           [ -1.61567494e-01,  -1.72367399e-02,   1.06499683e-02]])
+    array([[  1.74022453e+02,  -6.52060364e+00,  -2.15109867e+00],
+           [ -6.52060364e+00,   2.87200008e-01,   6.80956787e-02],
+           [ -2.15109867e+00,   6.80956787e-02,   3.33693910e-02]])
     """
     def __init__(self, y, x, constant=True, robust=None, wk=None):
         if constant:
