@@ -43,7 +43,7 @@ Grid helper functions
 """
 
 def get_grid(data,cycles,IDs):    
-    inpath = 'misc/grid_in/probit_sp.pklz'
+    inpath = 'misc/probit_sp.pklz'
     infile = gzip.open(inpath, 'wb')
     pickle.dump(data, infile, -1)
     infile.close()
@@ -52,11 +52,11 @@ def get_grid(data,cycles,IDs):
     #Check which ones are done
     while repeat:
         done = []
-        fname = 'misc/grid_out/run_*.pkl'
+        fname = 'misc/run_*.pkl'
         for i in glob.glob(fname): 
             i = i.split('.')
             i = i[0].split('/')
-            i = i[2].split('_')
+            i = i[1].split('_')
             i = int(i[1])
             done.append(i)        
         for i in IDs: #Enumerate which were not done,
@@ -68,7 +68,7 @@ def get_grid(data,cycles,IDs):
             repeat = grid_results(xgrid_ids,IDs)           
     output = []
     for i in range(len(IDs)):
-        outfile = 'misc/grid_out/run_%s.pkl' %i
+        outfile = 'misc/run_%s.pkl' %i
         pkl_file = open(outfile, 'rb')
         data = pickle.load(pkl_file)
         pkl_file.close()
@@ -82,7 +82,7 @@ def run_grid(cycles,IDs): #Send jobs
     import grid_loader as gl
     xgrid_ids = []
     for i in IDs:    
-        args = ' %s %s misc/grid_in/' %(cycles,i)
+        args = ' %s %s misc/' %(cycles,i)
         jid = gl.load_python('misc/pb_sp_gridworker.py',args=args)
         print 'loaded', jid, i
         xgrid_ids.append([jid, i])
@@ -91,11 +91,11 @@ def run_grid(cycles,IDs): #Send jobs
 
 def grid_results(xgrid_ids,IDs):
     import grid_loader as gl
-    xgrid_ids = gl.results_runner(xgrid_ids,'misc/grid_out',delay=5)
+    xgrid_ids = gl.results_runner(xgrid_ids,'misc',delay=5)
     repeat = []
     for i in IDs:
         repeat.append(i)
-    time.sleep(5)
+    time.sleep(3)
     return repeat
 
 if __name__ == '__main__':

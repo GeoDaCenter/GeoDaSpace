@@ -220,16 +220,17 @@ class probit: #DEV class required.
                 w = self.w.sparse
                 phi = self.phiy
                 Phi = self.predy
-                #LM_error:
+                #Pinkse_error:
                 Phi_prod = Phi * (1 - Phi)
                 u_naive = self.u_naive
                 u_gen = self.u_gen
                 sig2 = np.sum((phi * phi) / Phi_prod) / self.n
                 LM_err_num = np.dot(u_gen.T,(w * u_gen))**2
                 trWW = np.sum((w*w).diagonal())
-                LM_err = float(1.0 * LM_err_num / (sig2**2 * (trWW + np.sum((w*w.T).diagonal()))))
+                trWWWWp = trWW + np.sum((w*w.T).diagonal())
+                LM_err = float(1.0 * LM_err_num / (sig2**2 * trWWWWp))
                 LM_err = np.array([LM_err,stats.chisqprob(LM_err,1)])
-                #Moran's I:
+                #KP_error:
                 E = SP.lil_matrix(w.get_shape()) #There's a similar code in gmm_utils to create the Sigma matrix for the Psi.
                 E.setdiag(Phi_prod.flat)
                 E = E.asformat('csr')
@@ -238,14 +239,28 @@ class probit: #DEV class required.
                 moran_num = np.dot(u_naive.T, (w * u_naive))
                 moran = float(1.0*moran_num / moran_den)
                 moran = np.array([moran,stats.norm.sf(abs(moran)) * 2.])
-                #Pinkse-Slade:
+                #Pinkse-Slade_error:
                 u_std = u_naive / np.sqrt(Phi_prod)
                 ps_num = np.dot(u_std.T, (w * u_std))**2
-                ps = float(ps_num / (trWW+np.sum((w.T*w).diagonal())))
+                trWpW = np.sum((w.T*w).diagonal())
+                ps = float(ps_num / (trWW + trWpW))
                 ps = np.array([ps,stats.chisqprob(ps,1)]) #chi-square instead of bootstrap.
+                #Pinkse_lag:
+                Fn2 = np.dot((self.xb + u_gen).T,(w * u_gen))**2
+                Jbb = la.inv(np.dot(self.x.T,self.x)*sig2)
+                xmean = (1.0*sum(self.x)/self.n).reshape(self.k,1)
+                muxb = np.dot(xmean.T,self.betas)
+                W1 = w*np.ones((self.n,1))
+                Jnb0 = muxb*sum(W1)*sig2
+                LM_lag_den0 = np.dot(Jnb0*xmean.T,np.dot(Jbb,Jnb0*xmean))
+                Jnn0 = trWpW*np.dot(self.betas.T,np.dot(self.vm,self.betas))
+                Jnn = ((sig2*trWWWWp) + Jnn0 + ((muxb**2)*(la.norm(W1)**2)))*sig2
+                LM_lag = Fn2 / (Jnn - LM_lag_den0)
+                LM_lag = np.array([LM_lag,stats.chisqprob(LM_lag,1)])
                 self._cache['Pinkse_error'] = LM_err
                 self._cache['KP_error'] = moran
                 self._cache['PS_error'] = ps
+                self._cache['Pinkse_lag'] = LM_lag
             else:
                 print "W not specified."
         return self._cache['Pinkse_error']
@@ -254,6 +269,11 @@ class probit: #DEV class required.
         if 'KP_error' not in self._cache:
             self._cache['Pinkse_error'] = self.Pinkse_error
         return self._cache['KP_error']
+    @property
+    def Pinkse_lag(self): #All tests for spatial error correlation are calculated together.
+        if 'Pinkse_lag' not in self._cache:
+            self._cache['Pinkse_error'] = self.Pinkse_error
+        return self._cache['Pinkse_lag']
     @property
     def PS_error(self): #All tests for spatial error correlation are calculated together.
         if 'PS_error' not in self._cache:
@@ -374,8 +394,11 @@ if __name__ == '__main__':
     X = []
     for i in var['x']:
         X.append(db.by_col(i))
+
     X = np.array(X).T
-    probit1=probit(y,X,scalem='xmean')
+    w = pysal.lat2W(8,4) #Optional fictional weights matrix to run spatial tests
+    w.transform='r'
+    probit1=probit(y,X,scalem='xmean',w=w)
     if probit1.warning:
         print "Maximum number of iterations exceeded or gradient and/or function calls not changing."
     print "Dependent variable: GRADE"
@@ -386,3 +409,6 @@ if __name__ == '__main__':
     print "Log-Likelihood:", round(probit1.logl,4)
     print "LR test:", round(probit1.LR[0],3), "; pvalue:", round(probit1.LR[1],4)
     print "% correctly predicted:", round(probit1.predpc,2),"%"
+    print "Pinkse Spatial Error:", round(probit1.Pinkse_error[0],3), "; pvalue:", round(probit1.Pinkse_error[1],4)
+    print "Pinkse Spatial Lag:", round(probit1.Pinkse_lag[0],3), "; pvalue:", round(probit1.Pinkse_lag[1],4)
+    print "KP Spatial Error:", round(probit1.KP_error[0],3), "; pvalue:", round(probit1.KP_error[1],4)
