@@ -525,7 +525,7 @@ class BaseGM_Endog_Error_2S:
     '''
     Two step estimation of spatial error with endogenous regressors. Based on 
 
-    Based on Drukker et al. (2010) [1]_
+    Based on Drukker et al. (2010) [1]_ and Drukker et al. (2011) [2]_
     ...
 
     Parameters
@@ -556,6 +556,11 @@ class BaseGM_Endog_Error_2S:
     Estimation of a Spatial Autoregressive Model with Autoregressive
     Disturbances and Endogenous Regressors". Working paper.
 
+    .. [2] Drukker, Prucha, I. R., Raciborski, R. (2010) "A command for
+    estimating spatial-autoregressive models with spatial-autoregressive
+    disturbances and additional endogenous variables". The Stata Journal, 1,
+    N. 1, pp. 1-13.
+
     Examples
     --------
 
@@ -568,8 +573,15 @@ class BaseGM_Endog_Error_2S:
 
         # 1a. S2SLS --> \tilde{\delta}
         tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=False)
+        self.x = tsls.x
+        self.y = y
+        self.yend = yend
+        self.q = tsls.q
+        self.n, self.k = tsls.x.shape
 
         # 1b. GM --> \tilde{\rho}
+        moments = moments_hom(w, tsls.u)
+        lambda1 = GMM.optim_moments(moments)
 
         # 2a. GS2SLS --> \hat{\delta}
 
