@@ -117,7 +117,7 @@ def _moments2eqs(A1, s, u):
     '''
     n = s.shape[0]
     A1u = A1 * u
-    wu = lag_spatial(w, u)
+    wu = s * u
 
     g1 = np.dot(u.T, A1u)
     g2 = np.dot(u.T, wu)
@@ -127,7 +127,7 @@ def _moments2eqs(A1, s, u):
     G12 = -np.dot(wu.T * A1, wu)
     G21 = np.dot(wu.T, ((s + s.T) * u))
     G22 = -np.dot(wu.T, (s * wu))
-    G = np.array([[G11[0][0],G12[0][0]],[G21[0][0],G22[0][0]]]) / w.n
+    G = np.array([[G11[0][0],G12[0][0]],[G21[0][0],G22[0][0]]]) / n
     return [G, g]
 
 def optim_moments(moments, vcX=np.array([0])):
