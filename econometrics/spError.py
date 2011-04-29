@@ -619,6 +619,7 @@ def moments_hom(w, u):
     N. 1, pp. 1-13.
     '''
     A1 = GMM.get_A1_hom(w.sparse)
+    return GMM._moments2eqs(A1, w.sparse, u)
 
 
 def _inference(ols):
