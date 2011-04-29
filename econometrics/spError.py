@@ -8,7 +8,7 @@ from numpy import linalg as la
 import pysal.spreg.ols as OLS
 from pysal.spreg.diagnostics import se_betas
 from pysal import lag_spatial
-from utils import get_A1, optim_moments, get_spFilter, get_lags
+from utils import get_A1_hom, get_A1_het, optim_moments, get_spFilter, get_lags
 import twosls as TSLS
 import pysal.spreg.user_output as USER
 
@@ -100,7 +100,7 @@ class BaseGM_Error:
 
     """
     def __init__(self, y, x, w, constant=True):
-        w.A1 = get_A1(w.sparse)
+        w.A1 = get_A1_het(w.sparse)
 
         if constant:
             x = np.hstack((np.ones(y.shape),x))
@@ -586,6 +586,40 @@ class BaseGM_Endog_Error_2S:
         # 2a. GS2SLS --> \hat{\delta}
 
         # 2b. GM 2nd iteration --> \hat{\rho}
+
+def moments_hom(w, u):
+    '''
+    Compute G and g matrices for the spatial error model with homoscedasticity
+    as in Drukker et al. [1]_ (p. 9).
+    ...
+
+    Parameters
+    ----------
+
+    w           : W
+                  Spatial weights instance
+
+    u           : array
+                  Residuals. nx1 array assumed to be aligned with w
+ 
+    Attributes
+    ----------
+
+    moments     : list
+                  List of two arrays corresponding to the matrices 'G' and
+                  'g', respectively.
+
+
+    References
+    ----------
+
+    .. [1] Drukker, Prucha, I. R., Raciborski, R. (2010) "A command for
+    estimating spatial-autoregressive models with spatial-autoregressive
+    disturbances and additional endogenous variables". The Stata Journal, 1,
+    N. 1, pp. 1-13.
+    '''
+    A1 = GMM.get_A1_hom(w.sparse)
+
 
 def _inference(ols):
     """

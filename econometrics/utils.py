@@ -9,7 +9,7 @@ import numpy.linalg as la
 from pysal import lag_spatial
 
 
-def get_A1(S):
+def get_A1_het(S):
     """
     Builds A1 as in Arraiz et al [1]_
 
@@ -30,6 +30,7 @@ def get_A1(S):
 
     Implicit        : csr_matrix
                       A1 matrix in scipy sparse format
+
     References
     ----------
 
@@ -37,13 +38,97 @@ def get_A1(S):
     Spatial Cliff-Ord-Type Model with Heteroskedastic Innovations: Small and
     Large Sample Results". Journal of Regional Science, Vol. 60, No. 2, pp.
     592-614.
-
-           
     """
     StS = S.T * S
     d = SP.spdiags([StS.diagonal()], [0], S.get_shape()[0], S.get_shape()[1])
     d = d.asformat('csr')
     return StS - d
+
+def get_A1_hom(w):
+    """
+    Builds A1 for the spatial error GM estimation with homoscedasticity as in Drukker et al. [1]_ (p. 9).
+
+    .. math::
+
+        A_1 = \{1 + [n^{-1} tr(W'W)]^2\}^{-1} \[W'W - n^{-1} tr(W'W) I\]
+
+    ...
+
+    Parameters
+    ----------
+
+    s               : csr_matrix
+                      PySAL W object converted into Scipy sparse matrix
+
+    Returns
+    -------
+
+    Implicit        : csr_matrix
+                      A1 matrix in scipy sparse format
+    References
+    ----------
+
+    .. [1] Drukker, Prucha, I. R., Raciborski, R. (2010) "A command for
+    estimating spatial-autoregressive models with spatial-autoregressive
+    disturbances and additional endogenous variables". The Stata Journal, 1,
+    N. 1, pp. 1-13.      
+    """
+    n = s.shape[0]
+    wpw = s.T * s
+    twpw = np.sum(wpw.diagonal())
+    den = 1 + twpw**2 / n
+    num = wpw - (twpw/n) * SP.eye(n, n, format='csr')
+    return num / den
+
+def _moments2eqs(A1, s, u):
+    '''
+    Helper to compute G and g in a system of two equations as in the homocedastic
+    and heteroskedastic error models from Drukker et al. [1]_
+    ...
+
+    Parameters
+    ----------
+
+    A1          : scipy.sparse.csr
+                  A1 matrix as in the paper, different deppending on whether
+                  it's homocedastic or heteroskedastic model
+
+    s           : W.sparse
+                  Sparse representation of spatial weights instance
+
+    u           : array
+                  Residuals. nx1 array assumed to be aligned with w
+ 
+    Attributes
+    ----------
+
+    moments     : list
+                  List of two arrays corresponding to the matrices 'G' and
+                  'g', respectively.
+
+
+    References
+    ----------
+
+    .. [1] Drukker, Prucha, I. R., Raciborski, R. (2010) "A command for
+    estimating spatial-autoregressive models with spatial-autoregressive
+    disturbances and additional endogenous variables". The Stata Journal, 1,
+    N. 1, pp. 1-13.
+    '''
+    n = s.shape[0]
+    A1u = A1 * u
+    wu = lag_spatial(w, u)
+
+    g1 = np.dot(u.T, A1u)
+    g2 = np.dot(u.T, wu)
+    g = np.array([[g1][0][0],[g2][0][0]]) / n
+
+    G11 = 2 * (np.dot(utSt, A1u)) 
+    G12 = -np.dot(utSt * A1, Su)
+    G21 = np.dot(utSt, ((S + St) * u))
+    G22 = -np.dot(utSt, (S * Su))
+    G = np.array([[G11[0][0],G12[0][0]],[G21[0][0],G22[0][0]]]) / w.n
+    return [G, g]
 
 def optim_moments(moments, vcX=np.array([0])):
     """
