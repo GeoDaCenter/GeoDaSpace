@@ -123,10 +123,10 @@ def _moments2eqs(A1, s, u):
     g2 = np.dot(u.T, wu)
     g = np.array([[g1][0][0],[g2][0][0]]) / n
 
-    G11 = 2 * (np.dot(utSt, A1u)) 
-    G12 = -np.dot(utSt * A1, Su)
-    G21 = np.dot(utSt, ((S + St) * u))
-    G22 = -np.dot(utSt, (S * Su))
+    G11 = np.dot(u.T, (A1 + A1.T) * wu)
+    G12 = -np.dot(wu.T * A1, wu)
+    G21 = np.dot(wu.T, ((s + s.T) * u))
+    G22 = -np.dot(wu.T, (s * wu))
     G = np.array([[G11[0][0],G12[0][0]],[G21[0][0],G22[0][0]]]) / w.n
     return [G, g]
 
