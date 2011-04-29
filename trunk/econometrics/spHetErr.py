@@ -813,7 +813,7 @@ def moments_het(w, u):
     ut = u.T
     S = w.sparse
     St = S.T
-    A1 = GMM.get_A1(S)
+    A1 = GMM.get_A1_het(S)
 
     utSt = ut * St
     A1u = A1 * u
@@ -892,7 +892,7 @@ def get_vc_het(w, E):
     592-614.
 
     """
-    A1=GMM.get_A1(w.sparse)
+    A1=GMM.get_A1_het(w.sparse)
     A1t = A1.T
     wt = w.sparse.T
 
@@ -1055,7 +1055,7 @@ def get_a1a2(w,reg,lambdapar):
     """        
     zst = GMM.get_spFilter(w,lambdapar, reg.z).T
     us = GMM.get_spFilter(w,lambdapar, reg.u)
-    alpha1 = (-2.0/w.n) * (np.dot((zst * GMM.get_A1(w.sparse)), us))
+    alpha1 = (-2.0/w.n) * (np.dot((zst * GMM.get_A1_het(w.sparse)), us))
     alpha2 = (-1.0/w.n) * (np.dot((zst * (w.sparse + w.sparse.T)), us))
     v1 = np.dot(np.dot(reg.h, reg.pfora1a2), alpha1)
     v2 = np.dot(np.dot(reg.h, reg.pfora1a2), alpha2)
