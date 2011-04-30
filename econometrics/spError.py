@@ -9,6 +9,7 @@ import pysal.spreg.ols as OLS
 from pysal.spreg.diagnostics import se_betas
 from pysal import lag_spatial
 from utils import get_A1_hom, get_A1_het, optim_moments, get_spFilter, get_lags
+from spHetError import get_a1a2
 import twosls as TSLS
 import pysal.spreg.user_output as USER
 
@@ -444,7 +445,6 @@ class BaseGM_Combo(BaseGM_Endog_Error):
             raise Exception, "invalid value passed to yend"
         BaseGM_Endog_Error.__init__(self, y, x, w, yend, q, constant=constant)
 
-
 class GM_Combo(BaseGM_Combo):
     """
 
@@ -521,7 +521,8 @@ class GM_Combo(BaseGM_Combo):
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
 
-class BaseGM_Endog_Error_2S:
+
+class BaseGM_Endog_Error_Hom:
     '''
     Two step estimation of spatial error with endogenous regressors. Based on 
 
@@ -579,13 +580,27 @@ class BaseGM_Endog_Error_2S:
         self.q = tsls.q
         self.n, self.k = tsls.x.shape
 
+        w.A1 = GMM.get_A1_hom(w.sparse)
+
         # 1b. GM --> \tilde{\rho}
         moments = moments_hom(w, tsls.u)
         lambda1 = GMM.optim_moments(moments)
 
         # 2a. GS2SLS --> \hat{\delta}
+        xs,ys = GMM.get_spFilter(w,lambda1,x),GMM.get_spFilter(w,lambda2,y)
+        yend_s = GMM.get_spFilter(w,lambda2, reg.yend)
+        tsls_s = TSLS.BaseTSLS(ys, xs, yend_s, h=reg.h, constant=False)
+        predy = np.dot(tsls.z, tsls_s.betas)
+        tsls_s.u = tsls.y - predy
 
         # 2b. GM 2nd iteration --> \hat{\rho}
+        moments = moments_hom(w, tsls_s.u)
+        psi = get_vc_hom(w, tsls_s, lambda1)
+        lambda2 = GMM.optim_moments(moments, psi)
+
+        # Output
+        self.betas = np.vstack((tsls_s.betas,lambda2))
+        self.vm = 
 
 def moments_hom(w, u):
     '''
@@ -618,8 +633,46 @@ def moments_hom(w, u):
     disturbances and additional endogenous variables". The Stata Journal, 1,
     N. 1, pp. 1-13.
     '''
-    A1 = GMM.get_A1_hom(w.sparse)
-    return GMM._moments2eqs(A1, w.sparse, u)
+    return GMM._moments2eqs(w.A1, w.sparse, u)
+
+def get_vc_hom(w, reg, lambdapar):
+    '''
+    VC matrix \psi of Spatial error with homoscedasticity. As in eq. (6) of
+    Drukker et al. (2011) [2]_
+    ...
+
+    Parameters
+    ----------
+    w           :   W
+                    Weights with A1 appended
+    reg         :   regression object
+    lambdapar   :   float
+
+    References
+    ----------
+
+    .. [1] Drukker, Prucha, I. R., Raciborski, R. (2010) "A command for
+    estimating spatial-autoregressive models with spatial-autoregressive
+    disturbances and additional endogenous variables". The Stata Journal, 1,
+    N. 1, pp. 1-13.
+    '''
+    e = (SP.eye(w.n, w.n, format='csr') - lambdapar * w.sparse) * reg.u
+    sig2 = np.dot(e.T, e) / w.n
+    mu3 = np.sum([i**3 for i in sig2]) / w.n
+    mu4 = np.sum([i**4 for i in sig2]) / w.n
+
+    a1, a2 = get_a1a2(w, reg, lambdapar)
+    tr11 = 
+    tr12 = 
+    tr22 = 
+    vecd1 = np.array([w.A1.diagonal()]).T
+
+    psi11 = (sig2**2 * tr11 / w.n + \
+            sig2 * np.dot(a1.T, a1) + \
+            (mu4 - 3 * sig2**2) * np.dot(vecd1.T, vecd1) + \
+            mu3 * (np.dot(a1.T, vecd1) + np.dot(a1.T, vecd1))) / w.n
+
+    return psi
 
 
 def _inference(ols):
