@@ -88,6 +88,8 @@ class BaseGM_Error_Het:
         self.y = y
         self.n, self.k = ols.x.shape
 
+        w.A1 = GMM.get_A1_het(w.sparse)
+
         #1b. GMM --> \tilde{\lambda1}
         moments = moments_het(w, ols.u)
         lambda1 = GMM.optim_moments(moments)
@@ -320,6 +322,8 @@ class BaseGM_Endog_Error_Het:
         self.q = tsls.q
         self.n, self.k = tsls.x.shape
 
+        w.A1 = GMM.get_A1_het(w.sparse)
+
         #1b. GMM --> \tilde{\lambda1}
         moments = moments_het(w, tsls.u)
         lambda1 = GMM.optim_moments(moments)
@@ -493,7 +497,6 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
         self.name_q = USER.set_name_q(name_q, q)
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         
-
 
 class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     """
@@ -810,9 +813,7 @@ def moments_het(w, u):
     592-614.
 
     """
-    s = w.sparse
-    A1 = GMM.get_A1_het(S)
-    return GMM._moments2eqs(A1, s, u)
+    return GMM._moments2eqs(w.A1, w.sparse, u)
 
 def get_psi_sigma(w, u, l):
     """
@@ -876,7 +877,7 @@ def get_vc_het(w, E):
     592-614.
 
     """
-    A1=GMM.get_A1_het(w.sparse)
+    A1 = w.A1
     A1t = A1.T
     wt = w.sparse.T
 
@@ -1039,7 +1040,7 @@ def get_a1a2(w,reg,lambdapar):
     """        
     zst = GMM.get_spFilter(w,lambdapar, reg.z).T
     us = GMM.get_spFilter(w,lambdapar, reg.u)
-    alpha1 = (-2.0/w.n) * (np.dot((zst * GMM.get_A1_het(w.sparse)), us))
+    alpha1 = (-2.0/w.n) * (np.dot((zst * w.A1), us))
     alpha2 = (-1.0/w.n) * (np.dot((zst * (w.sparse + w.sparse.T)), us))
     v1 = np.dot(np.dot(reg.h, reg.pfora1a2), alpha1)
     v2 = np.dot(np.dot(reg.h, reg.pfora1a2), alpha2)
