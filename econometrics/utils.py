@@ -44,7 +44,7 @@ def get_A1_het(S):
     d = d.asformat('csr')
     return StS - d
 
-def get_A1_hom(w):
+def get_A1_hom(s):
     """
     Builds A1 for the spatial error GM estimation with homoscedasticity as in Drukker et al. [1]_ (p. 9).
 

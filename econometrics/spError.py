@@ -2,14 +2,16 @@
 Spatial Error Models module
 """
 from scipy.stats import norm
+from scipy import sparse as SP
 import numpy as np
+import multiprocessing as mp
 import copy
 from numpy import linalg as la
 import pysal.spreg.ols as OLS
 from pysal.spreg.diagnostics import se_betas
 from pysal import lag_spatial
-from utils import get_A1_hom, get_A1_het, optim_moments, get_spFilter, get_lags
-from spHetError import get_a1a2
+from utils import get_A1_hom, get_A1_het, optim_moments, get_spFilter, get_lags, _moments2eqs
+from spHetErr import get_a1a2
 import twosls as TSLS
 import pysal.spreg.user_output as USER
 
@@ -580,27 +582,27 @@ class BaseGM_Endog_Error_Hom:
         self.q = tsls.q
         self.n, self.k = tsls.x.shape
 
-        w.A1 = GMM.get_A1_hom(w.sparse)
+        w.A1 = get_A1_hom(w.sparse)
 
         # 1b. GM --> \tilde{\rho}
         moments = moments_hom(w, tsls.u)
-        lambda1 = GMM.optim_moments(moments)
+        lambda1 = optim_moments(moments)
 
         # 2a. GS2SLS --> \hat{\delta}
-        xs,ys = GMM.get_spFilter(w,lambda1,x),GMM.get_spFilter(w,lambda2,y)
-        yend_s = GMM.get_spFilter(w,lambda2, reg.yend)
-        tsls_s = TSLS.BaseTSLS(ys, xs, yend_s, h=reg.h, constant=False)
+        x_s,y_s = get_spFilter(w,lambda1,x),get_spFilter(w,lambda1,y)
+        yend_s = get_spFilter(w,lambda1, tsls.yend)
+        tsls_s = TSLS.BaseTSLS(y_s, x_s, yend_s, h=tsls.h, constant=False)
         predy = np.dot(tsls.z, tsls_s.betas)
         tsls_s.u = tsls.y - predy
 
         # 2b. GM 2nd iteration --> \hat{\rho}
         moments = moments_hom(w, tsls_s.u)
         psi = get_vc_hom(w, tsls_s, lambda1)
-        lambda2 = GMM.optim_moments(moments, psi)
+        lambda2 = optim_moments(moments, psi)
 
         # Output
         self.betas = np.vstack((tsls_s.betas,lambda2))
-        self.vm = 
+        self.vm = get_omega_hom(w, lambda2, tsls, moments[0], psi)
 
 def moments_hom(w, u):
     '''
@@ -633,7 +635,7 @@ def moments_hom(w, u):
     disturbances and additional endogenous variables". The Stata Journal, 1,
     N. 1, pp. 1-13.
     '''
-    return GMM._moments2eqs(w.A1, w.sparse, u)
+    return _moments2eqs(w.A1, w.sparse, u)
 
 def get_vc_hom(w, reg, lambdapar):
     '''
@@ -661,19 +663,60 @@ def get_vc_hom(w, reg, lambdapar):
     mu3 = np.sum([i**3 for i in sig2]) / w.n
     mu4 = np.sum([i**4 for i in sig2]) / w.n
 
+    apat = w.A1 + w.A1.T
+    wpwt = w.sparse + w.sparse.T
+    prod = apat * apat
+    tr11 = np.sum(prod.diagonal())
+    prod = wpwt * apat
+    tr12 = np.sum(prod.diagonal())
+    prod = wpwt * wpwt
+    tr22 = np.sum(prod.diagonal())
+    prod, apat, wpwt = ['empty'] * 3
     a1, a2 = get_a1a2(w, reg, lambdapar)
-    tr11 = 
-    tr12 = 
-    tr22 = 
     vecd1 = np.array([w.A1.diagonal()]).T
 
     psi11 = (sig2**2 * tr11 / w.n + \
             sig2 * np.dot(a1.T, a1) + \
             (mu4 - 3 * sig2**2) * np.dot(vecd1.T, vecd1) + \
-            mu3 * (np.dot(a1.T, vecd1) + np.dot(a1.T, vecd1))) / w.n
+            mu3 * (np.dot(a1.T, vecd1) + np.dot(a1.T, vecd1)))
+    psi22 = (sig2**2 * tr22 / w.n + \
+            sig2 * np.dot(a2.T, a2)) # 2nd&3rd terms=0 bc vecd2=0
+    psi12 = (sig2**2 * tr12 / w.n + \
+            sig2 * np.dot(a1.T, a2)) # 2nd&3rd terms=0 bc vecd2=0
+    return np.array([[psi11[0][0], psi12[0][0]], [psi12[0][0], psi22[0][0]]]) / w.n
 
-    return psi
+def get_omega_hom(w, lamb, reg, G, psi):
+    j = np.dot(G, np.array([[1.], [2*lamb]]))
+    p = reg.pfora1a2
+    q_hh = reg.hth / w.n
+    e = (SP.eye(w.n, w.n, format='csr') - lamb * w.sparse) * reg.u
+    sig2 = np.dot(e.T, e) / w.n
+    a1, a2 = get_a1a2(w, reg, lamb)
 
+    psiDD = sig2 * q_hh
+    oDD = np.dot(psiDD, p)
+    oDD = np.dot(p.T, oDD)
+
+    psiRRi = la.inv(psi)
+    oRR = np.dot(psiRRi, j)
+    oRR = np.dot(j.T, oRR)
+    oRR = la.inv(oRR)
+
+    #psiDR = 
+    oDR = np.dot(j, oRR)
+    oDR = np.dot(psiRRi, oDR)
+    oDR = np.dot(psiDR, oDR)
+    oDR = np.dot(p.T, oDR)
+
+    o_upper = np.hstack((oDD, oDR))
+    o_lower = np.hstack((oDR.T, oRR))
+    return np.vstack((o_upper, o_lower))
+
+def _get_traces(A1, s):
+    '''
+    Parallel computation for traces in vm_hom
+    '''
+    
 
 def _inference(ols):
     """
@@ -713,12 +756,28 @@ if __name__ == '__main__':
 
     _test()
 
-    """
-    dbf = pysal.open('examples/columbus.dbf','r')
-    y = np.array([dbf.by_col('HOVAL')]).T
-    x = np.array([dbf.by_col('INC'), dbf.by_col('CRIME')]).T
+    import pysal
+    db = pysal.open('examples/columbus.dbf','r')
+    y = np.array([db.by_col('HOVAL')]).T
+    x = np.array([db.by_col('INC')]).T
     w = pysal.open('examples/columbus.gal', 'r').read()
-    w.transform='r' #Needed to match R
+    w.transform='r' 
+    w.A1 = get_A1_hom(w.sparse)
+    q = []
+    q.append(db.by_col("DISCBD"))
+    q = np.array(q).T
+    yd = []
+    yd.append(db.by_col("CRIME"))
+    yd = np.array(yd).T
+
+    model = BaseGM_Endog_Error_Hom(y, x, w, yd, q) 
+
+    """
+    tsls = TSLS.BaseTSLS(y, x, yd, q=q, constant=True)
+    print tsls.betas
+
+    psi = get_vc_hom(w, tsls, 0.3)
+    print psi
 
     print '\n\tGM_Error model Example'
     model = GM_Error(x, y, w)
