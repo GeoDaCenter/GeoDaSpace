@@ -551,6 +551,14 @@ class BaseGM_Endog_Error_Hom:
 
     Attributes
     ----------
+    betas       : array
+                  Array of beta coefficients, rho and lambda
+    vm          : array
+                  VC matrix Omega for beta coefficients, rho and lambda
+    tsls        : reg
+                  Regression object from initial two stage least squares
+    lambda1     : float
+                  Initial estimation of lambda (\tilde{\lambda})
 
     References
     ----------
@@ -576,6 +584,7 @@ class BaseGM_Endog_Error_Hom:
 
         # 1a. S2SLS --> \tilde{\delta}
         tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=False)
+        self.tsls = tsls
         self.x = tsls.x
         self.y = y
         self.yend = yend
@@ -587,6 +596,7 @@ class BaseGM_Endog_Error_Hom:
         # 1b. GM --> \tilde{\rho}
         moments = moments_hom(w, tsls.u)
         lambda1 = optim_moments(moments)
+        self.lambda1 = lambda1
 
         # 2a. GS2SLS --> \hat{\delta}
         x_s,y_s = get_spFilter(w,lambda1,x),get_spFilter(w,lambda1,y)
@@ -647,8 +657,17 @@ def get_vc_hom(w, reg, lambdapar):
     ----------
     w           :   W
                     Weights with A1 appended
-    reg         :   regression object
+    reg         :   reg
+                    Regression object
     lambdapar   :   float
+                    Spatial parameter estimated in previous step of the
+                    procedure
+
+    Returns
+    -------
+
+    psi         : array
+                  2x2 VC matrix
 
     References
     ----------
@@ -657,6 +676,7 @@ def get_vc_hom(w, reg, lambdapar):
     estimating spatial-autoregressive models with spatial-autoregressive
     disturbances and additional endogenous variables". The Stata Journal, 1,
     N. 1, pp. 1-13.
+
     '''
     e = (SP.eye(w.n, w.n, format='csr') - lambdapar * w.sparse) * reg.u
     sig2 = np.dot(e.T, e) / w.n
@@ -686,12 +706,52 @@ def get_vc_hom(w, reg, lambdapar):
     return np.array([[psi11[0][0], psi12[0][0]], [psi12[0][0], psi22[0][0]]]) / w.n
 
 def get_omega_hom(w, lamb, reg, G, psi):
+    '''
+    VC matrix \Omega of Spatial error with homoscedasticity. As in p. 11 of
+    Drukker et al. (2011) [1]_
+    ...
+
+    Parameters
+    ----------
+
+    w           : W
+                  Spatial weights instance 
+
+    lamb        : float
+                  Spatial autoregressive parameter
+                  
+    reg         : reg
+                  Regression object
+    G           : array
+                  Matrix G in moments equation
+    psi         : array
+                  Weighting matrix
+ 
+    Returns
+    -------
+
+    omega       : array
+                  (k+s)x(k+s) where s is the number of spatial parameters,
+                  either one or two.
+
+    References
+    ----------
+
+    .. [1] Drukker, Prucha, I. R., Raciborski, R. (2010) "A command for
+    estimating spatial-autoregressive models with spatial-autoregressive
+    disturbances and additional endogenous variables". The Stata Journal, 1,
+    N. 1, pp. 1-13.
+
+    '''
     j = np.dot(G, np.array([[1.], [2*lamb]]))
     p = reg.pfora1a2
     q_hh = reg.hth / w.n
     e = (SP.eye(w.n, w.n, format='csr') - lamb * w.sparse) * reg.u
     sig2 = np.dot(e.T, e) / w.n
     a1, a2 = get_a1a2(w, reg, lamb)
+    mu3 = np.sum([i**3 for i in sig2]) / w.n
+    vecdA1 = np.reshape(w.A1.diagonal(), (w.n, 1))
+    vecdW = np.zeros((w.n, 1))
 
     psiDD = sig2 * q_hh
     oDD = np.dot(psiDD, p)
@@ -702,7 +762,9 @@ def get_omega_hom(w, lamb, reg, G, psi):
     oRR = np.dot(j.T, oRR)
     oRR = la.inv(oRR)
 
-    #psiDR = 
+    psiDR = (sig2 * np.dot(reg.h.T, np.hstack((a1, a2))) + \
+            mu3 * np.dot(reg.h.T, np.hstack((vecdA1, vecdW))) \
+            ) / w.n
     oDR = np.dot(j, oRR)
     oDR = np.dot(psiRRi, oDR)
     oDR = np.dot(psiDR, oDR)
@@ -754,7 +816,7 @@ def _test():
 
 if __name__ == '__main__':
 
-    _test()
+    #_test()
 
     import pysal
     db = pysal.open('examples/columbus.dbf','r')
@@ -771,6 +833,8 @@ if __name__ == '__main__':
     yd = np.array(yd).T
 
     model = BaseGM_Endog_Error_Hom(y, x, w, yd, q) 
+    print model.betas
+    print model.vm
 
     """
     tsls = TSLS.BaseTSLS(y, x, yd, q=q, constant=True)
