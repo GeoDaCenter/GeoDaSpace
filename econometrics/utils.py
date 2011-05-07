@@ -76,7 +76,7 @@ def get_A1_hom(s):
     n = s.shape[0]
     wpw = s.T * s
     twpw = np.sum(wpw.diagonal())
-    den = 1 + twpw**2 / n
+    den = 1 + (twpw / n)**2
     num = wpw - (twpw/n) * SP.eye(n, n, format='csr')
     return num / den
 
@@ -125,7 +125,7 @@ def _moments2eqs(A1, s, u):
 
     G11 = np.dot(u.T, (A1 + A1.T) * wu)
     G12 = -np.dot(wu.T * A1, wu)
-    G21 = np.dot(wu.T, ((s + s.T) * u))
+    G21 = np.dot(u.T, (s + s.T) * wu)
     G22 = -np.dot(wu.T, (s * wu))
     G = np.array([[G11[0][0],G12[0][0]],[G21[0][0],G22[0][0]]]) / n
     return [G, g]

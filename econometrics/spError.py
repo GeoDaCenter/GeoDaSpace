@@ -603,11 +603,11 @@ class BaseGM_Endog_Error_Hom:
         yend_s = get_spFilter(w,lambda1, tsls.yend)
         tsls_s = TSLS.BaseTSLS(y_s, x_s, yend_s, h=tsls.h, constant=False)
         predy = np.dot(tsls.z, tsls_s.betas)
-        tsls_s.u = tsls.y - predy
+        tsls.u = tsls.y - predy
 
         # 2b. GM 2nd iteration --> \hat{\rho}
-        moments = moments_hom(w, tsls_s.u)
-        psi = get_vc_hom(w, tsls_s, lambda1)
+        moments = moments_hom(w, tsls.u)
+        psi = get_vc_hom(w, tsls, lambda1)
         lambda2 = optim_moments(moments, psi)
 
         # Output
@@ -678,10 +678,10 @@ def get_vc_hom(w, reg, lambdapar):
     N. 1, pp. 1-13.
 
     '''
-    e = (SP.eye(w.n, w.n, format='csr') - lambdapar * w.sparse) * reg.u
+    e = get_spFilter(w, lambdapar, reg.u)
     sig2 = np.dot(e.T, e) / w.n
-    mu3 = np.sum([i**3 for i in sig2]) / w.n
-    mu4 = np.sum([i**4 for i in sig2]) / w.n
+    mu3 = np.sum([i**3 for i in e]) / w.n
+    mu4 = np.sum([i**4 for i in e]) / w.n
 
     apat = w.A1 + w.A1.T
     wpwt = w.sparse + w.sparse.T
@@ -691,17 +691,18 @@ def get_vc_hom(w, reg, lambdapar):
     tr12 = np.sum(prod.diagonal())
     prod = wpwt * wpwt
     tr22 = np.sum(prod.diagonal())
+    a1, a2 = _get_a1a2(w, reg, lambdapar, apat, wpwt, e)
+    #a1, a2 = get_a1a2(w, reg, lambdapar)
     prod, apat, wpwt = ['empty'] * 3
-    a1, a2 = get_a1a2(w, reg, lambdapar)
     vecd1 = np.array([w.A1.diagonal()]).T
 
-    psi11 = (sig2**2 * tr11 / w.n + \
+    psi11 = (sig2**2 * tr11 / 2 + \
             sig2 * np.dot(a1.T, a1) + \
             (mu4 - 3 * sig2**2) * np.dot(vecd1.T, vecd1) + \
             mu3 * (np.dot(a1.T, vecd1) + np.dot(a1.T, vecd1)))
-    psi22 = (sig2**2 * tr22 / w.n + \
+    psi22 = (sig2**2 * tr22 / 2 + \
             sig2 * np.dot(a2.T, a2)) # 2nd&3rd terms=0 bc vecd2=0
-    psi12 = (sig2**2 * tr12 / w.n + \
+    psi12 = (sig2**2 * tr12 / 2 + \
             sig2 * np.dot(a1.T, a2)) # 2nd&3rd terms=0 bc vecd2=0
     return np.array([[psi11[0][0], psi12[0][0]], [psi12[0][0], psi22[0][0]]]) / w.n
 
@@ -773,6 +774,20 @@ def get_omega_hom(w, lamb, reg, G, psi):
     o_upper = np.hstack((oDD, oDR))
     o_lower = np.hstack((oDR.T, oRR))
     return np.vstack((o_upper, o_lower))
+
+def _get_a1a2(w, reg, lambdapar, apat, wpwt, e):
+    z_s = get_spFilter(w, lambdapar, reg.z)
+
+    alpha1 = np.dot(z_s.T, apat * e) / -w.n
+    alpha2 = np.dot(z_s.T, wpwt * e) / -w.n
+
+    q_hh = reg.hth / w.n
+    q_hhi = la.inv(q_hh)
+    q_hzs = np.dot(reg.h.T, z_s) / w.n
+    p_s = np.dot(q_hhi, q_hzs)
+    p_s = np.dot(p_s, la.inv(np.dot(q_hzs.T, np.dot(q_hhi, q_hzs.T))))
+    t = np.dot(reg.h, p_s)
+    return np.dot(t, alpha1), np.dot(t, alpha2)
 
 def _get_traces(A1, s):
     '''
