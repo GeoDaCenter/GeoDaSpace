@@ -33,12 +33,12 @@ model = BaseGM_Endog_Error_Hom(hoval, inc, w, crime, discbd)
 
 print '##### Betas #####'
 print model.betas
-print '### Std Devs ###'
-print map(np.sqrt, model.vm.diagonal())
-print '### VC Matrix Omega ###'
-print model.vm
-print '### Initial estimate of lambda ###'
-print model.lambda1
-print '### Initial estimate of betas ###'
-print model.tsls.betas
+#   print '### Std Devs ###'
+#   print map(np.sqrt, model.vm.diagonal())
+#   print '### VC Matrix Omega ###'
+#   print model.vm
+#print '### Initial estimate of lambda ###'
+#print model.lambda1
+#   print '### Initial estimate of betas ###'
+#   print model.tsls.betas
 
