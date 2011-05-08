@@ -10,6 +10,7 @@ from numpy import linalg as la
 import pysal.spreg.ols as OLS
 from pysal.spreg.diagnostics import se_betas
 from pysal import lag_spatial
+from power_expansion import power_expansion
 from utils import get_A1_hom, get_A1_het, optim_moments, get_spFilter, get_lags, _moments2eqs
 from spHetErr import get_a1a2
 import twosls as TSLS
@@ -607,7 +608,7 @@ class BaseGM_Endog_Error_Hom:
 
         # 2b. GM 2nd iteration --> \hat{\rho}
         moments = moments_hom(w, tsls.u)
-        psi = get_vc_hom(w, tsls, lambda1)
+        psi = get_vc_hom(w, tsls, lambda1, tsls_s)
         lambda2 = optim_moments(moments, psi)
 
         # Output
@@ -647,7 +648,7 @@ def moments_hom(w, u):
     '''
     return _moments2eqs(w.A1, w.sparse, u)
 
-def get_vc_hom(w, reg, lambdapar):
+def get_vc_hom(w, reg, lambdapar, reg_s):
     '''
     VC matrix \psi of Spatial error with homoscedasticity. As in eq. (6) of
     Drukker et al. (2011) [2]_
@@ -691,8 +692,8 @@ def get_vc_hom(w, reg, lambdapar):
     tr12 = np.sum(prod.diagonal())
     prod = wpwt * wpwt
     tr22 = np.sum(prod.diagonal())
-    a1, a2 = _get_a1a2(w, reg, lambdapar, apat, wpwt, e)
-    #a1, a2 = get_a1a2(w, reg, lambdapar)
+    a1, a2 = _get_a1a2(w, reg, lambdapar, apat, wpwt, e, reg_s)
+    #a1, a2 = __get_a1a2(w, reg, lambdapar)
     prod, apat, wpwt = ['empty'] * 3
     vecd1 = np.array([w.A1.diagonal()]).T
 
@@ -701,9 +702,10 @@ def get_vc_hom(w, reg, lambdapar):
             (mu4 - 3 * sig2**2) * np.dot(vecd1.T, vecd1) + \
             mu3 * (np.dot(a1.T, vecd1) + np.dot(a1.T, vecd1)))
     psi22 = (sig2**2 * tr22 / 2 + \
-            sig2 * np.dot(a2.T, a2)) # 2nd&3rd terms=0 bc vecd2=0
+            sig2 * np.dot(a2.T, a2)) # 3rd&4th terms=0 bc vecd2=0
     psi12 = (sig2**2 * tr12 / 2 + \
-            sig2 * np.dot(a1.T, a2)) # 2nd&3rd terms=0 bc vecd2=0
+            sig2 * np.dot(a1.T, a2) + \
+            mu3 * np.dot(a2.T, vecd1)) # 3rd term=0
     return np.array([[psi11[0][0], psi12[0][0]], [psi12[0][0], psi22[0][0]]]) / w.n
 
 def get_omega_hom(w, lamb, reg, G, psi):
@@ -775,8 +777,12 @@ def get_omega_hom(w, lamb, reg, G, psi):
     o_lower = np.hstack((oDR.T, oRR))
     return np.vstack((o_upper, o_lower))
 
-def _get_a1a2(w, reg, lambdapar, apat, wpwt, e):
-    z_s = get_spFilter(w, lambdapar, reg.z)
+def _get_a1a2(w, reg, lambdapar, apat, wpwt, e, reg_s):
+    '''
+    Internal helper function to compute a1 and a2 in get_vc_hom. It assumes
+    residuals come from a spatially filetered model
+    '''
+    z_s = reg_s.z
 
     alpha1 = np.dot(z_s.T, apat * e) / -w.n
     alpha2 = np.dot(z_s.T, wpwt * e) / -w.n
@@ -788,6 +794,21 @@ def _get_a1a2(w, reg, lambdapar, apat, wpwt, e):
     p_s = np.dot(p_s, la.inv(np.dot(q_hzs.T, np.dot(q_hhi, q_hzs.T))))
     t = np.dot(reg.h, p_s)
     return np.dot(t, alpha1), np.dot(t, alpha2)
+
+def __get_a1a2(w,reg,lambdapar):
+    '''
+    Method borrowed from spHetError. It computes a1, a2 as in section 4.3.2 of
+    Luc's notes. It assumes residuals come from an original model.
+    '''
+    zst = get_spFilter(w,lambdapar, reg.z).T
+    us = get_spFilter(w,lambdapar, reg.u)
+    alpha1 = (-2.0/w.n) * (np.dot((zst * w.A1), us))
+    alpha2 = (-1.0/w.n) * (np.dot((zst * (w.sparse + w.sparse.T)), us))
+    v1 = np.dot(np.dot(reg.h, reg.pfora1a2), alpha1)
+    v2 = np.dot(np.dot(reg.h, reg.pfora1a2), alpha2)
+    a1t = power_expansion(w, v1, lambdapar, transpose=True)
+    a2t = power_expansion(w, v2, lambdapar, transpose=True)
+    return [a1t.T, a2t.T]
 
 def _get_traces(A1, s):
     '''
