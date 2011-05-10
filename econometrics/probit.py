@@ -142,7 +142,7 @@ class probit: #DEV class required.
     @property
     def vm(self):
         if 'vm' not in self._cache:
-            H = self.hessian(self.betas,final=1)
+            H = self.hessian(self.betas)
             self._cache['vm'] = -la.inv(H)
         return self._cache['vm']
     @property
@@ -312,7 +312,7 @@ class probit: #DEV class required.
                 m = np.dot(g.T,Hg)
             if iteration == 50:
                 warn = 1
-            logl = self.ll(par_hat0,final=1) 
+            logl = self.ll(par_hat0) 
             par_hat = [par_hat0, -logl] #Coded like this to comply with most of the scipy optimizers.
         else:
             flogl = lambda par: -self.ll(par)
@@ -330,38 +330,23 @@ class probit: #DEV class required.
             warn = False
         return par_hat, warn
 
-    def ll(self,par,final=None):
-        if final:
-            beta = par
-        else:
-            beta = []
-            for i in range(self.k):
-                beta.append(float(par[i]))         
-        beta = np.reshape(np.array(beta),(self.k,1))
+    def ll(self,par):       
+        beta = np.reshape(np.array(par),(self.k,1))
         q = 2 * self.y - 1
         qxb = q * np.dot(self.x,beta)
         ll = sum(np.log(norm.cdf(qxb)))
         return ll
 
-    def gradient(self,par):        
-        beta = []
-        for i in range(self.k):
-            beta.append(float(par[i]))         
-        beta = np.reshape(np.array(beta),(self.k,1))
+    def gradient(self,par):      
+        beta = np.reshape(np.array(par),(self.k,1))
         q = 2 * self.y - 1
         qxb = q * np.dot(self.x,beta)
         lamb = q * norm.pdf(qxb)/norm.cdf(qxb)
         gradient = np.dot(lamb.T,self.x)[0]
         return gradient
 
-    def hessian(self,par,final=None):        
-        if final:
-            beta = par
-        else:
-            beta = []
-            for i in range(self.k):
-                beta.append(float(par[i]))             
-        beta = np.reshape(np.array(beta),(self.k,1))
+    def hessian(self,par):           
+        beta = np.reshape(np.array(par),(self.k,1))
         q = 2 * self.y - 1
         xb = np.dot(self.x,beta)
         qxb = q * xb
