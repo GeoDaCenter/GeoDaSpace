@@ -108,7 +108,7 @@ class BaseGM_Error:
 
         if constant:
             x = np.hstack((np.ones(y.shape),x))
-        n, k = x.shape
+        self.n, self.k = x.shape
 
         #1a. OLS --> \tilde{betas}
         ols = OLS.BaseOLS(y, x, constant=False)
