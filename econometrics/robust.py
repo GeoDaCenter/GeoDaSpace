@@ -2,13 +2,6 @@ import numpy as np
 import numpy.linalg as la
 from pysal import lag_spatial
 
-
-
-def get_omega(rhs, u):
-    u2 = u**2
-    v = u2 * rhs
-    return np.dot(rhs.T, v)           # weighting matrix (omega)
-
 def robust_vm(reg,wk=None):
     """
     Robust estimation of the variance-covariance matrix. Estimated by White (default) or HAC (if wk is provided). 
