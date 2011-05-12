@@ -195,6 +195,15 @@ class BaseTSLS(RegressionProps):
             self._cache['vm'] = np.dot(self.sig2, self.xptxpi)
         return self._cache['vm']
 
+    @property
+    def vm_white(self):
+        # follows stsls in R spdep
+        if 'vm' not in self._cache:
+            v = ROBUST.get_omega(self.z, self.u)
+            xptxpiv = np.dot(self.xptxpi, v)
+            self._cache['vm'] = np.dot(xptxpiv, self.xptxpi)
+        return self._cache['vm']
+
 
 class TSLS(BaseTSLS, USER.DiagnosticBuilder):
     """
