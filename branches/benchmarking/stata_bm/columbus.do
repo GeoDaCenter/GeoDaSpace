@@ -7,12 +7,12 @@ cd "/Users/dani/repos/spreg/trunk/econometrics/examples/"
 /*cd "/home/dani/repos/spreg/trunk/econometrics/examples/"*/
 
 /*insheet using columbus.csv */
-/*spmat import w using "columbus.gal", geoda replace */
-/*shp2dta using columbus, database(columbus) coordinates(columbusxy) genid(col_id) gencentroids(c) replace
+Opt A/*spmat import w using "columbus.gal", geoda replace */
+Opt B/*shp2dta using columbus, database(columbus) coordinates(columbusxy) genid(col_id) gencentroids(c) replace
  */
 use columbus 
 /*Queen*/
-spmat contiguity w using columbusxy, norm(row) id(id) replace
+spmat contiguity w using columbusxy, norm(row) id(col_id) replace
 
 /* OLS
 reg HOVAL INC CRIME
