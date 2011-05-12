@@ -26,19 +26,19 @@ x = np.hstack((inc, crime))
 #model = GM_Error(hoval, x, w) # This model is not implemented in STATA's 'spivreg'
 
 # GM_hom
-#model = BaseGM_Endog_Error_Hom(hoval, inc, w, crime, discbd)
+model = BaseGM_Endog_Error_Hom(hoval, inc, w, crime, discbd)
 
 # 2SLS Lag 
 #model = GM_Lag(hoval, x, w, w_lags=2)
 #model = GM_Lag(hoval, x, w, w_lags=2, robust="White")
 #model = GM_Lag(hoval, inc, yend=crime, q=discbd, w=w, w_lags=2)
-model = GM_Lag(hoval, inc, yend=crime, q=discbd, w=w, w_lags=2, robust="White")
+#model = GM_Lag(hoval, inc, yend=crime, q=discbd, w=w, w_lags=2, robust="White")
 
 print '##### Betas #####'
 print model.betas
 #   print '### Std Devs ###'
-print map(np.sqrt, model.vm.diagonal())
-print map(np.sqrt, model.vm.diagonal() * model.n/(model.n-model.k))
+#print map(np.sqrt, model.vm.diagonal())
+#print map(np.sqrt, model.vm.diagonal() * model.n/(model.n-model.k))
 #   print '### VC Matrix Omega ###'
 #   print model.vm
 #print '### Initial estimate of lambda ###'
