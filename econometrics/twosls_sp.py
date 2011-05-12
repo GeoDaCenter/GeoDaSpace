@@ -125,7 +125,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
            [ -4.80723451e-01],
            [  2.83622122e-02]])
     >>> D.se_betas(reg)
-    array([ 26.46540238,   0.54128829,   0.20836574,   0.607184  ])
+    array([ 20.47077481,   0.50613931,   0.20138425,   0.38028295])
     >>> # instrument for HOVAL with DISCBD
     >>> X = np.array(db.by_col("INC"))
     >>> X = np.reshape(X, (49,1))
@@ -165,31 +165,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
         TSLS.BaseTSLS.__init__(self, y, x, yend, q=q, constant=constant)
         self.sig2 = self.sig2n
         if robust:
-            #self.vm = self.vm_white       
             self.vm = ROBUST.robust_vm(self, wk=wk)
-        #elif robust == 'hac':
-        #    self.vm = ROBUST.robust_vm(self, wk=wk)
-    @property
-    def vm_gls(self):
-        # follows stsls in R spdep
-        if 'vm' not in self._cache:
-            self._cache['vm'] = self.xptxpi
-        return self._cache['vm']
-
-    @property
-    def vm_white(self):
-        # follows stsls in R spdep
-        if 'vm' not in self._cache:
-            v = ROBUST.get_omega(self.z, self.u)
-            xptxpiv = np.dot(self.xptxpi, v)
-            self._cache['vm'] = np.dot(xptxpiv, self.xptxpi)
-        return self._cache['vm']
-
-
-    #### The results currently match stsls in R spdep for both forms of
-    #### robustness (gls and white) for the case of no additional endogenous 
-    #### variables.  I have not checked any of the results when non-spatial
-    #### instruments are included.
 
 
 class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
@@ -240,7 +216,7 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
            [ -4.80723451e-01],
            [  2.83622122e-02]])
     >>> D.se_betas(reg)
-    array([ 26.46540238,   0.54128829,   0.20836574,   0.607184  ])
+    array([ 20.47077481,   0.50613931,   0.20138425,   0.38028295])
     >>> # instrument for HOVAL with DISCBD
     >>> X = np.array(db.by_col("INC"))
     >>> X = np.reshape(X, (49,1))
