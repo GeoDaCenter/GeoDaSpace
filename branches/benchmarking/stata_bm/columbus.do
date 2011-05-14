@@ -3,13 +3,15 @@ clear
 clear matrix
 clear mata
 set memory 1g
-cd "/Users/dani/repos/spreg/trunk/econometrics/examples/"
+cd "/Users/dani/code/spreg/trunk/econometrics/examples/"
 /*cd "/home/dani/repos/spreg/trunk/econometrics/examples/"*/
 
 /*insheet using columbus.csv */
-Opt A/*spmat import w using "columbus.gal", geoda replace */
-Opt B/*shp2dta using columbus, database(columbus) coordinates(columbusxy) genid(col_id) gencentroids(c) replace
- */
+/*Opt A*/
+/*spmat import w using "columbus.gal", geoda replace */
+/*Opt B*/
+shp2dta using columbus, database(columbus) coordinates(columbusxy) genid(col_id) gencentroids(c) replace
+
 use columbus 
 /*Queen*/
 spmat contiguity w using columbusxy, norm(row) id(col_id) replace
@@ -25,7 +27,7 @@ ivreg  HOVAL (CRIME =  DISCBD) INC, robust
 */
 
 /* GM error (equivalent commands) Does not match*/
-spivreg HOVAL INC (CRIME =  DISCBD), el(w) id(POLYID)
+spivreg HOVAL INC (CRIME =  DISCBD), el(w) id(col_id)
     /* VC matrix Omega */
     matrix list e(V)
     /* Initial estimation of lambda */
@@ -50,5 +52,5 @@ spivreg HOVAL INC CRIME, dl(w) id(POLYID) het
 spivreg HOVAL INC CRIME, el(w) dl(w) id(POLYID) het*/
 
 
-cd "/Users/dani/repos/spreg/branches/benchmarking/stata_bm/"
+cd "/Users/dani/code/spreg/branches/benchmarking/stata_bm/"
 /*cd "/home/dani/repos/spreg/branches/benchmarking/stata_bm/"*/
