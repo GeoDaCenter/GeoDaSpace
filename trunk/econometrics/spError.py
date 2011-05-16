@@ -581,7 +581,6 @@ class BaseGM_Endog_Error_Hom:
 
         if constant:
             x = np.hstack((np.ones(y.shape),x))
-        n, k = x.shape
 
         # 1a. S2SLS --> \tilde{\delta}
         tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=False)
@@ -590,7 +589,7 @@ class BaseGM_Endog_Error_Hom:
         self.y = y
         self.yend = yend
         self.q = tsls.q
-        self.n, self.k = tsls.x.shape
+        self.n, self.k = tsls.z.shape
 
         w.A1 = get_A1_hom(w.sparse)
 
@@ -681,8 +680,8 @@ def get_vc_hom(w, reg, lambdapar, reg_s):
     '''
     e = get_spFilter(w, lambdapar, reg.u)
     sig2 = np.dot(e.T, e) / w.n
-    mu3 = np.sum([i**3 for i in e]) / w.n
-    mu4 = np.sum([i**4 for i in e]) / w.n
+    mu3 = np.sum(e**3) / w.n
+    mu4 = np.sum(e**4) / w.n
 
     apat = w.A1 + w.A1.T
     wpwt = w.sparse + w.sparse.T
@@ -692,8 +691,8 @@ def get_vc_hom(w, reg, lambdapar, reg_s):
     tr12 = np.sum(prod.diagonal())
     prod = wpwt * wpwt
     tr22 = np.sum(prod.diagonal())
-    a1, a2 = _get_a1a2(w, reg, lambdapar, apat, wpwt, e, reg_s)
-    #a1, a2 = __get_a1a2(w, reg, lambdapar)
+    #a1, a2 = _get_a1a2(w, reg, lambdapar, apat, wpwt, e, reg_s)
+    a1, a2 = __get_a1a2(w, reg, lambdapar)
     prod, apat, wpwt = ['empty'] * 3
     vecd1 = np.array([w.A1.diagonal()]).T
 

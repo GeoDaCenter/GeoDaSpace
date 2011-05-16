@@ -93,6 +93,7 @@ class BaseGM_Error_Het:
         #1b. GMM --> \tilde{\lambda1}
         moments = moments_het(w, ols.u)
         lambda1 = GMM.optim_moments(moments)
+        print lambda1
 
         #1c. GMM --> \tilde{\lambda2}
         sigma = get_psi_sigma(w, ols.u, lambda1)
@@ -328,9 +329,12 @@ class BaseGM_Endog_Error_Het:
         moments = moments_het(w, tsls.u)
         lambda1 = GMM.optim_moments(moments)
 
+        '''
         #1c. GMM --> \tilde{\lambda2}
         vc1 = get_vc_het_tsls(w, tsls, lambda1)
         lambda2 = GMM.optim_moments(moments,vc1)
+        '''
+        lambda2 = lambda1
         
         tsls.betas, lambda3, vc2, G, tsls.u = self.iterate(cycles,tsls,w,lambda2)
         self.u = tsls.u
@@ -373,7 +377,8 @@ class BaseGM_Endog_Error_Het:
             tsls.u = reg.y - predy
             #2b. GMM --> \hat{\lambda}
             moments_i = moments_het(w, tsls.u)
-            vc2 = get_vc_het_tsls(w, tsls, lambda2)
+            #vc2 = get_vc_het_tsls(w, tsls, lambda2)
+            vc2 = get_vc_het_tsls_filt(w, tsls, lambda2, reg)
             lambda2 = GMM.optim_moments(moments_i,vc2)
         return tsls.betas,lambda2,vc2,moments_i[0], tsls.u
 
@@ -941,6 +946,42 @@ def get_vm_het(G, lamb, reg, w, psi):
     zero = np.zeros((reg.k,1),float)
     vm = np.vstack((np.hstack((omega11, zero)),np.hstack((zero.T, omega22)))) / w.n
     return vm
+
+def get_vc_het_tsls_filt(w, reg_filt, lambdapar, reg_orig):
+
+    sigma = get_psi_sigma(w, reg_filt.u, lambdapar)
+    vc1 = get_vc_het(w, sigma)
+    #a1, a2 = get_a1a2(w, reg_filt, lambdapar)
+    a1, a2 = _get_a1a2_filt(w, reg_filt, lambdapar, reg_orig)
+    a1s = a1.T * sigma
+    a2s = a2.T * sigma
+    psi11 = float(np.dot(a1s, a1))
+    psi12 = float(np.dot(a1s, a2))
+    psi21 = float(np.dot(a2s, a1))
+    psi22 = float(np.dot(a2s, a2))
+    psi = np.array([[psi11, psi12], [psi21, psi22]]) / w.n
+    return vc1 + psi
+
+def _get_a1a2_filt(w, reg_filt, lambdapar, reg_orig):
+    '''
+    Helper function to compute a1 a2 for residuals from a spatially filtered model
+    '''
+    e = GMM.get_spFilter(w, lambdapar, reg_filt.u)
+    apat = w.A1 + w.A1.T
+    wpwt = w.sparse + w.sparse.T
+    z_s = reg_filt.z
+
+    alpha1 = np.dot(z_s.T, apat * e) / -w.n
+    alpha2 = np.dot(z_s.T, wpwt * e) / -w.n
+
+    q_hh = reg_orig.hth / w.n
+    q_hhi = la.inv(q_hh)
+    q_hzs = np.dot(reg_orig.h.T, z_s) / w.n
+    p_s = np.dot(q_hhi, q_hzs)
+    p_s = np.dot(p_s, la.inv(np.dot(q_hzs.T, np.dot(q_hhi, q_hzs.T))))
+    t = np.dot(reg_orig.h, p_s)
+    return np.dot(t, alpha1), np.dot(t, alpha2)
+
 
 def get_vc_het_tsls(w, reg, lambdapar):
 
