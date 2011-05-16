@@ -93,7 +93,6 @@ class BaseGM_Error_Het:
         #1b. GMM --> \tilde{\lambda1}
         moments = moments_het(w, ols.u)
         lambda1 = GMM.optim_moments(moments)
-        print lambda1
 
         #1c. GMM --> \tilde{\lambda2}
         sigma = get_psi_sigma(w, ols.u, lambda1)
@@ -329,12 +328,9 @@ class BaseGM_Endog_Error_Het:
         moments = moments_het(w, tsls.u)
         lambda1 = GMM.optim_moments(moments)
 
-        '''
         #1c. GMM --> \tilde{\lambda2}
         vc1 = get_vc_het_tsls(w, tsls, lambda1)
         lambda2 = GMM.optim_moments(moments,vc1)
-        '''
-        lambda2 = lambda1
         
         tsls.betas, lambda3, vc2, G, tsls.u = self.iterate(cycles,tsls,w,lambda2)
         self.u = tsls.u
@@ -951,8 +947,8 @@ def get_vc_het_tsls_filt(w, reg_filt, lambdapar, reg_orig):
 
     sigma = get_psi_sigma(w, reg_filt.u, lambdapar)
     vc1 = get_vc_het(w, sigma)
-    #a1, a2 = get_a1a2(w, reg_filt, lambdapar)
-    a1, a2 = _get_a1a2_filt(w, reg_filt, lambdapar, reg_orig)
+    a1, a2 = get_a1a2(w, reg_filt, lambdapar)
+    #a1, a2 = _get_a1a2_filt(w, reg_filt, lambdapar, reg_orig)
     a1s = a1.T * sigma
     a2s = a2.T * sigma
     psi11 = float(np.dot(a1s, a1))
