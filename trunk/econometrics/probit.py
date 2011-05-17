@@ -29,6 +29,8 @@ class probit: #DEV class required.
                   Method to calculate the scale of the marginal effects.
                   Default: 'phimean' (Mean of individual marginal effects)
                   Alternative: 'xmean' (Marginal effects at variables mean)
+    maxiter     : integer
+                  Maximum number of iterations until optimizer stops                  
               
     Attributes
     ----------
@@ -124,7 +126,7 @@ class probit: #DEV class required.
      ['PS_error' '0.725' '0.395']
      ['Pinkse_lag' '0.035' '0.852']]
     """
-    def __init__(self,y,x,constant=True,w=None,optim='newton',scalem='phimean'):
+    def __init__(self,y,x,constant=True,w=None,optim='newton',scalem='phimean',maxiter=100):
         self.y = y        
         if constant:
             x = np.hstack((np.ones(y.shape),x))
@@ -134,6 +136,7 @@ class probit: #DEV class required.
         self.optim = optim
         self.scalem = scalem
         self.w = w
+        self.maxiter = maxiter
         par_est, self.warning = self.par_est()
         self.betas = np.reshape(par_est[0],(self.k,1))
         self.logl = -float(par_est[1])
@@ -161,13 +164,9 @@ class probit: #DEV class required.
             self._cache['xmean'] = np.reshape(sum(self.x)/self.n,(self.k,1))
         return self._cache['xmean']
     @property
-    def xb(self):
-        if 'xb' not in self._cache:
-            self._cache['xb'] = np.dot(self.x,self.betas)
-        return self._cache['xb']
-    @property
     def predy(self):
         if 'predy' not in self._cache:
+            self.xb = np.dot(self.x,self.betas)
             self._cache['predy'] = norm.cdf(self.xb)
         return self._cache['predy']
     @property
@@ -233,8 +232,8 @@ class probit: #DEV class required.
         if 'Pinkse_error' not in self._cache: 
             if self.w:
                 w = self.w.sparse
-                phi = self.phiy
                 Phi = self.predy
+                phi = self.phiy                
                 #Pinkse_error:
                 Phi_prod = Phi * (1 - Phi)
                 u_naive = self.u_naive
@@ -263,7 +262,7 @@ class probit: #DEV class required.
                 #Pinkse_lag:
                 Fn2 = np.dot((self.xb + u_gen).T,(w * u_gen))**2
                 Jbb = la.inv(np.dot(self.x.T,self.x)*sig2)
-                xmean = (1.0*sum(self.x)/self.n).reshape(self.k,1)
+                xmean = self.xmean
                 muxb = np.dot(xmean.T,self.betas)
                 W1 = w*np.ones((self.n,1))
                 Jnb0 = muxb*sum(W1)*sig2
@@ -297,25 +296,13 @@ class probit: #DEV class required.
 
     def par_est(self):
         start = np.dot(la.inv(np.dot(self.x.T,self.x)),np.dot(self.x.T,self.y))
-        warn = 0
+        flogl = lambda par: -self.ll(par)
         if self.optim == 'newton':
-            iteration = 0
-            history = [start]
-            m = 1
-            while (iteration < 50 and m>=1e-04):
-                H = -la.inv(self.hessian(history[-1]))
-                g = np.reshape(self.gradient(history[-1]),(self.k,1))
-                Hg = np.dot(H,g)
-                par_hat0 = history[-1] + Hg
-                history.append(par_hat0)
-                iteration += 1
-                m = np.dot(g.T,Hg)
-            if iteration == 50:
-                warn = 1
-            logl = self.ll(par_hat0) 
-            par_hat = [par_hat0, -logl] #Coded like this to comply with most of the scipy optimizers.
-        else:
-            flogl = lambda par: -self.ll(par)
+            fgrad = lambda par: self.gradient(par)
+            fhess = lambda par: self.hessian(par)            
+            par_hat = newton(flogl,start,fgrad,fhess,self.maxiter)
+            warn = par_hat[2]
+        else:            
             fgrad = lambda par: -self.gradient(par)
             if self.optim == 'bfgs':
                 par_hat = op.fmin_bfgs(flogl,start,fgrad,full_output=1,disp=0)
@@ -375,6 +362,23 @@ class probit: #DEV class required.
             cumu = norm.cdf(float(x0*self.betas[pos] + pred))
             curves.append([x0,marg,cumu])
         return curves
+
+def newton(flogl,start,fgrad,fhess,maxiter):
+    warn = 0
+    iteration = 0
+    par_hat0 = start
+    m = 1
+    while (iteration < maxiter and m>=1e-04):
+        H = -la.inv(fhess(par_hat0))
+        g = fgrad(par_hat0).reshape(start.shape)
+        Hg = np.dot(H,g)
+        par_hat0 = par_hat0 + Hg
+        iteration += 1
+        m = np.dot(g.T,Hg)
+    if iteration == maxiter:
+        warn = 1
+    logl = flogl(par_hat0)
+    return (par_hat0, logl, warn)  
 
 def _test():
     import doctest
