@@ -12,7 +12,6 @@ from pysal.spreg.diagnostics import se_betas
 from pysal import lag_spatial
 from power_expansion import power_expansion
 from utils import get_A1_hom, get_A1_het, optim_moments, get_spFilter, get_lags, _moments2eqs
-from spHetErr import get_a1a2
 import twosls as TSLS
 import pysal.spreg.user_output as USER
 
@@ -612,7 +611,7 @@ class BaseGM_Endog_Error_Hom:
 
         # Output
         self.betas = np.vstack((tsls_s.betas,lambda2))
-        self.vm = get_omega_hom(w, lambda2, tsls, moments[0], psi)
+        self.vm = get_omega_hom(w, lambda2, tsls, moments[0], psi, tsls_s)
 
 def moments_hom(w, u):
     '''
@@ -683,17 +682,17 @@ def get_vc_hom(w, reg, lambdapar, reg_s):
     mu3 = np.sum(e**3) / w.n
     mu4 = np.sum(e**4) / w.n
 
-    apat = w.A1 + w.A1.T
-    wpwt = w.sparse + w.sparse.T
-    prod = apat * apat
+    w.apat = w.A1 + w.A1.T
+    w.wpwt = w.sparse + w.sparse.T
+    prod = w.apat * w.apat
     tr11 = np.sum(prod.diagonal())
-    prod = wpwt * apat
+    prod = w.wpwt * w.apat
     tr12 = np.sum(prod.diagonal())
-    prod = wpwt * wpwt
+    prod = w.wpwt * w.wpwt
     tr22 = np.sum(prod.diagonal())
-    #a1, a2 = _get_a1a2(w, reg, lambdapar, apat, wpwt, e, reg_s)
-    a1, a2 = __get_a1a2(w, reg, lambdapar)
-    prod, apat, wpwt = ['empty'] * 3
+    #a1, a2, p_s = _get_a1a2_filt(w, reg, lambdapar, w.apat, w.wpwt, e, reg_s)
+    a1, a2, p_s = __get_a1a2(w, reg, lambdapar)
+    prod = ['empty']
     vecd1 = np.array([w.A1.diagonal()]).T
 
     psi11 = (sig2**2 * tr11 / 2 + \
@@ -707,10 +706,13 @@ def get_vc_hom(w, reg, lambdapar, reg_s):
             mu3 * np.dot(a2.T, vecd1)) # 3rd term=0
     return np.array([[psi11[0][0], psi12[0][0]], [psi12[0][0], psi22[0][0]]]) / w.n
 
-def get_omega_hom(w, lamb, reg, G, psi):
+def get_omega_hom(w, lamb, reg_orig, G, psi, reg_filt):
     '''
     VC matrix \Omega of Spatial error with homoscedasticity. As in p. 11 of
     Drukker et al. (2011) [1]_
+
+    To Do:
+        * Optimize (pieces can be passed in instead of recomputed
     ...
 
     Parameters
@@ -745,38 +747,37 @@ def get_omega_hom(w, lamb, reg, G, psi):
     N. 1, pp. 1-13.
 
     '''
-    j = np.dot(G, np.array([[1.], [2*lamb]]))
-    p = reg.pfora1a2
-    q_hh = reg.hth / w.n
-    e = (SP.eye(w.n, w.n, format='csr') - lamb * w.sparse) * reg.u
+    e = get_spFilter(w, lamb, reg_orig.u)
     sig2 = np.dot(e.T, e) / w.n
-    a1, a2 = get_a1a2(w, reg, lamb)
-    mu3 = np.sum([i**3 for i in sig2]) / w.n
+    mu3 = np.sum([i**3 for i in e]) / w.n
+    #a1, a2, p_s = __get_a1a2(w, reg_orig, lamb)
+    a1, a2, p_s = _get_a1a2_filt(w, reg_orig, lamb, w.apat, w.wpwt, e, reg_filt)
+    j = np.dot(G, np.array([[1.], [2*lamb]]))
+    q_hh = reg_orig.hth / w.n
     vecdA1 = np.reshape(w.A1.diagonal(), (w.n, 1))
     vecdW = np.zeros((w.n, 1))
 
     psiDD = sig2 * q_hh
-    oDD = np.dot(psiDD, p)
-    oDD = np.dot(p.T, oDD)
+    oDD = np.dot(psiDD, p_s)
+    oDD = np.dot(p_s.T, oDD)
 
     psiRRi = la.inv(psi)
     oRR = np.dot(psiRRi, j)
-    oRR = np.dot(j.T, oRR)
-    oRR = la.inv(oRR)
+    oRR = 1 / np.dot(j.T, oRR)
 
-    psiDR = (sig2 * np.dot(reg.h.T, np.hstack((a1, a2))) + \
-            mu3 * np.dot(reg.h.T, np.hstack((vecdA1, vecdW))) \
+    psiDR = (sig2 * np.dot(reg_orig.h.T, np.hstack((a1, a2))) + \
+            mu3 * np.dot(reg_orig.h.T, np.hstack((vecdA1, vecdW))) \
             ) / w.n
     oDR = np.dot(j, oRR)
     oDR = np.dot(psiRRi, oDR)
     oDR = np.dot(psiDR, oDR)
-    oDR = np.dot(p.T, oDR)
+    oDR = np.dot(p_s.T, oDR)
 
     o_upper = np.hstack((oDD, oDR))
     o_lower = np.hstack((oDR.T, oRR))
     return np.vstack((o_upper, o_lower))
 
-def _get_a1a2(w, reg, lambdapar, apat, wpwt, e, reg_s):
+def _get_a1a2_filt(w, reg, lambdapar, apat, wpwt, e, reg_s):
     '''
     Internal helper function to compute a1 and a2 in get_vc_hom. It assumes
     residuals come from a spatially filetered model
@@ -792,7 +793,7 @@ def _get_a1a2(w, reg, lambdapar, apat, wpwt, e, reg_s):
     p_s = np.dot(q_hhi, q_hzs)
     p_s = np.dot(p_s, la.inv(np.dot(q_hzs.T, np.dot(q_hhi, q_hzs.T))))
     t = np.dot(reg.h, p_s)
-    return np.dot(t, alpha1), np.dot(t, alpha2)
+    return np.dot(t, alpha1), np.dot(t, alpha2), p_s
 
 def __get_a1a2(w,reg,lambdapar):
     '''
@@ -807,7 +808,7 @@ def __get_a1a2(w,reg,lambdapar):
     v2 = np.dot(np.dot(reg.h, reg.pfora1a2), alpha2)
     a1t = power_expansion(w, v1, lambdapar, transpose=True)
     a2t = power_expansion(w, v2, lambdapar, transpose=True)
-    return [a1t.T, a2t.T]
+    return [a1t.T, a2t.T, reg.pfora1a2]
 
 def _get_traces(A1, s):
     '''
@@ -851,7 +852,7 @@ def _test():
 
 if __name__ == '__main__':
 
-    #_test()
+    _test()
 
     import pysal
     db = pysal.open('examples/columbus.dbf','r')
