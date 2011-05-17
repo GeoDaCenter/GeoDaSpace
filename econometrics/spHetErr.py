@@ -332,11 +332,12 @@ class BaseGM_Endog_Error_Het:
         vc1 = get_vc_het_tsls(w, tsls, lambda1)
         lambda2 = GMM.optim_moments(moments,vc1)
         
-        tsls.betas, lambda3, vc2, G, tsls.u = self.iterate(cycles,tsls,w,lambda2)
+        tsls.betas, lambda3, vc2, G, tsls.u, z_s = self.iterate(cycles,tsls,w,lambda2)
         self.u = tsls.u
         #Output
         self.betas = np.vstack((tsls.betas,lambda3))
         self.vm = get_Omega_GS2SLS(w, lambda3, tsls, G, vc2)
+        #self.vm = get_Omega_GS2SLS_dani(w, lambda3, tsls, G, vc2, z_s)
         self._cache = {}
 
         @property
@@ -376,7 +377,7 @@ class BaseGM_Endog_Error_Het:
             #vc2 = get_vc_het_tsls(w, tsls, lambda2)
             vc2 = get_vc_het_tsls_filt(w, tsls, lambda2, reg)
             lambda2 = GMM.optim_moments(moments_i,vc2)
-        return tsls.betas,lambda2,vc2,moments_i[0], tsls.u
+        return tsls.betas,lambda2,vc2,moments_i[0], tsls.u, tsls.z
 
 class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
     """
@@ -958,26 +959,63 @@ def get_vc_het_tsls_filt(w, reg_filt, lambdapar, reg_orig):
     psi = np.array([[psi11, psi12], [psi21, psi22]]) / w.n
     return vc1 + psi
 
-def _get_a1a2_filt(w, reg_filt, lambdapar, reg_orig):
+def _get_a1a2ps_filt(w, reg, lambdapar, z_s):
     '''
     Helper function to compute a1 a2 for residuals from a spatially filtered model
     '''
-    e = GMM.get_spFilter(w, lambdapar, reg_filt.u)
+    e = GMM.get_spFilter(w, lambdapar, reg.u)
     apat = w.A1 + w.A1.T
     wpwt = w.sparse + w.sparse.T
-    z_s = reg_filt.z
 
     alpha1 = np.dot(z_s.T, apat * e) / -w.n
     alpha2 = np.dot(z_s.T, wpwt * e) / -w.n
 
-    q_hh = reg_orig.hth / w.n
+    q_hh = reg.hth / w.n
     q_hhi = la.inv(q_hh)
-    q_hzs = np.dot(reg_orig.h.T, z_s) / w.n
+    q_hzs = np.dot(reg.h.T, z_s) / w.n
     p_s = np.dot(q_hhi, q_hzs)
     p_s = np.dot(p_s, la.inv(np.dot(q_hzs.T, np.dot(q_hhi, q_hzs.T))))
-    t = np.dot(reg_orig.h, p_s)
-    return np.dot(t, alpha1), np.dot(t, alpha2)
+    t = np.dot(reg.h, p_s)
+    return np.dot(t, alpha1), np.dot(t, alpha2), p_s
 
+def get_a1a2(w,reg,lambdapar):
+    """
+    Computes the a1 in psi assuming residuals come from original regression
+    ...
+
+    Parameters
+    ----------
+
+    w           : W
+                  Spatial weights instance 
+
+    reg         : TSLS
+                  Two stage least quare regression instance
+                  
+    lambdapar   : float
+                  Spatial autoregressive parameter
+ 
+    Returns
+    -------
+
+    [a1, a2]    : list
+                  a1 and a2 are two nx1 array in psi equation
+
+    References
+    ----------
+
+    .. [1] Anselin, L. GMM Estimation of Spatial Error Autocorrelation with Heteroskedasticity
+    
+    """        
+    zst = GMM.get_spFilter(w,lambdapar, reg.z).T
+    us = GMM.get_spFilter(w,lambdapar, reg.u)
+    alpha1 = (-2.0/w.n) * (np.dot((zst * w.A1), us))
+    alpha2 = (-1.0/w.n) * (np.dot((zst * (w.sparse + w.sparse.T)), us))
+    v1 = np.dot(np.dot(reg.h, reg.pfora1a2), alpha1)
+    v2 = np.dot(np.dot(reg.h, reg.pfora1a2), alpha2)
+    a1t = power_expansion(w, v1, lambdapar, transpose=True)
+    a2t = power_expansion(w, v2, lambdapar, transpose=True)
+    return [a1t.T, a2t.T]
 
 def get_vc_het_tsls(w, reg, lambdapar):
 
@@ -1046,9 +1084,10 @@ def get_Omega_GS2SLS(w, lamb, reg, G, psi):
     omega=np.dot(np.dot(omega_left, psi_o), omega_right)    
     return omega / w.n
 
-def get_a1a2(w,reg,lambdapar):
+def get_Omega_GS2SLS_dani(w, lamb, reg, G, psi, z_s):
     """
-    Computes the a1 in psi equation:
+    Computes the variance-covariance matrix for GS2SLS as in the second part
+    of Appendix B of Arraiz et al.
     ...
 
     Parameters
@@ -1057,33 +1096,48 @@ def get_a1a2(w,reg,lambdapar):
     w           : W
                   Spatial weights instance 
 
-    reg         : TSLS
-                  Two stage least quare regression instance
-                  
-    lambdapar   : float
+    lamb        : float
                   Spatial autoregressive parameter
+                  
+    reg         : GSTSLS
+                  Generalized Spatial two stage least quare regression instance
+    G           : array
+                  Moments
+    psi         : array
+                  Weighting matrix
  
     Returns
     -------
 
-    [a1, a2]    : list
-                  a1 and a2 are two nx1 array in psi equation
-
-    References
-    ----------
-
-    .. [1] Anselin, L. GMM Estimation of Spatial Error Autocorrelation with Heteroskedasticity
+    omega       : array
+                  (k+1)x(k+1)                 
+    """
     
-    """        
-    zst = GMM.get_spFilter(w,lambdapar, reg.z).T
-    us = GMM.get_spFilter(w,lambdapar, reg.u)
-    alpha1 = (-2.0/w.n) * (np.dot((zst * w.A1), us))
-    alpha2 = (-1.0/w.n) * (np.dot((zst * (w.sparse + w.sparse.T)), us))
-    v1 = np.dot(np.dot(reg.h, reg.pfora1a2), alpha1)
-    v2 = np.dot(np.dot(reg.h, reg.pfora1a2), alpha2)
-    a1t = power_expansion(w, v1, lambdapar, transpose=True)
-    a2t = power_expansion(w, v2, lambdapar, transpose=True)
-    return [a1t.T, a2t.T]
+    sigma=get_psi_sigma(w, reg.u, lamb)
+    psi_dd_1 = reg.h.T * sigma / w.n
+    psi_dd = np.dot(psi_dd_1, reg.h)
+    a1, a2, p_s = _get_a1a2ps_filt(w, reg, lamb, z_s)
+    psi_dl=np.dot(psi_dd_1,np.hstack((a1, a2)))
+    psi_o=np.hstack((np.vstack((psi_dd, psi_dl.T)), np.vstack((psi_dl, psi))))
+    psii=la.inv(psi)
+   
+    j = np.dot(G, np.array([[1.], [2*lamb]]))
+    jtpsii=np.dot(j.T, psii)
+    jtpsiij=np.dot(jtpsii, j)
+    jtpsiiji=la.inv(jtpsiij)
+    omega_1=np.dot(jtpsiiji, jtpsii)
+    omega_2=np.dot(np.dot(psii, j), jtpsiiji)
+    om_1_s=omega_1.shape
+    om_2_s=omega_2.shape
+    p_shape=p_s.shape
+    
+    omega_left=np.hstack((np.vstack((p_s.T, \
+            np.zeros((om_1_s[0],p_shape[0])))), \
+            np.vstack((np.zeros((p_shape[1], om_1_s[1])), omega_1))))
+    omega_right=np.hstack((np.vstack((p_s, \
+            np.zeros((om_2_s[0],p_shape[1])))), \
+            np.vstack((np.zeros((p_shape[0], om_2_s[1])), omega_2))))
+    return np.dot(np.dot(omega_left, psi_o), omega_right) 
 
 def _test():
     import doctest
