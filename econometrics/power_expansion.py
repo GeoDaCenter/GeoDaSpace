@@ -222,10 +222,9 @@ def inverse_cg(w, data, scalar, transpose=False, symmetric=False,\
     cg_result.shape = (w.n, 1)
     return cg_result
 
-def regular_inverse(w, data, scalar, inv_type, transpose=False):
+def regular_inverse(w, data, scalar, inv_type='inv', transpose=False):
     """
-    Temporary function for testing purposes. Will be deleted once the main
-    functions work.
+    Regular inverse method
     """
     
     matrix = np.eye(w.n) - (scalar * w.full()[0])
