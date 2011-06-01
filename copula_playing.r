@@ -27,7 +27,7 @@ nor <- mvdc(copula=cop,
 rn <- rmvdc(nor, 1000)
 
 ##### Clayton #####
-clc <- archmCopula(family='clayton', dim=2, param=0.5)
+clc <- archmCopula(family='clayton', dim=2, param=1.95)
 cl <- mvdc(copula=clc,
             margins=c('norm', 'norm'),
             paramMargins=list(list(mean=0, sd=1), list(mean=0, sd=1))
