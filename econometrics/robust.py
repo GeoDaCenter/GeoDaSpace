@@ -56,6 +56,7 @@ def robust_vm(reg,wk=None):
     Example with OLS and HAC
 
     >>> wk = pysal.open("examples/kernel_knn15_epanechnikov_3085_random_points.gwt","r").read()
+    >>> wk.transform = 'o'
     >>> ols = BaseOLS(y,X, robust='hac', wk=wk)
     >>> ols.vm
     array([[  2.60708153e-01,   6.34129614e-03,  -3.66436005e-02],
