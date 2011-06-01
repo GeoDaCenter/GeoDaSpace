@@ -232,9 +232,7 @@ def get_spFilter(w,lamb,sf):
      [-111.1298   ]]
 
     '''        
-    # convert w into sparse matrix      
-    rs = sf - lamb * (w.sparse * sf)    
-    return rs
+    return sf - lamb * (w.sparse * sf)
 
 def get_lags(w, x, w_lags):
     '''
