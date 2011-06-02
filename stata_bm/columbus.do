@@ -35,6 +35,7 @@ spivreg HOVAL INC (CRIME =  DISCBD), el(w) id(col_id)
     /* Initial estimation of betas */
     matrix list e(delta_2sls)
 /*spreg gs2sls HOVAL INC CRIME, el(w) id(POLYID)*/
+spivreg HOVAL INC (CRIME =  DISCBD), el(w) id(POLYID)
 
 */
 /* IV lag (equivalent commands) Matches R */
@@ -44,6 +45,7 @@ spivreg HOVAL INC (CRIME =  DISCBD), dl(w) id(POLYID)
 
 /* GM error Het */
 spivreg HOVAL INC CRIME, el(w) id(POLYID) het
+spivreg HOVAL INC (CRIME =  DISCBD), el(w) id(POLYID) het
 
 /* IV lag Het */
 spivreg HOVAL INC CRIME, dl(w) id(POLYID) het
