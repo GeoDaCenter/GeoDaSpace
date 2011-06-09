@@ -7,6 +7,7 @@ from scipy import sparse as SP
 import scipy.optimize as op
 import numpy.linalg as la
 from pysal import lag_spatial
+import copy
 
 
 def get_A1_het(S):
@@ -130,7 +131,7 @@ def _moments2eqs(A1, s, u):
     G = np.array([[G11[0][0],G12[0][0]],[G21[0][0],G22[0][0]]]) / n
     return [G, g]
 
-def optim_moments(moments, vcX=np.array([0])):
+def optim_moments(moments_in, vcX=np.array([0])):
     """
     Optimization of moments
     ...
@@ -158,10 +159,11 @@ def optim_moments(moments, vcX=np.array([0])):
                         d['grad'] is the gradient at the minimum (should be 0 ish)
                         d['funcalls'] is the number of function calls made
     """
+    moments = copy.deepcopy(moments_in)
     if vcX.any():
         Ec = np.transpose(la.cholesky(la.inv(vcX)))
-        moments[0] = np.dot(Ec,moments[0])
-        moments[1] = np.dot(Ec,moments[1])
+        moments[0] = np.dot(Ec,moments_in[0])
+        moments[1] = np.dot(Ec,moments_in[1])
     if moments[0].shape[0] == 2:
         optim_par = lambda par: foptim_par(np.array([[float(par[0]),float(par[0])**2.]]).T,moments)
         start = [0.0]
