@@ -331,7 +331,7 @@ class BaseGM_Endog_Error_Het:
         #1c. GMM --> \tilde{\lambda2}
         vc1 = get_vc_het_tsls(w, tsls, lambda1)
         lambda2 = GMM.optim_moments(moments,vc1)
-        #lambda2 = lambda1
+        lambda2 = lambda1  # need this to match Stata code
         
         tsls.betas, lambda3, vc2, G, tsls.u, z_s = self.iterate(cycles,tsls,w,lambda2)
         self.u = tsls.u
@@ -1008,7 +1008,7 @@ def get_a1a2(w,reg,lambdapar,spfreg):
     .. [1] Anselin, L. GMM Estimation of Spatial Error Autocorrelation with Heteroskedasticity
     
     """        
-    zst = GMM.get_spFilter(w,lambdapar, reg.z).T
+    zst = reg.z.T
     us = GMM.get_spFilter(w,lambdapar, reg.u)
     n = reg.n
     alpha1 = (-2.0/w.n) * (np.dot((zst * w.A1), us))
