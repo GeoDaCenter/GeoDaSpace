@@ -317,8 +317,10 @@ class BaseGM_Endog_Error_Het:
         #1a. OLS --> \tilde{betas} 
         tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=constant)
         self.x = tsls.x
-        self.y = y
-        self.yend = yend
+        self.z = tsls.z
+        self.h = tsls.h
+        self.y = tsls.y
+        self.yend = tsls.yend
         self.q = tsls.q
         self.n, self.k = tsls.n, tsls.k
 
@@ -329,10 +331,33 @@ class BaseGM_Endog_Error_Het:
         lambda1 = GMM.optim_moments(moments)
 
         #1c. GMM --> \tilde{\lambda2}
-        vc1 = get_vc_het_tsls(w, tsls, lambda1)
+        self.u = tsls.u
+        self.pfora1a2 = tsls.pfora1a2
+        vc1 = get_vc_het_tsls(w, self, lambda1)
         lambda2 = GMM.optim_moments(moments,vc1)
         lambda2 = lambda1  # need this to match Stata code
-        
+       
+        #2a. reg -->\hat{betas}
+        xs = GMM.get_spFilter(w, lambda2, self.x)
+        ys = GMM.get_spFilter(w, lambda2, self.y)
+        yend_s = GMM.get_spFilter(w, lambda2, self.yend)
+        tsls_filt = TSLS.BaseTSLS(ys, xs, yend_s, h=self.h, constant=False)
+        self.predy = np.dot(self.z, tsls_filt.betas)
+        self.u = self.y - self.predy
+
+        #2b. GMM --> \hat{\lambda}
+        moments_i = moments_het(w, self.u)
+        vc2 = get_vc_het_tsls(w, self, lambda2, spfreg=True)
+        self.pfora1a2 = tsls_filt.pfora1a2
+        lambda3 = GMM.optim_moments(moments_i, vc2)
+        self.betas = np.vstack((tsls_filt.betas, lambda3))
+        G = moments_i[0]
+        self.vm = get_Omega_GS2SLS(w, lambda3, self, G, vc2)
+        self._cache = {}
+
+
+
+    """
         tsls.betas, lambda3, vc2, G, tsls.u, z_s = self.iterate(cycles,tsls,w,lambda2)
         self.u = tsls.u
         #Output
@@ -379,6 +404,7 @@ class BaseGM_Endog_Error_Het:
             #vc2 = get_vc_het_tsls_filt(w, tsls, lambda2, reg)
             lambda2 = GMM.optim_moments(moments_i,vc2)
         return tsls.betas,lambda2,vc2,moments_i[0], tsls.u, tsls.z
+    """
 
 class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
     """
@@ -836,10 +862,8 @@ def get_psi_sigma(w, u, l):
     """
 
     e = (u - l * (w.sparse * u)) ** 2
-    E = SP.lil_matrix(w.sparse.get_shape())
-    E.setdiag(e.flat)
-    E = E.asformat('csr')
-    return E
+    E = SP.dia_matrix((e.flat,0), shape=(w.n,w.n))
+    return E.tocsr()
 
 def get_vc_het(w, E):
     """
@@ -1008,8 +1032,12 @@ def get_a1a2(w,reg,lambdapar,spfreg):
     .. [1] Anselin, L. GMM Estimation of Spatial Error Autocorrelation with Heteroskedasticity
     
     """        
-    zst = reg.z.T
-    us = GMM.get_spFilter(w,lambdapar, reg.u)
+    if spfreg:
+        zst = GMM.get_spFilter(w,lambdapar, reg.z).T
+        us = GMM.get_spFilter(w,lambdapar, reg.u)
+    else:
+        zst = reg.z.T
+        us = reg.u
     n = reg.n
     alpha1 = (-2.0/w.n) * (np.dot((zst * w.A1), us))
     alpha2 = (-1.0/w.n) * (np.dot((zst * (w.sparse + w.sparse.T)), us))
@@ -1068,7 +1096,6 @@ def get_Omega_GS2SLS(w, lamb, reg, G, psi, spfreg=True):
     omega       : array
                   (k+1)x(k+1)                 
     """
-    
     sigma=get_psi_sigma(w, reg.u, lamb)
     psi_dd_1=(1.0/w.n) * reg.h.T * sigma 
     psi_dd = np.dot(psi_dd_1, reg.h)
