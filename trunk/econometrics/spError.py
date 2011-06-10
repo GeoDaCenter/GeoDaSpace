@@ -578,40 +578,39 @@ class BaseGM_Endog_Error_Hom:
     '''
     def __init__(self, y, x, w, yend, q, constant=True):
 
-        if constant:
-            x = np.hstack((np.ones(y.shape),x))
-
         # 1a. S2SLS --> \tilde{\delta}
-        tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=False)
-        self.tsls = tsls
+        tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=constant)
         self.x = tsls.x
-        self.y = y
-        self.yend = yend
+        self.z = tsls.z
+        self.y = tsls.y
+        self.yend = tsls.yend
         self.q = tsls.q
-        self.n, self.k = tsls.z.shape
+        self.h = tsls.h
+        self.n, self.k = tsls.n, tsls.k
+        self.hth = tsls.hth
 
         w.A1 = get_A1_hom(w.sparse)
 
         # 1b. GM --> \tilde{\rho}
         moments = moments_hom(w, tsls.u)
         lambda1 = optim_moments(moments)
-        self.lambda1 = lambda1
 
         # 2a. GS2SLS --> \hat{\delta}
-        x_s,y_s = get_spFilter(w,lambda1,x),get_spFilter(w,lambda1,y)
-        yend_s = get_spFilter(w,lambda1, tsls.yend)
-        tsls_s = TSLS.BaseTSLS(y_s, x_s, yend_s, h=tsls.h, constant=False)
-        predy = np.dot(tsls.z, tsls_s.betas)
-        tsls.u = tsls.y - predy
+        x_s = get_spFilter(w,lambda1,self.x)
+        y_s = get_spFilter(w,lambda1,self.y)
+        yend_s = get_spFilter(w, lambda1, self.yend)
+        tsls_s = TSLS.BaseTSLS(y_s, x_s, yend_s, h=self.h, constant=False)
+        predy = np.dot(self.z, tsls_s.betas)
+        self.u = self.y - predy
 
         # 2b. GM 2nd iteration --> \hat{\rho}
-        moments = moments_hom(w, tsls.u)
-        psi = get_vc_hom(w, tsls, lambda1, tsls_s)
+        moments = moments_hom(w, self.u)
+        psi = get_vc_hom(w, self, lambda1, tsls_s.z)
         lambda2 = optim_moments(moments, psi)
 
         # Output
         self.betas = np.vstack((tsls_s.betas,lambda2))
-        self.vm = get_omega_hom(w, lambda2, tsls, moments[0], psi, tsls_s)
+        self.vm = get_omega_hom(w, lambda2, self, moments[0], psi, tsls_s.z)
 
 def moments_hom(w, u):
     '''
@@ -646,7 +645,7 @@ def moments_hom(w, u):
     '''
     return _moments2eqs(w.A1, w.sparse, u)
 
-def get_vc_hom(w, reg, lambdapar, reg_s):
+def get_vc_hom(w, reg, lambdapar, z_s):
     '''
     VC matrix \psi of Spatial error with homoscedasticity. As in eq. (6) of
     Drukker et al. (2011) [2]_
@@ -678,9 +677,10 @@ def get_vc_hom(w, reg, lambdapar, reg_s):
 
     '''
     e = get_spFilter(w, lambdapar, reg.u)
-    sig2 = np.dot(e.T, e) / w.n
-    mu3 = np.sum(e**3) / w.n
-    mu4 = np.sum(e**4) / w.n
+    n = w.n*1.
+    sig2 = np.dot(e.T, e) / n
+    mu3 = np.sum(e**3) / n
+    mu4 = np.sum(e**4) / n
 
     w.apat = w.A1 + w.A1.T
     w.wpwt = w.sparse + w.sparse.T
@@ -690,8 +690,7 @@ def get_vc_hom(w, reg, lambdapar, reg_s):
     tr12 = np.sum(prod.diagonal())
     prod = w.wpwt * w.wpwt
     tr22 = np.sum(prod.diagonal())
-    #a1, a2, p_s = _get_a1a2_filt(w, reg, lambdapar, w.apat, w.wpwt, e, reg_s)
-    a1, a2, p_s = __get_a1a2(w, reg, lambdapar)
+    a1, a2, p_s = _get_a1a2_filt(w, reg, lambdapar, w.apat, w.wpwt, e, z_s)
     prod = ['empty']
     vecd1 = np.array([w.A1.diagonal()]).T
 
@@ -706,7 +705,7 @@ def get_vc_hom(w, reg, lambdapar, reg_s):
             mu3 * np.dot(a2.T, vecd1)) # 3rd term=0
     return np.array([[psi11[0][0], psi12[0][0]], [psi12[0][0], psi22[0][0]]]) / w.n
 
-def get_omega_hom(w, lamb, reg_orig, G, psi, reg_filt):
+def get_omega_hom(w, lamb, reg_orig, G, psi, z_s):
     '''
     VC matrix \Omega of Spatial error with homoscedasticity. As in p. 11 of
     Drukker et al. (2011) [1]_
@@ -751,7 +750,7 @@ def get_omega_hom(w, lamb, reg_orig, G, psi, reg_filt):
     sig2 = np.dot(e.T, e) / w.n
     mu3 = np.sum([i**3 for i in e]) / w.n
     #a1, a2, p_s = __get_a1a2(w, reg_orig, lamb)
-    a1, a2, p_s = _get_a1a2_filt(w, reg_orig, lamb, w.apat, w.wpwt, e, reg_filt)
+    a1, a2, p_s = _get_a1a2_filt(w, reg_orig, lamb, w.apat, w.wpwt, e, z_s)
     j = np.dot(G, np.array([[1.], [2*lamb]]))
     q_hh = reg_orig.hth / w.n
     vecdA1 = np.reshape(w.A1.diagonal(), (w.n, 1))
@@ -777,13 +776,11 @@ def get_omega_hom(w, lamb, reg_orig, G, psi, reg_filt):
     o_lower = np.hstack((oDR.T, oRR))
     return np.vstack((o_upper, o_lower))
 
-def _get_a1a2_filt(w, reg, lambdapar, apat, wpwt, e, reg_s):
+def _get_a1a2_filt(w, reg, lambdapar, apat, wpwt, e, z_s):
     '''
     Internal helper function to compute a1 and a2 in get_vc_hom. It assumes
     residuals come from a spatially filetered model
     '''
-    z_s = reg_s.z
-
     alpha1 = np.dot(z_s.T, apat * e) / -w.n
     alpha2 = np.dot(z_s.T, wpwt * e) / -w.n
 
