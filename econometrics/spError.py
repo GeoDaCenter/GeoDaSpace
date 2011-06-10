@@ -694,16 +694,16 @@ def get_vc_hom(w, reg, lambdapar, z_s):
     prod = ['empty']
     vecd1 = np.array([w.A1.diagonal()]).T
 
-    psi11 = (sig2**2 * tr11 / 2 + \
+    psi11 = (sig2**2 * tr11 / 2. + \
             sig2 * np.dot(a1.T, a1) + \
             (mu4 - 3 * sig2**2) * np.dot(vecd1.T, vecd1) + \
-            mu3 * (np.dot(a1.T, vecd1) + np.dot(a1.T, vecd1)))
-    psi22 = (sig2**2 * tr22 / 2 + \
+            mu3 * 2 * np.dot(a1.T, vecd1))
+    psi22 = (sig2**2 * tr22 / 2. + \
             sig2 * np.dot(a2.T, a2)) # 3rd&4th terms=0 bc vecd2=0
-    psi12 = (sig2**2 * tr12 / 2 + \
+    psi12 = (sig2**2 * tr12 / 2. + \
             sig2 * np.dot(a1.T, a2) + \
             mu3 * np.dot(a2.T, vecd1)) # 3rd term=0
-    return np.array([[psi11[0][0], psi12[0][0]], [psi12[0][0], psi22[0][0]]]) / w.n
+    return np.array([[psi11[0][0], psi12[0][0]], [psi12[0][0], psi22[0][0]]]) / n
 
 def get_omega_hom(w, lamb, reg_orig, G, psi, z_s):
     '''
@@ -746,13 +746,14 @@ def get_omega_hom(w, lamb, reg_orig, G, psi, z_s):
     N. 1, pp. 1-13.
 
     '''
+    n = w.n*1.
     e = get_spFilter(w, lamb, reg_orig.u)
-    sig2 = np.dot(e.T, e) / w.n
-    mu3 = np.sum([i**3 for i in e]) / w.n
+    sig2 = np.dot(e.T, e) / n
+    mu3 = np.sum([i**3 for i in e]) / n
     #a1, a2, p_s = __get_a1a2(w, reg_orig, lamb)
     a1, a2, p_s = _get_a1a2_filt(w, reg_orig, lamb, w.apat, w.wpwt, e, z_s)
     j = np.dot(G, np.array([[1.], [2*lamb]]))
-    q_hh = reg_orig.hth / w.n
+    q_hh = reg_orig.hth / n
     vecdA1 = np.reshape(w.A1.diagonal(), (w.n, 1))
     vecdW = np.zeros((w.n, 1))
 
@@ -766,7 +767,7 @@ def get_omega_hom(w, lamb, reg_orig, G, psi, z_s):
 
     psiDR = (sig2 * np.dot(reg_orig.h.T, np.hstack((a1, a2))) + \
             mu3 * np.dot(reg_orig.h.T, np.hstack((vecdA1, vecdW))) \
-            ) / w.n
+            ) / n
     oDR = np.dot(j, oRR)
     oDR = np.dot(psiRRi, oDR)
     oDR = np.dot(psiDR, oDR)
