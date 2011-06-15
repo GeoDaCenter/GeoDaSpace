@@ -22,11 +22,14 @@ cop  <- claytonCopula(0.85)
 #cop  <- normalCopula(0.85)
 nc <- rcopula(cop, 5)
 #nc <- x
+#set.seed(123)
+#nc <- rnorm(100)
+#nc <- matrix(cbind(nc, nc**3), nrow=length(nc), ncol=2)
 
 #par(mfrow = c(1, 2))
 
 # Compute empirical copula
-ec <- dempiricalCopula(nc, N=10)
+ec <- dempiricalCopula(nc, N=4)
 #image(ec$z)
 filled.contour(x=ec$x, y=ec$y, z=ec$z, color = topo.colors, nlevels=10,
     axes=FALSE, frame.plot=FALSE)
