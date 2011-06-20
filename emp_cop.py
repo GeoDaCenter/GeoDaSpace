@@ -96,14 +96,14 @@ def dec_multi(v, l=10):
     pool = mp.Pool(cores)
     seps = map(int, np.linspace(0, l+1, cores+1))
     seps = [(seps[i], seps[i+1]) for i in range(len(seps)-1)]
-    pars_tuples = [(i, C) for i in seps]
+    pars_tuples = [(i, C, l) for i in seps]
     blocks = pool.map(block_c, pars_tuples)
     c = np.vstack(tuple(blocks))
     c[0, :] = np.zeros((1, l+1))
     return c, u, C
 
 def block_c(pars_tuple):
-    ran, C = pars_tuple
+    ran, C, l = pars_tuple
     c = np.zeros((ran[1]-ran[0], l+1))
     for i in range(*ran):
         for j in range(1, l+1):
@@ -141,18 +141,18 @@ if __name__ == '__main__':
     #w = ps.lat2W(10, 10)
     times = []
     times_r = []
-    l = 50
-    for i in range(1):
+    #l = 50
+    for i in range(2):
         v = sp.random.random((1000, 2)) * 10
         t0 = time.time()
         #e = [ecdf(i, v, len(v)) for i in v]
         print 'Running multi'
-        c_orig = dec_multi(v, l=l)
+        c_orig = dec_multi(v, 10)
         #c_orig = dec_slow(v)
         t1 = time.time()
         print 'Running single'
         #er = ecdf_r(v, len(v))
-        c_opt = dec(v, l=l)
+        c_opt = dec(v, 10)
         t2 = time.time()
         np.testing.assert_array_equal(c_orig[0], c_opt[0])
         times.append(t1 - t0)
