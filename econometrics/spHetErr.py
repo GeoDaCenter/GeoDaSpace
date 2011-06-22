@@ -77,8 +77,7 @@ class BaseGM_Error_Het:
     [[ 47.9963  11.479 ]
      [  0.7105   0.3681]
      [ -0.5588   0.1616]
-     [  0.4118  14.4391]]
-    
+     [  0.4118   0.1677]]
     """
 
     def __init__(self,y,x,w,cycles=1,constant=True): ######Inserted i parameter here for iterations...
@@ -206,7 +205,7 @@ class GM_Error_Het(BaseGM_Error_Het):
     [[ 47.9963  11.479 ]
      [  0.7105   0.3681]
      [ -0.5588   0.1616]
-     [  0.4118  14.4391]]
+     [  0.4118   0.1677]]
 
     """
 
@@ -307,10 +306,10 @@ class BaseGM_Endog_Error_Het:
     >>> w.transform = 'r'
     >>> reg = BaseGM_Endog_Error_Het(y, X, w, yd, q)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 55.3971  22.9247]
-     [  0.4656   0.6863]
-     [ -0.6704   0.3504]
-     [  0.4137  13.1586]]
+    [[ 55.4616  28.7892]
+     [  0.468    0.7709]
+     [ -0.673    0.4662]
+     [  0.4126   0.1778]]
     """
 
     def __init__(self,y,x,w,yend,q,cycles=1,constant=True): 
@@ -454,10 +453,10 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'crime', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 55.3971  22.9247]
-     [  0.4656   0.6863]
-     [ -0.6704   0.3504]
-     [  0.4137  13.1586]]
+    [[ 55.4616  28.7892]
+     [  0.468    0.7709]
+     [ -0.673    0.4662]
+     [  0.4126   0.1778]]
 
     """
     def __init__(self, y, x, w, yend, q, cycles=1, constant=True,\
@@ -569,10 +568,10 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
 
     >>> reg = BaseGM_Combo_Het(y, X, w)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[   9.9753   11.8351]
-     [   1.5742    0.3781]
-     [   0.1535    0.3625]
-     [   0.1984  122.1638]]
+    [[ 10.0489  14.1198]
+     [  1.5714   0.3742]
+     [  0.1524   0.3974]
+     [  0.2126   0.3931]]
 
     Example with both spatial lag and other endogenous variables
 
@@ -585,11 +584,11 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     >>> reg = BaseGM_Combo_Het(y, X, w, yd, q)
     >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['lag_hoval'],['lambda']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
-    [['CONSTANT' '113.91292' '43.19183']
-     ['inc' '-0.34822' '0.89651']
-     ['crime' '-1.35656' '0.49404']
-     ['lag_hoval' '-0.57657' '0.47791']
-     ['lambda' '0.65607' '27.01048']]
+    [['CONSTANT' '110.1897' '66.55921']
+     ['inc' '-0.28381' '1.18657']
+     ['crime' '-1.3613' '0.74229']
+     ['lag_hoval' '-0.49522' '0.8139']
+     ['lambda' '0.65217' '0.15123']]
     """
 
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
@@ -703,11 +702,10 @@ class GM_Combo_Het(BaseGM_Combo_Het):
     >>> print reg.name_z
     ['CONSTANT', 'income', 'lag_hoval', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[   9.9753   11.8351]
-     [   1.5742    0.3781]
-     [   0.1535    0.3625]
-     [   0.1984  122.1638]]
-        
+    [[ 10.0489  14.1198]
+     [  1.5714   0.3742]
+     [  0.1524   0.3974]
+     [  0.2126   0.3931]]
         
     Example with both spatial lag and other endogenous variables
 
@@ -721,12 +719,11 @@ class GM_Combo_Het(BaseGM_Combo_Het):
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'crime', 'lag_hoval', 'lambda']
     >>> print np.round(reg.betas,4)
-    [[ 113.9129]
-     [  -0.3482]
-     [  -1.3566]
-     [  -0.5766]
-     [   0.6561]]
-    
+    [[ 110.1897]
+     [  -0.2838]
+     [  -1.3613]
+     [  -0.4952]
+     [   0.6522]]
     
     """
     

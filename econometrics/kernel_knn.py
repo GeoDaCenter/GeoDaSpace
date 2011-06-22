@@ -93,50 +93,50 @@ class KernelKNN(W):
     True
     >>> min([len(i) for i in kw.weights.values()]) == 3
     True
-    >>> kw.weights[0]
+    >>> print kw.weights[0]
     [1.0, 0.500000049999995, 0.4409830615267465]
     >>> kw.neighbors[0]
     [0, 1, 3]
-    >>> kw.bandwidth
-    array([[ 20.000002],
-           [ 20.000002],
-           [ 20.000002],
-           [ 20.000002],
-           [ 20.000002],
-           [ 20.000002]])
+    >>> print kw.bandwidth
+    [[ 20.000002]
+     [ 20.000002]
+     [ 20.000002]
+     [ 20.000002]
+     [ 20.000002]
+     [ 20.000002]]
     >>> kw_knn5=KernelKNN(points,bandwidth=15.0,k=5)
     >>> max([len(i) for i in kw_knn5.weights.values()]) == 6
     True
     >>> min([len(i) for i in kw_knn5.weights.values()]) == 6
     True
-    >>> kw_knn5[0]
+    >>> print kw_knn5[0]
     {0: 1.0, 1: 0.33333333333333337, 2: -1.0, 3: 0.2546440075000701, 4: -0.4907119849998598, 5: -0.8856180831641267}
-    >>> kw_knn5.neighbors[0]
+    >>> print kw_knn5.neighbors[0]
     [0, 1, 3, 4, 5, 2]
-    >>> kw_knn5.bandwidth
-    array([[ 15.],
-           [ 15.],
-           [ 15.],
-           [ 15.],
-           [ 15.],
-           [ 15.]])
+    >>> print kw_knn5.bandwidth
+    [[ 15.]
+     [ 15.]
+     [ 15.]
+     [ 15.]
+     [ 15.]
+     [ 15.]]
 
     >>> kw15=KernelKNN(points,bandwidth=15.0)
     >>> max([len(i) for i in kw15.weights.values()]) == 3
     True
     >>> min([len(i) for i in kw15.weights.values()]) == 3
     True
-    >>> kw15[0]
+    >>> print kw15[0]
     {0: 1.0, 1: 0.33333333333333337, 3: 0.2546440075000701}
-    >>> kw15.neighbors[0]
+    >>> print kw15.neighbors[0]
     [0, 1, 3]
-    >>> kw15.bandwidth
-    array([[ 15.],
-           [ 15.],
-           [ 15.],
-           [ 15.],
-           [ 15.],
-           [ 15.]])
+    >>> print kw15.bandwidth
+    [[ 15.]
+     [ 15.]
+     [ 15.]
+     [ 15.]
+     [ 15.]
+     [ 15.]]
 
     Adaptive bandwidths user specified
 
@@ -146,17 +146,17 @@ class KernelKNN(W):
     True
     >>> min([len(i) for i in kwa.weights.values()]) == 3
     True
-    >>> kwa.weights[0]
+    >>> print kwa.weights[0]
     [1.0, 0.6, 0.552786404500042]
-    >>> kwa.neighbors[0]
+    >>> print kwa.neighbors[0]
     [0, 1, 3]
-    >>> kwa.bandwidth
-    array([[ 25. ],
-           [ 15. ],
-           [ 25. ],
-           [ 16. ],
-           [ 14.5],
-           [ 25. ]])
+    >>> print kwa.bandwidth
+    [[ 25. ]
+     [ 15. ]
+     [ 25. ]
+     [ 16. ]
+     [ 14.5]
+     [ 25. ]]
 
     Endogenous adaptive bandwidths 
 
@@ -165,17 +165,17 @@ class KernelKNN(W):
     True
     >>> min([len(i) for i in kwea.weights.values()]) == 3
     True
-    >>> kwea.weights[0]
+    >>> print kwea.weights[0]
     [1.0, 0.10557289844279438, 9.99999900663795e-08]
-    >>> kwea.neighbors[0]
+    >>> print kwea.neighbors[0]
     [0, 1, 3]
-    >>> kwea.bandwidth
-    array([[ 11.18034101],
-           [ 11.18034101],
-           [ 20.000002  ],
-           [ 11.18034101],
-           [ 14.14213704],
-           [ 18.02775818]])
+    >>> print kwea.bandwidth
+    [[ 11.18034101]
+     [ 11.18034101]
+     [ 20.000002  ]
+     [ 11.18034101]
+     [ 14.14213704]
+     [ 18.02775818]]
 
     Endogenous adaptive bandwidths with Gaussian kernel
 
@@ -184,15 +184,15 @@ class KernelKNN(W):
     True
     >>> min([len(i) for i in kweag.weights.values()]) == 3
     True
-    >>> kweag.weights[0]
+    >>> print kweag.weights[0]
     [0.3989422804014327, 0.2674190291577696, 0.2419707487162134]
-    >>> kweag.bandwidth
-    array([[ 11.18034101],
-           [ 11.18034101],
-           [ 20.000002  ],
-           [ 11.18034101],
-           [ 14.14213704],
-           [ 18.02775818]])
+    >>> print kweag.bandwidth
+    [[ 11.18034101]
+     [ 11.18034101]
+     [ 20.000002  ]
+     [ 11.18034101]
+     [ 14.14213704]
+     [ 18.02775818]]
     """
 
     def __init__(self,data,bandwidth=None,fixed=True,k=2, p=2,
