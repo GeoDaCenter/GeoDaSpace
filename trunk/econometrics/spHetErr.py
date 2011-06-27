@@ -1,7 +1,7 @@
 import numpy as np
 import numpy.linalg as la
-import pysal.spreg.ols as OLS
-import pysal.spreg.user_output as USER
+import ols as OLS
+import user_output as USER
 import utils as GMM
 import twosls as TSLS
 from power_expansion import power_expansion
@@ -74,18 +74,18 @@ class BaseGM_Error_Het:
     >>> w.transform = 'r'
     >>> reg = BaseGM_Error_Het(y, X, w)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 47.9963  11.479 ]
-     [  0.7105   0.3681]
-     [ -0.5588   0.1616]
-     [  0.4118   0.1677]]
+    [[ 48.012   11.4405]
+     [  0.7119   0.3653]
+     [ -0.5597   0.1609]
+     [  0.4259   0.2077]]
     """
 
-    def __init__(self,y,x,w,cycles=1,constant=True): ######Inserted i parameter here for iterations...
+    def __init__(self,y,x,w,cycles=1,constant=True): 
         #1a. OLS --> \tilde{betas}
         ols = OLS.BaseOLS(y, x, constant=constant)
         self.x = ols.x
-        self.y = y
-        self.n, self.k = ols.x.shape
+        self.y = ols.y
+        self.n, self.k = ols.n, ols.k
 
         w.A1 = GMM.get_A1_het(w.sparse)
 
@@ -94,41 +94,29 @@ class BaseGM_Error_Het:
         lambda1 = GMM.optim_moments(moments)
 
         #1c. GMM --> \tilde{\lambda2}
+        self.u = ols.u
         sigma = get_psi_sigma(w, ols.u, lambda1)
         vc1 = get_vc_het(w, sigma)
         lambda2 = GMM.optim_moments(moments,vc1)
-        
-        ols.betas, lambda3, vc2, G, ols.u = self.iterate(cycles,ols,w,lambda2)
-        #Output
-        self.betas = np.vstack((ols.betas,lambda3))
-        self.vm = get_vm_het(G,lambda3,ols,w,vc2)
+        lambda2 = lambda1  # MIGHT need this to match Stata code
+       
+        #2a. reg -->\hat{betas}
+        xs = GMM.get_spFilter(w, lambda2, self.x)
+        ys = GMM.get_spFilter(w, lambda2, self.y)
+        ols_s = OLS.BaseOLS(ys, xs, constant=False)
+        self.predy = np.dot(self.x, ols_s.betas)
+        self.u = self.y - self.predy
+
+        #2b. GMM --> \hat{\lambda}
+        moments_i = moments_het(w, self.u)
+        sigma = get_psi_sigma(w, ols_s.u, lambda2)
+        vc2 = get_vc_het(w, sigma)
+        lambda3 = GMM.optim_moments(moments_i, vc2)
+        self.betas = np.vstack((ols_s.betas, lambda3))
+        G = moments_i[0]
+        self.vm = get_vm_het(G, lambda3, self, w, vc2)
         self._cache = {}
 
-        @property
-        def predy(self):
-            if 'predy' not in self._cache:
-                self._cache['predy'] = np.dot(self.x,self.betas[0:-1])
-            return self._cache['predy']
-
-        @property
-        def u(self):
-            if 'u' not in self._cache:
-                self._cache['u'] = self.y - self.predy
-            return self._cache['u']
-
-    def iterate(self,cycles,reg,w,lambda2):
-        for n in range(cycles):
-            #2a. reg -->\hat{betas}
-            xs,ys = GMM.get_spFilter(w,lambda2,reg.x),GMM.get_spFilter(w,lambda2,reg.y)            
-            beta_i = np.dot(np.linalg.inv(np.dot(xs.T,xs)),np.dot(xs.T,ys))
-            predy = np.dot(reg.x, beta_i)
-            u = reg.y - predy
-            #2b. GMM --> \hat{\lambda}
-            moments_i = moments_het(w, u)
-            sigma_i =  get_psi_sigma(w, u, lambda2)
-            vc2 = get_vc_het(w, sigma_i)
-            lambda2 = GMM.optim_moments(moments_i,vc2)
-        return beta_i,lambda2,vc2,moments_i[0], u
 
 class GM_Error_Het(BaseGM_Error_Het):
     """
@@ -202,10 +190,10 @@ class GM_Error_Het(BaseGM_Error_Het):
     >>> print reg.name_x
     ['CONSTANT', 'income', 'crime', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 47.9963  11.479 ]
-     [  0.7105   0.3681]
-     [ -0.5588   0.1616]
-     [  0.4118   0.1677]]
+    [[ 48.012   11.4405]
+     [  0.7119   0.3653]
+     [ -0.5597   0.1609]
+     [  0.4259   0.2077]]
 
     """
 
@@ -852,18 +840,14 @@ def get_vc_het(w, E):
     592-614.
 
     """
-    A1 = w.A1
-    A1t = A1.T
-    wt = w.sparse.T
-
-    aPatE = (A1 + A1t) * E
-    wPwtE = (w.sparse + wt) * E
+    aPatE = (w.A1 + w.A1.T) * E
+    wPwtE = (w.sparse + w.sparse.T) * E
 
     psi11 = aPatE * aPatE
     psi12 = aPatE * wPwtE
     psi22 = wPwtE * wPwtE 
     psi = map(np.sum, [psi11.diagonal(), psi12.diagonal(), psi22.diagonal()])
-    return np.array([[psi[0], psi[1]], [psi[1], psi[2]]]) / (2 * w.n)
+    return np.array([[psi[0], psi[1]], [psi[1], psi[2]]]) / (2. * w.n)
 
 def get_vm_het(G, lamb, reg, w, psi):
     """
