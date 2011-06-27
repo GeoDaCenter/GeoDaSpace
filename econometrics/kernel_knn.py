@@ -94,7 +94,7 @@ class KernelKNN(W):
     >>> min([len(i) for i in kw.weights.values()]) == 3
     True
     >>> print kw.weights[0]
-    [1.0, 0.500000049999995, 0.4409830615267465]
+    [1.0, 0.50000004999999503, 0.44098306152674649]
     >>> kw.neighbors[0]
     [0, 1, 3]
     >>> print kw.bandwidth
@@ -110,7 +110,7 @@ class KernelKNN(W):
     >>> min([len(i) for i in kw_knn5.weights.values()]) == 6
     True
     >>> print kw_knn5[0]
-    {0: 1.0, 1: 0.33333333333333337, 2: -1.0, 3: 0.2546440075000701, 4: -0.4907119849998598, 5: -0.8856180831641267}
+    {0: 1.0, 1: 0.33333333333333337, 2: -1.0, 3: 0.2546440075000701, 4: -0.4907119849998598, 5: -0.88561808316412671}
     >>> print kw_knn5.neighbors[0]
     [0, 1, 3, 4, 5, 2]
     >>> print kw_knn5.bandwidth
@@ -147,7 +147,7 @@ class KernelKNN(W):
     >>> min([len(i) for i in kwa.weights.values()]) == 3
     True
     >>> print kwa.weights[0]
-    [1.0, 0.6, 0.552786404500042]
+    [1.0, 0.59999999999999998, 0.55278640450004202]
     >>> print kwa.neighbors[0]
     [0, 1, 3]
     >>> print kwa.bandwidth
@@ -166,7 +166,7 @@ class KernelKNN(W):
     >>> min([len(i) for i in kwea.weights.values()]) == 3
     True
     >>> print kwea.weights[0]
-    [1.0, 0.10557289844279438, 9.99999900663795e-08]
+    [1.0, 0.10557289844279438, 9.9999990066379496e-08]
     >>> print kwea.neighbors[0]
     [0, 1, 3]
     >>> print kwea.bandwidth
@@ -185,7 +185,7 @@ class KernelKNN(W):
     >>> min([len(i) for i in kweag.weights.values()]) == 3
     True
     >>> print kweag.weights[0]
-    [0.3989422804014327, 0.2674190291577696, 0.2419707487162134]
+    [0.3989422804014327, 0.26741902915776961, 0.24197074871621341]
     >>> print kweag.bandwidth
     [[ 11.18034101]
      [ 11.18034101]
