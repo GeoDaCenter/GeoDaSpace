@@ -9,6 +9,8 @@ from econometrics.spError import GM_Error, BaseGM_Endog_Error_Hom
 from econometrics.twosls_sp import BaseGM_Lag as GM_Lag
 from econometrics.spError import BaseGM_Combo as GM_Combo
 from econometrics.spHetErr import BaseGM_Error_Het as BaseGM_Error_Het
+from econometrics.spHetErr import BaseGM_Endog_Error_Het as BaseGM_Endog_Error_Het
+from econometrics.spHetErr import BaseGM_Combo_Het as BaseGM_Combo_Het
 
 w = ps.open('../../../trunk/econometrics/examples/columbus.gal').read()
 w.transform = 'r'
@@ -25,11 +27,6 @@ x = np.hstack((inc, crime))
 # OLS (matches both)
 #model = ps.spreg.ols.OLS(hoval, x)
 
-# GM Error (matches R, not STATA)
-#model = GM_Error(hoval, x, w) # This model is not implemented in STATA's 'spivreg'
-
-# GM_hom
-#model = BaseGM_Endog_Error_Hom(hoval, inc, w, crime, discbd)
 
 # 2SLS Lag 
 #model = GM_Lag(hoval, x, w, w_lags=2)
@@ -37,12 +34,28 @@ x = np.hstack((inc, crime))
 #model = GM_Lag(hoval, inc, yend=crime, q=discbd, w=w, w_lags=2)
 #model = GM_Lag(hoval, inc, yend=crime, q=discbd, w=w, w_lags=2, robust="White")
 
-# GM_Combo
+
+
+# GM Error (matches R, not STATA)
+#model = GM_Error(hoval, x, w) # This model is not implemented in STATA's 'spivreg'
+# GM Combo
 #model = GM_Combo(hoval, x, w, w_lags=2)
 
+
+
+# GM Error Hom
+#model = BaseGM_Endog_Error_Hom(hoval, inc, w, crime, discbd)
+# GM Combo Hom
+#model = BaseGM_Endog_Combo_Hom(hoval, inc, w, crime, discbd)
+
+
+
 # GM Error Het
-#model = BaseGM_Error_Het(hoval, x, w)
-model = GM_Lag(hoval, x, w, w_lags=2)
+model = BaseGM_Error_Het(hoval, x, w)
+#model = BaseGM_Endog_Error_Het(hoval, inc, w, crime, discbd)
+# GM Combo Het
+#model = BaseGM_Combo_Het(hoval, x, w, w_lags=2)
+#model = BaseGM_Combo_Het(hoval, inc, w, crime, discbd, w_lags=2)
 
 
 print '##### Betas #####'
