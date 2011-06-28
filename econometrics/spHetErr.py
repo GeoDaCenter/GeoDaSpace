@@ -4,7 +4,6 @@ import ols as OLS
 import user_output as USER
 import utils as GMM
 import twosls as TSLS
-import twosls_copy as TSLS_H
 from power_expansion import power_expansion
 from scipy import sparse as SP
 from pysal import lag_spatial
@@ -138,7 +137,6 @@ class BaseGM_Error_Het:
         """
         #1a. OLS --> \tilde{betas}
         ols = OLS.BaseOLS(y, x, constant=constant)
-        #ols = TSLS_H.BaseTSLS(y, x, constant=constant)
         self.x = ols.x
         self.y = ols.y
         self.n, self.k = ols.n, ols.k
@@ -160,8 +158,7 @@ class BaseGM_Error_Het:
         #2a. reg -->\hat{betas}
         xs = GMM.get_spFilter(w, lambda2, self.x)
         ys = GMM.get_spFilter(w, lambda2, self.y)
-        #ols_s = OLS.BaseOLS(ys, xs, constant=False)
-        ols_s = TSLS_H.BaseTSLS(ys, xs, h=self.x, constant=False)        
+        ols_s = OLS.BaseOLS(ys, xs, constant=False)
         self.predy = np.dot(self.x, ols_s.betas)
         self.u = self.y - self.predy
 
