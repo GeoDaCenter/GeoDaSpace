@@ -4,6 +4,7 @@ import ols as OLS
 import user_output as USER
 import utils as GMM
 import twosls as TSLS
+import twosls_copy as TSLS_H
 from power_expansion import power_expansion
 from scipy import sparse as SP
 from pysal import lag_spatial
@@ -74,20 +75,76 @@ class BaseGM_Error_Het:
     >>> w.transform = 'r'
     >>> reg = BaseGM_Error_Het(y, X, w)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 48.012   11.4405]
-     [  0.7119   0.3653]
-     [ -0.5597   0.1609]
-     [  0.4259   0.2077]]
+    [[ 46.9457  11.9511]
+     [  0.7147   0.387 ]
+     [ -0.5306   0.1694]
+     [  0.4005   0.1733]]
     """
 
     def __init__(self,y,x,w,cycles=1,constant=True): 
+        if constant == False:
+            raise Exception, "This model does not allow a constant to be passed"
+
+        #1a. OLS --> \tilde{betas}
+        x_base = np.ones(y.shape)
+        tsls = TSLS.BaseTSLS(y, x=x_base, yend=x, q=x, constant=False)
+        self.x = np.hstack((x_base,x))
+        self.z = tsls.z
+        self.h = tsls.h
+        self.y = tsls.y
+        self.n, self.k = tsls.n, tsls.k
+
+        w.A1 = GMM.get_A1_het(w.sparse)
+
+
+        #1b. GMM --> \tilde{\lambda1}
+        moments = moments_het(w, tsls.u)
+        lambda1 = GMM.optim_moments(moments)
+
+        #1c. GMM --> \tilde{\lambda2}
+        self.u = tsls.u
+        vc1 = get_vc_het_tsls(w, self, lambda1, tsls.pfora1a2, filt=False)
+        lambda2 = GMM.optim_moments(moments,vc1)
+        lambda2 = lambda1  # need this to match Stata code
+       
+        #2a. reg -->\hat{betas}
+        xs = GMM.get_spFilter(w, lambda2, x)
+        ys = GMM.get_spFilter(w, lambda2, self.y)
+        x_base_s = GMM.get_spFilter(w, lambda2, x_base)
+        tsls_s = TSLS.BaseTSLS(ys, x=x_base_s, yend=xs, h=self.h, constant=False)
+        self.predy = np.dot(self.z, tsls_s.betas)
+        self.u = self.y - self.predy
+
+        #2b. GMM --> \hat{\lambda}
+        moments_i = moments_het(w, self.u)
+        P = get_P_hat(self.h, tsls_s.z, self.n)
+        vc2 = get_vc_het_tsls(w, self, lambda2, P, filt=True)
+        lambda3 = GMM.optim_moments(moments_i, vc2)
+        self.betas = np.vstack((tsls_s.betas, lambda3))
+        G = moments_i[0]
+        self.pfora1a2 = tsls_s.pfora1a2
+        self.vm = get_Omega_GS2SLS(w, lambda3, self, G, vc2, P, filt=True)
+        self._cache = {}
+
+
+        #####################################################################
+        # The code above here produces results very similar to Stata. It is
+        # a copy-and-paste from BaseGM_Endog_Error() with a few minor changes
+        # in how the 2SLS is called and the way the self variables are
+        # assigned. The method is a departure from Luc's notes which uses OLS
+        # in place of 2SLS. The code below here is based on Luc's notes.
+        #####################################################################
+        
+        """
         #1a. OLS --> \tilde{betas}
         ols = OLS.BaseOLS(y, x, constant=constant)
+        #ols = TSLS_H.BaseTSLS(y, x, constant=constant)
         self.x = ols.x
         self.y = ols.y
         self.n, self.k = ols.n, ols.k
 
         w.A1 = GMM.get_A1_het(w.sparse)
+
 
         #1b. GMM --> \tilde{\lambda1}
         moments = moments_het(w, ols.u)
@@ -103,7 +160,8 @@ class BaseGM_Error_Het:
         #2a. reg -->\hat{betas}
         xs = GMM.get_spFilter(w, lambda2, self.x)
         ys = GMM.get_spFilter(w, lambda2, self.y)
-        ols_s = OLS.BaseOLS(ys, xs, constant=False)
+        #ols_s = OLS.BaseOLS(ys, xs, constant=False)
+        ols_s = TSLS_H.BaseTSLS(ys, xs, h=self.x, constant=False)        
         self.predy = np.dot(self.x, ols_s.betas)
         self.u = self.y - self.predy
 
@@ -116,6 +174,7 @@ class BaseGM_Error_Het:
         G = moments_i[0]
         self.vm = get_vm_het(G, lambda3, self, w, vc2)
         self._cache = {}
+        """
 
 
 class GM_Error_Het(BaseGM_Error_Het):
@@ -190,10 +249,10 @@ class GM_Error_Het(BaseGM_Error_Het):
     >>> print reg.name_x
     ['CONSTANT', 'income', 'crime', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 48.012   11.4405]
-     [  0.7119   0.3653]
-     [ -0.5597   0.1609]
-     [  0.4259   0.2077]]
+    [[ 46.9457  11.9511]
+     [  0.7147   0.387 ]
+     [ -0.5306   0.1694]
+     [  0.4005   0.1733]]
 
     """
 
