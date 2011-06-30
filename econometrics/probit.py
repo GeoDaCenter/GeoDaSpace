@@ -124,7 +124,7 @@ class probit: #DEV class required.
     [['Pinkse_error' '1.278' '0.258']
      ['KP_error' '-1.194' '0.232']
      ['PS_error' '0.725' '0.395']
-     ['Pinkse_lag' '0.035' '0.852']]
+     ['Pinkse_lag' '0.062' '0.803']]
     """
     def __init__(self,y,x,constant=True,w=None,optim='newton',scalem='phimean',maxiter=100):
         self.y = y        
