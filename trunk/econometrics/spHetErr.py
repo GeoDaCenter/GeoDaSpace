@@ -377,7 +377,7 @@ class BaseGM_Endog_Error_Het:
         self.u = tsls.u
         vc1 = get_vc_het_tsls(w, self, lambda1, tsls.pfora1a2, filt=False)
         lambda2 = GMM.optim_moments(moments,vc1)
-        lambda2 = lambda1  # need this to match Stata code
+        #lambda2 = lambda1  # need this to match Stata code
        
         #2a. reg -->\hat{betas}
         xs = GMM.get_spFilter(w, lambda2, self.x)
@@ -396,6 +396,14 @@ class BaseGM_Endog_Error_Het:
         self.betas = np.vstack((tsls_s.betas, lambda3))
         G = moments_i[0]
         self.pfora1a2 = tsls_s.pfora1a2
+
+        xs = GMM.get_spFilter(w, lambda3, self.x)
+        ys = GMM.get_spFilter(w, lambda3, self.y)
+        yend_s = GMM.get_spFilter(w, lambda3, self.yend)
+        tsls_s = TSLS.BaseTSLS(ys, xs, yend_s, h=self.h, constant=False)
+        P = get_P_hat(self.h, tsls_s.z, self.n)
+        vc2 = get_vc_het_tsls(w, self, lambda3, P, filt=True)
+
         self.vm = get_Omega_GS2SLS(w, lambda3, self, G, vc2, P, filt=True)
         self._cache = {}
 
