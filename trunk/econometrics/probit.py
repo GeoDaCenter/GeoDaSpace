@@ -260,7 +260,7 @@ class probit: #DEV class required.
                 ps = float(ps_num / (trWW + trWpW))
                 ps = np.array([ps,chisqprob(ps,1)]) #chi-square instead of bootstrap.
                 #Pinkse_lag:
-                Fn2 = np.dot((self.xb + u_gen).T,(w * u_gen))**2
+                Fn2 = np.dot((self.xb + u_gen).T,(w.T * u_gen))**2
                 Jbb = la.inv(np.dot(self.x.T,self.x)*sig2)
                 xmean = self.xmean
                 muxb = np.dot(xmean.T,self.betas)
