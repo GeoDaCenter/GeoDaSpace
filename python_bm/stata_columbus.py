@@ -51,11 +51,11 @@ x = np.hstack((inc, crime))
 
 
 # GM Error Het
-model = BaseGM_Error_Het(hoval, x, w)
+#model = BaseGM_Error_Het(hoval, x, w)
 #model = BaseGM_Endog_Error_Het(hoval, inc, w, crime, discbd)
 # GM Combo Het
 #model = BaseGM_Combo_Het(hoval, x, w, w_lags=2)
-#model = BaseGM_Combo_Het(hoval, inc, w, crime, discbd, w_lags=2)
+model = BaseGM_Combo_Het(hoval, inc, w, crime, discbd, w_lags=2)
 
 
 print '##### Betas #####'
