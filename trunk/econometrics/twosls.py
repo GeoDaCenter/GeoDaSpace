@@ -164,8 +164,6 @@ class BaseTSLS(RegressionProps):
         
         # attributes used in property 
         self.zth = zth
-        self.hth = hth
-        self.htz = htz
         self.hthi =hthi
         
         xp = np.dot(h, self.zthhthi.T)
