@@ -4,7 +4,7 @@ import ols as OLS
 import user_output as USER
 import utils as GMM
 import twosls as TSLS
-from power_expansion import power_expansion
+from utils import power_expansion
 from scipy import sparse as SP
 from pysal import lag_spatial
 

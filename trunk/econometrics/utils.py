@@ -10,6 +10,64 @@ from pysal import lag_spatial
 import copy
 
 
+class RegressionProps:
+    """
+    Helper class that adds common regression properties to any regression
+    class that inherits it.  It takes no parameters.  See BaseOLS for example
+    usage.
+
+    Parameters
+    ----------
+
+    Attributes
+    ----------
+    utu     : float
+              Sum of the squared residuals
+    sig2n    : float
+              Sigma squared with n in the denominator
+    sig2n_k : float
+              Sigma squared with n-k in the denominator
+    vm      : array
+              Variance-covariance matrix (kxk)
+    mean_y  : float
+              Mean of the dependent variable
+    std_y   : float
+              Standard deviation of the dependent variable
+              
+    """
+
+    @property
+    def utu(self):
+        if 'utu' not in self._cache:
+            self._cache['utu'] = np.sum(self.u**2)
+        return self._cache['utu']
+    @property
+    def sig2n(self):
+        if 'sig2n' not in self._cache:
+            self._cache['sig2n'] = self.utu / self.n
+        return self._cache['sig2n']
+    @property
+    def sig2n_k(self):
+        if 'sig2n_k' not in self._cache:
+            self._cache['sig2n_k'] = self.utu / (self.n-self.k)
+        return self._cache['sig2n_k']
+    @property
+    def vm(self):
+        if 'vm' not in self._cache:
+            self._cache['vm'] = np.dot(self.sig2, self.xtxi)
+        return self._cache['vm']
+    
+    @property
+    def mean_y(self):
+        if 'mean_y' not in self._cache:
+            self._cache['mean_y']=np.mean(self.y)
+        return self._cache['mean_y']
+    @property
+    def std_y(self):
+        if 'std_y' not in self._cache:
+            self._cache['std_y']=np.std(self.y, ddof=1)
+        return self._cache['std_y']
+
 def get_A1_het(S):
     """
     Builds A1 as in Arraiz et al [1]_
@@ -262,63 +320,114 @@ def get_lags(w, x, w_lags):
         spat_lags = np.hstack((spat_lags, lag))
     return spat_lags
 
-class RegressionProps:
+def power_expansion(w, data, scalar, transpose=False, threshold=0.0000000001, max_iterations=None):
     """
-    Helper class that adds common regression properties to any regression
-    class that inherits it.  It takes no parameters.  See BaseOLS for example
-    usage.
+    Compute the inverse of a matrix using the power expansion (Leontief
+    expansion).  General form is:
+    
+        .. math:: 
+            x &= (I - \rho W)^{-1}v = [I + \rho W + \rho^2 WW + \dots]v \\
+              &= v + \rho Wv + \rho^2 WWv + \dots
+ 
 
     Parameters
     ----------
 
-    Attributes
-    ----------
-    utu     : float
-              Sum of the squared residuals
-    sig2n    : float
-              Sigma squared with n in the denominator
-    sig2n_k : float
-              Sigma squared with n-k in the denominator
-    vm      : array
-              Variance-covariance matrix (kxk)
-    mean_y  : float
-              Mean of the dependent variable
-    std_y   : float
-              Standard deviation of the dependent variable
-              
-    """
+    w               : Pysal W object
+                      nxn Pysal spatial weights object 
 
-    @property
-    def utu(self):
-        if 'utu' not in self._cache:
-            self._cache['utu'] = np.sum(self.u**2)
-        return self._cache['utu']
-    @property
-    def sig2n(self):
-        if 'sig2n' not in self._cache:
-            self._cache['sig2n'] = self.utu / self.n
-        return self._cache['sig2n']
-    @property
-    def sig2n_k(self):
-        if 'sig2n_k' not in self._cache:
-            self._cache['sig2n_k'] = self.utu / (self.n-self.k)
-        return self._cache['sig2n_k']
-    @property
-    def vm(self):
-        if 'vm' not in self._cache:
-            self._cache['vm'] = np.dot(self.sig2, self.xtxi)
-        return self._cache['vm']
+    data            : Numpy array
+                      nx1 vector of data
     
-    @property
-    def mean_y(self):
-        if 'mean_y' not in self._cache:
-            self._cache['mean_y']=np.mean(self.y)
-        return self._cache['mean_y']
-    @property
-    def std_y(self):
-        if 'std_y' not in self._cache:
-            self._cache['std_y']=np.std(self.y, ddof=1)
-        return self._cache['std_y']
+    scalar          : float
+                      Scalar value (typically rho or lambda)
+
+    transpose       : boolean
+                      If True then post-multiplies the data vector by the
+                      inverse of the spatial filter, if false then
+                      pre-multiplies.
+
+    threshold       : float
+                      Test value to stop the iterations. Test is against
+                      sqrt(increment' * increment), where increment is a
+                      vector representing the contribution from each
+                      iteration.
+
+    max_iterations  : integer
+                      Maximum number of iterations for the expansion. 
+
+
+    Examples
+    --------
+
+    >>> import numpy, pysal
+    >>> import numpy.linalg as la
+    >>> np.random.seed(10)
+    >>> w = pysal.lat2W(5, 5)
+    >>> w.transform = 'r'
+    >>> data = np.random.randn(w.n)
+    >>> data.shape = (w.n, 1)
+    >>> rho = 0.4
+    >>> inv_pow = power_expansion(w, data, rho)
+    >>> # regular matrix inverse
+    >>> matrix = np.eye(w.n) - (rho * w.full()[0])
+    >>> matrix = la.inv(matrix)
+    >>> inv_reg = np.dot(matrix, data)
+    >>> np.allclose(inv_pow, inv_reg, atol=0.0001)
+    True
+    >>> inv_cg = inverse_cg(w, data, rho)
+    >>> # test the transpose version
+    >>> inv_pow = power_expansion(w, data, rho, transpose=True)
+    >>> inv_reg = np.dot(data.T, matrix)
+    >>> np.allclose(inv_pow, inv_reg, atol=0.0001)
+    True
+
+
+    """
+    if transpose:
+        lag = rev_lag_spatial
+        data = data.T
+    else:
+        lag = lag_spatial
+    running_total = copy.copy(data)
+    increment = copy.copy(data)
+    count = 1
+    test = 10000000
+    if max_iterations == None:
+        max_iterations = 10000000
+    while test > threshold and count <= max_iterations:
+        increment = lag(w, scalar*increment)
+        running_total += increment
+        test = la.norm(increment)
+        count += 1
+    return running_total
+
+def rev_lag_spatial(w, y):
+    """
+    Helper function for power_expansion.  This reverses the usual lag operator
+    (pysal.lag_spatial) to post-multiply a vector by a sparse W.
+
+    Parameters
+    ----------
+
+    w : W
+        weights object
+    y : array
+        variable to take the lag of (note: assumed that the order of y matches
+        w.id_order)
+
+    Returns
+    -------
+
+    yw : array
+         array of numeric values
+
+    Examples
+    --------
+    Tests for this function are in power_expansion()
+
+    """
+    return y * w.sparse
 
 
 def _test():

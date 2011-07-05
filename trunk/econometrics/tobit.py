@@ -154,14 +154,14 @@ if __name__ == '__main__':
     #_test()
     import numpy as np
     import pysal
-    import econometrics.power_expansion as PE
+    from econometrics.utils import power_expansion
     n = 1600
     x = np.random.uniform(-5,1,(n,1))
     x = np.hstack((np.ones(x.shape),x))
     xb = np.dot(x,np.reshape(np.array([1,0.5]),(2,1)))
     w = pysal.lat2W(int(np.sqrt(n)),int(np.sqrt(n)))
     w.transform='r'
-    ys = xb + PE.power_expansion(w, np.random.normal(0,1,(n,1)), 0.5) #Build y_{star}
+    ys = xb + power_expansion(w, np.random.normal(0,1,(n,1)), 0.5) #Build y_{star}
     y = np.zeros((n,1),float) #Binary y
     for yi in range(len(y)):
         if ys[yi]>0:
