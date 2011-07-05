@@ -38,12 +38,12 @@ suite = unittest.TestSuite()
 
 # import modules with doc tests here
 import spHetErr, twosls
-import twosls_sp, robust, kernel_knn
+import twosls_sp, robust
 import probit, ak, diagnostics_tsls
 import spError, gs_dispatcher
 # add modules to this list
 mods = 'spHetErr', 'twosls', 'twosls_sp',\
-       'robust', 'probit', 'spError', 'kernel_knn',\
+       'robust', 'probit', 'spError',\
        'ak', 'diagnostics_tsls', 'gs_dispatcher'
 
 

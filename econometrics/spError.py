@@ -10,7 +10,7 @@ from numpy import linalg as la
 import pysal.spreg.ols as OLS
 from pysal.spreg.diagnostics import se_betas
 from pysal import lag_spatial
-from power_expansion import power_expansion
+from utils import power_expansion
 from utils import get_A1_hom, get_A1_het, optim_moments, get_spFilter, get_lags, _moments2eqs
 import twosls as TSLS
 import pysal.spreg.user_output as USER
