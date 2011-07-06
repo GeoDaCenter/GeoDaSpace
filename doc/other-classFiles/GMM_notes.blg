@@ -1,0 +1,46 @@
+This is BibTeX, Version 0.99c (Web2C 7.5.7)
+The top-level auxiliary file: GMM_notes.aux
+The style file: apalike.bst
+Database file #1: /users/luc/Papers/lucbibs/papers.bib
+Database file #2: /users/luc/Papers/lucbibs/luc.bib
+You've used 13 entries,
+            1935 wiz_defined-function locations,
+            573 strings with 6376 characters,
+and the built_in function-call counts, 5087 in all, are:
+= -- 500
+> -- 174
+< -- 11
++ -- 62
+- -- 54
+* -- 396
+:= -- 887
+add.period$ -- 42
+call.type$ -- 13
+change.case$ -- 90
+chr.to.int$ -- 13
+cite$ -- 13
+duplicate$ -- 204
+empty$ -- 380
+format.name$ -- 73
+if$ -- 1028
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 13
+newline$ -- 69
+num.names$ -- 43
+pop$ -- 68
+preamble$ -- 1
+purify$ -- 90
+quote$ -- 0
+skip$ -- 161
+stack$ -- 0
+substring$ -- 376
+swap$ -- 30
+text.length$ -- 2
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 76
+warning$ -- 0
+while$ -- 40
+width$ -- 0
+write$ -- 177
