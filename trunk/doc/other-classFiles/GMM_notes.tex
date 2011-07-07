@@ -11,8 +11,8 @@ without Heteroskedasticity}
 \section{Background}
 This note documents the steps needed for an efficient GMM estimation of the
 regression parameters and autoregressive parameters using the moment conditions
-spelled out in \cite{KelejianPrucha:09}, \cite{Arraizetal:10} and \cite{Drukkeretal:10} (jointly referred to in what
-follows as K-P). Theoretical details are
+spelled out in \cite{KelejianPrucha:10}, \cite{Arraizetal:10} and \cite{Drukkeretal:10,Drukkeretal:11} (jointly referred to in what
+follows as K-P-D). Theoretical details are
 provided in those articles. The focus here is on the practical steps to carry out estimation
 in a number of special cases. I will be using ``we'' below since all this should eventually
 be moved into the Anselin-Rey spatial econometrics text.
@@ -62,15 +62,15 @@ innovations, such that $\mbox{E}[\varepsilon_i^2] = \sigma_i^2$. All other assum
 are standard.
 
 
-Note that, in contrast to the general case outlined by K-P, we take the weights
-matrix in the spatial lag and in the spatial error part to be the same ($\mathbf{W}$). In K-P, the
+Note that, in contrast to the general case outlined by K-P-D, we take the weights
+matrix in the spatial lag and in the spatial error part to be the same ($\mathbf{W}$). In K-P-D, the
 weights matrix for the error term is denoted as $\mathbf{M}$. While this is more
 general, it is hardly ever used in practice, hence we limit our treatment to the
 simpler case.
 
 \subsection{Spatially Lagged Variables}
 Spatially lagged variables play an important part in the GMM estimation procedure.
-In the original K-P papers, these are denoted by ``bar'' superscripts. Instead, we will
+In the original K-P-D papers, these are denoted by ``bar'' superscripts. Instead, we will
 use the $L$ subscript throughout. In other words, a first order spatial lag of $\mathbf{y}$, 
 i.e., $\mathbf{Wy}$ is denoted by $\mathbf{y}_L$, and similarly for spatially lagged
 explanatory variables, $\mathbf{X}_L$, and for $\mathbf{Z}_L$. Higher order spatial lags
@@ -80,7 +80,7 @@ spatial lag of the error $\mathbf{u}$ would be $\mathbf{u}_{LL}$.
 
 \subsection{Spatial Cochrane-Orcutt Transformation}
 An important aspect of the estimation is the use of a set of spatially filtered variables
-in a spatially weighted regression. K-P refer to this as a spatial Cochrane-Orcutt transformation.
+in a spatially weighted regression. K-P-D refer to this as a spatial Cochrane-Orcutt transformation.
 The spatial filter is based on the weights matrix  and the
 spatial autoregressive parameter for the error process. Since there is no
 distinction between the two weights here, the matrix $\mathbf{W}$ is used throughout.
@@ -132,10 +132,10 @@ in the moment equations and potentially going through one more spatially weighte
 regression. While, asymptotically, there are no grounds to prefer one over the other, in
 practice there may be efficiency gains from further iterations.
 
-Finally, the estimation procedure as outlined in K-P only corrects for the presence of
+Finally, the estimation procedure as outlined in K-P-D only corrects for the presence of
 spatial autoregressive errors, but does not exploit the general structure of the 
 heteroskedasticity in the estimation of the regression coefficients. The main contribution
-of K-P is to derive the moment equation such that the estimate for $\lambda$ is
+of K-P-D is to derive the moment equation such that the estimate for $\lambda$ is
 consistent in the presence of general heteroskedasticity. The initial GM estimator presented
 in \cite{KelejianPrucha:98,KelejianPrucha:99a} is only consistent under the assumption
 of absence of heteroskedasticity. We will need to further consider if the incorporation of
@@ -167,7 +167,10 @@ When additional endogenous variables are included in the regression specificatio
 instruments must be included for those as well. We refer to this instruments
 matrix as $\mathbf{Q}$, for which the usual identification restrictions need to be
 satisfied, such that there are at least as many instruments as endogenous
-variables. Consider the simple case of one additional endogenous variable $\mathbf{y}_2$,
+variables. 
+This is elaborated upon for a fully specified system of simultaneous equations
+in \cite{KelejianPrucha:04}. For our purposes, 
+consider the simple case of one additional endogenous variable $\mathbf{y}_2$,
 which itself is determined by a number of additional exogenous variables $\mathbf{X*}$ in
 a linear specification for its reduced form:
 \begin{equation*}
@@ -195,7 +198,7 @@ remains to be further investigated.
 
 
 \section{General Moment Equations}
-The point of departure for K-P's estimation procedure are two 
+The point of departure for K-P-D's estimation procedure are two 
 moment conditions, expressed as functions of the innovation terms
 $\varepsilon$. They are:
 \begin{eqnarray}
@@ -210,8 +213,8 @@ term $\mbox{diag}[E(\varepsilon_i^2)]$ in Equation~\ref{eq:firstmoment}. In the 
 RHS of the first condition simplifies to $\sigma^2 n^{-1} \mbox{tr} [\mathbf{WW'}]$. However, to carry out the
 GM estimation in this case, an additional equation is needed for $\sigma^2$.
 
-\subsection{Simplifying Notation}
-K-P introduce a number of simplifying notations that allow the moment conditions to
+\subsection{Simplifying Notation}\label{ss:simplenotation}
+K-P-D introduce a number of simplifying notations that allow the moment conditions to
 be written in a very concise form. Specifically, they define
 \begin{eqnarray}\label{eq:A1A2}
 \mathbf{A}_1 &=& \mathbf{W'W} - \mbox{diag} (\mathbf{w}_{.i}'\mathbf{w}_{.i}) \label{eq:A1}\\
@@ -249,9 +252,9 @@ Consequently, we try to get as close to this as possible and use a least squares
 rationale. In other words, if we consider the LHS of the equation as a deviation
 from zero, we try to minimize the sum of squared deviations.
 
-In order to implement this in practice, K-P reorganize the equations as 
+In order to implement this in practice, K-P-D reorganize the equations as 
 explicit functions of $\lambda$ and $\lambda^2$. This takes on the general form:
-\begin{equation*}
+\begin{equation}\label{eq:mgg}
 \mathbf{m} = \mathbf{g} - \mathbf{G}
 \left[
 \begin{matrix}
@@ -259,16 +262,16 @@ explicit functions of $\lambda$ and $\lambda^2$. This takes on the general form:
 \lambda^2
 \end{matrix}
 \right] = 0,
-\end{equation*}
+\end{equation}
 such that an initial estimate of $\lambda$ is obtained as a nonlinear least
 squares solution to these equations, $\mbox{argmin}_\lambda (\mathbf{m'm})$.
 
 The vector $\mathbf{g}$ is a $2 \times 1$ vector with the following elements,
-as given by K-P:
-\begin{eqnarray*}
- \mathbf{g}_1 &=& n^{-1} \mathbf{u}' \mathbf{A}_1 \mathbf{u}\\
-  \mathbf{g}_2 &=& n^{-1} \mathbf{u}' \mathbf{A}_2 \mathbf{u},
-\end{eqnarray*}
+as given by K-P-D:
+\begin{eqnarray}
+ \mathbf{g}_1 &=& n^{-1} \mathbf{u}' \mathbf{A}_1 \mathbf{u} \label{eq:g1} \\
+  \mathbf{g}_2 &=& n^{-1} \mathbf{u}' \mathbf{A}_2 \mathbf{u}, \label{eq:g2}
+\end{eqnarray}
 with the $\mathbf{A}_{1,2}$ as defined above, and $\mathbf{u}$ is a vector
 of residuals. Note that there is actually no gain in using the notation $\mathbf{A}_2$,
 since it is the same as $\mathbf{W}$.
@@ -282,13 +285,13 @@ spatial lags. This yields:
 \end{eqnarray*}
 
 The matrix $\mathbf{G}$ is a $2 \times 2$ matrix with the following elements,
-as given by K-P:
-\begin{eqnarray*}
-\mathbf{G}_{11} &=& 2n^{-1} \mathbf{u}' \mathbf{W'} \mathbf{A}_1 \mathbf{u}\\
-\mathbf{G}_{12} &=& - n^{-1} \mathbf{u}' \mathbf{W'} \mathbf{A}_1 \mathbf{W} \mathbf{u}\\
-\mathbf{G}_{21} &=& n^{-1} \mathbf{u}' \mathbf{W'} ( \mathbf{A}_2 + \mathbf{A}_2 ' ) \mathbf{u}\\
-\mathbf{G}_{22} &=& - n^{-1} \mathbf{u}' \mathbf{W'} \mathbf{A}_2 \mathbf{W} \mathbf{u}
-\end{eqnarray*}
+as given by K-P-D:
+\begin{eqnarray}
+\mathbf{G}_{11} &=& 2n^{-1} \mathbf{u}' \mathbf{W'} \mathbf{A}_1 \mathbf{u} \label{eq:g11}\\
+\mathbf{G}_{12} &=& - n^{-1} \mathbf{u}' \mathbf{W'} \mathbf{A}_1 \mathbf{W} \mathbf{u} \label{eq:g12}\\
+\mathbf{G}_{21} &=& n^{-1} \mathbf{u}' \mathbf{W'} ( \mathbf{A}_2 + \mathbf{A}_2 ' ) \mathbf{u} \label{eq:g21} \\
+\mathbf{G}_{22} &=& - n^{-1} \mathbf{u}' \mathbf{W'} \mathbf{A}_2 \mathbf{W} \mathbf{u} \label{eq:g22}
+\end{eqnarray}
 
 As before, this simplifies into a number of expressions consisting of cross products
 of the residuals and their spatial lags. Specifically, note that $\mathbf{Wu} = \mathbf{u}_L$,
@@ -334,7 +337,7 @@ but not efficient. Optimal estimates are found from a weighted nonlinear least s
 procedure, or, $\mbox{argmin}_\lambda \mathbf{m'}\mathbf{\mathbf{\Psi}}^{-1} \mathbf{m}$, where $\mathbf{\Psi}$ is a weighting matrix.
 The optimal weights correspond to the inverse variance of the moment conditions.
 
-K-P show the general expression for the elements of the $2 \times 2$ matrix $\mathbf{\Psi}$ to
+K-P-D show the general expression for the elements of the $2 \times 2$ matrix $\mathbf{\Psi}$ to
 be of the form:
 \begin{equation}\label{eq:psiqr}
 \psi_{q,r} = (2n)^{-1} \mbox{tr} [ (\mathbf{A}_q + \mathbf{A'}_q ) \mathbf{\mathbf{\Sigma}}  (\mathbf{A}_r + \mathbf{A'}_r ) \mathbf{\Sigma} ] + n^{-1} \mathbf{a'}_q \mathbf{\Sigma} \mathbf{a}_r,
@@ -376,7 +379,7 @@ of $\mathbf{\Sigma}$.
 
 \subsubsection{Standard 2SLS Estimation}\label{ss:weightsstandard}
 The expression for $\mathbf{a}_r$, with $r = 1,2$, for the case where the estimates
-are obtained from 2SLS is given in K-P as follows:
+are obtained from 2SLS is given in K-P-D as follows:
 \begin{equation}\label{eq:arstandard}
 \mathbf{a}_r = (\mathbf{I} - \lambda \mathbf{W'} )^{-1} \mathbf{HP} \alpha_r,
 \end{equation}
@@ -620,7 +623,7 @@ In order to carry out inference, $n^{-1} \mathbf{\Omega}$ is used instead of
 
 
 To facilitate the expression for the asymptotic variance-covariance matrix,
-K-P introduce some additional notation. First, an auxilary $2 \times 1$ vector $\mathbf{J}$
+K-P-D introduce some additional notation. First, an auxilary $2 \times 1$ vector $\mathbf{J}$
 is defined, constructed as:
 \begin{equation}\label{eq:J}
 \mathbf{J} = \mathbf{G}
@@ -633,7 +636,7 @@ is defined, constructed as:
 \end{equation}
 where the elements of the $2 \times 2$ matrix $\mathbf{G}$ are from Equations
 \ref{eq:G11}--\ref{eq:G22}.
-K-P further define the overall weighting matrix $\mathbf{\mathbf{\Psi}}_o$ as consisting of four
+K-P-D further define the overall weighting matrix $\mathbf{\mathbf{\Psi}}_o$ as consisting of four
 submatrices, as in:
 \begin{equation*}
 \mathbf{\mathbf{\Psi}}_o =
@@ -778,7 +781,7 @@ and the spatial parameter is $\lambda_3$.
 
 \section{Accounting for Heteroskedasticity in FGLS}
 The estimation equations for the weighted spatial regression in 
-\cite{KelejianPrucha:09} and \cite{Arraizetal:10}  implement the
+\cite{KelejianPrucha:10} and \cite{Arraizetal:10}  implement the
 spatial Cochrane-Orcutt transformation, but do not correct for the
 presence of unspecified heteroskedasticity. As shown in \citet[p. 931]{Anselin:06},
 among others, the latter could be
@@ -808,16 +811,17 @@ again, with the spatially filtered variables and the spatially filtered residual
 and $\mathbf{u}_1$.
 
 \section{General Two-Step Estimation in the Absence of Heteroskedasticity}
-In the recent working paper by \cite{Drukkeretal:10} a general framework is presented
+In the recent working papers by \cite{Drukkeretal:10,Drukkeretal:11}, a general framework is presented
 for a two-step GMM estimation of the parameters in a SARAR specification, allowing
 for endogenous variables other than the spatial lag. The moment conditions spelled out in the
-paper are more general than in previous work, but in practice, this matters little.
+paper are more general than in previous work.
 Specifically, up to $S$ weighting matrices $\mathbf{A}_s$ are allowed, which do not need
 to have zero diagonal, but only $tr \mathbf{A}_s = 0$ (zero diagonals being a special
-case). In practice,
-if the same matrices $\mathbf{A}_1$ and $\mathbf{A}_2$ are used as in equations
- \ref{eq:A1} and \ref{eq:A2}, the zero diagonal property applies and several of the
- results in the paper simplify.
+case). The moment conditions take the same form as in Section~\ref{ss:simplenotation}:
+\begin{equation}\label{eq:generalmomenteq}
+ n^{-1} \mbox{E}[\varepsilon' \mathbf{A_s} \varepsilon ] = 0,
+\end{equation}
+for $s = 1, \dots, S$.
  
  The two step estimator actually consists of four steps, each of the two major
  steps consisting of two sub-steps. We consider each in turn.
@@ -826,13 +830,75 @@ if the same matrices $\mathbf{A}_1$ and $\mathbf{A}_2$ are used as in equations
  The first step is identical to Step 1 in Section~\ref{ss:initial} and consists of either
  OLS or 2SLS estimation of the model to obtain an initial set of 
  coefficient estimates $\delta_1$ and residuals, $\mathbf{u}_1$.
- These residuals are subsequently used to solve a set of moment equations.
- In the case where we use $\mathbf{A}_1$ and $\mathbf{A}_2$ as before, the equations
- are the same as in Section~\ref{ss:nonlinearls}. An initial estimate of $\lambda$,
+ 
+ \subsubsection{Moment Conditions}
+ The residuals $\mathbf{u}_1$ are used to solve the set of moment equations given
+ in Equation~\ref{eq:generalmomenteq}. As in Section~\ref{ss:nonlinearls}, the 
+ equations are re-organized in the same fashion as in Equation~\ref{eq:mgg},
+ using spatially filtered residuals instead of the error terms. 
+ In general, the $S \times 1$ vector $\mathbf{m}$ consists of the elements
+ $\mathbf{m}_s = (n^{-1}) (\mathbf{u} - \lambda \mathbf{u}_L) ' \mathbf{A}_s (\mathbf{u} - \lambda \mathbf{u}_L)$. After some algebra, it is easy to see that this consists of a constant term, two terms
+ in $\lambda$ and one term in $\lambda^2$:
+ \begin{equation*}
+\mathbf{m}_s =  (n^{-1}) \mathbf{u'} \mathbf{A}_s \mathbf{u} - (n^{-1}) (\mathbf{u'} \mathbf{A}_s \mathbf{u_L} 
+ +  \mathbf{u_L'} \mathbf{A}_s \mathbf{u} ) \lambda
+ -  (n^{-1}) (- \mathbf{u_L'} \mathbf{A}_s \mathbf{u_L} ) \lambda^2,
+ \end{equation*}
+ or
+ \begin{equation}\label{eq:elementsofg}
+\mathbf{m}_s = (n^{-1}) \mathbf{u'} \mathbf{A}_s \mathbf{u}
+- (n^{-1}) \left[ 
+\begin{matrix}
+\mathbf{u'} \mathbf{A}_s \mathbf{u_L} 
+ +  \mathbf{u_L'} \mathbf{A}_s \mathbf{u}  & - \mathbf{u_L'} \mathbf{A}_s \mathbf{u_L} 
+ \end{matrix}
+  \right]
+\left[
+\begin{matrix}
+\lambda\\
+\lambda^2
+\end{matrix}
+\right].
+\end{equation}
+The first term in Equation~\ref{eq:elementsofg} is the element of the $s-th$ row of $\mathbf{g}$, whereas
+the two elements in the row vector form the $s-th$ row of the $S \times 2$ matrix $\mathbf{G}$. 
+Note that \citet[p. 7]{Drukkeretal:10} assume that the matrix $\mathbf{A}_s$ is symmetric,
+in which case:
+\begin{eqnarray}
+\mathbf{u'} \mathbf{A}_s \mathbf{u_L} 
+ +  \mathbf{u_L'} \mathbf{A}_s \mathbf{u} &=& \mathbf{u_L'} \mathbf{A'}_s \mathbf{u} 
+ +  \mathbf{u_L'} \mathbf{A}_s \mathbf{u}\\
+ &=& \mathbf{u_L'} ( \mathbf{A}_s + \mathbf{A'}_s )  \mathbf{u}\\
+ &=& 2  \mathbf{u_L'}  \mathbf{A}_s  \mathbf{u}. \label{eq:uulAu}
+\end{eqnarray}
+However, in general, this is not the case. For example, for $\mathbf{A}_2 = \mathbf{W}$,
+this will not hold unless the weights matrix is symmetric (which is typically not the case).
+This can be remedied by setting $\mathbf{A}_2 = (1/2)( \mathbf{W} + \mathbf{W'} )$.
+
+For the homoskedastic case, the first moment equation results in a matrix $\mathbf{A}_1$
+of the form \citep[see, e.g.,][footnote 7]{KelejianPrucha:10}:\footnote{\citet[Equation 9]{KelejianPrucha:10} present the derivation in the context of a weighted nonlinear
+least squares estimator with a moments weighting matrix. The element corresponding
+to the first moment condition is $\nu = 1 / [1 + [(n^{-1} tr (\mathbf{WW'})]^2]$. In
+\cite{Drukkeretal:10,Drukkeretal:11} this scalar is included in $\mathbf{A}_1$. However, since the
+first solution is intended to produce a consistent estimate for $\lambda$, it is not
+clear why the scalar should be included.}
+\begin{equation*}
+\mathbf{A}_1 = \mathbf{W'W} - (n^{-1}) tr (\mathbf{W'W}) \mathbf{I}.
+\end{equation*} 
+Note that $\mathbf{A}_1$ is symmetric with $tr \mathbf{A}_1 = 0$, but its diagonal
+elements are non-zero.
+ 
+The second moment equation is the same as in the heteroskedastic case, Equation~\ref{eq:A2},
+with $\mathbf{A}_2 = \mathbf{W}$, or, if the general expressions as in Equation~\ref{eq:uulAu}
+are used, with $\mathbf{A}_2 = (1/2) (\mathbf{W} + \mathbf{W'})$. Both $tr \mathbf{A}_2 = 0$
+and its diagonal elements are zero.
+ 
+ An initial estimate of $\lambda$,
  say $\lambda_1$ is obtained as a nonlinear least
-squares solution to these equations, $\mbox{argmin}_\lambda (\mathbf{m'm})$.
-Note that unlike the approach in \cite{KelejianPrucha:09} and \cite{Arraizetal:10},
-this is not followed by an efficient GMM estimation at this stage.
+squares solution to $\mbox{argmin}_\lambda (\mathbf{m'm})$.
+Note that unlike the heteroskedastic approach in \cite{KelejianPrucha:10} and \cite{Arraizetal:10},
+this is not followed by an efficient GMM estimation step at this stage, i.e., using
+a weighting matrix This step results in a consistent estimate for $\lambda$.
 
 \subsection{Second Step}
  The first part of the second step consists of a spatial Cochrane-Orcutt estimation,
@@ -859,32 +925,39 @@ efficient GMM estimation of $\lambda$, as the result of
 The optimal weights correspond to the inverse variance of the moment conditions.
 
 The results are very similar to those in Section~\ref{ss:weightedgmm}, except that 
-heteroskedasticity is not allowed for. Specifically, if we use $\mathbf{A}_1$ and
-$\mathbf{A}_2$ as before, the elements of the $2 \times 2$ matrix $\mathbf{\Psi}$ are:
-\begin{equation}\label{eq:newpsi}
-\psi_{q,r} = \hat{\sigma}^4 (2n)^{-1} \mbox{tr} [ (\mathbf{A}_q + \mathbf{A'}_q )  (\mathbf{A}_r + \mathbf{A'}_r )] + \hat{\sigma}^2 (n^{-1}) \mathbf{a'}_q \mathbf{a}_r,
-\end{equation}
-with $q, r = 1, 2$ and $\hat{\sigma}^2 = \mathbf{u}_s'\mathbf{u}_s / n$ as the 
-estimate of the error variance obtained from the spatially filtered residuals.\footnote{The full expression given in \citet[Equation 15, p. 9]{Drukkeretal:10}
-(in our notation) is
-$\psi_{q,r} = \hat{\sigma}^4 (2n)^{-1} \mbox{tr} [ (\mathbf{A}_q + \mathbf{A'}_q )  (\mathbf{A}_r + \mathbf{A'}_r )] + \hat{\sigma}^2 (n^{-1}) \mathbf{a'}_q \mathbf{a}_r
-+ (n^{-1} (\hat{\mu}^{(4)} - 3 \hat{\sigma}^4) vec_D(\mathbf{A}_q)'vec_D (\mathbf{A}_r)
-+ (n^{-1} \hat{\mu}^{3} [ \mathbf{a}_q^{'} vec_D(\mathbf{A}_r) +  \mathbf{a}_r^{'} vec_D(\mathbf{A}_q) ]$, with the variance, third and fourth error moments computed from the spatially
-filtered residuals. When the trace of the weighting matrix $\mathbf{A}$ is zero,
-then  $vec_D (\mathbf{A}) = 0$ and the last two terms disappear.}
+heteroskedasticity is not allowed for. In general, the elements of the $2 \times 2$ matrix $\mathbf{\Psi}$ are:
+\begin{eqnarray}
+\psi_{q,r} &=& \hat{\sigma}^4 (2n)^{-1} \mbox{tr} [ (\mathbf{A}_q + \mathbf{A'}_q )  (\mathbf{A}_r + \mathbf{A'}_r )] + \hat{\sigma}^2 (n^{-1}) \mathbf{a'}_q \mathbf{a}_r \label{eq:newpsi1}\\
+&& + (n^{-1}) (\hat{\mu}^{(4)} - 3 \hat{\sigma}^4) vec_D(\mathbf{A}_q)'vec_D (\mathbf{A}_r)  \label{eq:newpsi2}\\
+&& + (n^{-1}) \hat{\mu}^{3} [ \mathbf{a}_q^{'} vec_D(\mathbf{A}_r) +  \mathbf{a}_r^{'} vec_D(\mathbf{A}_q) ] \label{eq:newpsi3}
+\end{eqnarray}
+with $q, r = 1, 2$, $\hat{\sigma}^2 = \mathbf{u}_s'\mathbf{u}_s / n$ as the 
+estimate of the error variance obtained from the spatially filtered residuals,
+and $\hat{\mu}^{3}$ and $\hat{\mu}^{(4)}$ are similarly the third and fourth moments
+obtained from the spatially filtered residuals. Note that When the diagonal elements of the weighting matrix $\mathbf{A}$ are zero, 
+then  $vec_D (\mathbf{A}) = 0$. As pointed out earlier, this is the case for $\mathbf{A}_2$.
+
+
+
 
 \subsubsection{OLS estimation}
 As before, when no spatial lag or endogenous variables are included in the
 model specification, $\mathbf{a}_{q,r} = 0$ and the expression for $\psi_{q,r}$ simplifies greatly.
-As shown in Section~\ref{sss:phiols},
+Specifically, the second term (in Equation~\ref{eq:newpsi1}) and the fourth term (Equation~\ref{eq:newpsi3}) equal zero.
+Moreover,
 $\mathbf{A}_1$ is symmetric, so that $\mathbf{A}_1 + \mathbf{A'}_1 = 2 \mathbf{A}_1$.
-Also, $\mathbf{A}_2 = \mathbf{W}$ so that we don't need the extra notation at this
-point.
+Also, $\mathbf{A}_2 = (1/2) (\mathbf{W} + \mathbf{W'} )$, which we use instead of $\mathbf{A}_2$,
+and $vec_D (\mathbf{A}_2) = 0$.
 
 Consequently, we obtain the following results:
 \begin{eqnarray*}
- \psi_{11} &=& \hat{\sigma}^4 (2n)^{-1} \mbox{tr} [ (2 \mathbf{A}_1 ) (2 \mathbf{A}_1 ) ]\\
-        &=&  2  \hat{\sigma}^4 (n^{-1}) \mbox{tr} [ \mathbf{A}_1\mathbf{A}_1 ],\\
+ \psi_{11} &=& \hat{\sigma}^4 (2n)^{-1} \mbox{tr} [ (2 \mathbf{A}_1 ) (2 \mathbf{A}_1 ) ]
+               + (n^{-1}) (\hat{\mu}^{(4)} - 3 \hat{\sigma}^4) vec_D(\mathbf{A}_1)'vec_D (\mathbf{A}_1) \\
+        &=&  2  \hat{\sigma}^4 (n^{-1}) \mbox{tr} [ \mathbf{A}_1\mathbf{A}_1 ]
+       + (n^{-1}) (\hat{\mu}^{(4)} - 3 \hat{\sigma}^4) vec_D(\mathbf{A}_1)'vec_D (\mathbf{A}_1) ,\\
+\end{eqnarray*}
+        
+\begin{eqnarray*}
   \psi_{12} &=& \hat{\sigma}^4 (2n)^{-1} \mbox{tr} [ (2 \mathbf{A}_1 ) (\mathbf{W} + \mathbf{W'} ) ]\\
        &=& \hat{\sigma}^4 (n^{-1}) \mbox{tr} [  \mathbf{A}_1 (\mathbf{W} + \mathbf{W'} )  ],\\
    \psi_{21} &=& \psi_{12},\\
