@@ -929,11 +929,11 @@ heteroskedasticity is not allowed for. In general, the elements of the $2 \times
 \begin{eqnarray}
 \psi_{q,r} &=& \hat{\sigma}^4 (2n)^{-1} \mbox{tr} [ (\mathbf{A}_q + \mathbf{A'}_q )  (\mathbf{A}_r + \mathbf{A'}_r )] + \hat{\sigma}^2 (n^{-1}) \mathbf{a'}_q \mathbf{a}_r \label{eq:newpsi1}\\
 && + (n^{-1}) (\hat{\mu}^{(4)} - 3 \hat{\sigma}^4) vec_D(\mathbf{A}_q)'vec_D (\mathbf{A}_r)  \label{eq:newpsi2}\\
-&& + (n^{-1}) \hat{\mu}^{3} [ \mathbf{a}_q^{'} vec_D(\mathbf{A}_r) +  \mathbf{a}_r^{'} vec_D(\mathbf{A}_q) ] \label{eq:newpsi3}
+&& + (n^{-1}) \hat{\mu}^{(3)} [ \mathbf{a}_q^{'} vec_D(\mathbf{A}_r) +  \mathbf{a}_r^{'} vec_D(\mathbf{A}_q) ] \label{eq:newpsi3}
 \end{eqnarray}
 with $q, r = 1, 2$, $\hat{\sigma}^2 = \mathbf{u}_s'\mathbf{u}_s / n$ as the 
 estimate of the error variance obtained from the spatially filtered residuals,
-and $\hat{\mu}^{3}$ and $\hat{\mu}^{(4)}$ are similarly the third and fourth moments
+and $\hat{\mu}^{(3)}$ and $\hat{\mu}^{(4)}$ are similarly the third and fourth moments
 obtained from the spatially filtered residuals. Note that When the diagonal elements of the weighting matrix $\mathbf{A}$ are zero, 
 then  $vec_D (\mathbf{A}) = 0$. As pointed out earlier, this is the case for $\mathbf{A}_2$.
 
@@ -955,9 +955,6 @@ Consequently, we obtain the following results:
                + (n^{-1}) (\hat{\mu}^{(4)} - 3 \hat{\sigma}^4) vec_D(\mathbf{A}_1)'vec_D (\mathbf{A}_1) \\
         &=&  2  \hat{\sigma}^4 (n^{-1}) \mbox{tr} [ \mathbf{A}_1\mathbf{A}_1 ]
        + (n^{-1}) (\hat{\mu}^{(4)} - 3 \hat{\sigma}^4) vec_D(\mathbf{A}_1)'vec_D (\mathbf{A}_1) ,\\
-\end{eqnarray*}
-        
-\begin{eqnarray*}
   \psi_{12} &=& \hat{\sigma}^4 (2n)^{-1} \mbox{tr} [ (2 \mathbf{A}_1 ) (\mathbf{W} + \mathbf{W'} ) ]\\
        &=& \hat{\sigma}^4 (n^{-1}) \mbox{tr} [  \mathbf{A}_1 (\mathbf{W} + \mathbf{W'} )  ],\\
    \psi_{21} &=& \psi_{12},\\
@@ -966,9 +963,10 @@ Consequently, we obtain the following results:
 \end{eqnarray*}
 
 \subsubsection{GS2SLS Estimation}
-In the general case, the expressions above need to be augmented with 
-the terms $ \hat{\sigma}^2 (n^{-1}) \mathbf{a'}_q \mathbf{a}_r, q, r = 1, 2$.
-The corresponding expressions are the same as in Section~\ref{ss:weightsfilter},
+In the general case, the terms $\mathbf{a}_{q,r}, q, r = 1, 2$ need to be computed..
+However, the properties of $\mathbf{A}_1$ and $\mathbf{A}_2$ can be exploited to
+simplify the expressions, as in the OLS case.
+The expressions for $\mathbf{a}_{q,r}, q, r = 1, 2$ are the same as in Section~\ref{ss:weightsfilter},
 Equation~\ref{eq:arweighted}:
 \begin{equation*}
 \mathbf{a}_r = \mathbf{HP} \alpha_r,
@@ -992,8 +990,20 @@ For $\alpha_1$, since $\mathbf{A}_1$ is symmetric, $\mathbf{A}_1 + \mathbf{A'}_1
 \begin{equation*}
  \alpha_2 = - n^{-1} [ \mathbf{Z'}_s (\mathbf{W} + \mathbf{W'} ) \mathbf{u}_s ]
 \end{equation*}
-
-
+Taking all of this together, the elements of the weighting matrix are:
+\begin{eqnarray*}
+ \psi_{11} &=& 2  \hat{\sigma}^4 (n^{-1}) \mbox{tr} [ \mathbf{A}_1\mathbf{A}_1 ]
+              + \hat{\sigma}^2 (n^{-1}) \mathbf{a'}_1 \mathbf{a}_1 \\
+            &&+ (n^{-1}) (\hat{\mu}^{(4)} - 3 \hat{\sigma}^4) vec_D(\mathbf{A}_1)'vec_D (\mathbf{A}_1) \\
+            &&+ 2 (n^{-1}) \hat{\mu}^{(3)} [ \mathbf{a}_1^{'} vec_D(\mathbf{A}_1)] \\
+  \psi_{12} &=& \hat{\sigma}^4 (n^{-1}) \mbox{tr} [  \mathbf{A}_1 (\mathbf{W} + \mathbf{W'} )  ]
+          + \hat{\sigma}^2 (n^{-1}) \mathbf{a'}_1 \mathbf{a}_2\\
+          && +  (n^{-1}) \hat{\mu}^{(3)} [ \mathbf{a}_2^{'} vec_D(\mathbf{A}_1)]\\
+      \psi_{21} &=& \psi_{12},\\
+   \psi_{22} &=& \hat{\sigma}^4 (2n)^{-1} \mbox{tr} [ (\mathbf{W} + \mathbf{W'}) 
+   (\mathbf{W} + \mathbf{W'}) ]
+   + \hat{\sigma}^2 (n^{-1}) \mathbf{a'}_2 \mathbf{a}_2
+\end{eqnarray*}
 
 \bibliography{/users/luc/Papers/lucbibs/papers,/users/luc/Papers/lucbibs/luc}
 \bibliographystyle{apalike}
