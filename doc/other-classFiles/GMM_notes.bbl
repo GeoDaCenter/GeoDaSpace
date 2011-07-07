@@ -31,6 +31,12 @@ Drukker, D.~M., Egger, P., and Prucha, I.~R. (2010).
 \newblock Working paper, Department of Economics, University of Maryland,
   College Park, MD.
 
+\bibitem[Drukker et~al., 2011]{Drukkeretal:11}
+Drukker, D.~M., Prucha, I.~R., and Raciborski, R. (2011).
+\newblock A command for estimating spatial-autoregressive models with
+  spatial-autoregressive disturbances and additional endogenous variables.
+\newblock {\em The Stata Journal}, 1:1--13.
+
 \bibitem[Kelejian and Prucha, 1998]{KelejianPrucha:98}
 Kelejian, H.~H. and Prucha, I. (1998).
 \newblock A generalized spatial two stage least squares procedures for
@@ -43,12 +49,17 @@ Kelejian, H.~H. and Prucha, I. (1999).
   spatial model.
 \newblock {\em International Economic Review}, 40:509--533.
 
-\bibitem[Kelejian and Prucha, 2009]{KelejianPrucha:09}
-Kelejian, H.~H. and Prucha, I.~R. (2009).
+\bibitem[Kelejian and Prucha, 2004]{KelejianPrucha:04}
+Kelejian, H.~H. and Prucha, I.~R. (2004).
+\newblock Estimation of simultaneous systems of spatially interrelated cross
+  sectional equations.
+\newblock {\em Journal of Econometrics}, 118:27--50.
+
+\bibitem[Kelejian and Prucha, 2010]{KelejianPrucha:10}
+Kelejian, H.~H. and Prucha, I.~R. (2010).
 \newblock Specification and estimation of spatial autoregressive models with
   autoregressive and heteroskedastic disturbances.
-\newblock {\em Journal of Econometrics}.
-\newblock forthcoming.
+\newblock {\em Journal of Econometrics}, 157:53--67.
 
 \bibitem[Kelejian et~al., 2004]{Kelejianetal:04}
 Kelejian, H.~H., Prucha, I.~R., and Yuzefovich, Y. (2004).
