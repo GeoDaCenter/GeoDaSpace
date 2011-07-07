@@ -1,9 +1,7 @@
 import os.path
 import wx
 from geodaspace.abstractmodel import AbstractModel
-from Lpysal import weights
-from Lpysal import csvreader
-from Lpysal import dbfreader
+import pysal
 
 
 DTYPE = 'listvars'
@@ -74,73 +72,36 @@ class M_CreateSpatialLag(AbstractModel):
             names = [v[0] for v in newVars]
             vars = [v[1] for v in newVars]
             db = self.db()
-            xid = [ db.varnames.index(i) for i in vars ]
-            X = [db.records[i] for i in xid]
-            W = self.loadWeights(self.db())
-            newdb = self.db()
-            newdb.makedictvars()
-            for field,values in zip(names, W.wsplagl(X)):
-                if field: #else: field = '' and should be ignored
-                    newdb.records[field] = values
-            newdb.dictVarsToRecords()
-            newdb.write(path)
+            xid = [ db.header.index(i) for i in vars ]
+            X = [db[:,i] for i in xid]
+            W = self.loadWeights()
+
+            new_header = db.header+names
+            new_spec = db.field_spec+[('N',20,10) for n in names]
+            newdb = pysal.open(path,'w')
+            newdb.header = new_header
+            newdb.field_spec = new_spec
+
+            lag = [pysal.lag_spatial(W,y) for y in X]
+            lag = zip(*lag) #transpose
+            lag = map(list,lag)
+            for i,row in enumerate(db.read()):
+                newdb.write(row+lag[i])
+            newdb.close()
     def db(self):
-        fileType = self.data['dataFile'].rsplit('.')[-1].lower()
-        self.fileType = fileType
-        if fileType == 'csv':
-            return csvreader.csv( self.data['dataFile'], 
-                            -1, dType = DTYPE,
-                            formatheader = FORMATHEADER,
-                            numonly = 0 )
-        elif fileType == 'dbf':
-            return dbfreader.dbf2( self.data['dataFile'],
-                            -1, dType = DTYPE,
-                            formatheader = FORMATHEADER,
-                            numonly = 1 ) 
-        else:
-            return None
-    def loadWeights(self,db):
+        return pysal.open(self.data['dataFile'],'r')
+    def loadWeights(self):
         wtFile = self.data['wtFiles'][self.data['wtFile']]
-        f = open(wtFile,'r')
-        dat = f.read()
-        header = dat.splitlines()[0]
-        f.close()
-        if dat.count(',') > 5:
-            sep = ','
-            headline = 1
-        else:
-            sep = ' '
-            headline = 1
-        if len(header.split(sep))== 4:
-            print "Reading idVar from file..."
-            flag,n,file,idVar = header.split(sep)
-            n = int(n)
-            varIndex = db.varnames.index(idVar)
-            idlist = db.records[varIndex]
-            idlist = map(int,idlist)
-            assert n == len(idlist)
-        else:
-            print "not reading from file, using record order..."
-            idlist = db.idlist
-        W = weights.spweight(
-                idlist,
-                wtFile,
-                wtType ='binary',
-                headline=headline,
-                sep=sep,
-                rowstand=1,
-                power=1,
-                dmax=0)
+        W = pysal.open(wtFile,'r').read()
         return W
-        
     def __dataFile(self,value=None):
         if value is not None:
             if os.path.exists(value) and not os.path.isdir(value):
                 self.data['dataFile'] = value
                 db = self.db()
                 for v in self.newVars:
-                    v.set('vars',db.numvarnames)
-                self.set('vars',db.numvarnames)
+                    v.set('vars',db.header)
+                self.set('vars',db.header)
             else:
                 self.data['dataFile'] = False
     def __wtFile(self,value=None):
