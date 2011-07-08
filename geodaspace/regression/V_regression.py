@@ -13,6 +13,7 @@ from geodaspace.weights.control import ENABLE_CONTIGUITY_WEIGHTS, ENABLE_DISTANC
 from geodaspace import spatialLag
 import variableTools
 import M_regression
+import pysal
 
 ### NOTE: Tooltips are also set in the XRC for windows platforms, these only work on MAC
 #MODEL_TYPE_TOOL_TIPS = {
@@ -467,21 +468,22 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         #print "form X_ListBox contains, ",self.X_ListBox.GetItems()
         #print "form X_ListBox contains Strings, ",self.X_ListBox.GetStrings()
 
-        mwFiles = self.MWeights_ListBox.GetItems()
-        newWeights = []
-        for p in mwFiles:
-            tmp = [w for w in self.model.data['mWeights'] if p in w]
-            if tmp:
-                newWeights.append(tmp[0])
-        self.model.data['mWeights'] = newWeights
+        # This code block was used to support removing weights objects...
+        #mwFiles = self.MWeights_ListBox.GetItems()
+        #newWeights = []
+        #for p in mwFiles:
+        #    tmp = [w for w in self.model.data['mWeights'] if p in w]
+        #    if tmp:
+        #        newWeights.append(tmp[0])
+        #self.model.data['mWeights'] = newWeights
 
-        kwFiles = self.KWeights_ListBox.GetItems()
-        newWeights = []
-        for p in kwFiles:
-            tmp = [w for w in self.model.data['kWeights'] if p in w]
-            if tmp:
-                newWeights.append(tmp[0])
-        self.model.data['kWeights'] = newWeights
+        #kwFiles = self.KWeights_ListBox.GetItems()
+        #newWeights = []
+        #for p in kwFiles:
+        #    tmp = [w for w in self.model.data['kWeights'] if p in w]
+        #    if tmp:
+        #        newWeights.append(tmp[0])
+        #self.model.data['kWeights'] = newWeights
             
         self.model.setSpec(spec)
             
@@ -594,7 +596,14 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         result = fileDialog.ShowModal()
         if result == wx.ID_OK:
             path = fileDialog.GetPath()
-            self.model.addMWeightsFile(path=path)
+            try:
+                W = pysal.open(path,'r').read()
+                W.meta = {'shape file':'unknown','method':os.path.basename(path)}
+                assert type(W) == pysal.W
+                self.model.addMWeightsFile(obj=W)
+            except:
+                dialog = wx.MessageDialog(self,"An error occurred while trying to read your weights object, please check the file: %s"%path,"Could not extract weights object:",wx.OK|wx.ICON_ERROR)
+                dialog.ShowModal()
         else:
             print "canceled"
     def CreateKWeightsButtonClick(self,evt):

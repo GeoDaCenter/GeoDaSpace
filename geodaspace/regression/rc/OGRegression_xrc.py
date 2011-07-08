@@ -282,6 +282,7 @@ def __init_resources():
                                 <object class="sizeritem">
                                   <object class="wxCheckListBox" name="MWeights_ListBox">
                                     <tooltip>Model Weights</tooltip>
+                                    <style>wxLB_HSCROLL</style>
                                     <XRCED>
                                       <assign_var>1</assign_var>
                                     </XRCED>
@@ -849,7 +850,6 @@ def __init_resources():
       </object>
     </object>
   </object>
-  
   <object class="wxPanel" name="VariablePanel">
     <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
