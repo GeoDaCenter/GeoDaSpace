@@ -7,30 +7,30 @@
     <style>wxCAPTION|wxSYSTEM_MENU|wxRESIZE_BORDER|wxRESIZE_BOX|wxCLOSE_BOX|wxMAXIMIZE_BOX|wxMINIMIZE_BOX</style>
     <object class="wxToolBar" name="RegressionToolBar">
       <object class="tool" name="ToolNewModel">
-        <bitmap stock_id="wxART_NEW"></bitmap>
+        <bitmap stock_id="wxART_NEW"/>
         <tooltip>Create New Model: Choose dbf File</tooltip>
         <longhelp>Click to create a new model.</longhelp>
       </object>
       <object class="tool" name="ToolOpenModel">
-        <bitmap stock_id="wxART_FILE_OPEN"></bitmap>
+        <bitmap stock_id="wxART_FILE_OPEN"/>
         <tooltip>Open Existing Model: Choose .mdl File</tooltip>
       </object>
       <object class="tool" name="ToolSaveModel">
-        <bitmap stock_id="wxART_FILE_SAVE"></bitmap>
+        <bitmap stock_id="wxART_FILE_SAVE"/>
         <tooltip>Save Model...</tooltip>
       </object>
       <style>wxTB_FLAT|wxTB_HORIZONTAL</style>
       <object class="tool" name="ToolSaveModelAs">
-        <bitmap stock_id="wxART_FILE_SAVE_AS"></bitmap>
+        <bitmap stock_id="wxART_FILE_SAVE_AS"/>
         <tooltip>Save Model As...</tooltip>
       </object>
       <object class="separator"/>
       <object class="tool" name="ToolVariableSelector">
-        <bitmap stock_id="wxART_REPORT_VIEW"></bitmap>
+        <bitmap stock_id="wxART_REPORT_VIEW"/>
         <tooltip>Open the Variable List</tooltip>
       </object>
       <object class="tool" name="ToolResultsWindow">
-        <bitmap stock_id="wxART_HELP_PAGE"></bitmap>
+        <bitmap stock_id="wxART_HELP_PAGE"/>
         <tooltip>Show the Results Window</tooltip>
       </object>
       <object class="separator"/>
@@ -71,7 +71,7 @@
                                 <object class="wxBitmapButton" name="DATA_INPUTFILE">
                                   <size>15,13d</size>
                                   <style>wxBU_AUTODRAW|wxBU_EXACTFIT</style>
-                                  <bitmap stock_id="wxART_FILE_OPEN"></bitmap>
+                                  <bitmap stock_id="wxART_FILE_OPEN"/>
                                   <tooltip>Open dbf File...</tooltip>
                                 </object>
                               </object>
@@ -98,7 +98,7 @@
                                       <object class="wxBitmapButton" name="CreateMWeightsButton">
                                         <size>15,13d</size>
                                         <style>wxBU_AUTODRAW|wxBU_EXACTFIT</style>
-                                        <bitmap stock_id="wxART_NEW"></bitmap>
+                                        <bitmap stock_id="wxART_NEW"/>
                                         <tooltip>Create Weights</tooltip>
                                       </object>
                                     </object>
@@ -107,7 +107,7 @@
                                       <object class="wxBitmapButton" name="OpenMWeightsButton">
                                         <size>15,13d</size>
                                         <style>wxBU_AUTODRAW|wxBU_EXACTFIT</style>
-                                        <bitmap stock_id="wxART_FILE_OPEN"></bitmap>
+                                        <bitmap stock_id="wxART_FILE_OPEN"/>
                                         <tooltip>Open Weights</tooltip>
                                       </object>
                                     </object>
@@ -115,7 +115,7 @@
                                 </object>
                                 <object class="sizeritem">
                                   <object class="wxCheckListBox" name="MWeights_ListBox">
-                                    <style></style>
+                                    <style/>
                                     <content/>
                                     <tooltip>Model Weights</tooltip>
                                   </object>
@@ -138,7 +138,7 @@
                                       <object class="wxBitmapButton" name="CreateKWeightsButton">
                                         <size>15,13d</size>
                                         <style>wxBU_AUTODRAW|wxBU_EXACTFIT</style>
-                                        <bitmap stock_id="wxART_NEW"></bitmap>
+                                        <bitmap stock_id="wxART_NEW"/>
                                         <tooltip>Create Weights</tooltip>
                                       </object>
                                     </object>
@@ -147,7 +147,7 @@
                                       <object class="wxBitmapButton" name="OpenKWeightsButton">
                                         <size>15,13d</size>
                                         <style>wxBU_AUTODRAW|wxBU_EXACTFIT</style>
-                                        <bitmap stock_id="wxART_FILE_OPEN"></bitmap>
+                                        <bitmap stock_id="wxART_FILE_OPEN"/>
                                         <tooltip>Open Weights</tooltip>
                                       </object>
                                     </object>
@@ -155,7 +155,7 @@
                                 </object>
                                 <object class="sizeritem">
                                   <object class="wxCheckListBox" name="KWeights_ListBox">
-                                    <style></style>
+                                    <style/>
                                     <content/>
                                     <tooltip>Kernel Weights</tooltip>
                                   </object>
@@ -239,7 +239,7 @@
                                 </object>
                                 <object class="sizeritem">
                                   <object class="wxTextCtrl" name="R_TextCtrl">
-                                    <size></size>
+                                    <size/>
                                     <hidden>1</hidden>
                                     <tooltip>Regime (Coming Soon)</tooltip>
                                   </object>
@@ -255,7 +255,7 @@
                                 </object>
                                 <object class="sizeritem">
                                   <object class="wxTextCtrl" name="S_TextCtrl">
-                                    <size></size>
+                                    <size/>
                                     <hidden>1</hidden>
                                     <tooltip>Space (Coming Soon)</tooltip>
                                   </object>
@@ -271,7 +271,7 @@
                                 </object>
                                 <object class="sizeritem">
                                   <object class="wxTextCtrl" name="T_TextCtrl">
-                                    <size></size>
+                                    <size/>
                                     <hidden>1</hidden>
                                     <tooltip>Time (Coming Soon)</tooltip>
                                   </object>
@@ -296,7 +296,7 @@
                                 <object class="sizeritem">
                                   <object class="wxListBox" name="X_ListBox">
                                     <content/>
-                                    <style></style>
+                                    <style/>
                                     <tooltip>Independent Variables</tooltip>
                                   </object>
                                   <option>1</option>
@@ -544,20 +544,20 @@
     <title>Results</title>
     <object class="wxToolBar" name="ToolBar">
       <object class="tool" name="ToolNew">
-        <bitmap stock_id="wxART_NEW"></bitmap>
+        <bitmap stock_id="wxART_NEW"/>
         <tooltip>Create A New Results File...</tooltip>
       </object>
       <object class="tool" name="ToolOpen">
-        <bitmap stock_id="wxART_FILE_OPEN"></bitmap>
+        <bitmap stock_id="wxART_FILE_OPEN"/>
         <tooltip>Open Results File...</tooltip>
       </object>
       <style>wxTB_FLAT|wxTB_HORIZONTAL</style>
       <object class="tool" name="ToolSave">
-        <bitmap stock_id="wxART_FILE_SAVE"></bitmap>
+        <bitmap stock_id="wxART_FILE_SAVE"/>
         <tooltip>Save Results File</tooltip>
       </object>
       <object class="tool" name="ToolSaveAs">
-        <bitmap stock_id="wxART_FILE_SAVE_AS"></bitmap>
+        <bitmap stock_id="wxART_FILE_SAVE_AS"/>
         <tooltip>Save Results File As...</tooltip>
       </object>
       <object class="separator"/>
