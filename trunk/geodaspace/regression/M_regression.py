@@ -304,9 +304,10 @@ class guiRegModel(abstractmodel.AbstractModel):
 
         # Build up args for dispatcher
         # weights
-        w_list = []
-        for fname in data['mWeights']:
-            w_list.append(pysal.open(fname).read())
+        #w_list = []
+        #for fname in data['mWeights']:
+        #    w_list.append(pysal.open(fname).read())
+        w_list = data['mWeights']
         wk_list = []
         for fname in data['kWeights']:
             wk_list.append(pysal.open(fname).read())
