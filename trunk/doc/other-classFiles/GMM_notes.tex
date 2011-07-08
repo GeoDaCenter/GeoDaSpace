@@ -1,6 +1,7 @@
 \documentclass{article}
 \title{GMM Estimation of Spatial Error Autocorrelation with and
-without Heteroskedasticity}
+without Heteroskedasticity\\
+(incomplete draft -- do not quote or use)}
 \author{Luc Anselin}
 \usepackage{amsmath}
 \usepackage{natbib}
@@ -623,7 +624,7 @@ In order to carry out inference, $n^{-1} \mathbf{\Omega}$ is used instead of
 
 
 To facilitate the expression for the asymptotic variance-covariance matrix,
-K-P-D introduce some additional notation. First, an auxilary $2 \times 1$ vector $\mathbf{J}$
+K-P-D introduce some additional notation. First, an auxiliary $2 \times 1$ vector $\mathbf{J}$
 is defined, constructed as:
 \begin{equation}\label{eq:J}
 \mathbf{J} = \mathbf{G}
@@ -676,8 +677,9 @@ Note that the dimension of the first matrix expression is $(k + 1) \times (p + 2
 the matrix in the lower right hand corner being of dimension $1 \times 2$. The product
 of the three matrices yields a result of dimension $(k + 1) \times (k + 1)$.
 
-\subsection{Standard Estimation}\label{ss:asyvarstandard}
-The submatrices of $\mathbf{\Psi}_o$ appropriate for the case of standard estimation
+\subsection{First Step Estimation}\label{ss:asyvarstandard}
+The submatrices of $\mathbf{\Psi}_o$ appropriate for the case of estimation in the
+first step of the procedure
 are:
 \begin{equation}\label{eq:psidd_standard}
 \mathbf{\Psi}_{\delta \delta} = n^{-1} \mathbf{H'} (\mathbf{I} - \lambda \mathbf{W} )^{-1} \mathbf{\Sigma}
@@ -729,9 +731,16 @@ The submatrices of $\mathbf{\Psi}_o$ are as in Equations~\ref{eq:psidd_standard}
 and \ref{eq:psidl_standard}. The residuals are $\mathbf{u}_1$ from the 2SLS regression,
 and the spatial parameter is again $\lambda_2$.
 
+Note that in practice, these asymptotic variance-covariance matrices will seldom
+be used. They are appropriate for the case where the initial estimates from respectively
+OLS or 2SLS are not further improved upon. In practice, this is rarely of interest,
+since the whole purpose is to obtain more efficient estimates for the model parameters
+from the spatial Cochrane-Orcutt procedure.
+
 \subsection{Spatially Weighted Estimation}\label{ss:asyvarweighted}
-In the case where the estimates for $\delta$ are derived from a spatially weighted
-regression (yielding $\delta_2$), the relevant submatrices of $\mathbf{\Psi}_o$ take the form:
+In the typical case where the estimates for $\delta$ are derived from a spatially weighted
+regression (yielding $\delta_2$) in a second estimation
+step, the relevant submatrices of $\mathbf{\Psi}_o$ take the form:
 \begin{equation}\label{eq:psidd_weighted}
 \mathbf{\Psi}_{\delta \delta} = n^{-1} \mathbf{H'}  \mathbf{\Sigma}
  \mathbf{H}
@@ -826,7 +835,7 @@ for $s = 1, \dots, S$.
  The two step estimator actually consists of four steps, each of the two major
  steps consisting of two sub-steps. We consider each in turn.
  
- \subsection{First Step}
+ \subsection{Step One}
  The first step is identical to Step 1 in Section~\ref{ss:initial} and consists of either
  OLS or 2SLS estimation of the model to obtain an initial set of 
  coefficient estimates $\delta_1$ and residuals, $\mathbf{u}_1$.
@@ -892,15 +901,37 @@ The second moment equation is the same as in the heteroskedastic case, Equation~
 with $\mathbf{A}_2 = \mathbf{W}$, or, if the general expressions as in Equation~\ref{eq:uulAu}
 are used, with $\mathbf{A}_2 = (1/2) (\mathbf{W} + \mathbf{W'})$. Both $tr \mathbf{A}_2 = 0$
 and its diagonal elements are zero.
- 
- An initial estimate of $\lambda$,
+
+To recap, the moment conditions take on the general form:
+\begin{equation*}
+\mathbf{m} = \mathbf{g} - \mathbf{G}
+\left[
+\begin{matrix}
+\lambda\\
+\lambda^2
+\end{matrix}
+\right] = 0,
+\end{equation*}
+with:
+\begin{eqnarray*}
+ \mathbf{g}_1 &=& n^{-1} \mathbf{u}' \mathbf{A}_1 \mathbf{u} \\
+  \mathbf{g}_2 &=& n^{-1} \mathbf{u}' \mathbf{A}_2 \mathbf{u},
+\end{eqnarray*}
+and
+the $2 \times 2$ matrix $\mathbf{G}$ with the following elements:
+\begin{eqnarray}
+\mathbf{G}_{11,21} &=& 2n^{-1} \mathbf{u}_L' \mathbf{A}_{1, 2} \mathbf{u}_L \label{eq:newgcol1}\\
+\mathbf{G}_{12,22} &=& - n^{-1} \mathbf{u}_L'  \mathbf{A}_{1, 2} \mathbf{u}_L \label{eq:newgcol2}
+\end{eqnarray}
+
+ An initial consistent estimate of $\lambda$,
  say $\lambda_1$ is obtained as a nonlinear least
 squares solution to $\mbox{argmin}_\lambda (\mathbf{m'm})$.
 Note that unlike the heteroskedastic approach in \cite{KelejianPrucha:10} and \cite{Arraizetal:10},
 this is not followed by an efficient GMM estimation step at this stage, i.e., using
-a weighting matrix This step results in a consistent estimate for $\lambda$.
+a weighting matrix. 
 
-\subsection{Second Step}
+\subsection{Step Two -- Consistent and Efficient Estimation of $\lambda$}\label{ss:steptwoestim}
  The first part of the second step consists of a spatial Cochrane-Orcutt estimation,
  identical to the procedure outlined in Section~\ref{ss:spatiallyweighted}. In the
  absence of spatially lagged and endogenous variables, this boils down to OLS on
@@ -1004,6 +1035,87 @@ Taking all of this together, the elements of the weighting matrix are:
    (\mathbf{W} + \mathbf{W'}) ]
    + \hat{\sigma}^2 (n^{-1}) \mathbf{a'}_2 \mathbf{a}_2
 \end{eqnarray*}
+
+\subsection{Step Two -- Variance-Covariance Matrix}
+The minimization of $\mbox{argmin}_\lambda \mathbf{m'}\mathbf{\mathbf{\Psi}}^{-1} \mathbf{m}$
+yields a consistent and efficient estimate for $\lambda$, say $\lambda_2$. Although it is only
+necessary to use a consistent estimate for $\lambda$ to construct the appropriate
+variance-covariance matrix, it makes sense to use $\lambda_2$ rather than $\lambda_1$ in
+the expressions that follow. This also implies that spatially filtered residuals $\mathbf{u}_s$
+and the spatially filtered $\mathbf{Z}_s$ need to be recomputed with the new value
+for $\lambda_2$. In addition, all the relevant parts of the variance-covariance
+matrix that depend on $\lambda$ need to be updated, such as the moments of the spatially filtered residuals, i.e., $\hat{\sigma}^2$,
+$\hat{\mu}^{(3)}$ and $\hat{\mu}^{(4)}$, among others.
+
+The general expression for the variance-covariance matrix is the same as for the
+heteroskedastic case (Equation~\ref{eq:genericOmega}), which we repeat here for
+convenience: 
+\begin{equation*}
+\mathbf{\Omega} =
+\left[
+\begin{matrix}
+\mathbf{P'} & 0\\
+0 & (\mathbf{J'} \mathbf{\Psi}^{-1} \mathbf{J} )^{-1} \mathbf{J'} \mathbf{\Psi}^{-1} 
+\end{matrix}
+\right]
+\mathbf{\Psi}_o
+\left[
+\begin{matrix}
+\mathbf{P} & 0\\
+0 &  \mathbf{\Psi}^{-1} \mathbf{J}  (\mathbf{J'} \mathbf{\Psi}^{-1} \mathbf{J} )^{-1}  
+\end{matrix}
+\right],
+\end{equation*}
+where, as in the heteroskedastic case, the submatrix 
+ $\mathbf{\mathbf{\Psi}}_o$ consists of four
+submatrices:
+\begin{equation*}
+\mathbf{\mathbf{\Psi}}_o =
+\left[
+\begin{matrix}
+\mathbf{\Psi}_{\delta \delta} & \mathbf{\Psi}_{\delta \lambda}\\
+\mathbf{\Psi}'_{\delta \lambda} & \mathbf{\Psi}
+\end{matrix}
+\right].
+\end{equation*}
+Again, as in the heteroskedastic case, an auxiliary $2 \times 1$ vector $\mathbf{J}$
+is defined, constructed as:
+\begin{equation}\label{eq:J}
+\mathbf{J} = \mathbf{G}
+\left[
+\begin{matrix}
+1 \\
+2 \lambda
+\end{matrix}
+\right],
+\end{equation}
+where the elements of the $2 \times 2$ matrix $\mathbf{G}$ are from Equations~\ref{eq:newgcol1}
+and \ref{eq:newgcol2}.
+
+The elements of $\mathbf{\Psi}$ are as in Section~\ref{ss:steptwoestim}. Note that the
+new $\mathbf{Z}_s$ and $\mathbf{u}_s$ are needed to compute the $\alpha_{1,2}$, and
+the new $\mathbf{Z}_s$ enters into the computation of $\mathbf{P}$, both necessary
+to calculate the terms $\mathbf{a}_{1, 2}$  in the GS2SLS case. In addition, the moments
+of the $\mathbf{u}_s$ residuals are required to compute the elements of $\mathbf{\Psi}$ for
+both OLS and GS2SLS cases.
+
+The other submatrices of $\mathbf{\Psi}$ are:
+\begin{eqnarray*}
+\mathbf{\Psi}_{\delta \delta} &=& (n^{-1}) \hat{\sigma}^2 \mathbf{H}'\mathbf{H}\\
+\mathbf{\Psi}_{\delta \lambda} &=&  (n^{-1}) \hat{\sigma}^2  \mathbf{H}'[\mathbf{a}_1, \mathbf{a}_2]
+   + (n^{-1}) \hat{\mu}^{(3)} \mathbf{H}'[vec_D(\mathbf{A}_1),\mathbf{0}]
+\end{eqnarray*}
+Here, again, we need the residual moments and $[\mathbf{a_1, a_2}]$ using $\lambda_2$.
+Note, that since $vec_D \mathbf{A}_2 = 0$ the last element in the expression
+for $\mathbf{\Psi}_{\delta \lambda}$ is a $n \times 1$ vector of zeros.
+
+The corresponding elements of the variance-covariance matrix are then:
+\begin{eqnarray*}
+\mathbf{\Omega}_{\delta \delta} &=& \hat{\sigma}^2 [ \mathbf{Z}_s' \mathbf{H} (\mathbf{H'H})^{-1} \mathbf{H}' \mathbf{Z}_s ]^{-1}\\
+\mathbf{\Omega}_{\delta \lambda} &=& \mathbf{P}'\mathbf{\Psi}_{\delta \lambda} \mathbf{\Psi}^{-1} \mathbf{J} [ \mathbf{J}' \mathbf{\Psi}^{-1} \mathbf{J} ]^{-1}\\
+\mathbf{\Omega}_{\lambda \lambda} &=& [ \mathbf{J}' \mathbf{\Psi}^{-1} \mathbf{J} ]^{-1}
+\end{eqnarray*}
+
 
 \bibliography{/users/luc/Papers/lucbibs/papers,/users/luc/Papers/lucbibs/luc}
 \bibliographystyle{apalike}
