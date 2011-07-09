@@ -126,13 +126,14 @@ class BaseTSLS(RegressionProps):
         self.n = y.shape[0]
 
         if constant:
-            x = np.hstack((np.ones(y.shape),x))
+            self.x = np.hstack((np.ones(y.shape),x))
+        else:
+            self.x = x
 
-        self.x = x
         self.kstar = yend.shape[1]        
-        z = np.hstack((x,yend))  # including exogenous and endogenous variables   
+        z = np.hstack((self.x,yend))  # including exogenous and endogenous variables   
         if type(h).__name__ != 'ndarray':
-            h = np.hstack((x,q))   # including exogenous variables and instrument
+            h = np.hstack((self.x,q))   # including exogenous variables and instrument
 
         self.z = z
         self.h = h
