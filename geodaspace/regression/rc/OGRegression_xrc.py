@@ -330,6 +330,7 @@ def __init_resources():
                                 <object class="sizeritem">
                                   <object class="wxCheckListBox" name="KWeights_ListBox">
                                     <tooltip>Kernel Weights</tooltip>
+                                    <style>wxLB_HSCROLL</style>
                                     <XRCED>
                                       <assign_var>1</assign_var>
                                     </XRCED>
