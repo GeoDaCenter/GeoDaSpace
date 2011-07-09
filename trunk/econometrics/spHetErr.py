@@ -230,6 +230,8 @@ class GM_Error_Het(BaseGM_Error_Het):
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x, constant)
         self.name_x.append('lambda')
+        self.summary = str(np.around(np.hstack((self.betas,
+               np.sqrt(self.vm.diagonal()).reshape(self.betas.shape[0],1))),4))
         
 
 class BaseGM_Endog_Error_Het:
@@ -489,6 +491,8 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
         self.name_z.append('lambda')  #listing lambda last
         self.name_q = USER.set_name_q(name_q, q)
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
+        self.summary = str(np.around(np.hstack((self.betas,
+               np.sqrt(self.vm.diagonal()).reshape(self.betas.shape[0],1))),4))
         
 
 class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
@@ -761,6 +765,8 @@ class GM_Combo_Het(BaseGM_Combo_Het):
         self.name_q = USER.set_name_q(name_q, q)
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
+        self.summary = str(np.around(np.hstack((self.betas,
+               np.sqrt(self.vm.diagonal()).reshape(self.betas.shape[0],1))),4))
 
 
 def moments_het(w, u):

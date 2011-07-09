@@ -92,16 +92,19 @@ class BaseOLS(RegressionProps):
     """
     def __init__(self, y, x, constant=True, robust=None, wk=None):
         if constant:
-            x = np.hstack((np.ones(y.shape), x))
-        self.set_x(x)
-        xty = np.dot(x.T, y)
+            self.x = np.hstack((np.ones(y.shape), x))
+        else:
+            self.x = x
+        self.xtx = np.dot(self.x.T, self.x)
+        self.xtxi = la.inv(self.xtx)
+        xty = np.dot(self.x.T, y)
         self.betas = np.dot(self.xtxi, xty)
-        predy = np.dot(x, self.betas)
+        predy = np.dot(self.x, self.betas)
         u = y-predy
         self.u = u
         self.predy = predy
         self.y = y
-        self.n, self.k = x.shape
+        self.n, self.k = self.x.shape
 
         if robust:
             self.vm = ROBUST.robust_vm(reg=self, wk=wk)
@@ -110,10 +113,6 @@ class BaseOLS(RegressionProps):
         self._cache = {}
         self.sig2 = self.sig2n
 
-    def set_x(self, x):
-        self.x = x
-        self.xtx = np.dot(self.x.T, self.x)
-        self.xtxi = la.inv(self.xtx)
 
 class OLS(BaseOLS, USER.DiagnosticBuilder):
     """

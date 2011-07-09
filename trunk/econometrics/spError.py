@@ -105,24 +105,23 @@ class BaseGM_Error:
     def __init__(self, y, x, w, constant=True):
         w.A1 = get_A1_het(w.sparse)
 
-        if constant:
-            x = np.hstack((np.ones(y.shape),x))
-        self.n, self.k = x.shape
-
         #1a. OLS --> \tilde{betas}
-        ols = OLS.BaseOLS(y, x, constant=False)
+        ols = OLS.BaseOLS(y, x, constant=constant)
+        self.n, self.k = ols.x.shape
+        self.x = ols.x
+        self.y = ols.y
 
         #1b. GMM --> \tilde{\lambda1}
         moments = _momentsGM_Error(w, ols.u)
         lambda1 = optim_moments(moments)
 
         #2a. OLS -->\hat{betas}
-        xs,ys = get_spFilter(w, lambda1, x),get_spFilter(w, lambda1, y)
-
+        xs = get_spFilter(w, lambda1, self.x)
+        ys = get_spFilter(w, lambda1, self.y)
         ols2 = OLS.BaseOLS(ys, xs, constant=False)
 
         #Output
-        self.u = y - np.dot(ols.x, ols2.betas)
+        self.u = y - np.dot(self.x, ols2.betas)
         self.betas = np.vstack((ols2.betas, np.array([[lambda1]])))
         self.sig2 = ols2.sig2n
 
@@ -177,6 +176,7 @@ class GM_Error(BaseGM_Error):
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(copy.copy(name_x), x, constant)
         self.name_x.append('lambda')
+        self.summary = "results place holder"
 
 
 class BaseGM_Endog_Error:
@@ -255,27 +255,27 @@ class BaseGM_Endog_Error:
     '''
     def __init__(self, y, x, w, yend, q, constant=True):
 
-        if constant:
-            x = np.hstack((np.ones(y.shape),x))
-        n, k = x.shape
-
         #1a. TSLS --> \tilde{betas}
-        tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=False)
+        tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=constant)
+        self.n, self.k = tsls.x.shape
+        self.x = tsls.x
+        self.y = tsls.y
+        self.yend = tsls.yend
 
         #1b. GMM --> \tilde{\lambda1}
         moments = _momentsGM_Error(w, tsls.u)
         lambda1 = optim_moments(moments)
 
         #2a. OLS -->\hat{betas}
-        x_s,y_s = get_spFilter(w, lambda1, x),get_spFilter(w, lambda1, y)
-        yend_s = get_spFilter(w, lambda1, yend)
-
-        tsls2 = TSLS.BaseTSLS(y_s, x_s, yend_s, h=tsls.h, constant=False)
+        xs = get_spFilter(w, lambda1, self.x)
+        ys = get_spFilter(w, lambda1, self.y)
+        yend_s = get_spFilter(w, lambda1, self.yend)
+        tsls2 = TSLS.BaseTSLS(ys, xs, yend_s, h=tsls.h, constant=False)
 
         #Output
         self.betas = np.vstack((tsls2.betas, np.array([[lambda1]])))
         self.u = y - np.dot(tsls.z, tsls2.betas)
-        sig2 = np.dot(tsls2.u.T,tsls2.u) / n
+        sig2 = np.dot(tsls2.u.T,tsls2.u) / self.n
         self.vm = sig2 * la.inv(np.dot(tsls2.z.T,tsls2.z))
         self.se_betas = np.sqrt(self.vm.diagonal()).reshape(tsls2.betas.shape)
         zs = tsls2.betas / self.se_betas
@@ -326,6 +326,7 @@ class GM_Endog_Error(BaseGM_Endog_Error):
         self.name_z.append('lambda')
         self.name_q = USER.set_name_q(name_q, q)
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
+        self.summary = "results place holder"
         
 
 class BaseGM_Combo(BaseGM_Endog_Error):
@@ -438,14 +439,14 @@ class BaseGM_Combo(BaseGM_Endog_Error):
         if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
             lag_vars = np.hstack((x, q))
             spatial_inst = get_lags(w, lag_vars, w_lags)
-            q = np.hstack((q, spatial_inst))
-            yend = np.hstack((yend, yl))
+            q_out = np.hstack((q, spatial_inst))
+            yend_out = np.hstack((yend, yl))
         elif yend == None:                   # spatial instruments only
-            q = get_lags(w, x, w_lags)
-            yend = yl
+            q_out = get_lags(w, x, w_lags)
+            yend_out = yl
         else:
             raise Exception, "invalid value passed to yend"
-        BaseGM_Endog_Error.__init__(self, y, x, w, yend, q, constant=constant)
+        BaseGM_Endog_Error.__init__(self, y, x, w, yend_out, q_out, constant=constant)
 
 class GM_Combo(BaseGM_Combo):
     """
@@ -522,6 +523,7 @@ class GM_Combo(BaseGM_Combo):
         self.name_q = USER.set_name_q(name_q, q)
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
+        self.summary = "results place holder"
 
 
 class BaseGM_Endog_Error_Hom:

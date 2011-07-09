@@ -156,13 +156,13 @@ class BaseGM_Lag(TSLS.BaseTSLS):
                 raise Exception, "invalid value passed to spat_lags"
             spatial_inst = get_lags(w, lag_vars, w_lags)
             q = np.hstack((q, spatial_inst))
-            yend = np.hstack((yend, yl))
+            yend_out = np.hstack((yend, yl))
         elif yend == None:                   # spatial instruments only
             q = get_lags(w, x, w_lags)
-            yend = yl
+            yend_out = yl
         else:
             raise Exception, "invalid value passed to yend"
-        TSLS.BaseTSLS.__init__(self, y, x, yend, q=q, constant=constant)
+        TSLS.BaseTSLS.__init__(self, y, x, yend_out, q=q, constant=constant)
         self.sig2 = self.sig2n
         if robust:
             self.vm = ROBUST.robust_vm(self, wk=wk)
