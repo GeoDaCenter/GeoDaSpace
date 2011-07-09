@@ -579,16 +579,24 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         f = f[:-3]+'shp'
         if os.path.exists(f):
             try:
-                #self.weightsFrame.model.set('inShp',f)
                 self.modelWeightsDialog.model.inShp = f
             except:
                 raise
         if self.modelWeightsDialog.ShowModal() == wx.ID_OK:
             self.model.addMWeightsFile(obj=self.modelWeightsDialog.GetW())
-        #print self.wQueue
-        #while self.wQueue:
-        #    path = self.wQueue.pop(0)
-        #    self.model.addMWeightsFile(path=path)
+    def CreateKWeightsButtonClick(self,evt):
+        f = self.model.data['fname']
+        f = f[:-3]+'shp'
+        if os.path.exists(f):
+            try:
+                self.kernelWeightsDialog.model.inShp = f
+            except:
+                raise
+        if self.kernelWeightsDialog.ShowModal() == wx.ID_OK:
+            self.model.addKWeightsFile(obj=self.kernelWeightsDialog.GetW())
+        #    print "added"
+        #else:
+        #    print "failed"
     def OpenMWeightsButtonClick(self,evt):
         pathHint = os.path.split(self.model.data['fname'])[0]
         filter = "Weights File (*.gal; *.gwt)|*.gal;*.gwt" #"|*.gal|GWT file|*.gwt|XML Weights|*.xml"
@@ -606,34 +614,26 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                 dialog.ShowModal()
         else:
             print "canceled"
-    def CreateKWeightsButtonClick(self,evt):
-        f = self.model.data['fname']
-        f = f[:-3]+'shp'
-        if os.path.exists(f):
-            try:
-                self.weightsFrame.model.set('inShp',f)
-            except:
-                raise
-        self.weightsFrame.ShowModal()
-        print self.wQueue
-        while self.wQueue:
-            path = self.wQueue.pop(0)
-            self.model.addKWeightsFile(path=path)
-            self.KernelWeightsWarning(path)
     def OpenKWeightsButtonClick(self,evt):
         pathHint = os.path.split(self.model.data['fname'])[0]
-        filter = "Weights File (*.gal; *.gwt)|*.gal;*.gwt" #"|*.gal|GWT file|*.gwt|XML Weights|*.xml"
-        #filter = "GWT file|*.gwt|GAL file|*.gal|XML Weights|*.xml"
+        filter = "Weights File (*.gwt)|*.gwt" #"|*.gal|GWT file|*.gwt|XML Weights|*.xml"
         fileDialog = wx.FileDialog(self,defaultDir=pathHint,message="Choose Weights File",wildcard=filter)
         result = fileDialog.ShowModal()
         if result == wx.ID_OK:
             path = fileDialog.GetPath()
-            self.model.addKWeightsFile(path=path)
-            self.KernelWeightsWarning(path)
+            try:
+                W = pysal.open(path,'r').read()
+                W.meta = {'shape file':'unknown','method':os.path.basename(path)}
+                assert type(W) == pysal.W
+                self.KernelWeightsWarning(W)
+                self.model.addKWeightsFile(obj=W)
+            except:
+                dialog = wx.MessageDialog(self,"An error occurred while trying to read your weights object, please check the file: %s"%path,"Could not extract weights object:",wx.OK|wx.ICON_ERROR)
+                dialog.ShowModal()
         else:
             print "canceled"
-    def KernelWeightsWarning(self,path):
-        if self.model.checkKW(path):
+    def KernelWeightsWarning(self,obj):
+        if self.model.checkKW(obj):
             pass
         else:
             dialog = wx.MessageDialog(self,"Please use distance based weights with sufficient # of neighbors (see manual).","Kernel Weights Warning:",wx.OK|wx.ICON_ERROR)

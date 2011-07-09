@@ -52,20 +52,12 @@ class guiRegModel(abstractmodel.AbstractModel):
             self.update()
         else:
             return True
-    def checkKW(self,path):
-        print "WARNING: This function is hard coded to pass! Reimplement this function without Lpysal"
+    def checkKW(self,obj):
+        print "running checkKW() this function needs work."
+        avgN = sum(obj.cardinalities.values())/float(obj.n)
+        if avgN < 10.0:
+            return False
         return True
-#        kws = self.prepWeights()[1]
-#        for w in kws:
-#            if w.wtfile == path:
-#                break
-#        fileType = w.wtfile[-3:].lower()
-#        if fileType == 'gal':
-#            return False
-#        avgN = float(sum(w.nb)) / len(w.nb)
-#        if avgN < 10.0:
-#            return False
-#        return True
 
     # The Getters
     def getVariables(self):
@@ -98,7 +90,15 @@ class guiRegModel(abstractmodel.AbstractModel):
         return pths+objs
     def getKWeightsFiles(self):
         pths = [os.path.basename(p) for p in self.data['kWeights'] if type(p)==str]
-        objs = ['obj kw' for p in self.data['kWeights'] if type(p)==pysal.W]
+        objs = []
+        for p in self.data['kWeights']:
+            if issubclass(type(p),pysal.W):
+                if hasattr(p,'meta'):
+                    name = os.path.basename(p.meta['shape file'])
+                    name+= ': '+p.meta['method']
+                    objs.append(name)
+                else:
+                    objs.append('obj kw')
         return pths+objs
     def getModelMethod(self):
         mType = self.data['modelType']['mType']
@@ -304,13 +304,8 @@ class guiRegModel(abstractmodel.AbstractModel):
 
         # Build up args for dispatcher
         # weights
-        #w_list = []
-        #for fname in data['mWeights']:
-        #    w_list.append(pysal.open(fname).read())
         w_list = data['mWeights']
-        wk_list = []
-        for fname in data['kWeights']:
-            wk_list.append(pysal.open(fname).read())
+        wk_list = data['kWeights']
         db = pysal.open( data['fname'] ,'r')
         # y
         name_y = data['spec']['y']
