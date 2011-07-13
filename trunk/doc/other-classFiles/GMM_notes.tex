@@ -1,7 +1,6 @@
 \documentclass{article}
 \title{GMM Estimation of Spatial Error Autocorrelation with and
-without Heteroskedasticity\\
-(incomplete draft -- do not quote or use)}
+without Heteroskedasticity}
 \author{Luc Anselin}
 \usepackage{amsmath}
 \usepackage{natbib}
@@ -180,7 +179,7 @@ a linear specification for its reduced form:
 with $\beta*$ as the coefficient vector and $\mathbf{v}$ as an idiosyncratic error.
 Substituting the result back into the reduced form for $\mathbf{y}$ yields:\footnote{In 
 general, the second endogenous variable may also depend on the spatial lag, in
-which case there is the simple expression for the reduced form given here does
+which case the simple expression for the reduced form given here does
 not hold.}
 \begin{equation*}
  \mathbf{y} = (\mathbf{I} - \rho \mathbf{W} )^{-1} (\mathbf{X}\beta + \mathbf{X*} \beta* + \mathbf{v} + \mathbf{u}).
@@ -211,8 +210,13 @@ matrix trace operator. The main difference
 with the moment equations in \cite{KelejianPrucha:99a} is that the innovation vector
 is allowed to be heteroskedastic of general form, hence the inclusion of the 
 term $\mbox{diag}[E(\varepsilon_i^2)]$ in Equation~\ref{eq:firstmoment}. In the absence of heteroskedasticity, the
-RHS of the first condition simplifies to $\sigma^2 n^{-1} \mbox{tr} [\mathbf{WW'}]$. However, to carry out the
-GM estimation in this case, an additional equation is needed for $\sigma^2$.
+RHS of the first condition simplifies to $\sigma^2 n^{-1} tr [\mathbf{WW'}]$. With
+$\sigma^2$ replaced by E[$(n^{-1}) \varepsilon' \varepsilon$], the first moment condition
+then becomes:
+\begin{eqnarray*}
+ n^{-1} \mbox{E} [\varepsilon_L'\varepsilon_L] &=& E[ n^{-1}\varepsilon' \varepsilon] (n^{-1}) tr [\mathbf{WW'}]\\
+   &=& n^{-1} \mbox{E} [ \varepsilon' (n^{-1}) tr[\mathbf{WW'}] \mathbf{I} \varepsilon ]
+ \end{eqnarray*}
 
 \subsection{Simplifying Notation}\label{ss:simplenotation}
 K-P-D introduce a number of simplifying notations that allow the moment conditions to
@@ -347,12 +351,45 @@ for $q, r = 1,2$ and with $\mathbf{\Sigma}$ as a diagonal matrix with as element
 $(u_i - \lambda u_{L_i})^2 = u_{s_i}^2$, i.e., the squares of the spatially filtered residuals.
 The second term in this expression is quite complex, and will be examined more closely 
 in Sections~\ref{ss:weightsstandard} and \ref{ss:weightsfilter} below.
-However, it is important to note that this term becomes zero when there are only exogenous
+However, it is important to note that this second term becomes zero when there are only exogenous
 explanatory variables in the model (i.e., when OLS is applicable). The term derives from the
 expected value of a cross
 product of expressions in the $\mathbf{Z}$ matrix and the error term $\mathbf{u}$. Hence,
 when no endogenous variables are included in $\mathbf{Z}$, the expected value of this
 cross product amounts to $\mbox{E}[ \mathbf{u} ] = 0$.
+
+The fundamental result from which the form of the variance-covariance matrix in 
+Equation~\ref{eq:psiqr} follows was established in the central limit theorem
+for a linear quadratic form in \citet[pp. 226--227]{KelejianPrucha:01}. In general, the
+quadratic form is specified as:
+\begin{eqnarray*}
+f &=& \varepsilon' \mathbf{A} \varepsilon + \mathbf{b}' \varepsilon\\
+   &=& \sum_i \sum_j a_{ij} \varepsilon_i \varepsilon_j + \sum_i b_i \varepsilon_i
+\end{eqnarray*}
+where the $\varepsilon_i$ are independent error terms and the matrix $\mathbf{A}$ is taken to be symmetric \citep[for the full set of assumptions, see][]{KelejianPrucha:01}.\footnote{As argued in 
+ \citet[footnote 10]{KelejianPrucha:01}, when $\mathbf{A}$ is not symmetric,
+ it can be readily replaced by $(1/2) (\mathbf{A} + \mathbf{A'} )$.} Under the maintained
+ set of assumptions, the mean and variance of this quadratic form are:
+ \begin{eqnarray*}
+ \mu(f) &=& \sum_{i = 1}^n a_{ii} \sigma_i^2\\
+ \sigma^2(f) &=& 4 \sum_{i = 1}^{n} \sum_{j = 1}^{i - 1} a_{ij}^2 \sigma^2_i \sigma^2_j 
+    + \sum_{i = 1}^n b_i^2 \sigma^2_i\\
+    && + \sum_{i = 1}^n a_{ii}^2 ( \mu_i^{(4)} - \sigma_i^4 ) + 2 \sum_{i = 1}^n b_i a_{ii} \mu_i^{(3)},
+ \end{eqnarray*}
+with $\sigma^2_i = \mbox{E}[\varepsilon_i^2]$, $\mu_i^{(3)} = \mbox{E}[\varepsilon_i^3]$
+and $\mu_i^{(4)} = \mbox{E}[\varepsilon_i^4]$. Note that when the diagonal elements of the
+matrix $\mathbf{A}$ are all zero, then $\mu_q = 0$ and the last two terms in the
+expression for the variance disappear. The variance-covariance matrix $\mathbf{\Psi}$ is
+constructed from the variances and covariances between $(n^{-1}) \mbox{E}[\varepsilon' \mathbf{A_1} \varepsilon]$ and $(n^{-1}) \mbox{E}[\varepsilon' \mathbf{A_2} \varepsilon]$. These conform to the
+general structure 
+$f = \varepsilon' \mathbf{A_{q,r}} \varepsilon + \mathbf{b_{q,r}}' \varepsilon$ of Lemma A.1. in \citet[pp. 62--63]{KelejianPrucha:10} with mean and
+covariance as:
+\begin{eqnarray*}
+\mu_{(1,2)}(f) &=& \sum_{i = 1}^n a_{ii,(1,2)} \sigma_i^2\\
+\sigma_{q,r}(f) &=& 2 \sum_{i = 1}^{n} \sum_{j = 1}^{n} a_{ij,q} a_{ij,r} \sigma_i^2 \sigma_j^2  + \sum_{i = 1}^{n} b_{i,q} b_{i,r} \sigma^2_i\\
+  && + \sum_{i=1}^n a_{ii,q} a_{ii,r} [ \mu_i^{(4)} - 3 \sigma^4_i ]
+ + \sum_{i=1}^n (b_{i,q} a_{ii,r} + b_{i,r} a_{ii,r} )\mu_i^{(3)}
+\end{eqnarray*}
 
 \subsubsection{OLS Estimation}\label{sss:phiols}
 In the simplest case when no endogenous variables are present in the model, we
@@ -821,7 +858,7 @@ and $\mathbf{u}_1$.
 
 \section{General Two-Step Estimation in the Absence of Heteroskedasticity}
 In the recent working papers by \cite{Drukkeretal:10,Drukkeretal:11}, a general framework is presented
-for a two-step GMM estimation of the parameters in a SARAR specification, allowing
+for a two-step GMM estimation of the parameters in a SAR-SAR specification, allowing
 for endogenous variables other than the spatial lag. The moment conditions spelled out in the
 paper are more general than in previous work.
 Specifically, up to $S$ weighting matrices $\mathbf{A}_s$ are allowed, which do not need
@@ -1116,6 +1153,18 @@ The corresponding elements of the variance-covariance matrix are then:
 \mathbf{\Omega}_{\lambda \lambda} &=& [ \mathbf{J}' \mathbf{\Psi}^{-1} \mathbf{J} ]^{-1}
 \end{eqnarray*}
 
+Note that there may be a problem with the matrix $\mathbf{\Omega}_{\delta \lambda}$ in the
+standard regression model. The classic result is that the variance-covariance matrix must
+be block-diagonal between the model coefficients ($\delta$) and the error parameters
+($\lambda$). In general, this will not be the case, since the second term in 
+$\mathbf{\Psi}_{\delta \lambda} $ does not disappear unless the diagonal elements of
+$\mathbf{A_1}$ are zero or the error distribution is symmetric or normal
+(in which case $\mu^{(3)} = 0$). This is not the case for the form of $\mathbf{A_1}$ used
+in \cite{Drukkeretal:10,Drukkeretal:11}. However, this is the case if we use
+\begin{equation*}
+\mathbf{A}_1 = \mathbf{W'W} - \mbox{diag} (\mathbf{w}_{.i}'\mathbf{w}_{.i}).
+\end{equation*}
+The properties of the corresponding estimator need to be further investigated.
 
 \bibliography{/users/luc/Papers/lucbibs/papers,/users/luc/Papers/lucbibs/luc}
 \bibliographystyle{apalike}
