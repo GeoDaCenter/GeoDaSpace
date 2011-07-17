@@ -111,7 +111,7 @@ class BaseOLS(RegressionProps):
 
         RegressionProps()
         self._cache = {}
-        self.sig2 = self.sig2n
+        self.sig2 = self.sig2n    #LA why? in OLS typically sig2n_k
 
 
 class OLS(BaseOLS, USER.DiagnosticBuilder):
