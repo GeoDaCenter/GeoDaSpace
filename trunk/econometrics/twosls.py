@@ -143,13 +143,13 @@ class BaseTSLS(RegressionProps):
         
         hth = np.dot(h.T,h)    #H'H
         hthi = la.inv(hth)
-        htz = np.dot(h.T,z)    #H'Z
-#        zth = np.dot(z.T,h)    #LA zth = htz.T no need to compute
+#        htz = np.dot(h.T,z)    #H'Z  not needed
+        zth = np.dot(z.T,h)    
         hty = np.dot(h.T,y)     #H'y
         
         factor_1 = np.dot(zth,hthi)  #LA Z'H (H'H)^-1   np.dot(htz.T,hthi)
-#      factor_1 = np.dot(htz.T,hthi)
-        factor_2 = np.dot(factor_1,htz)   # (Z'H (H'H)^-1 H'Z)
+#        factor_2 = np.dot(factor_1,htz)   # (Z'H (H'H)^-1 H'Z)
+        factor_2 = np.dot(factor_1,zth.T)  # LA added
         varb = la.inv(factor_2)          # this one needs to be in cache to be used in AK
         factor_2 = np.dot(varb,factor_1)  # LA (Z'H (H'H)^-1 H'Z)^-1 Z'H (H'H)^-1  -- do not reuse factor_2, define new
 #      factor_3 = np.dot(varb,factor_1)
