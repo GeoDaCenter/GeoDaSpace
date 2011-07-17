@@ -54,7 +54,7 @@ class RegressionProps:
     @property
     def vm(self):
         if 'vm' not in self._cache:
-            self._cache['vm'] = np.dot(self.sig2, self.xtxi)
+            self._cache['vm'] = np.dot(self.sig2, self.xtxi)  #LA which sig2?
         return self._cache['vm']
     
     @property
@@ -98,11 +98,12 @@ def get_A1_het(S):
     Large Sample Results". Journal of Regional Science, Vol. 60, No. 2, pp.
     592-614.
     """
-    StS = S.T * S
+    StS = S.T * S   #LA set diagonal of StS to zero, that's it
     d = SP.spdiags([StS.diagonal()], [0], S.get_shape()[0], S.get_shape()[1])
     d = d.asformat('csr')
     return StS - d
 
+#LA add option to ignore den
 def get_A1_hom(s):
     """
     Builds A1 for the spatial error GM estimation with homoscedasticity as in Drukker et al. [1]_ (p. 9).
@@ -134,9 +135,9 @@ def get_A1_hom(s):
     """
     n = s.shape[0]
     wpw = s.T * s
-    twpw = np.sum(wpw.diagonal())
+    twpw = np.sum(wpw.diagonal()) #LA divide by n and subtract from diagonal of wpw
     den = 1 + (twpw / n)**2
-    num = wpw - (twpw/n) * SP.eye(n, n, format='csr')
+    num = wpw - (twpw/n) * SP.eye(n, n, format='csr') #LA avoid eye
     return num / den
 
 def _moments2eqs(A1, s, u):
@@ -177,12 +178,11 @@ def _moments2eqs(A1, s, u):
     n = s.shape[0]
     A1u = A1 * u
     wu = s * u
-
     g1 = np.dot(u.T, A1u)
-    g2 = np.dot(u.T, wu)
+    g2 = np.dot(u.T, wu)   #LA use 1/2 (W + W') for A1
     g = np.array([[g1][0][0],[g2][0][0]]) / n
 
-    G11 = np.dot(u.T, (A1 + A1.T) * wu)
+    G11 = np.dot(u.T, (A1 + A1.T) * wu) #LA use eqn (38) (39)
     G12 = -np.dot(wu.T * A1, wu)
     G21 = np.dot(u.T, (s + s.T) * wu)
     G22 = -np.dot(wu.T, (s * wu))
@@ -254,7 +254,7 @@ def foptim_par(par,moments):
                       moments.g - moments.G * lambdapar = e
     """
     vv=np.dot(moments[0],par)
-    vv2=vv-moments[1]
+    vv2=vv-moments[1]             #LA - should be moments[1] - vv? doesn't matter in the end
     return sum(vv2**2)
 
 def get_spFilter(w,lamb,sf):
