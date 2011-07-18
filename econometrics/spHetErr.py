@@ -125,8 +125,8 @@ class BaseGM_Error_Het:
         """
         #The following code will give results that match Stata
         ones = np.ones(y.shape)
-        reg = BaseGM_Endog_Error_Het(y, x=ones, w=w, yend=x, q=x,
-                cycles=cycles, constant=False, step1c=False)
+        reg = BaseGM_Endog_Error_Het(y, x=ones, w=w, yend=X, q=X,
+                cycles=1, constant=False, step1c=False)
         self.x = reg.z
         self.y = reg.y
         self.n, self.k = reg.n, reg.k
@@ -218,11 +218,11 @@ class GM_Error_Het(BaseGM_Error_Het):
 
     """
 
-    def __init__(self, y, x, w, cycles=1, constant=True,\
+    def __init__(self, y, x, w, cycles=1, constant=True, step1c=True,\
                         name_y=None, name_x=None, name_ds=None):
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
-        BaseGM_Error_Het.__init__(self, y, x, w, cycles=cycles, constant=constant)
+        BaseGM_Error_Het.__init__(self, y, x, w, cycles=cycles, constant=constant, step1c=step1c)
         self.title = "SPATIALLY WEIGHTED LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -473,12 +473,12 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
 
     """
     def __init__(self, y, x, w, yend, q, cycles=1, constant=True,\
-                        name_y=None, name_x=None, name_yend=None,\
-                        name_q=None, name_ds=None):
+                        step1c=True, name_y=None, name_x=None,\
+                        name_yend=None, name_q=None, name_ds=None):
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
         BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend, q, cycles=cycles,\
-                                       constant=constant)
+                                       constant=constant, step1c=step1c)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -607,7 +607,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     """
 
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True, cycles=1):
+                    constant=True, cycles=1, step1c=True):
         # Create spatial lag of y
         yl = lag_spatial(w, y)
         if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
@@ -620,7 +620,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
             yend = yl
         else:
             raise Exception, "invalid value passed to yend"
-        BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend, q, cycles=cycles, constant=constant)
+        BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend, q, cycles=cycles, constant=constant, step1c=step1c)
 
 class GM_Combo_Het(BaseGM_Combo_Het):
     """
@@ -743,14 +743,14 @@ class GM_Combo_Het(BaseGM_Combo_Het):
     """
     
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True, cycles=1,\
+                    constant=True, cycles=1, step1c=True,\
                     name_y=None, name_x=None, name_yend=None,\
                     name_q=None, name_ds=None):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
         BaseGM_Combo_Het.__init__(self, y, x, w, yend, q, w_lags,\
-                                           constant, cycles)
+                                           constant, cycles, step1c)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
