@@ -337,7 +337,8 @@ class BaseGM_Endog_Error_Het:
         if step1c:
             #1c. GMM --> \tilde{\lambda2}
             self.u = tsls.u
-            vc1 = get_vc_het_tsls(w, self, lambda1, tsls.pfora1a2, filt=False)
+            zs = GMM.get_spFilter(w, lambda1, self.z)
+            vc1 = get_vc_het_tsls(w, self, lambda1, tsls.pfora1a2, zs, filt=False)
             lambda2 = GMM.optim_moments(moments,vc1)
         else:
             lambda2 = lambda1 #Required to match Stata.
@@ -353,18 +354,15 @@ class BaseGM_Endog_Error_Het:
             self.u = self.y - self.predy
 
             #2b. GMM --> \hat{\lambda}
-            vc2 = get_vc_het_tsls(w, self, lambda_i[-1], tsls_s.pfora1a2, filt=True)
+            vc2 = get_vc_het_tsls(w, self, lambda_i[-1], tsls_s.pfora1a2, np.hstack((xs,yend_s)))
             moments_i = GMM._moments2eqs(w.A1, w.sparse, self.u)
             lambda3 = GMM.optim_moments(moments_i, vc2)
             lambda_i.append(lambda3)
 
-        xs = GMM.get_spFilter(w, lambda3, self.x)
-        yend_s = GMM.get_spFilter(w, lambda3, self.yend)
-        P = get_P_hat(self.h, tsls.hthi, np.hstack((xs, yend_s)), self.n)
-        vc3 = get_vc_het_tsls(w, self, lambda3, P, filt=True)
-        G = moments_i[0]
-
-        self.vm = get_Omega_GS2SLS(w, lambda3, self, G, vc3, P, filt=True)
+        zs = GMM.get_spFilter(w, lambda3, self.z)
+        P = get_P_hat(self, tsls.hthi, zs)
+        vc3 = get_vc_het_tsls(w, self, lambda3, P, zs, save_a1a2=True)
+        self.vm = get_Omega_GS2SLS(w, lambda3, self, moments_i[0], vc3, P)
         self.betas = np.vstack((tsls_s.betas, lambda3))
         self._cache = {}
 
@@ -825,7 +823,7 @@ def get_vc_het(w, E):
     592-614.
 
     """
-    aPatE = (w.A1 + w.A1.T) * E
+    aPatE = 2*w.A1* E
     wPwtE = (w.sparse + w.sparse.T) * E
 
     psi11 = aPatE * aPatE
@@ -886,17 +884,17 @@ def get_vm_het(G, lamb, reg, w, psi):
     vm = np.vstack((np.hstack((omega11, zero)),np.hstack((zero.T, omega22)))) / w.n
     return vm
 
-def get_P_hat(h, hthi, zf, n):
+def get_P_hat(reg, hthi, zf):
     """
     P_hat from Appendix B, used for a1 a2, using filtered Z
     """
-    htzf = np.dot(h.T, zf)
+    htzf = np.dot(reg.h.T, zf)
     P1 = np.dot(hthi, htzf)
     P2 = np.dot(htzf.T, P1)
     P2i = la.inv(P2)
-    return n*np.dot(P1, P2i)
+    return reg.n*np.dot(P1, P2i)
 
-def get_a1a2(w, reg, lambdapar, P, filt):
+def get_a1a2(w, reg, lambdapar, P, zs, filt):
     """
     Computes the a1 in psi assuming residuals come from original regression
     ...
@@ -924,33 +922,36 @@ def get_a1a2(w, reg, lambdapar, P, filt):
 
     .. [1] Anselin, L. GMM Estimation of Spatial Error Autocorrelation with Heteroskedasticity
     
-    """        
-    zst = GMM.get_spFilter(w, lambdapar, reg.z).T
+    """
     us = GMM.get_spFilter(w, lambdapar, reg.u)
-    alpha1 = (-2.0/w.n) * (np.dot((zst * w.A1), us))
-    alpha2 = (-1.0/w.n) * (np.dot((zst * (w.sparse + w.sparse.T)), us))
-    a1t = np.dot(np.dot(reg.h, P), alpha1).T
-    a2t = np.dot(np.dot(reg.h, P), alpha2).T
+    alpha1 = (-2.0/w.n) * (np.dot((zs.T * w.A1), us))
+    alpha2 = (-1.0/w.n) * (np.dot((zs.T * (w.sparse + w.sparse.T)), us))
+    a1 = np.dot(np.dot(reg.h, P), alpha1)
+    a2 = np.dot(np.dot(reg.h, P), alpha2)
     if not filt:
-        a1t = GMM.power_expansion(w, a1t.T, lambdapar, transpose=True)
-        a2t = GMM.power_expansion(w, a2t.T, lambdapar, transpose=True)
-    return [a1t.T, a2t.T]
+        a1 = GMM.power_expansion(w, a1, lambdapar, transpose=True).T
+        a2 = GMM.power_expansion(w, a2, lambdapar, transpose=True).T
+    return [a1, a2]
 
-def get_vc_het_tsls(w, reg, lambdapar, P, filt):
+def get_vc_het_tsls(w, reg, lambdapar, P, zs, filt=True, save_a1a2=False):
 
     sigma = get_psi_sigma(w, reg.u, lambdapar)
     vc1 = get_vc_het(w, sigma)
-    a1, a2 = get_a1a2(w, reg, lambdapar, P, filt=filt)
+    a1, a2 = get_a1a2(w, reg, lambdapar, P, zs, filt)
     a1s = a1.T * sigma
     a2s = a2.T * sigma
     psi11 = float(np.dot(a1s, a1))
     psi12 = float(np.dot(a1s, a2))
     psi21 = float(np.dot(a2s, a1))
     psi22 = float(np.dot(a2s, a2))
-    psi = np.array([[psi11, psi12], [psi21, psi22]]) / w.n
-    return vc1 + psi
+    psi0 = np.array([[psi11, psi12], [psi21, psi22]]) / w.n
+    if save_a1a2:
+        psi = (vc1 + psi0, a1, a2)
+    else:
+        psi = vc1 + psi0
+    return psi
 
-def get_Omega_GS2SLS(w, lamb, reg, G, psi, P, filt):
+def get_Omega_GS2SLS(w, lamb, reg, G, psi, P):
     """
     Computes the variance-covariance matrix for GS2SLS:
     ...
@@ -977,11 +978,11 @@ def get_Omega_GS2SLS(w, lamb, reg, G, psi, P, filt):
     omega       : array
                   (k+1)x(k+1)                 
     """
+    psi, a1, a2 = psi
     sigma=get_psi_sigma(w, reg.u, lamb)
     psi_dd_1=(1.0/w.n) * reg.h.T * sigma 
     psi_dd = np.dot(psi_dd_1, reg.h)
-    a1a2=get_a1a2(w, reg, lamb, P, filt=filt)
-    psi_dl=np.dot(psi_dd_1,np.hstack(tuple(a1a2)))
+    psi_dl=np.dot(psi_dd_1,np.hstack((a1,a2)))
     psi_o=np.hstack((np.vstack((psi_dd, psi_dl.T)), np.vstack((psi_dl, psi))))
     psii=la.inv(psi)
    
@@ -994,7 +995,6 @@ def get_Omega_GS2SLS(w, lamb, reg, G, psi, P, filt):
     om_1_s=omega_1.shape
     om_2_s=omega_2.shape
     p_s=P.shape
-    
     omega_left=np.hstack((np.vstack((P.T, np.zeros((om_1_s[0],p_s[0])))), 
                np.vstack((np.zeros((p_s[1], om_1_s[1])), omega_1))))
     omega_right=np.hstack((np.vstack((P, np.zeros((om_2_s[0],p_s[1])))), 
@@ -1017,12 +1017,10 @@ if __name__ == '__main__':
     X = []
     X.append(db.by_col("INC"))
     X = np.array(X).T
-    yd = []
-    yd.append(db.by_col("HOVAL"))
-    yd = np.array(yd).T
-    q = []
-    q.append(db.by_col("DISCBD"))
-    q = np.array(q).T
+    yd = np.array(db.by_col("HOVAL"))
+    yd = np.reshape(yd, (49,1))
+    q = np.array(db.by_col("DISCBD"))
+    q = np.reshape(q, (49,1))
     w = pysal.rook_from_shapefile("examples/columbus.shp")
     w.transform = 'r'
     reg = GM_Error_Het(y, X, w)
