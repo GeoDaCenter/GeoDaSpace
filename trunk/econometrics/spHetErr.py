@@ -87,7 +87,7 @@ class BaseGM_Error_Het:
         w.A1 = GMM.get_A1_het(w.sparse)
 
         #1b. GMM --> \tilde{\lambda1}
-        moments = moments_het(w, ols.u)
+        moments = GMM._moments2eqs(w.A1, w.sparse, ols.u)
         lambda1 = GMM.optim_moments(moments)
 
         if step1c:
@@ -110,7 +110,7 @@ class BaseGM_Error_Het:
             #2b. GMM --> \hat{\lambda}
             sigma_i = get_psi_sigma(w, self.u, lambda_i[-1])
             vc_i = get_vc_het(w, sigma_i)
-            moments_i = moments_het(w, self.u)
+            moments_i = GMM._moments2eqs(w.A1, w.sparse, self.u)
             lambda3 = GMM.optim_moments(moments_i, vc_i)
             lambda_i.append(lambda3)
 
@@ -331,7 +331,7 @@ class BaseGM_Endog_Error_Het:
         w.A1 = GMM.get_A1_het(w.sparse)
 
         #1b. GMM --> \tilde{\lambda1}
-        moments = moments_het(w, tsls.u)
+        moments = GMM._moments2eqs(w.A1, w.sparse, tsls.u)
         lambda1 = GMM.optim_moments(moments)
 
         if step1c:
@@ -354,7 +354,7 @@ class BaseGM_Endog_Error_Het:
 
             #2b. GMM --> \hat{\lambda}
             vc2 = get_vc_het_tsls(w, self, lambda_i[-1], tsls_s.pfora1a2, filt=True)
-            moments_i = moments_het(w, self.u)
+            moments_i = GMM._moments2eqs(w.A1, w.sparse, self.u)
             lambda3 = GMM.optim_moments(moments_i, vc2)
             lambda_i.append(lambda3)
 
@@ -764,50 +764,6 @@ class GM_Combo_Het(BaseGM_Combo_Het):
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         self.summary = str(np.around(np.hstack((self.betas,
                np.sqrt(self.vm.diagonal()).reshape(self.betas.shape[0],1))),4))
-
-
-def moments_het(w, u):
-    """
-    Function to compute all six components of the system of equations for a
-    spatial error model with heteroskedasticity estimated by GMM as in Arraiz
-    et al [1]_
-
-    Scipy sparse matrix version. It implements eqs. A.1 in Appendix A of
-    Arraiz et al. (2007) by using all matrix manipulation
-    
-    [g1] + [G11 G12] *  [\lambda]    = [0]
-    [g2]   [G21 G22]    [\lambda^2]    [0]
-
-    NOTE: 'residuals' has been renamed 'u' to fit paper notation
-
-    ...
-    
-    Parameters
-    ----------
-
-    w           : W
-                  Spatial weights instance (requires 'S' and 'A1')
-
-    u           : array
-                  Residuals. nx1 array assumed to be aligned with w
- 
-    Attributes
-    ----------
-
-    moments     : list
-                  List of two arrays corresponding to the matrices 'G' and
-                  'g', respectively.
-
-    References
-    ----------
-
-    .. [1] Arraiz, I., Drukker, D. M., Kelejian, H., Prucha, I. R. (2010) "A
-    Spatial Cliff-Ord-Type Model with Heteroskedastic Innovations: Small and
-    Large Sample Results". Journal of Regional Science, Vol. 60, No. 2, pp.
-    592-614.
-
-    """
-    return GMM._moments2eqs(w.A1, w.sparse, u)
 
 def get_psi_sigma(w, u, lamb):
     """
