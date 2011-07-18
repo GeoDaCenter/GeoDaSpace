@@ -103,7 +103,7 @@ class BaseGM_Error:
 
     """
     def __init__(self, y, x, w, constant=True):
-        w.A1 = get_A1_het(w.sparse)
+        w.A1 = get_A1_het(w.sparse)   #LA why?
 
         #1a. OLS --> \tilde{betas}
         ols = OLS.BaseOLS(y, x, constant=constant)
@@ -266,7 +266,7 @@ class BaseGM_Endog_Error:
         moments = _momentsGM_Error(w, tsls.u)
         lambda1 = optim_moments(moments)
 
-        #2a. OLS -->\hat{betas}
+        #2a. 2SLS -->\hat{betas}
         xs = get_spFilter(w, lambda1, self.x)
         ys = get_spFilter(w, lambda1, self.y)
         yend_s = get_spFilter(w, lambda1, self.yend)
@@ -276,7 +276,7 @@ class BaseGM_Endog_Error:
         self.betas = np.vstack((tsls2.betas, np.array([[lambda1]])))
         self.u = y - np.dot(tsls.z, tsls2.betas)
         sig2 = np.dot(tsls2.u.T,tsls2.u) / self.n
-        self.vm = sig2 * la.inv(np.dot(tsls2.z.T,tsls2.z))
+        self.vm = sig2 * la.inv(np.dot(tsls2.z.T,tsls2.z))  #LA should be tsls2.varb not Z'Z
         self.se_betas = np.sqrt(self.vm.diagonal()).reshape(tsls2.betas.shape)
         zs = tsls2.betas / self.se_betas
         self.pvals = norm.sf(abs(zs)) * 2.
