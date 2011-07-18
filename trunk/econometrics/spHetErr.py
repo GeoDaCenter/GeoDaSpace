@@ -4,7 +4,6 @@ import ols as OLS
 import user_output as USER
 import utils as GMM
 import twosls as TSLS
-from utils import power_expansion
 from scipy import sparse as SP
 from pysal import lag_spatial
 
@@ -74,48 +73,48 @@ class BaseGM_Error_Het:
     >>> w.transform = 'r'
     >>> reg = BaseGM_Error_Het(y, X, w)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 48.012   11.4405]
-     [  0.7119   0.3653]
-     [ -0.5597   0.1609]
-     [  0.4259   0.2119]]
+    [[ 47.9963  11.479 ]
+     [  0.7105   0.3681]
+     [ -0.5588   0.1616]
+     [  0.4118   0.168 ]]
     """
 
-    def __init__(self,y,x,w,cycles=1,constant=True): 
+    def __init__(self,y,x,w,cycles=1,constant=True,step1c=True): 
         
         #1a. OLS --> \tilde{betas}
         ols = OLS.BaseOLS(y, x, constant=constant)
-        self.x = ols.x
-        self.y = ols.y
-        self.n, self.k = ols.n, ols.k
-
+        self.x, self.y, self.n, self.k = ols.x, ols.y, ols.n, ols.k
         w.A1 = GMM.get_A1_het(w.sparse)
-
 
         #1b. GMM --> \tilde{\lambda1}
         moments = moments_het(w, ols.u)
         lambda1 = GMM.optim_moments(moments)
 
-        #1c. GMM --> \tilde{\lambda2}
-        self.u = ols.u
-        sigma = get_psi_sigma(w, ols.u, lambda1)
-        vc1 = get_vc_het(w, sigma)
-        lambda2 = GMM.optim_moments(moments,vc1)
-        lambda2 = lambda1  # MIGHT need this to match Stata code
-       
-        #2a. reg -->\hat{betas}
-        xs = GMM.get_spFilter(w, lambda2, self.x)
-        ys = GMM.get_spFilter(w, lambda2, self.y)
-        ols_s = OLS.BaseOLS(ys, xs, constant=False)
-        self.predy = np.dot(self.x, ols_s.betas)
-        self.u = self.y - self.predy
+        if step1c:
+            #1c. GMM --> \tilde{\lambda2}
+            sigma = get_psi_sigma(w, ols.u, lambda1)
+            vc1 = get_vc_het(w, sigma)
+            lambda2 = GMM.optim_moments(moments,vc1)
+        else:
+            lambda2 = lambda1 #Required to match Stata.
+        lambda_i = [lambda2]
 
-        #2b. GMM --> \hat{\lambda}
-        sigma = get_psi_sigma(w, ols_s.u, lambda2)
-        vc2 = get_vc_het(w, sigma)
-        moments_i = moments_het(w, self.u)
-        lambda3 = GMM.optim_moments(moments_i, vc2)
+        for i in range(cycles):
+            #2a. reg -->\hat{betas}
+            xs = GMM.get_spFilter(w, lambda_i[-1], self.x)
+            ys = GMM.get_spFilter(w, lambda_i[-1], self.y)
+            ols_s = OLS.BaseOLS(ys, xs, constant=False)
+            self.predy = np.dot(self.x, ols_s.betas)
+            self.u = self.y - self.predy
 
-        sigma = get_psi_sigma(w, ols_s.u, lambda3)
+            #2b. GMM --> \hat{\lambda}
+            sigma_i = get_psi_sigma(w, self.u, lambda_i[-1])
+            vc_i = get_vc_het(w, sigma_i)
+            moments_i = moments_het(w, self.u)
+            lambda3 = GMM.optim_moments(moments_i, vc_i)
+            lambda_i.append(lambda3)
+
+        sigma = get_psi_sigma(w, self.u, lambda3)
         vc3 = get_vc_het(w, sigma)
         G = moments_i[0]
 
@@ -125,10 +124,9 @@ class BaseGM_Error_Het:
 
         """
         #The following code will give results that match Stata
-
         ones = np.ones(y.shape)
         reg = BaseGM_Endog_Error_Het(y, x=ones, w=w, yend=x, q=x,
-                cycles=cycles, constant=False)
+                cycles=cycles, constant=False, step1c=False)
         self.x = reg.z
         self.y = reg.y
         self.n, self.k = reg.n, reg.k
@@ -213,10 +211,10 @@ class GM_Error_Het(BaseGM_Error_Het):
     >>> print reg.name_x
     ['CONSTANT', 'income', 'crime', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 48.012   11.4405]
-     [  0.7119   0.3653]
-     [ -0.5597   0.1609]
-     [  0.4259   0.2119]]
+    [[ 47.9963  11.479 ]
+     [  0.7105   0.3681]
+     [ -0.5588   0.1616]
+     [  0.4118   0.168 ]]
 
     """
 
@@ -319,47 +317,46 @@ class BaseGM_Endog_Error_Het:
     >>> w.transform = 'r'
     >>> reg = BaseGM_Endog_Error_Het(y, X, w, yd, q)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 55.4616  28.9106]
-     [  0.468    0.7727]
-     [ -0.673    0.4685]
-     [  0.4126   0.1776]]
+    [[ 55.3971  28.8901]
+     [  0.4656   0.7731]
+     [ -0.6704   0.468 ]
+     [  0.4114   0.1777]]
     """
 
-    def __init__(self,y,x,w,yend,q,cycles=1,constant=True): 
+    def __init__(self,y,x,w,yend,q,cycles=1,constant=True,step1c=True): 
         #1a. reg --> \tilde{betas} 
         tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=constant)
-        self.x = tsls.x
-        self.z = tsls.z
-        self.h = tsls.h
-        self.y = tsls.y
-        self.yend = tsls.yend
-        self.q = tsls.q
-        self.n, self.k = tsls.n, tsls.k
-
+        self.x, self.z, self.h, self.y = tsls.x, tsls.z, tsls.h, tsls.y
+        self.yend, self.q, self.n, self.k = tsls.yend, tsls.q, tsls.n, tsls.k
         w.A1 = GMM.get_A1_het(w.sparse)
 
         #1b. GMM --> \tilde{\lambda1}
         moments = moments_het(w, tsls.u)
         lambda1 = GMM.optim_moments(moments)
 
-        #1c. GMM --> \tilde{\lambda2}
-        self.u = tsls.u
-        vc1 = get_vc_het_tsls(w, self, lambda1, tsls.pfora1a2, filt=False)
-        lambda2 = GMM.optim_moments(moments,vc1)
-        lambda2 = lambda1  # need this to match Stata code
-       
-        #2a. reg -->\hat{betas}
-        xs = GMM.get_spFilter(w, lambda2, self.x)
-        ys = GMM.get_spFilter(w, lambda2, self.y)
-        yend_s = GMM.get_spFilter(w, lambda2, self.yend)
-        tsls_s = TSLS.BaseTSLS(ys, xs, yend_s, h=self.h, constant=False)
-        self.predy = np.dot(self.z, tsls_s.betas)
-        self.u = self.y - self.predy
+        if step1c:
+            #1c. GMM --> \tilde{\lambda2}
+            self.u = tsls.u
+            vc1 = get_vc_het_tsls(w, self, lambda1, tsls.pfora1a2, filt=False)
+            lambda2 = GMM.optim_moments(moments,vc1)
+        else:
+            lambda2 = lambda1 #Required to match Stata.
+        lambda_i = [lambda2]
 
-        #2b. GMM --> \hat{\lambda}
-        vc2 = get_vc_het_tsls(w, self, lambda2, tsls_s.pfora1a2, filt=True)
-        moments_i = moments_het(w, self.u)
-        lambda3 = GMM.optim_moments(moments_i, vc2)
+        for i in range(cycles):
+            #2a. reg -->\hat{betas}
+            xs = GMM.get_spFilter(w, lambda_i[-1], self.x)
+            ys = GMM.get_spFilter(w, lambda_i[-1], self.y)
+            yend_s = GMM.get_spFilter(w, lambda_i[-1], self.yend)
+            tsls_s = TSLS.BaseTSLS(ys, xs, yend_s, h=self.h, constant=False)
+            self.predy = np.dot(self.z, tsls_s.betas)
+            self.u = self.y - self.predy
+
+            #2b. GMM --> \hat{\lambda}
+            vc2 = get_vc_het_tsls(w, self, lambda_i[-1], tsls_s.pfora1a2, filt=True)
+            moments_i = moments_het(w, self.u)
+            lambda3 = GMM.optim_moments(moments_i, vc2)
+            lambda_i.append(lambda3)
 
         xs = GMM.get_spFilter(w, lambda3, self.x)
         yend_s = GMM.get_spFilter(w, lambda3, self.yend)
@@ -469,10 +466,10 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'crime', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 55.4616  28.9106]
-     [  0.468    0.7727]
-     [ -0.673    0.4685]
-     [  0.4126   0.1776]]
+    [[ 55.3971  28.8901]
+     [  0.4656   0.7731]
+     [ -0.6704   0.468 ]
+     [  0.4114   0.1777]]
 
     """
     def __init__(self, y, x, w, yend, q, cycles=1, constant=True,\
@@ -497,7 +494,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
 
 class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     """
-    GMM method for a spatial lang and error model with heteroskedasticity and
+    GMM method for a spatial lag and error model with heteroskedasticity and
     endogenous variables  (note: no consistency checks) 
 
     Based on Arraiz et al [1]_
@@ -586,10 +583,10 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
 
     >>> reg = BaseGM_Combo_Het(y, X, w)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 10.0489  14.1696]
-     [  1.5714   0.3742]
-     [  0.1524   0.3982]
-     [  0.2126   0.3932]]
+    [[  9.9753  14.1434]
+     [  1.5742   0.374 ]
+     [  0.1535   0.3978]
+     [  0.2103   0.3924]]
 
     Example with both spatial lag and other endogenous variables
 
@@ -602,11 +599,11 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     >>> reg = BaseGM_Combo_Het(y, X, w, yd, q)
     >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['lag_hoval'],['lambda']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
-    [['CONSTANT' '110.1897' '63.89236']
-     ['inc' '-0.28381' '1.16689']
-     ['crime' '-1.3613' '0.72178']
-     ['lag_hoval' '-0.49522' '0.7502']
-     ['lambda' '0.65217' '0.15309']]
+    [['CONSTANT' '113.91292' '64.38815']
+     ['inc' '-0.34822' '1.18219']
+     ['crime' '-1.35656' '0.72482']
+     ['lag_hoval' '-0.57657' '0.75856']
+     ['lambda' '0.65608' '0.15719']]
     """
 
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
@@ -627,7 +624,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
 
 class GM_Combo_Het(BaseGM_Combo_Het):
     """
-    GMM method for a spatial lang and error model with heteroskedasticity and
+    GMM method for a spatial lag and error model with heteroskedasticity and
     endogenous variables  (note: no consistency checks) 
 
     Based on Arraiz et al [1]_
@@ -720,10 +717,10 @@ class GM_Combo_Het(BaseGM_Combo_Het):
     >>> print reg.name_z
     ['CONSTANT', 'income', 'lag_hoval', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 10.0489  14.1696]
-     [  1.5714   0.3742]
-     [  0.1524   0.3982]
-     [  0.2126   0.3932]]
+    [[  9.9753  14.1434]
+     [  1.5742   0.374 ]
+     [  0.1535   0.3978]
+     [  0.2103   0.3924]]
         
     Example with both spatial lag and other endogenous variables
 
@@ -737,11 +734,11 @@ class GM_Combo_Het(BaseGM_Combo_Het):
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'crime', 'lag_hoval', 'lambda']
     >>> print np.round(reg.betas,4)
-    [[ 110.1897]
-     [  -0.2838]
-     [  -1.3613]
-     [  -0.4952]
-     [   0.6522]]
+    [[ 113.9129]
+     [  -0.3482]
+     [  -1.3566]
+     [  -0.5766]
+     [   0.6561]]
     
     """
     
@@ -979,8 +976,8 @@ def get_a1a2(w, reg, lambdapar, P, filt):
     a1t = np.dot(np.dot(reg.h, P), alpha1).T
     a2t = np.dot(np.dot(reg.h, P), alpha2).T
     if not filt:
-        a1t = power_expansion(w, a1t.T, lambdapar, transpose=True)
-        a2t = power_expansion(w, a2t.T, lambdapar, transpose=True)
+        a1t = GMM.power_expansion(w, a1t.T, lambdapar, transpose=True)
+        a2t = GMM.power_expansion(w, a2t.T, lambdapar, transpose=True)
     return [a1t.T, a2t.T]
 
 def get_vc_het_tsls(w, reg, lambdapar, P, filt):
