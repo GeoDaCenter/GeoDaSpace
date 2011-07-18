@@ -179,7 +179,7 @@ def _moments2eqs(A1, s, u):
     A1u = A1 * u
     wu = s * u
     g1 = np.dot(u.T, A1u)
-    g2 = np.dot(u.T, wu)   #LA use 1/2 (W + W') for A1
+    g2 = np.dot(u.T, wu)   #LA use 1/2 (W + W') for A2
     g = np.array([[g1][0][0],[g2][0][0]]) / n
 
     G11 = np.dot(u.T, (A1 + A1.T) * wu) #LA use eqn (38) (39)

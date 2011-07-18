@@ -589,7 +589,7 @@ class BaseGM_Endog_Error_Hom:
         self.q = tsls.q
         self.h = tsls.h
         self.n, self.k = tsls.n, tsls.k
-        self.hth = tsls.hth
+        #self.hth = tsls.hth
 
         w.A1 = get_A1_hom(w.sparse)
 
