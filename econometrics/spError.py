@@ -11,7 +11,7 @@ import pysal.spreg.ols as OLS
 from pysal.spreg.diagnostics import se_betas
 from pysal import lag_spatial
 from utils import power_expansion
-from utils import get_A1_hom, get_A1_het, optim_moments, get_spFilter, get_lags, _moments2eqs
+from utils import get_A1_hom, get_A2_hom, get_A1_het, optim_moments, get_spFilter, get_lags, _moments2eqs
 import twosls as TSLS
 import pysal.spreg.user_output as USER
 
@@ -103,7 +103,6 @@ class BaseGM_Error:
 
     """
     def __init__(self, y, x, w, constant=True):
-        w.A1 = get_A1_het(w.sparse)   #LA why?
 
         #1a. OLS --> \tilde{betas}
         ols = OLS.BaseOLS(y, x, constant=constant)
@@ -549,6 +548,11 @@ class BaseGM_Endog_Error_Hom:
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
+    A1          : str
+                  Flag selecting the version of A1 to be used:
+                    * 'hom'     : A1 for Hom as defined in Anselin 2011
+                    * 'hom_sc'  : A1 for Hom including scalar correctin as in Drukker
+                    * 'het'     : A1 for Het
 
 
     Attributes
@@ -578,7 +582,16 @@ class BaseGM_Endog_Error_Hom:
     --------
 
     '''
-    def __init__(self, y, x, w, yend, q, constant=True):
+    def __init__(self, y, x, w, yend, q, constant=True, A1='hom'):
+
+        if A1 == 'hom':
+            w.A1 = get_A1_hom(w.sparse)
+        elif A1 == 'hom_sc':
+            w.A1 = get_A1_hom(w.sparse, scalarKP=True)
+        elif A1 == 'het':
+            w.A1 = get_A1_het(w.sparse)
+
+        w.A2 = get_A2_hom(w.sparse)
 
         # 1a. S2SLS --> \tilde{\delta}
         tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=constant)
@@ -590,8 +603,6 @@ class BaseGM_Endog_Error_Hom:
         self.h = tsls.h
         self.n, self.k = tsls.n, tsls.k
         #self.hth = tsls.hth
-
-        w.A1 = get_A1_hom(w.sparse)
 
         # 1b. GM --> \tilde{\rho}
         moments = moments_hom(w, tsls.u)
@@ -607,12 +618,12 @@ class BaseGM_Endog_Error_Hom:
 
         # 2b. GM 2nd iteration --> \hat{\rho}
         moments = moments_hom(w, self.u)
-        psi = get_vc_hom(w, self, lambda1, tsls_s.z)
+        psi = get_vc_hom(w, self, lambda1, tsls_s.z)[0]
         lambda2 = optim_moments(moments, psi)
 
         # Output
         self.betas = np.vstack((tsls_s.betas,lambda2))
-        self.vm = get_omega_hom(w, lambda2, self, moments[0], psi, tsls_s.z)
+        self.vm = get_omega_hom(w, self, lambda2, moments[0])
 
 def moments_hom(w, u):
     '''
@@ -645,7 +656,21 @@ def moments_hom(w, u):
     disturbances and additional endogenous variables". The Stata Journal, 1,
     N. 1, pp. 1-13.
     '''
-    return _moments2eqs(w.A1, w.sparse, u)
+    n = w.sparse.shape[0]
+    A1u = w.A1 * u
+    A2u = w.A2 * u
+    wu = w.sparse * u
+
+    g1 = np.dot(u.T, A1u)
+    g2 = np.dot(u.T, A2u)
+    g = np.array([[g1][0][0],[g2][0][0]]) / n
+
+    G11 = 2 * np.dot(wu.T * w.A1, u)
+    G12 = -np.dot(wu.T * w.A1, wu)
+    G21 = 2 * np.dot(wu.T * w.A2, u)
+    G22 = -np.dot(wu.T * w.A2, wu)
+    G = np.array([[G11[0][0],G12[0][0]],[G21[0][0],G22[0][0]]]) / n
+    return [G, g]
 
 def get_vc_hom(w, reg, lambdapar, z_s):
     '''
@@ -668,6 +693,9 @@ def get_vc_hom(w, reg, lambdapar, z_s):
 
     psi         : array
                   2x2 VC matrix
+    a1
+    a2
+    p
 
     References
     ----------
@@ -678,36 +706,47 @@ def get_vc_hom(w, reg, lambdapar, z_s):
     N. 1, pp. 1-13.
 
     '''
-    e = get_spFilter(w, lambdapar, reg.u)
-    n = w.n*1.
-    sig2 = np.dot(e.T, e) / n
-    mu3 = np.sum(e**3) / n
-    mu4 = np.sum(e**4) / n
+    u_s = get_spFilter(w, lambdapar, reg.u)
+    n = float(w.n)
+    sig2 = np.dot(u_s.T, u_s) / n
+    mu3 = np.sum(u_s**3) / n
+    mu4 = np.sum(u_s**4) / n
 
-    w.apat = w.A1 + w.A1.T
-    w.wpwt = w.sparse + w.sparse.T
-    prod = w.apat * w.apat
-    tr11 = np.sum(prod.diagonal())
-    prod = w.wpwt * w.apat
-    tr12 = np.sum(prod.diagonal())
-    prod = w.wpwt * w.wpwt
-    tr22 = np.sum(prod.diagonal())
-    a1, a2, p_s = _get_a1a2_filt(w, reg, lambdapar, w.apat, w.wpwt, e, z_s)
-    prod = ['empty']
+    alpha1 = -2 * np.dot(z_s.T, w.A1 * u_s) / n
+    alpha2 = -2 * np.dot(z_s.T, w.A2 * u_s) / n
+
+    hth = np.dot(reg.h.T, reg.h)
+    hthni = la.inv(hth / n)
+    htzsn = np.dot(reg.h.T, z_s) / n
+    p = np.dot(hthni, htzsn)
+    p = np.dot(p, la.inv(np.dot(htzsn.T, np.dot(hthni, htzsn.T))))
+    hp = np.dot(reg.h, p)
+    alpha1 = -2 * np.dot(z_s.T, w.A1 * u_s) / n
+    alpha2 = -2 * np.dot(z_s.T, w.A2 * u_s) / n
+    a1 = np.dot(hp, alpha1)
+    a2 = np.dot(hp, alpha2)
+
+    tr11 = w.A1 * w.A1
+    tr11 = np.sum(tr11.diagonal())
+    tr12 = w.A1 * (w.A2 * 2)
+    tr12 = np.sum(tr12.diagonal())
+    tr22 = w.A2 * w.A2 * 4
+    tr22 = np.sum(tr22.diagonal())
     vecd1 = np.array([w.A1.diagonal()]).T
 
-    psi11 = (sig2**2 * tr11 / 2. + \
+    psi11 = (2 * sig2**2 * tr11 + \
             sig2 * np.dot(a1.T, a1) + \
             (mu4 - 3 * sig2**2) * np.dot(vecd1.T, vecd1) + \
-            mu3 * 2 * np.dot(a1.T, vecd1))
-    psi22 = (sig2**2 * tr22 / 2. + \
-            sig2 * np.dot(a2.T, a2)) # 3rd&4th terms=0 bc vecd2=0
-    psi12 = (sig2**2 * tr12 / 2. + \
+            2 * mu3 * np.dot(a1.T, vecd1))
+    psi12 = (sig2**2 * tr12 + \
             sig2 * np.dot(a1.T, a2) + \
             mu3 * np.dot(a2.T, vecd1)) # 3rd term=0
-    return np.array([[psi11[0][0], psi12[0][0]], [psi12[0][0], psi22[0][0]]]) / n
+    psi22 = (sig2**2 * tr22 / 2. + \
+            sig2 * np.dot(a2.T, a2)) # 3rd&4th terms=0 bc vecd2=0
+    psi = np.array([[psi11[0][0], psi12[0][0]], [psi12[0][0], psi22[0][0]]]) / n
+    return psi, a1, a2, p
 
-def get_omega_hom(w, lamb, reg_orig, G, psi, z_s):
+def get_omega_hom(w, reg, lamb, G):
     '''
     VC matrix \Omega of Spatial error with homoscedasticity. As in p. 11 of
     Drukker et al. (2011) [1]_
@@ -748,39 +787,40 @@ def get_omega_hom(w, lamb, reg_orig, G, psi, z_s):
     N. 1, pp. 1-13.
 
     '''
-    n = w.n*1.
-    e = get_spFilter(w, lamb, reg_orig.u)
-    sig2 = np.dot(e.T, e) / n
-    mu3 = np.sum([i**3 for i in e]) / n
-    #a1, a2, p_s = __get_a1a2(w, reg_orig, lamb)
-    a1, a2, p_s = _get_a1a2_filt(w, reg_orig, lamb, w.apat, w.wpwt, e, z_s)
-    j = np.dot(G, np.array([[1.], [2*lamb]]))
-    q_hh = reg_orig.hth / n
-    vecdA1 = np.reshape(w.A1.diagonal(), (w.n, 1))
-    vecdW = np.zeros((w.n, 1))
-
-    psiDD = sig2 * q_hh
-    oDD = np.dot(psiDD, p_s)
-    oDD = np.dot(p_s.T, oDD)
-
-    psiRRi = la.inv(psi)
-    oRR = np.dot(psiRRi, j)
-    oRR = 1 / np.dot(j.T, oRR)
-
-    psiDR = (sig2 * np.dot(reg_orig.h.T, np.hstack((a1, a2))) + \
-            mu3 * np.dot(reg_orig.h.T, np.hstack((vecdA1, vecdW))) \
+    n = float(w.n)
+    z_s = get_spFilter(w, lamb, reg.z)
+    psi, a1, a2, p = get_vc_hom(w, reg, lamb, z_s)
+    u_s = get_spFilter(w, lamb, reg.u)
+    sig2 = np.dot(u_s.T, u_s) / n
+    mu3 = np.sum(u_s**3) / n
+    vecdA1 = np.array([w.A1.diagonal()]).T
+    psiDD = sig2 * np.dot(reg.h.T, reg.h) / n
+    psiDL = (sig2 * np.dot(reg.h.T, np.hstack((a1, a2))) + \
+            mu3 * np.dot(reg.h.T, np.hstack((vecdA1, np.zeros((n, 1))))) \
             ) / n
-    oDR = np.dot(j, oRR)
-    oDR = np.dot(psiRRi, oDR)
-    oDR = np.dot(psiDR, oDR)
-    oDR = np.dot(p_s.T, oDR)
+    psiO_upper = np.hstack((psiDD, psiDL))
+    psiO_lower = np.hstack((psiDL.T, psi))
+    psiO = np.vstack((psiO_upper, psiO_lower))
 
-    o_upper = np.hstack((oDD, oDR))
-    o_lower = np.hstack((oDR.T, oRR))
-    return np.vstack((o_upper, o_lower))
+    j = np.dot(G, np.array([[1.], [2*lamb]]))
+    psii = la.inv(psi)
+
+    oL = la.inv(np.dot(np.dot(j.T, psii), j))
+    oL = np.dot(oL, np.dot(j.T, psii))
+    oL_upper = np.hstack((p.T, np.zeros((p.T.shape[0], oL.shape[1]))))
+    oL_lower = np.hstack((np.zeros((oL.shape[0], p.T.shape[1])), oL))
+    oL = np.vstack((oL_upper, oL_lower))
+
+    oR = np.dot(np.dot(psii, j), la.inv(np.dot(np.dot(j.T, psii), j)))
+    oR_upper = np.hstack((p, np.zeros((p.shape[0], oR.shape[1]))))
+    oR_lower = np.hstack((np.zeros((oR.shape[0], p.shape[1])), oR))
+    oR = np.vstack((oR_upper, oR_lower))
+
+    return np.dot(np.dot(oL, psiO), oR)
 
 def _get_a1a2_filt(w, reg, lambdapar, apat, wpwt, e, z_s):
     '''
+    [DEPRECATED]
     Internal helper function to compute a1 and a2 in get_vc_hom. It assumes
     residuals come from a spatially filetered model
     '''
@@ -872,7 +912,10 @@ if __name__ == '__main__':
     print model.betas
     print model.vm
 
+
     """
+
+
     tsls = TSLS.BaseTSLS(y, x, yd, q=q, constant=True)
     print tsls.betas
 
