@@ -103,7 +103,6 @@ def get_A1_het(S):
     d = d.asformat('csr')
     return StS - d
 
-#LA add option to ignore den
 def get_A1_hom(s, scalarKP=False):
     """
     Builds A1 for the spatial error GM estimation with homoscedasticity as in Drukker et al. [1]_ (p. 9).
@@ -147,6 +146,32 @@ def get_A1_hom(s, scalarKP=False):
     else:
         den = 1 + (twpw / n)**2
         return num / den
+
+def get_A2_hom(s):
+    """
+    Builds A2 for the spatial error GM estimation with homoscedasticity as in
+    Anselin (2011) [1]_ 
+
+    .. math::
+
+        A_2 = \dfrac{(W + W')}{2}
+
+    ...
+
+    Parameters
+    ----------
+    s               : csr_matrix
+                      PySAL W object converted into Scipy sparse matrix
+    Returns
+    -------
+    Implicit        : csr_matrix
+                      A2 matrix in scipy sparse format
+    References
+    ----------
+
+    .. [1] Anselin (2011) "GMM Estimation of Spatial Error Autocorrelation with and without Heteroskedasticity".
+    """
+    return (s + s.T) / 2.
 
 def _moments2eqs(A1, s, u):
     '''
