@@ -104,7 +104,7 @@ def get_A1_het(S):
     return StS - d
 
 #LA add option to ignore den
-def get_A1_hom(s):
+def get_A1_hom(s, scalarKP=False):
     """
     Builds A1 for the spatial error GM estimation with homoscedasticity as in Drukker et al. [1]_ (p. 9).
 
@@ -119,6 +119,9 @@ def get_A1_hom(s):
 
     s               : csr_matrix
                       PySAL W object converted into Scipy sparse matrix
+    scalarKP        : boolean
+                      Flag to include scalar corresponding to the first moment
+                      condition as in Drukker et al. [1]_ (Defaults to False)
 
     Returns
     -------
@@ -135,10 +138,15 @@ def get_A1_hom(s):
     """
     n = s.shape[0]
     wpw = s.T * s
-    twpw = np.sum(wpw.diagonal()) #LA divide by n and subtract from diagonal of wpw
-    den = 1 + (twpw / n)**2
-    num = wpw - (twpw/n) * SP.eye(n, n, format='csr') #LA avoid eye
-    return num / den
+    twpw = np.sum(wpw.diagonal()) 
+    e = SP.eye(n, n, format='csr')
+    e.data = np.ones(n) * (twpw / n)
+    num = wpw - e
+    if not scalarKP:
+        return num
+    else:
+        den = 1 + (twpw / n)**2
+        return num / den
 
 def _moments2eqs(A1, s, u):
     '''
