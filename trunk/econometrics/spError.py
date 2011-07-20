@@ -316,7 +316,7 @@ class GM_Endog_Error(BaseGM_Endog_Error):
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
         BaseGM_Endog_Error.__init__(self, y, x, w, yend, q, constant=constant)
-        self.title = "GENERALIZED SPATIAL STAGE LEAST SQUARES"        
+        self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x, constant)
@@ -524,6 +524,68 @@ class GM_Combo(BaseGM_Combo):
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         self.summary = "results place holder"
 
+# Hom Models
+
+class BaseGM_Error_Hom:
+    def __init__(self, y, x, w, constant=True, A1='hom'): 
+
+        if A1 == 'hom':
+            w.A1 = get_A1_hom(w.sparse)
+        elif A1 == 'hom_sc':
+            w.A1 = get_A1_hom(w.sparse, scalarKP=True)
+        elif A1 == 'het':
+            w.A1 = get_A1_het(w.sparse)
+
+        w.A2 = get_A2_hom(w.sparse)
+
+        # 1a. OLS --> \tilde{\delta}
+        ols = OLS.BaseOLS(y, x, constant=constant)
+        self.x, self.y, self.n, self.k = ols.x, ols.y, ols.n, ols.k
+
+        # 1b. GM --> \tilde{\rho}
+        moments = moments_hom(w, ols.u)
+        lambda1 = optim_moments(moments)
+
+        # 2a. SWLS --> \hat{\delta}
+        x_s = get_spFilter(w,lambda1,self.x)
+        y_s = get_spFilter(w,lambda1,self.y)
+        ols_s = OLS.BaseOLS(y_s, x_s, constant=False)
+        self.predy = np.dot(self.x, ols_s.betas)
+        self.u = self.y - self.predy
+
+        # 2b. GM 2nd iteration --> \hat{\rho}
+        moments = moments_hom(w, self.u)
+        psi = get_vc_hom(w, self, lambda1)[0]
+        lambda2 = optim_moments(moments, psi)
+
+        # Output
+        self.betas = np.vstack((ols_s.betas,lambda2))
+        self.vm = get_omega_hom_ols(w, self, lambda2, moments[0])
+
+class GM_Error_Hom(BaseGM_Error_Hom):
+    '''
+    User class for GM_Error_Hom
+    '''
+    def __init__(self, y, x, w, constant=True, A1='hom',\
+                        name_y=None, name_x=None,\
+                        name_yend=None, name_q=None, name_ds=None):
+
+        USER.check_arrays(y, x, yend, q)
+        USER.check_weights(w, y)
+    def __init__(self, y, x, w, constant=True, A1='hom'): 
+        BaseGM_Error_Hom.__init__self, y, x, w, constant=constant, A1='hom')
+        self.title = "GENERALIZED SPATIAL LEAST SQUARES (Hom)"
+        self.name_ds = USER.set_name_ds(name_ds)
+        self.name_y = USER.set_name_y(name_y)
+        self.name_x = USER.set_name_x(name_x, x, constant)
+        self.name_yend = USER.set_name_yend(name_yend, yend)
+        self.name_z = self.name_x + self.name_yend
+        self.name_z.append('lambda')  #listing lambda last
+        self.name_q = USER.set_name_q(name_q, q)
+        self.name_h = USER.set_name_h(self.name_x, self.name_q)
+        self.summary = str(np.around(np.hstack((self.betas,
+               np.sqrt(self.vm.diagonal()).reshape(self.betas.shape[0],1))),4))
+
 
 class BaseGM_Endog_Error_Hom:
     '''
@@ -550,7 +612,7 @@ class BaseGM_Endog_Error_Hom:
                   to estimate intercept (set to True by default)
     A1          : str
                   Flag selecting the version of A1 to be used:
-                    * 'hom'     : A1 for Hom as defined in Anselin 2011
+                    * 'hom'     : A1 for Hom as defined in Anselin 2011 (Default)
                     * 'hom_sc'  : A1 for Hom including scalar correctin as in Drukker
                     * 'het'     : A1 for Het
 
@@ -595,14 +657,8 @@ class BaseGM_Endog_Error_Hom:
 
         # 1a. S2SLS --> \tilde{\delta}
         tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=constant)
-        self.x = tsls.x
-        self.z = tsls.z
-        self.y = tsls.y
-        self.yend = tsls.yend
-        self.q = tsls.q
-        self.h = tsls.h
-        self.n, self.k = tsls.n, tsls.k
-        #self.hth = tsls.hth
+        self.x, self.z, self.h, self.y = tsls.x, tsls.z, tsls.h, tsls.y
+        self.yend, self.q, self.n, self.k = tsls.yend, tsls.q, tsls.n, tsls.k
 
         # 1b. GM --> \tilde{\rho}
         moments = moments_hom(w, tsls.u)
@@ -624,6 +680,78 @@ class BaseGM_Endog_Error_Hom:
         # Output
         self.betas = np.vstack((tsls_s.betas,lambda2))
         self.vm = get_omega_hom(w, self, lambda2, moments[0])
+
+class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom):
+    '''
+    User class Endog Error Hom
+    '''
+    def __init__(self, y, x, w, yend, q, constant=True, A1='hom',\
+                        name_y=None, name_x=None,\
+                        name_yend=None, name_q=None, name_ds=None):
+
+        USER.check_arrays(y, x, yend, q)
+        USER.check_weights(w, y)
+        BaseGM_Endog_Error_Hom.__init__(self, y, x, w, yend, q, cycles=cycles,\
+                                       constant=constant, step1c=step1c)
+        self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES (Hom)"
+        self.name_ds = USER.set_name_ds(name_ds)
+        self.name_y = USER.set_name_y(name_y)
+        self.name_x = USER.set_name_x(name_x, x, constant)
+        self.name_yend = USER.set_name_yend(name_yend, yend)
+        self.name_z = self.name_x + self.name_yend
+        self.name_z.append('lambda')  #listing lambda last
+        self.name_q = USER.set_name_q(name_q, q)
+        self.name_h = USER.set_name_h(self.name_x, self.name_q)
+        self.summary = str(np.around(np.hstack((self.betas,
+               np.sqrt(self.vm.diagonal()).reshape(self.betas.shape[0],1))),4))
+
+class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom):
+    '''
+    Combo Hom
+    '''
+    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
+                    constant=True, A1='hom'):
+        # Create spatial lag of y
+        yl = lag_spatial(w, y)
+        if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
+            lag_vars = np.hstack((x, q))
+            spatial_inst = GMM.get_lags(w ,lag_vars, w_lags)
+            q = np.hstack((q, spatial_inst))
+            yend = np.hstack((yend, yl))
+        elif yend == None:                   # spatial instruments only
+            q = GMM.get_lags(w, x, w_lags)
+            yend = yl
+        else:
+            raise Exception, "invalid value passed to yend"
+        BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend, q, A1='hom')
+
+class GM_Combo_Hom(BaseGM_Combo_Hom):
+    '''
+    User class Cor combo Hom
+    '''
+    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
+                    constant=True, A1='hom',\
+                    name_y=None, name_x=None, name_yend=None,\
+                    name_q=None, name_ds=None):
+
+        USER.check_arrays(y, x, yend, q)
+        USER.check_weights(w, y)
+        BaseGM_Combo_Hom.__init__(self, y, x, w, yend, q, w_lags,\
+                                           constant, cycles, step1c)
+        self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES (Hom)"        
+        self.name_ds = USER.set_name_ds(name_ds)
+        self.name_y = USER.set_name_y(name_y)
+        self.name_x = USER.set_name_x(name_x, x, constant)
+        self.name_yend = USER.set_name_yend(name_yend, yend)
+        self.name_yend.append(USER.set_name_yend_sp(self.name_y))
+        self.name_z = self.name_x + self.name_yend
+        self.name_z.append('lambda')  #listing lambda last
+        self.name_q = USER.set_name_q(name_q, q)
+        self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags))
+        self.name_h = USER.set_name_h(self.name_x, self.name_q)
+        self.summary = str(np.around(np.hstack((self.betas,
+               np.sqrt(self.vm.diagonal()).reshape(self.betas.shape[0],1))),4))
+
 
 def moments_hom(w, u):
     '''
@@ -672,7 +800,7 @@ def moments_hom(w, u):
     G = np.array([[G11[0][0],G12[0][0]],[G21[0][0],G22[0][0]]]) / n
     return [G, g]
 
-def get_vc_hom(w, reg, lambdapar, z_s):
+def get_vc_hom(w, reg, lambdapar, z_s=None, for_omegaOLS=False):
     '''
     VC matrix \psi of Spatial error with homoscedasticity. As in eq. (6) of
     Drukker et al. (2011) [2]_
@@ -712,42 +840,100 @@ def get_vc_hom(w, reg, lambdapar, z_s):
     mu3 = np.sum(u_s**3) / n
     mu4 = np.sum(u_s**4) / n
 
-    alpha1 = -2 * np.dot(z_s.T, w.A1 * u_s) / n
-    alpha2 = -2 * np.dot(z_s.T, w.A2 * u_s) / n
-
-    hth = np.dot(reg.h.T, reg.h)
-    hthni = la.inv(hth / n)
-    htzsn = np.dot(reg.h.T, z_s) / n
-    p = np.dot(hthni, htzsn)
-    p = np.dot(p, la.inv(np.dot(htzsn.T, np.dot(hthni, htzsn.T))))
-    hp = np.dot(reg.h, p)
-    alpha1 = -2 * np.dot(z_s.T, w.A1 * u_s) / n
-    alpha2 = -2 * np.dot(z_s.T, w.A2 * u_s) / n
-    a1 = np.dot(hp, alpha1)
-    a2 = np.dot(hp, alpha2)
-
     tr11 = w.A1 * w.A1
     tr11 = np.sum(tr11.diagonal())
     tr12 = w.A1 * (w.A2 * 2)
     tr12 = np.sum(tr12.diagonal())
-    tr22 = w.A2 * w.A2 * 4
+    tr22 = w.A2 * w.A2 * 2
     tr22 = np.sum(tr22.diagonal())
     vecd1 = np.array([w.A1.diagonal()]).T
 
-    psi11 = (2 * sig2**2 * tr11 + \
+    psi11 = 2 * sig2**2 * tr11 + \
+            (mu4 - 3 * sig2**2) * np.dot(vecd1.T, vecd1)
+    psi12 = sig2**2 * tr12
+    psi22 = sig2**2 * tr22
+
+    a1, a2, p = 0., 0., 0.
+
+    if for_omegaOLS:
+        x_s = get_spFilter(w, lambdapar, reg.x)
+        p = la.inv(np.dot(x_s.T, x_s) / n)
+
+    if issubclass(type(z_s), np.ndarray):
+        alpha1 = (-2/n) * np.dot(z_s.T, w.A1 * u_s)
+        alpha2 = (-2/n) * np.dot(z_s.T, w.A2 * u_s)
+
+        hth = np.dot(reg.h.T, reg.h)
+        hthni = la.inv(hth)
+        #hthni = la.inv(hth / n)
+        htzsn = np.dot(reg.h.T, z_s)
+        #htzsn = np.dot(reg.h.T, z_s) / n
+        p = np.dot(hthni, htzsn)
+        p = np.dot(p, la.inv(np.dot(htzsn.T, np.dot(hthni, htzsn.T))))
+        hp = np.dot(reg.h, p)
+        alpha1 = -2 * np.dot(z_s.T, w.A1 * u_s) / n
+        alpha2 = -2 * np.dot(z_s.T, w.A2 * u_s) / n
+        a1 = np.dot(hp, alpha1)
+        a2 = np.dot(hp, alpha2)
+
+        psi11 = psi11 + \
             sig2 * np.dot(a1.T, a1) + \
-            (mu4 - 3 * sig2**2) * np.dot(vecd1.T, vecd1) + \
-            2 * mu3 * np.dot(a1.T, vecd1))
-    psi12 = (sig2**2 * tr12 + \
+            2 * mu3 * np.dot(a1.T, vecd1)
+        psi12 = psi12 + \
             sig2 * np.dot(a1.T, a2) + \
-            mu3 * np.dot(a2.T, vecd1)) # 3rd term=0
-    psi22 = (sig2**2 * tr22 / 2. + \
-            sig2 * np.dot(a2.T, a2)) # 3rd&4th terms=0 bc vecd2=0
+            mu3 * np.dot(a2.T, vecd1) # 3rd term=0
+        psi22 = psi22 + \
+            sig2 * np.dot(a2.T, a2) # 3rd&4th terms=0 bc vecd2=0
+
     psi = np.array([[psi11[0][0], psi12[0][0]], [psi12[0][0], psi22[0][0]]]) / n
     return psi, a1, a2, p
 
 def get_omega_hom(w, reg, lamb, G):
+    n = float(w.n)
+    z_s = get_spFilter(w, lamb, reg.z)
+    u_s = get_spFilter(w, lamb, reg.u)
+    sig2 = np.dot(u_s.T, u_s) / n
+    mu3 = np.sum(u_s**3) / n
+    vecdA1 = np.array([w.A1.diagonal()]).T
+    psi, a1, a2, p = get_vc_hom(w, reg, lamb, z_s)
+    j = np.dot(G, np.array([[1.], [2*lamb]]))
+    psii = la.inv(psi)
+    psiDL = (mu3 * np.dot(reg.h.T, np.hstack((vecdA1, np.zeros((n, 1))))) + \
+            sig2 * np.dot(reg.h.T, np.hstack((a1, a2)))) / n
+
+    oDD = np.dot(la.inv(np.dot(reg.h.T, reg.h)), np.dot(reg.h.T, z_s))
+    oDD = sig2 * la.inv(np.dot(z_s.T, np.dot(reg.h, oDD)))
+    oLL = la.inv(np.dot(j.T, np.dot(psii, j)))
+    oDL = np.dot(np.dot(np.dot(p.T, psiDL), np.dot(psii, j)), oLL)
+
+    o_upper = np.hstack((oDD, oDL))
+    o_lower = np.hstack((oDL.T, oLL))
+    return np.vstack((o_upper, o_lower))
+
+def get_omega_hom_ols(w, reg, lamb, G):
+    n = float(w.n)
+    z_s = get_spFilter(w, lamb, reg.x)
+    u_s = get_spFilter(w, lamb, reg.u)
+    sig2 = np.dot(u_s.T, u_s) / n
+    mu3 = np.sum(u_s**3) / n
+    vecdA1 = np.array([w.A1.diagonal()]).T
+    psi, a1, a2, p = get_vc_hom(w, reg, lamb, for_omegaOLS=True)
+    j = np.dot(G, np.array([[1.], [2*lamb]]))
+    psii = la.inv(psi)
+
+    oDD = sig2 * la.inv(np.dot(z_s.T, z_s))
+    oLL = la.inv(np.dot(j.T, np.dot(psii, j)))
+    oDL = np.zeros((oDD.shape[0], oLL.shape[1]))
+
+    o_upper = np.hstack((oDD, oDL))
+    o_lower = np.hstack((oDL.T, oLL))
+    return np.vstack((o_upper, o_lower))
+
+def get_omega_hom_deprecated(w, reg, lamb, G):
     '''
+    NOTE: this implements full structure for 2SLS models at the end of p. 20
+    in Luc's notes, not the reduced form at the end of p. 21.
+
     VC matrix \Omega of Spatial error with homoscedasticity. As in p. 11 of
     Drukker et al. (2011) [1]_
 
@@ -794,10 +980,10 @@ def get_omega_hom(w, reg, lamb, G):
     sig2 = np.dot(u_s.T, u_s) / n
     mu3 = np.sum(u_s**3) / n
     vecdA1 = np.array([w.A1.diagonal()]).T
+
     psiDD = sig2 * np.dot(reg.h.T, reg.h) / n
-    psiDL = (sig2 * np.dot(reg.h.T, np.hstack((a1, a2))) + \
-            mu3 * np.dot(reg.h.T, np.hstack((vecdA1, np.zeros((n, 1))))) \
-            ) / n
+    psiDL = (mu3 * np.dot(reg.h.T, np.hstack((vecdA1, np.zeros((n, 1))))) + \
+            sig2 * np.dot(reg.h.T, np.hstack((a1, a2)))) / n
     psiO_upper = np.hstack((psiDD, psiDL))
     psiO_lower = np.hstack((psiDL.T, psi))
     psiO = np.vstack((psiO_upper, psiO_lower))
@@ -908,9 +1094,12 @@ if __name__ == '__main__':
     yd.append(db.by_col("CRIME"))
     yd = np.array(yd).T
 
-    model = BaseGM_Endog_Error_Hom(y, x, w, yd, q) 
+    model = BaseGM_Endog_Error_Hom(y, x, w, yd, q, A1='hom_sc') 
+    #model = BaseGM_Error_Hom(y, x, w, A1='hom_sc') 
+    print '\n\n\n'
     print model.betas
-    print model.vm
+    for row in model.vm:
+        print map(np.round, row, [5]*len(row))
 
 
     """
