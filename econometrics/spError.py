@@ -573,7 +573,7 @@ class GM_Error_Hom(BaseGM_Error_Hom):
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
     def __init__(self, y, x, w, constant=True, A1='hom'): 
-        BaseGM_Error_Hom.__init__self, y, x, w, constant=constant, A1='hom')
+        BaseGM_Error_Hom.__init__(self, y, x, w, constant=constant, A1='hom')
         self.title = "GENERALIZED SPATIAL LEAST SQUARES (Hom)"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -1096,8 +1096,10 @@ if __name__ == '__main__':
 
     model = BaseGM_Endog_Error_Hom(y, x, w, yd, q, A1='hom_sc') 
     #model = BaseGM_Error_Hom(y, x, w, A1='hom_sc') 
-    print '\n\n\n'
-    print model.betas
+    print '\n'
+    ses = np.sqrt(model.vm.diagonal())
+    for i in range(len(model.betas)):
+        print model.betas[i], ses[i]
     for row in model.vm:
         print map(np.round, row, [5]*len(row))
 
