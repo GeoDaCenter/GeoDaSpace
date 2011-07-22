@@ -116,28 +116,9 @@ class BaseGM_Error_Het:
 
         sigma = get_psi_sigma(w, self.u, lambda3)
         vc3 = get_vc_het(w, sigma)
-        G = moments_i[0]
-
-        self.vm = get_vm_het(G, lambda3, self, w, vc3)
+        self.vm = get_vm_het(moments_i[0], lambda3, self, w, vc3)
         self.betas = np.vstack((ols_s.betas, lambda3))
         self._cache = {}
-
-        """
-        #The following code will give results that match Stata
-        ones = np.ones(y.shape)
-        reg = BaseGM_Endog_Error_Het(y, x=ones, w=w, yend=X, q=X,
-                cycles=1, constant=False, step1c=False)
-        self.x = reg.z
-        self.y = reg.y
-        self.n, self.k = reg.n, reg.k
-        self.betas = reg.betas
-        self.vm = reg.vm
-        self.u = reg.u
-        self.predy = reg.predy
-        self._cache = {}
-        """
-
-
 
 class GM_Error_Het(BaseGM_Error_Het):
     """
