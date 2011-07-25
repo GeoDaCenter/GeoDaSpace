@@ -175,8 +175,8 @@ def get_A2_hom(s):
 
 def _moments2eqs(A1, s, u):
     '''
-    Helper to compute G and g in a system of two equations as in the homocedastic
-    and heteroskedastic error models from Drukker et al. [1]_
+    Helper to compute G and g in a system of two equations as in
+    the heteroskedastic error models from Drukker et al. [1]_
     ...
 
     Parameters
