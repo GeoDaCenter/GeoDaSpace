@@ -527,8 +527,80 @@ class GM_Combo(BaseGM_Combo):
 # Hom Models
 
 class BaseGM_Error_Hom:
-    def __init__(self, y, x, w, constant=True, A1='hom'): 
+    '''
+    SWLS estimation of spatial error with homskedasticity. Based on 
+    Anselin (2011) [1]_.
+    ...
 
+    Parameters
+    ----------
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  nxk array of independent variables (assumed to be aligned with y)
+    w           : W
+                  Spatial weights instance 
+    constant    : boolean
+                  If true it appends a vector of ones to the independent variables
+                  to estimate intercept (set to True by default)
+    A1          : str
+                  Flag selecting the version of A1 to be used:
+                    * 'hom'     : A1 for Hom as defined in Anselin 2011 (Default)
+                    * 'hom_sc'  : A1 for Hom including scalar correctin as in Drukker
+                    * 'het'     : A1 for Het
+
+
+    Attributes
+    ----------
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  array of independent variables (with constant added if
+                  constant parameter set to True)
+    betas       : array
+                  (k+1)x1 array with estimates for betas and lambda
+    u           : array
+                  nx1 array of residuals 
+    predy       : array
+                  nx1 array of predicted values 
+    n           : integer
+                  number of observations
+    k           : int
+                  Number of variables, including exogenous and endogenous
+                  variables and constant
+    vm          : array
+                  (k+1)x(k+1) variance-covariance matrix
+
+    References
+    ----------
+
+    .. [1] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
+    with and without Heteroskedasticity". 
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("HOVAL"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("CRIME"))
+    >>> X = np.array(X).T
+    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w.transform = 'r'
+
+    Model commands
+
+    >>> reg = BaseGM_Error_Hom(y, X, w, A1='hom_sc')
+    >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
+    [[ 47.9479  12.3021]
+     [  0.7063   0.4967]
+     [ -0.556    0.179 ]
+     [  0.4129   1.2844]]
+    '''
+    def __init__(self, y, x, w, constant=True, A1='hom'):
         if A1 == 'hom':
             w.A1 = get_A1_hom(w.sparse)
         elif A1 == 'hom_sc':
@@ -564,34 +636,105 @@ class BaseGM_Error_Hom:
 
 class GM_Error_Hom(BaseGM_Error_Hom):
     '''
-    User class for GM_Error_Hom
+    User class for SWLS estimation of spatial error with homskedasticity.
+    Based on Anselin (2011) [1]_.
+    ...
+
+    Parameters
+    ----------
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  nxk array of independent variables (assumed to be aligned with y)
+    w           : W
+                  Spatial weights instance 
+    constant    : boolean
+                  If true it appends a vector of ones to the independent variables
+                  to estimate intercept (set to True by default)
+    A1          : str
+                  Flag selecting the version of A1 to be used:
+                    * 'hom'     : A1 for Hom as defined in Anselin 2011 (Default)
+                    * 'hom_sc'  : A1 for Hom including scalar correctin as in Drukker
+                    * 'het'     : A1 for Het
+    name_y      : string
+                  Name of dependent variables for use in output
+    name_x      : list of strings
+                  Names of independent variables for use in output
+    name_ds     : string
+                  Name of dataset for use in output
+
+
+    Attributes
+    ----------
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  array of independent variables (with constant added if
+                  constant parameter set to True)
+    betas       : array
+                  (k+1)x1 array with estimates for betas and lambda
+    u           : array
+                  nx1 array of residuals 
+    predy       : array
+                  nx1 array of predicted values 
+    n           : integer
+                  number of observations
+    k           : int
+                  Number of variables, including exogenous and endogenous
+                  variables and constant
+    vm          : array
+                  (k+1)x(k+1) variance-covariance matrix
+
+    References
+    ----------
+
+    .. [1] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
+    with and without Heteroskedasticity". 
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("HOVAL"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("CRIME"))
+    >>> X = np.array(X).T
+    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w.transform = 'r'
+
+    Model commands
+
+    >>> reg = GM_Error_Hom(y, X, w, A1='hom_sc', name_y='home value', name_x=['income', 'crime'], name_ds='columbus')
+    >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
+    [[ 47.9479  12.3021]
+     [  0.7063   0.4967]
+     [ -0.556    0.179 ]
+     [  0.4129   1.2844]]
+
+
     '''
     def __init__(self, y, x, w, constant=True, A1='hom',\
-                        name_y=None, name_x=None,\
-                        name_yend=None, name_q=None, name_ds=None):
+                        name_y=None, name_x=None, name_ds=None):
 
-        USER.check_arrays(y, x, yend, q)
+        USER.check_arrays(y, x)
         USER.check_weights(w, y)
-    def __init__(self, y, x, w, constant=True, A1='hom'): 
-        BaseGM_Error_Hom.__init__(self, y, x, w, constant=constant, A1='hom')
+        BaseGM_Error_Hom.__init__(self, y, x, w, constant=constant, A1=A1)
         self.title = "GENERALIZED SPATIAL LEAST SQUARES (Hom)"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x, constant)
-        self.name_yend = USER.set_name_yend(name_yend, yend)
-        self.name_z = self.name_x + self.name_yend
-        self.name_z.append('lambda')  #listing lambda last
-        self.name_q = USER.set_name_q(name_q, q)
-        self.name_h = USER.set_name_h(self.name_x, self.name_q)
         self.summary = str(np.around(np.hstack((self.betas,
                np.sqrt(self.vm.diagonal()).reshape(self.betas.shape[0],1))),4))
 
 
 class BaseGM_Endog_Error_Hom:
     '''
-    Two step estimation of spatial error with endogenous regressors. Based on 
-
-    Based on Drukker et al. (2010) [1]_ and Drukker et al. (2011) [2]_
+    Two step estimation of spatial error with endogenous regressors. Based on
+    Drukker et al. (2010) [1]_ and Drukker et al. (2011) [2]_, following
+    Anselin (2011) [3]_.
     ...
 
     Parameters
@@ -619,14 +762,32 @@ class BaseGM_Endog_Error_Hom:
 
     Attributes
     ----------
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  array of independent variables (with constant added if
+                  constant parameter set to True)
+    z           : array
+                  nxk array of variables (combination of x and yend)
+    h           : array
+                  nxl array of instruments (combination of x and q)
+    yend        : array
+                  endogenous variables
+    q           : array
+                  array of external exogenous variables
     betas       : array
-                  Array of beta coefficients, rho and lambda
+                  (k+1)x1 array with estimates for betas and lambda
+    u           : array
+                  nx1 array of residuals 
+    predy       : array
+                  nx1 array of predicted values 
+    n           : integer
+                  number of observations
+    k           : int
+                  Number of variables, including exogenous and endogenous
+                  variables and constant
     vm          : array
-                  VC matrix Omega for beta coefficients, rho and lambda
-    tsls        : reg
-                  Regression object from initial two stage least squares
-    lambda1     : float
-                  Initial estimation of lambda (\tilde{\lambda})
+                  (k+1)x(k+1) variance-covariance matrix
 
     References
     ----------
@@ -640,9 +801,34 @@ class BaseGM_Endog_Error_Hom:
     disturbances and additional endogenous variables". The Stata Journal, 1,
     N. 1, pp. 1-13.
 
+    .. [3] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
+    with and without Heteroskedasticity". 
+
     Examples
     --------
-
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("HOVAL"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X = np.array(X).T
+    >>> yd = []
+    >>> yd.append(db.by_col("CRIME"))
+    >>> yd = np.array(yd).T
+    >>> q = []
+    >>> q.append(db.by_col("DISCBD"))
+    >>> q = np.array(q).T
+    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w.transform = 'r'
+    >>> reg = BaseGM_Endog_Error_Hom(y, X, w, yd, q, A1='hom_sc')
+    >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
+    [[ 55.3658   3.3566]
+     [  0.4643   0.1055]
+     [ -0.669    0.0563]
+     [  0.4321   0.1927]]
+    
     '''
     def __init__(self, y, x, w, yend, q, constant=True, A1='hom'):
 
@@ -671,6 +857,7 @@ class BaseGM_Endog_Error_Hom:
         tsls_s = TSLS.BaseTSLS(y_s, x_s, yend_s, h=self.h, constant=False)
         predy = np.dot(self.z, tsls_s.betas)
         self.u = self.y - predy
+        self.predy = predy
 
         # 2b. GM 2nd iteration --> \hat{\rho}
         moments = moments_hom(w, self.u)
@@ -679,20 +866,129 @@ class BaseGM_Endog_Error_Hom:
 
         # Output
         self.betas = np.vstack((tsls_s.betas,lambda2))
-        self.vm = get_omega_hom(w, self, lambda2, moments[0])
+        self.vm = get_omega_hom(w, self, lambda2, moments[0]) / float(w.n)
 
 class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom):
     '''
-    User class Endog Error Hom
-    '''
+    User clasee for two step estimation of spatial error with endogenous
+    regressors. Based on Drukker et al. (2010) [1]_ and Drukker et al. (2011)
+    [2]_, following Anselin (2011) [3]_.
+    ...
+
+    Parameters
+    ----------
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  nxk array of independent variables (assumed to be aligned with y)
+    w           : W
+                  Spatial weights instance 
+    yend        : array
+                  endogenous variables
+    q           : array
+                  array of external exogenous variables to use as instruments;
+                  (note: this should not contain any variables from x; all x
+    constant    : boolean
+                  If true it appends a vector of ones to the independent variables
+                  to estimate intercept (set to True by default)
+    A1          : str
+                  Flag selecting the version of A1 to be used:
+                    * 'hom'     : A1 for Hom as defined in Anselin 2011 (Default)
+                    * 'hom_sc'  : A1 for Hom including scalar correctin as in Drukker
+                    * 'het'     : A1 for Het
+    name_y      : string
+                  Name of dependent variables for use in output
+    name_x      : list of strings
+                  Names of independent variables for use in output
+    name_yend   : list of strings
+                  Names of endogenous variables for use in output
+    name_q      : list of strings
+                  Names of instruments for use in output
+    name_ds     : string
+                  Name of dataset for use in output
+
+
+    Attributes
+    ----------
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  array of independent variables (with constant added if
+                  constant parameter set to True)
+    z           : array
+                  nxk array of variables (combination of x and yend)
+    h           : array
+                  nxl array of instruments (combination of x and q)
+    yend        : array
+                  endogenous variables
+    q           : array
+                  array of external exogenous variables
+    betas       : array
+                  (k+1)x1 array with estimates for betas and lambda
+    u           : array
+                  nx1 array of residuals 
+    predy       : array
+                  nx1 array of predicted values 
+    n           : integer
+                  number of observations
+    k           : int
+                  Number of variables, including exogenous and endogenous
+                  variables and constant
+    vm          : array
+                  (k+1)x(k+1) variance-covariance matrix
+
+    References
+    ----------
+
+    .. [1] Drukker, D. M., Egger, P., Prucha, I. R. (2010) "On Two-step
+    Estimation of a Spatial Autoregressive Model with Autoregressive
+    Disturbances and Endogenous Regressors". Working paper.
+
+    .. [2] Drukker, Prucha, I. R., Raciborski, R. (2010) "A command for
+    estimating spatial-autoregressive models with spatial-autoregressive
+    disturbances and additional endogenous variables". The Stata Journal, 1,
+    N. 1, pp. 1-13.
+
+    .. [3] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
+    with and without Heteroskedasticity". 
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("HOVAL"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X = np.array(X).T
+    >>> yd = []
+    >>> yd.append(db.by_col("CRIME"))
+    >>> yd = np.array(yd).T
+    >>> q = []
+    >>> q.append(db.by_col("DISCBD"))
+    >>> q = np.array(q).T
+    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w.transform = 'r'
+
+    Model commands
+
+    >>> reg = GM_Endog_Error_Hom(y, X, w, yd, q, A1='hom_sc', name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
+    >>> print reg.name_z
+    ['CONSTANT', 'inc', 'crime', 'lambda']
+    >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
+    [[ 55.3658   3.3566]
+     [  0.4643   0.1055]
+     [ -0.669    0.0563]
+     [  0.4321   0.1927]]
+        '''
     def __init__(self, y, x, w, yend, q, constant=True, A1='hom',\
                         name_y=None, name_x=None,\
                         name_yend=None, name_q=None, name_ds=None):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
-        BaseGM_Endog_Error_Hom.__init__(self, y, x, w, yend, q, cycles=cycles,\
-                                       constant=constant, step1c=step1c)
+        BaseGM_Endog_Error_Hom.__init__(self, y, x, w, yend, q, constant=constant, A1=A1)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES (Hom)"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -705,9 +1001,124 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom):
         self.summary = str(np.around(np.hstack((self.betas,
                np.sqrt(self.vm.diagonal()).reshape(self.betas.shape[0],1))),4))
 
+
 class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom):
     '''
-    Combo Hom
+    Two step estimation of spatial lag and spatial error with endogenous
+    regressors. Based on Drukker et al. (2010) [1]_ and Drukker et al. (2011) [2]_,
+    following Anselin (2011) [3]_.
+    ...
+
+    Parameters
+    ----------
+    y           : array
+                  nx1 array with dependent variable
+    x           : array
+                  nxk array with independent variables aligned with y
+    w           : W
+                  PySAL weights instance aligned with y
+    yend        : array
+                  Optional. Additional non-spatial endogenous variables (spatial lag is added by default)
+    q           : array
+                  array of instruments for yend (note: this should not contain
+                  any variables from x; spatial instruments are computed by 
+                  default)
+    w_lags      : int
+                  Number of orders to power W when including it as intrument
+                  for the spatial lag (e.g. if w_lags=1, then the only
+                  instrument is WX; if w_lags=2, the instrument is WWX; and so
+                  on)    
+    constant    : boolean
+                  If true it appends a vector of ones to the independent variables
+                  to estimate intercept (set to True by default)
+    A1          : str
+                  Flag selecting the version of A1 to be used:
+                    * 'hom'     : A1 for Hom as defined in Anselin 2011 (Default)
+                    * 'hom_sc'  : A1 for Hom including scalar correctin as in Drukker
+                    * 'het'     : A1 for Het
+
+    Attributes
+    ----------
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  array of independent variables (with constant added if
+                  constant parameter set to True)
+    z           : array
+                  nxk array of variables (combination of x and yend)
+    h           : array
+                  nxl array of instruments (combination of x and q)
+    yend        : array
+                  endogenous variables
+    q           : array
+                  array of external exogenous variables
+    betas       : array
+                  (k+1)x1 array with estimates for betas and lambda
+    u           : array
+                  nx1 array of residuals 
+    predy       : array
+                  nx1 array of predicted values 
+    n           : integer
+                  number of observations
+    k           : int
+                  Number of variables, including exogenous and endogenous
+                  variables and constant
+    vm          : array
+                  (k+1)x(k+1) variance-covariance matrix
+
+    References
+    ----------
+
+    .. [1] Drukker, D. M., Egger, P., Prucha, I. R. (2010) "On Two-step
+    Estimation of a Spatial Autoregressive Model with Autoregressive
+    Disturbances and Endogenous Regressors". Working paper.
+
+    .. [2] Drukker, Prucha, I. R., Raciborski, R. (2010) "A command for
+    estimating spatial-autoregressive models with spatial-autoregressive
+    disturbances and additional endogenous variables". The Stata Journal, 1,
+    N. 1, pp. 1-13.
+
+    .. [3] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
+    with and without Heteroskedasticity". 
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("HOVAL"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X = np.array(X).T
+    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w.transform = 'r'
+
+    Example only with spatial lag
+
+    >>> reg = BaseGM_Combo_Hom(y, X, w, A1='hom_sc')
+    >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
+    [[ 10.1254   2.1838]
+     [  1.5683   0.063 ]
+     [  0.1513   0.0578]
+     [  0.2103   0.4226]]
+
+    Example with both spatial lag and other endogenous variables
+
+    >>> yd = []
+    >>> yd.append(db.by_col("CRIME"))
+    >>> yd = np.array(yd).T
+    >>> q = []
+    >>> q.append(db.by_col("DISCBD"))
+    >>> q = np.array(q).T
+    >>> reg = BaseGM_Combo_Hom(y, X, w, yd, q, A1='hom_sc')
+    >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['lag_hoval'],['lambda']])
+    >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
+    [['CONSTANT' '111.77058' '9.67885']
+     ['inc' '-0.30974' '0.16665']
+     ['crime' '-1.36043' '0.09773']
+     ['lag_hoval' '-0.52908' '0.12061']
+     ['lambda' '0.60116' '0.18605']]
     '''
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
                     constant=True, A1='hom'):
@@ -715,19 +1126,147 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom):
         yl = lag_spatial(w, y)
         if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
             lag_vars = np.hstack((x, q))
-            spatial_inst = GMM.get_lags(w ,lag_vars, w_lags)
+            spatial_inst = get_lags(w ,lag_vars, w_lags)
             q = np.hstack((q, spatial_inst))
             yend = np.hstack((yend, yl))
         elif yend == None:                   # spatial instruments only
-            q = GMM.get_lags(w, x, w_lags)
+            q = get_lags(w, x, w_lags)
             yend = yl
         else:
             raise Exception, "invalid value passed to yend"
-        BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend, q, A1='hom')
+        BaseGM_Endog_Error_Hom.__init__(self, y, x, w, yend, q, A1=A1)
 
 class GM_Combo_Hom(BaseGM_Combo_Hom):
     '''
-    User class Cor combo Hom
+    Two step estimation of spatial lag and spatial error with endogenous
+    regressors. Based on Drukker et al. (2010) [1]_ and Drukker et al. (2011) [2]_,
+    following Anselin (2011) [3]_.
+    ...
+
+    Parameters
+    ----------
+    y           : array
+                  nx1 array with dependent variable
+    x           : array
+                  nxk array with independent variables aligned with y
+    w           : W
+                  PySAL weights instance aligned with y
+    yend        : array
+                  Optional. Additional non-spatial endogenous variables (spatial lag is added by default)
+    q           : array
+                  array of instruments for yend (note: this should not contain
+                  any variables from x; spatial instruments are computed by 
+                  default)
+    w_lags      : int
+                  Number of orders to power W when including it as intrument
+                  for the spatial lag (e.g. if w_lags=1, then the only
+                  instrument is WX; if w_lags=2, the instrument is WWX; and so
+                  on)    
+    constant    : boolean
+                  If true it appends a vector of ones to the independent variables
+                  to estimate intercept (set to True by default)
+    A1          : str
+                  Flag selecting the version of A1 to be used:
+                    * 'hom'     : A1 for Hom as defined in Anselin 2011 (Default)
+                    * 'hom_sc'  : A1 for Hom including scalar correctin as in Drukker
+                    * 'het'     : A1 for Het
+    name_y      : string
+                  Name of dependent variables for use in output
+    name_x      : list of strings
+                  Names of independent variables for use in output
+    name_yend   : list of strings
+                  Names of endogenous variables for use in output
+    name_q      : list of strings
+                  Names of instruments for use in output
+    name_ds     : string
+                  Name of dataset for use in output
+
+
+    Attributes
+    ----------
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  array of independent variables (with constant added if
+                  constant parameter set to True)
+    z           : array
+                  nxk array of variables (combination of x and yend)
+    h           : array
+                  nxl array of instruments (combination of x and q)
+    yend        : array
+                  endogenous variables
+    q           : array
+                  array of external exogenous variables
+    betas       : array
+                  (k+1)x1 array with estimates for betas and lambda
+    u           : array
+                  nx1 array of residuals 
+    predy       : array
+                  nx1 array of predicted values 
+    n           : integer
+                  number of observations
+    k           : int
+                  Number of variables, including exogenous and endogenous
+                  variables and constant
+    vm          : array
+                  (k+1)x(k+1) variance-covariance matrix
+
+    References
+    ----------
+
+    .. [1] Drukker, D. M., Egger, P., Prucha, I. R. (2010) "On Two-step
+    Estimation of a Spatial Autoregressive Model with Autoregressive
+    Disturbances and Endogenous Regressors". Working paper.
+
+    .. [2] Drukker, Prucha, I. R., Raciborski, R. (2010) "A command for
+    estimating spatial-autoregressive models with spatial-autoregressive
+    disturbances and additional endogenous variables". The Stata Journal, 1,
+    N. 1, pp. 1-13.
+
+    .. [3] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
+    with and without Heteroskedasticity". 
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> y = np.array(db.by_col("HOVAL"))
+    >>> y = np.reshape(y, (49,1))
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X = np.array(X).T
+    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w.transform = 'r'
+
+    Example only with spatial lag
+
+    >>> reg = GM_Combo_Hom(y, X, w, A1='hom_sc', name_x=['inc'],\
+            name_y='hoval', name_yend=['crime'], name_q=['discbd'],\
+            name_ds='columbus')
+    >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
+    [[ 10.1254   2.1838]
+     [  1.5683   0.063 ]
+     [  0.1513   0.0578]
+     [  0.2103   0.4226]]
+
+    Example with both spatial lag and other endogenous variables
+
+    >>> yd = []
+    >>> yd.append(db.by_col("CRIME"))
+    >>> yd = np.array(yd).T
+    >>> q = []
+    >>> q.append(db.by_col("DISCBD"))
+    >>> q = np.array(q).T
+    >>> reg = GM_Combo_Hom(y, X, w, yd, q, A1='hom_sc', \
+            name_ds='columbus')
+    >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['lag_hoval'],['lambda']])
+    >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
+    [['CONSTANT' '111.77058' '9.67885']
+     ['inc' '-0.30974' '0.16665']
+     ['crime' '-1.36043' '0.09773']
+     ['lag_hoval' '-0.52908' '0.12061']
+     ['lambda' '0.60116' '0.18605']]
     '''
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
                     constant=True, A1='hom',\
@@ -737,7 +1276,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom):
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
         BaseGM_Combo_Hom.__init__(self, y, x, w, yend, q, w_lags,\
-                                           constant, cycles, step1c)
+                constant, A1)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES (Hom)"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -756,7 +1295,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom):
 def moments_hom(w, u):
     '''
     Compute G and g matrices for the spatial error model with homoscedasticity
-    as in Drukker et al. [1]_ (p. 9).
+    as in Anselin [1]_ (2011).
     ...
 
     Parameters
@@ -779,10 +1318,8 @@ def moments_hom(w, u):
     References
     ----------
 
-    .. [1] Drukker, Prucha, I. R., Raciborski, R. (2010) "A command for
-    estimating spatial-autoregressive models with spatial-autoregressive
-    disturbances and additional endogenous variables". The Stata Journal, 1,
-    N. 1, pp. 1-13.
+    .. [1] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
+    with and without Heteroskedasticity". 
     '''
     n = w.sparse.shape[0]
     A1u = w.A1 * u
@@ -802,36 +1339,43 @@ def moments_hom(w, u):
 
 def get_vc_hom(w, reg, lambdapar, z_s=None, for_omegaOLS=False):
     '''
-    VC matrix \psi of Spatial error with homoscedasticity. As in eq. (6) of
-    Drukker et al. (2011) [2]_
+    VC matrix \psi of Spatial error with homoscedasticity. As in 
+    Anselin (2011) [1]_ (p. 20)
     ...
 
     Parameters
     ----------
-    w           :   W
-                    Weights with A1 appended
-    reg         :   reg
-                    Regression object
-    lambdapar   :   float
-                    Spatial parameter estimated in previous step of the
-                    procedure
+    w               :   W
+                        Weights with A1 appended
+    reg             :   reg
+                        Regression object
+    lambdapar       :   float
+                        Spatial parameter estimated in previous step of the
+                        procedure
+    z_s             :   array
+                        optional argument for spatially filtered Z (to be
+                        passed only if endogenous variables are present)
+    for_omegaOLS    :   boolean
+                        If True (default=False), it also returns P, needed
+                        only in the computation of Omega
 
     Returns
     -------
 
     psi         : array
                   2x2 VC matrix
-    a1
-    a2
-    p
+    a1          : array
+                  nx1 vector a1. If z_s=None, a1 = 0.
+    a2          : array
+                  nx1 vector a2. If z_s=None, a2 = 0.
+    p           : array
+                  P matrix. If z_s=None or for_omegaOLS=False, p=0.
 
     References
     ----------
 
-    .. [1] Drukker, Prucha, I. R., Raciborski, R. (2010) "A command for
-    estimating spatial-autoregressive models with spatial-autoregressive
-    disturbances and additional endogenous variables". The Stata Journal, 1,
-    N. 1, pp. 1-13.
+    .. [1] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
+    with and without Heteroskedasticity". 
 
     '''
     u_s = get_spFilter(w, lambdapar, reg.u)
@@ -864,15 +1408,11 @@ def get_vc_hom(w, reg, lambdapar, z_s=None, for_omegaOLS=False):
         alpha2 = (-2/n) * np.dot(z_s.T, w.A2 * u_s)
 
         hth = np.dot(reg.h.T, reg.h)
-        hthni = la.inv(hth)
-        #hthni = la.inv(hth / n)
-        htzsn = np.dot(reg.h.T, z_s)
-        #htzsn = np.dot(reg.h.T, z_s) / n
+        hthni = la.inv(hth / n) 
+        htzsn = np.dot(reg.h.T, z_s) / n 
         p = np.dot(hthni, htzsn)
-        p = np.dot(p, la.inv(np.dot(htzsn.T, np.dot(hthni, htzsn.T))))
+        p = np.dot(p, la.inv(np.dot(htzsn.T, p)))
         hp = np.dot(reg.h, p)
-        alpha1 = -2 * np.dot(z_s.T, w.A1 * u_s) / n
-        alpha2 = -2 * np.dot(z_s.T, w.A2 * u_s) / n
         a1 = np.dot(hp, alpha1)
         a2 = np.dot(hp, alpha2)
 
@@ -889,6 +1429,35 @@ def get_vc_hom(w, reg, lambdapar, z_s=None, for_omegaOLS=False):
     return psi, a1, a2, p
 
 def get_omega_hom(w, reg, lamb, G):
+    '''
+    Omega VC matrix for Hom models with endogenous variables computed as in
+    Anselin (2011) [1]_ (p. 21).
+    ...
+
+    Parameters
+    ----------
+    w       :   W
+                Weights with A1 appended
+    reg     :   reg
+                Regression object
+    lamb    :   float
+                Spatial parameter estimated in previous step of the
+                procedure
+    G       :   array
+                Matrix 'G' of the moment equation
+
+    Returns
+    -------
+    omega   :   array
+                Omega matrix of VC of the model
+
+    References
+    ----------
+
+    .. [1] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
+    with and without Heteroskedasticity". 
+
+    '''
     n = float(w.n)
     z_s = get_spFilter(w, lamb, reg.z)
     u_s = get_spFilter(w, lamb, reg.u)
@@ -911,6 +1480,35 @@ def get_omega_hom(w, reg, lamb, G):
     return np.vstack((o_upper, o_lower))
 
 def get_omega_hom_ols(w, reg, lamb, G):
+    '''
+    Omega VC matrix for Hom models without endogenous variables (OLS) computed
+    as in Anselin (2011) [1]_.
+    ...
+
+    Parameters
+    ----------
+    w       :   W
+                Weights with A1 appended
+    reg     :   reg
+                Regression object
+    lamb    :   float
+                Spatial parameter estimated in previous step of the
+                procedure
+    G       :   array
+                Matrix 'G' of the moment equation
+
+    Returns
+    -------
+    omega   :   array
+                Omega matrix of VC of the model
+
+    References
+    ----------
+
+    .. [1] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
+    with and without Heteroskedasticity". 
+
+    '''
     n = float(w.n)
     z_s = get_spFilter(w, lamb, reg.x)
     u_s = get_spFilter(w, lamb, reg.u)
@@ -1080,13 +1678,18 @@ if __name__ == '__main__':
 
     _test()
 
+    import numpy as np
     import pysal
-    db = pysal.open('examples/columbus.dbf','r')
-    y = np.array([db.by_col('HOVAL')]).T
-    x = np.array([db.by_col('INC')]).T
-    w = pysal.open('examples/columbus.gal', 'r').read()
-    w.transform='r' 
-    w.A1 = get_A1_hom(w.sparse)
+    db=pysal.open("examples/columbus.dbf","r")
+    y = np.array(db.by_col("HOVAL"))
+    y = np.reshape(y, (49,1))
+    X = []
+    X.append(db.by_col("INC"))
+    #X.append(db.by_col("CRIME"))
+    X = np.array(X).T
+    w = pysal.rook_from_shapefile("examples/columbus.shp")
+    w = pysal.open('examples/columbus.gal', 'r').read()    
+    w.transform = 'r'
     q = []
     q.append(db.by_col("DISCBD"))
     q = np.array(q).T
@@ -1094,18 +1697,15 @@ if __name__ == '__main__':
     yd.append(db.by_col("CRIME"))
     yd = np.array(yd).T
 
-    model = BaseGM_Endog_Error_Hom(y, x, w, yd, q, A1='hom_sc') 
-    #model = BaseGM_Error_Hom(y, x, w, A1='hom_sc') 
+    #model = BaseGM_Error_Hom(y, X, w, A1='hom_sc') 
+    model = BaseGM_Endog_Error_Hom(y, X, w, yend=yd, q=q, A1='hom_sc') 
+    #model = BaseGM_Combo_Hom(y, X, w, A1='hom_sc') 
+    #model = BaseGM_Combo_Hom(y, X, w, yend=yd, q=q, A1='hom_sc') 
+    """
     print '\n'
-    ses = np.sqrt(model.vm.diagonal())
-    for i in range(len(model.betas)):
-        print model.betas[i], ses[i]
+    print np.around(np.hstack((model.betas,np.sqrt(model.vm.diagonal()).reshape(model.betas.shape[0],1))),8)
     for row in model.vm:
         print map(np.round, row, [5]*len(row))
-
-
-    """
-
 
     tsls = TSLS.BaseTSLS(y, x, yd, q=q, constant=True)
     print tsls.betas
