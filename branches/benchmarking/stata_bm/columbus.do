@@ -5,6 +5,7 @@ clear mata
 set memory 1g
 cd "/Users/dani/code/spreg/trunk/econometrics/examples/"
 /*cd "/home/dani/repos/spreg/trunk/econometrics/examples/"*/
+cd "C:\Users\Pedro\Documents\Academico\GeodaCenter\python\SVN\spreg\trunk\econometrics\examples"
 
 /*insheet using columbus.csv */
 /*Opt A*/
@@ -26,7 +27,10 @@ ivreg  HOVAL (CRIME =  DISCBD) INC
 ivreg  HOVAL (CRIME =  DISCBD) INC, robust
 */
 
-/* GM error (equivalent commands) Does not match*/
+/* GM error (equivalent commands) */
+spivreg HOVAL INC CRIME, el(w) dl(w) id(col_id)
+spivreg HOVAL INC (CRIME =  DISCBD), el(w) dl(w) id(col_id)
+spivreg HOVAL INC CRIME, el(w) id(col_id)
 spivreg HOVAL INC (CRIME =  DISCBD), el(w) id(col_id)
     /* VC matrix Omega */
     matrix list e(V)
@@ -35,7 +39,6 @@ spivreg HOVAL INC (CRIME =  DISCBD), el(w) id(col_id)
     /* Initial estimation of betas */
     matrix list e(delta_2sls)
 /*spreg gs2sls HOVAL INC CRIME, el(w) id(POLYID)*/
-spivreg HOVAL INC (CRIME =  DISCBD), el(w) id(POLYID)
 
 */
 /* IV lag (equivalent commands) Matches R */
@@ -51,7 +54,9 @@ spivreg HOVAL INC (CRIME =  DISCBD), el(w) id(POLYID) het
 spivreg HOVAL INC CRIME, dl(w) id(POLYID) het
 
 /* IV combo Het */
-spivreg HOVAL INC CRIME, el(w) dl(w) id(POLYID) het*/
+spivreg HOVAL INC CRIME, el(w) dl(w) id(POLYID) het
+spivreg HOVAL INC (CRIME =  DISCBD), el(w) dl(w) id(POLYID) het
+*/
 
 
 cd "/Users/dani/code/spreg/branches/benchmarking/stata_bm/"
