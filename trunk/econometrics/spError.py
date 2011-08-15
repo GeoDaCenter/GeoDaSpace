@@ -605,6 +605,11 @@ class BaseGM_Error_Hom:
      [  0.7063   0.4967]
      [ -0.556    0.179 ]
      [  0.4129   1.2844]]
+    >>> print np.around(reg.vm, 4)
+    [[  1.51340700e+02  -5.29060000e+00  -1.85650000e+00  -1.17200000e-01]
+     [ -5.29060000e+00   2.46700000e-01   5.14000000e-02   1.56000000e-02]
+     [ -1.85650000e+00   5.14000000e-02   3.21000000e-02  -2.90000000e-03]
+     [ -1.17200000e-01   1.56000000e-02  -2.90000000e-03   1.64980000e+00]]
     '''
     def __init__(self, y, x, w, constant=True, A1='hom'):
         if A1 == 'hom':
@@ -830,10 +835,11 @@ class BaseGM_Endog_Error_Hom:
     >>> w.transform = 'r'
     >>> reg = BaseGM_Endog_Error_Hom(y, X, w, yd, q, A1='hom_sc')
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 55.3658   3.3566]
-     [  0.4643   0.1055]
-     [ -0.669    0.0563]
+    [[ 55.3658  23.496 ]
+     [  0.4643   0.7382]
+     [ -0.669    0.3943]
      [  0.4321   0.1927]]
+
     
     '''
     def __init__(self, y, x, w, yend, q, constant=True, A1='hom'):
@@ -872,7 +878,7 @@ class BaseGM_Endog_Error_Hom:
 
         # Output
         self.betas = np.vstack((tsls_s.betas,lambda2))
-        self.vm = get_omega_hom(w, self, lambda2, moments[0]) / float(w.n)
+        self.vm = get_omega_hom(w, self, lambda2, moments[0])
 
 class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom):
     '''
@@ -983,10 +989,11 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom):
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'crime', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 55.3658   3.3566]
-     [  0.4643   0.1055]
-     [ -0.669    0.0563]
+    [[ 55.3658  23.496 ]
+     [  0.4643   0.7382]
+     [ -0.669    0.3943]
      [  0.4321   0.1927]]
+
         '''
     def __init__(self, y, x, w, yend, q, constant=True, A1='hom',\
                         name_y=None, name_x=None,\
@@ -1104,10 +1111,11 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom):
 
     >>> reg = BaseGM_Combo_Hom(y, X, w, A1='hom_sc')
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 10.1254   2.1838]
-     [  1.5683   0.063 ]
-     [  0.1513   0.0578]
+    [[ 10.1254  15.2869]
+     [  1.5683   0.4407]
+     [  0.1513   0.4048]
      [  0.2103   0.4226]]
+
 
     Example with both spatial lag and other endogenous variables
 
@@ -1120,11 +1128,12 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom):
     >>> reg = BaseGM_Combo_Hom(y, X, w, yd, q, A1='hom_sc')
     >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['lag_hoval'],['lambda']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
-    [['CONSTANT' '111.77058' '9.67885']
-     ['inc' '-0.30974' '0.16665']
-     ['crime' '-1.36043' '0.09773']
-     ['lag_hoval' '-0.52908' '0.12061']
+    [['CONSTANT' '111.77058' '67.75192']
+     ['inc' '-0.30974' '1.16656']
+     ['crime' '-1.36043' '0.6841']
+     ['lag_hoval' '-0.52908' '0.84428']
      ['lambda' '0.60116' '0.18605']]
+
     '''
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
                     constant=True, A1='hom'):
@@ -1251,10 +1260,11 @@ class GM_Combo_Hom(BaseGM_Combo_Hom):
             name_y='hoval', name_yend=['crime'], name_q=['discbd'],\
             name_ds='columbus')
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 10.1254   2.1838]
-     [  1.5683   0.063 ]
-     [  0.1513   0.0578]
+    [[ 10.1254  15.2869]
+     [  1.5683   0.4407]
+     [  0.1513   0.4048]
      [  0.2103   0.4226]]
+
 
     Example with both spatial lag and other endogenous variables
 
@@ -1268,11 +1278,12 @@ class GM_Combo_Hom(BaseGM_Combo_Hom):
             name_ds='columbus')
     >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['lag_hoval'],['lambda']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
-    [['CONSTANT' '111.77058' '9.67885']
-     ['inc' '-0.30974' '0.16665']
-     ['crime' '-1.36043' '0.09773']
-     ['lag_hoval' '-0.52908' '0.12061']
+    [['CONSTANT' '111.77058' '67.75192']
+     ['inc' '-0.30974' '1.16656']
+     ['crime' '-1.36043' '0.6841']
+     ['lag_hoval' '-0.52908' '0.84428']
      ['lambda' '0.60116' '0.18605']]
+
     '''
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
                     constant=True, A1='hom',\
@@ -1478,7 +1489,7 @@ def get_omega_hom(w, reg, lamb, G):
 
     oDD = np.dot(la.inv(np.dot(reg.h.T, reg.h)), np.dot(reg.h.T, z_s))
     oDD = sig2 * la.inv(np.dot(z_s.T, np.dot(reg.h, oDD)))
-    oLL = la.inv(np.dot(j.T, np.dot(psii, j)))
+    oLL = la.inv(np.dot(j.T, np.dot(psii, j))) / n
     oDL = np.dot(np.dot(np.dot(p.T, psiDL), np.dot(psii, j)), oLL)
 
     o_upper = np.hstack((oDD, oDL))
@@ -1516,18 +1527,20 @@ def get_omega_hom_ols(w, reg, lamb, G):
 
     '''
     n = float(w.n)
-    z_s = get_spFilter(w, lamb, reg.x)
+    x_s = get_spFilter(w, lamb, reg.x)
     u_s = get_spFilter(w, lamb, reg.u)
     sig2 = np.dot(u_s.T, u_s) / n
-    mu3 = np.sum(u_s**3) / n
     vecdA1 = np.array([w.A1.diagonal()]).T
     psi, a1, a2, p = get_vc_hom(w, reg, lamb, for_omegaOLS=True)
     j = np.dot(G, np.array([[1.], [2*lamb]]))
     psii = la.inv(psi)
 
-    oDD = sig2 * la.inv(np.dot(z_s.T, z_s))
+    oDD = sig2 * la.inv(np.dot(x_s.T, x_s))
     oLL = la.inv(np.dot(j.T, np.dot(psii, j)))
-    oDL = np.zeros((oDD.shape[0], oLL.shape[1]))
+    #oDL = np.zeros((oDD.shape[0], oLL.shape[1]))
+    mu3 = np.sum(u_s**3) / n
+    psiDL = (mu3 * np.dot(reg.x.T, np.hstack((vecdA1, np.zeros((n, 1)))))) / n
+    oDL = np.dot(np.dot(np.dot(p.T, psiDL), np.dot(psii, j)), oLL)
 
     o_upper = np.hstack((oDD, oDL))
     o_lower = np.hstack((oDL.T, oLL))
@@ -1691,7 +1704,7 @@ if __name__ == '__main__':
     y = np.reshape(y, (49,1))
     X = []
     X.append(db.by_col("INC"))
-    #X.append(db.by_col("CRIME"))
+    X.append(db.by_col("CRIME"))
     X = np.array(X).T
     w = pysal.rook_from_shapefile("examples/columbus.shp")
     w = pysal.open('examples/columbus.gal', 'r').read()    
@@ -1703,22 +1716,24 @@ if __name__ == '__main__':
     yd.append(db.by_col("CRIME"))
     yd = np.array(yd).T
 
-    #model = BaseGM_Error_Hom(y, X, w, A1='hom_sc') 
-    model = BaseGM_Endog_Error_Hom(y, X, w, yend=yd, q=q, A1='hom_sc') 
-    #model = BaseGM_Combo_Hom(y, X, w, A1='hom_sc') 
-    #model = BaseGM_Combo_Hom(y, X, w, yend=yd, q=q, A1='hom_sc') 
+    """
+    model = BaseGM_Error_Hom(y, X, w, A1='hom') 
+    #ones = np.ones(y.shape)
+    #model = BaseGM_Endog_Error_Hom(y, ones, w, yend=X, q=X, constant=False)
+
+    #model = BaseGM_Endog_Error_Hom(y, X, w, yend=yd, q=q, A1='hom_sc') #MATCHES
+    #model = BaseGM_Combo_Hom(y, X, w, A1='hom_sc', w_lags=2) #MATCHES
+    #model = BaseGM_Combo_Hom(y, X, w, yend=yd, q=q, A1='hom_sc', w_lags=2) #MATCHES
     print '\n'
     print np.around(np.hstack((model.betas,np.sqrt(model.vm.diagonal()).reshape(model.betas.shape[0],1))),8)
+    print '\n'
     for row in model.vm:
         print map(np.round, row, [5]*len(row))
 
-    """
     tsls = TSLS.BaseTSLS(y, x, yd, q=q, constant=True)
     print tsls.betas
-
     psi = get_vc_hom(w, tsls, 0.3)
     print psi
-
     print '\n\tGM_Error model Example'
     model = GM_Error(x, y, w)
     print '\n### Betas ###'
@@ -1734,4 +1749,3 @@ if __name__ == '__main__':
     print '\n### Sig2 ###'
     print model.sig2
     """
-
