@@ -1695,7 +1695,7 @@ def _test():
 
 if __name__ == '__main__':
 
-    _test()
+    #_test()
 
     import numpy as np
     import pysal
@@ -1716,10 +1716,9 @@ if __name__ == '__main__':
     yd.append(db.by_col("CRIME"))
     yd = np.array(yd).T
 
-    """
-    model = BaseGM_Error_Hom(y, X, w, A1='hom') 
-    #ones = np.ones(y.shape)
-    #model = BaseGM_Endog_Error_Hom(y, ones, w, yend=X, q=X, constant=False)
+    #model = BaseGM_Error_Hom(y, X, w, A1='hom') 
+    ones = np.ones(y.shape)
+    model = BaseGM_Endog_Error_Hom(y, ones, w, yend=X, q=X, constant=False, A1='hom')
 
     #model = BaseGM_Endog_Error_Hom(y, X, w, yend=yd, q=q, A1='hom_sc') #MATCHES
     #model = BaseGM_Combo_Hom(y, X, w, A1='hom_sc', w_lags=2) #MATCHES
@@ -1730,6 +1729,7 @@ if __name__ == '__main__':
     for row in model.vm:
         print map(np.round, row, [5]*len(row))
 
+    """
     tsls = TSLS.BaseTSLS(y, x, yd, q=q, constant=True)
     print tsls.betas
     psi = get_vc_hom(w, tsls, 0.3)
