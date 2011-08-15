@@ -275,7 +275,7 @@ class BaseGM_Endog_Error:
         self.betas = np.vstack((tsls2.betas, np.array([[lambda1]])))
         self.u = y - np.dot(tsls.z, tsls2.betas)
         sig2 = np.dot(tsls2.u.T,tsls2.u) / self.n
-        self.vm = sig2 * la.inv(np.dot(tsls2.z.T,tsls2.z))  #LA should be tsls2.varb not Z'Z
+        self.vm = sig2 * tsls2.varb 
         self.se_betas = np.sqrt(self.vm.diagonal()).reshape(tsls2.betas.shape)
         zs = tsls2.betas / self.se_betas
         self.pvals = norm.sf(abs(zs)) * 2.
