@@ -248,9 +248,10 @@ class BaseGM_Endog_Error:
            [ -1.448077],
            [  0.349917]])
     >>> np.around(model.se_betas, decimals=6)
-    array([[ 9.90073 ],
-           [ 0.667087],
-           [ 0.190239]])
+    array([[ 16.138089],
+           [  1.354476],
+           [  0.786205]])
+
     '''
     def __init__(self, y, x, w, yend, q, constant=True):
 
@@ -306,9 +307,10 @@ class GM_Endog_Error(BaseGM_Endog_Error):
            [ -1.448077],
            [  0.349917]])
     >>> np.around(model.se_betas, decimals=6)
-    array([[ 9.90073 ],
-           [ 0.667087],
-           [ 0.190239]])
+    array([[ 16.138089],
+           [  1.354476],
+           [  0.786205]])
+    
     '''
     def __init__(self, y, x, w, yend, q, constant=True, name_y=None,\
                         name_x=None, name_yend=None, name_q=None,\
@@ -406,9 +408,10 @@ class BaseGM_Combo(BaseGM_Endog_Error):
     Print the betas
 
     >>> print np.around(np.hstack((reg.betas[:-1],np.sqrt(reg.vm.diagonal()).reshape(3,1))),3)
-    [[ 39.06    9.533]
-     [ -1.404   0.345]
-     [  0.467   0.155]]
+    [[ 39.06   11.86 ]
+     [ -1.404   0.391]
+     [  0.467   0.2  ]]
+    
 
     And lambda
 
@@ -426,10 +429,11 @@ class BaseGM_Combo(BaseGM_Endog_Error):
     >>> reg = BaseGM_Combo(y, X, w, yd, q)
     >>> betas = np.array([['Intercept'],['INC'],['HOVAL'],['W_CRIME']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas[:-1], np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)))
-    [['Intercept' '50.0944' '10.7064']
-     ['INC' '-0.2552' '0.4064']
-     ['HOVAL' '-0.6885' '0.1079']
-     ['W_CRIME' '0.4375' '0.1912']]
+    [['Intercept' '50.0944' '14.3593']
+     ['INC' '-0.2552' '0.5667']
+     ['HOVAL' '-0.6885' '0.3029']
+     ['W_CRIME' '0.4375' '0.2314']]
+
         """
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
                     constant=True):
@@ -474,9 +478,10 @@ class GM_Combo(BaseGM_Combo):
     >>> print reg.name_z
     ['CONSTANT', 'income', 'lag_crime', 'lambda']
     >>> print np.around(np.hstack((reg.betas[:-1],np.sqrt(reg.vm.diagonal()).reshape(3,1))),3)
-    [[ 39.06    9.533]
-     [ -1.404   0.345]
-     [  0.467   0.155]]
+    [[ 39.06   11.86 ]
+     [ -1.404   0.391]
+     [  0.467   0.2  ]]
+    
 
     And lambda
 
@@ -496,10 +501,11 @@ class GM_Combo(BaseGM_Combo):
     ['CONSTANT', 'inc', 'hoval', 'lag_crime', 'lambda']
     >>> names = np.array(reg.name_z).reshape(5,1)
     >>> print np.hstack((names[0:4,:], np.around(np.hstack((reg.betas[:-1], np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)))
-    [['CONSTANT' '50.0944' '10.7064']
-     ['inc' '-0.2552' '0.4064']
-     ['hoval' '-0.6885' '0.1079']
-     ['lag_crime' '0.4375' '0.1912']]
+    [['CONSTANT' '50.0944' '14.3593']
+     ['inc' '-0.2552' '0.5667']
+     ['hoval' '-0.6885' '0.3029']
+     ['lag_crime' '0.4375' '0.2314']]
+
     >>> print 'lambda: ', np.around(reg.betas[-1], 3)
     lambda:  [ 0.254]
     """
