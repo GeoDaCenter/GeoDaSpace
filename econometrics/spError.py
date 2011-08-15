@@ -1707,12 +1707,12 @@ if __name__ == '__main__':
     model = BaseGM_Endog_Error_Hom(y, X, w, yend=yd, q=q, A1='hom_sc') 
     #model = BaseGM_Combo_Hom(y, X, w, A1='hom_sc') 
     #model = BaseGM_Combo_Hom(y, X, w, yend=yd, q=q, A1='hom_sc') 
-    """
     print '\n'
     print np.around(np.hstack((model.betas,np.sqrt(model.vm.diagonal()).reshape(model.betas.shape[0],1))),8)
     for row in model.vm:
         print map(np.round, row, [5]*len(row))
 
+    """
     tsls = TSLS.BaseTSLS(y, x, yd, q=q, constant=True)
     print tsls.betas
 
