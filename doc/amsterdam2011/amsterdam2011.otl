@@ -1,0 +1,291 @@
+preamble
+	@author Dani Arribas-Bel
+	@subtitle Eureka Seminar \\ Dept. Spatial Economics (VU)
+	@institute  GeoDa Center for Geospatial Analysis and Computation (ASU)
+	@instituteShort darribas.org
+	@title \texttt{GeoDaSpace}: advanced spatial econometrics made easy
+	@titleShort \texttt{GeoDaSpace} 
+	@date August 2011
+	@dateShort 08/2011
+GeoDa Center for Geospatial Analysis and Computation
+		GeoDa Center for Geospatial Analysis and Computation
+			People
+			|* Five core faculty (Luc Anselin, Sergio Rey, Alan Murray, Elizabeth Wentz, Julia Koschinsky)
+			|* Post-docs, graduate students and visitors
+			|* Multi-disciplinary: geographers, economists, urban planners, computer scientists
+			About
+			|* Methods development
+			|* \underline{Implementation through \textbf{software} tools}
+			|* Policy relevant research
+			|* Dissemination through training and support
+The GeoDa family
+		The \textit{GeoDa} family
+			|All GeoDa Center software is freeware\dots \\ \qquad\qquad\qquad\qquad\qquad\dots some is also open source.
+			| \vspace{0.5cm}
+			| \begin{LARGE}
+			| \textbf{http://geodacenter.asu.edu/software}
+			| \end{LARGE}
+			| \vspace{0.5cm}
+			Freeware
+			|* No cost to use, easy to distribute
+			|* Black box
+			Open Source
+			|* Source code is released as well
+			|* User can study, modify and run it freely
+		The \textit{GeoDa} family
+			|\textbf{Legacy GeoDa - OpenGeoDa}
+			|* Interactive ESDA and (a bit of) regression
+			|\textbf{STARS}
+			|* Interactive Exploratory Space-Time Analysis
+			|\textbf{GeoDaSpace}
+			|* Advanced spatial regression
+			|\textbf{GeoDaNet}
+			|* Point patterns on networks
+			|\textbf{PySAL}
+			|* Core Python library
+PySAL
+		PySAL
+			|\begin{center}
+			|\textit{One library to rule them all}
+			|\end{center}
+			|* Flexible and modular \textbf{software library that powers multiple front-ends} (command line, GUIs, web, etc.)
+			|* Rapid development cycle
+			|* State of the art methods in spatial analysis
+			Functionality
+			| \begin{columns}
+			| \begin{column}{0.5\linewidth}
+			| \begin{itemize}
+			| \item I/O \& weights
+			| \item ESDA
+			| \item Spatial dynamics
+			| \end{itemize}
+			| \end{column}
+			| \begin{column}{0.5\linewidth}
+			| \begin{itemize}
+			| \item Inequality
+			| \item Regions
+			| \item \textbf{Spatial Regression}
+			| \end{itemize}
+			| \end{column}
+			| \end{columns}		
+			Release Schedule
+			| \begin{columns}		
+			| \begin{column}{0.5\linewidth}
+			| \begin{itemize}
+			| \item Currently 1.2 (6 months)
+			| \end{itemize}
+			| \end{column}
+			| \begin{column}{0.5\linewidth}
+			|* \begin{large}\textbf{pysal.org}\end{large}
+			| \end{column}
+			| \end{columns}		
+GeoDaSpace
+	Team
+		GeoDaSpace - Team
+			| \begin{center}
+			| \begin{figure}[htbp]
+			| \includegraphics[width=0.15\linewidth]{figs/geodaspace.png}
+			| \end{figure}
+			| \end{center}
+			| \begin{columns}
+			| \begin{column}{0.5\linewidth}
+			| \begin{itemize}
+			| \item Pedro Amaral
+			| \item Luc Anselin
+			| \item Dani Arribas-Bel
+			| \item David Folch
+			| \item Nancy Lozano-Gracia
+			| \end{itemize}
+			| \end{column}
+			| \begin{column}{0.5\linewidth}
+			| \begin{itemize}
+			| \item Nicholas Malizia
+			| \item Serge Rey
+			| \item Charles Schmidt
+			| \item Ran Wei
+			| \item Jing Yao
+			| \end{itemize}
+			| \end{column}
+			| \end{columns}		
+	Motivation
+		GeoDaSpace
+			|* Front-end GUI for regression modules in PySAL:
+			|** \texttt{\textbf{I/O}}: csv, dbf, shp
+			|** \texttt{\textbf{weights}}: creation, manipulation
+			|** \texttt{\textbf{spreg}}: state-of-the-art spatial econometrics
+			|* Speed and scalability (sparse matrices)
+			|* Intuitive and easy to use:
+			|** "Point and click"
+			|** Save model specification and load them later
+			|** Save results
+			|* Cross-platform: Windows, Mac, (Linux)
+	Models \& Methods
+		GeoDaSpace - Models and Methods
+			| \begin{figure}
+			| \includegraphics[width=1\linewidth]{figs/models.png}
+			| \end{figure}
+		Models and Methods - Non spatial
+			| \begin{figure}
+			| \includegraphics[width=1\linewidth]{figs/models_non_spatial.png}
+			| \end{figure}
+			Model
+			| Traditional basic model
+			|* $y = \beta X + \epsilon$
+			| Non spatial endogenous regressors
+			|* $y = \beta X + \gamma Y + \epsilon$
+			Methods
+			|* OLS
+			|* Two stages least squares
+		Models and Methods - Spatial lag
+			| \begin{figure}
+			| \includegraphics[width=1\linewidth]{figs/models_sl.png}
+			| \end{figure}
+			Model
+			| The dependent variable is spatially lagged
+			|* $y = \rho W y + \beta X + \epsilon$
+			Method
+			|* Spatial Two Stages Least Squares
+		Models and Methods - Spatial error
+			| \begin{figure}
+			| \includegraphics[width=1\linewidth]{figs/models_se.png}
+			| \end{figure}
+			Model
+			| \begin{center}
+			| $y = \beta X + u$
+			|
+			| $u = \lambda W u + \epsilon$
+			| \end{center}
+			Methods
+			|* OLS + Basic GM ($\lambda$ as point estimate)
+			|* OLS + GM allowing for heteroskedasticity in the residuals
+			|* OLS + GM assuming homoskedasticity in the residuals
+			|* OLS + Spatial Heteroscedasticity and Autocorrelation Consistent (spatial HAC) of the residuals - Does not assume error structure
+		Models and Methods - Endogenous reg. + sp. error
+			| \begin{figure}
+			| \includegraphics[width=1\linewidth]{figs/models_end_se.png}
+			| \end{figure}
+			Model
+			| \begin{center}
+			| $y = \beta X + \gamma Y + u$
+			|
+			| $u = \lambda W u + \epsilon$
+			| \end{center}
+			Methods
+			|* 2SLS + Basic GM ($\lambda$ as point estimate)
+			|* 2SLS + GM allowing for heteroskedasticity in the residuals
+			|* 2SLS + GM assuming homoskedasticity in the residuals
+			|* 2SLS + Spatial Heteroscedasticity and Autocorrelation Consistent (spatial HAC) of the residuals - Does not assume error structure
+		Models and Methods - Combo
+			| \begin{figure}
+			| \includegraphics[width=1\linewidth]{figs/models_combo.png}
+			| \end{figure}
+			Model
+			| \begin{center}
+			| $y = \rho W y + \beta X + u$
+			|
+			| $u = \lambda W u + \epsilon$
+			| \end{center}
+			Methods
+			|* S2SLS + Basic GM ($\lambda$ as point estimate)
+			|* S2SLS + GM allowing for heteroskedasticity in the residuals
+			|* S2SLS + GM assuming homoskedasticity in the residuals
+			|* S2SLS + Spatial Heteroscedasticity and Autocorrelation Consistent (spatial HAC) of the residuals - Does not assume error structure
+		Models and Methods - Combo + end. reg.
+			| \begin{figure}
+			| \includegraphics[width=1\linewidth]{figs/models_combo_end.png}
+			| \end{figure}
+			Model
+			| \begin{center}
+			| $y = \rho W y + \beta X + \gamma Y + u$
+			|
+			| $u = \lambda W u + \epsilon$
+			| \end{center}
+			Methods
+			|* 2SLS + Basic GM ($\lambda$ as point estimate)
+			|* 2SLS + GM allowing for heteroskedasticity in the residuals
+			|* 2SLS + GM assuming homoskedasticity in the residuals
+			|* 2SLS + Spatial Heteroscedasticity and Autocorrelation Consistent (spatial HAC) of the residuals - Does not assume error structure
+	Performance
+		GeoDaSpace - Performance
+			| \begin{table}
+			| \centering
+			| \begin{tabular}{c l}
+			|  \includegraphics[scale=0.25]{figs/sp_diag.png}  &
+			|  \includegraphics[scale=0.25]{figs/sp_error_lag.png} \\
+			| \end{tabular}
+			| \end{table}
+			| \begin{tiny}
+			| i) All simulations run on a 4 core (3GHz) Mac Pro with 16Gb RAM.
+			| Software:
+			| \linebreak
+			| \qquad- R (2.12.0), spdep (0.5-29)
+			| \qquad- Python (2.6.5), PySAL (1.1), numpy (1.4), scipy (0.8.0b1)
+			| \linebreak
+			| ii) Geography setup: square lattice regions ($\sqrt{N}$ by $\sqrt{N}$) and queen
+			| contiguity matrices
+			| \linebreak
+			| iii) N = 22,500; 90,000; 202,500; 360,000; 562,500; 640,000; 722,500;
+			| 810,000; 1,000,000; 1,322,500; 1,690,000; 2,102,500; 2,560,000
+			| \linebreak
+			| iv) Regressions: 5 independent random variables, N(0, 1) against one dependent random variable
+			| \end{tiny}
+	GUI
+		GeoDaSpace - GUI
+			| \begin{figure}
+			| \includegraphics[scale=0.25]{figs/gs1.png}
+			| \end{figure}
+		GeoDaSpace - GUI
+			| \begin{figure}
+			| \includegraphics[scale=0.25]{figs/gs2.png}
+			| \end{figure}
+		GeoDaSpace - GUI - Weights
+			| \begin{columns}
+			| \begin{column}{0.5\linewidth}
+			| \begin{figure}
+			| \includegraphics[width=1.00\linewidth]{figs/gs3-create.png}
+			| \end{figure}
+			| \end{column}
+			| \begin{column}{0.5\linewidth}
+			| \begin{figure}
+			| \includegraphics[width=1.00\linewidth]{figs/gs3-select.png}
+			| \end{figure}
+			| \end{column}
+			| \end{columns}
+		GeoDaSpace - GUI - Run model
+			| \begin{figure}
+			| \includegraphics[scale=0.25]{figs/gs4-spec.png}
+			| \end{figure}
+		GeoDaSpace - GUI - Report
+			| \begin{figure}
+			| \includegraphics[scale=0.30]{figs/gs5-report.png}
+			| \end{figure}
+		GeoDaSpace - Command line
+			| \begin{figure}
+			| \includegraphics[width=1\linewidth]{figs/script.png}
+			| \end{figure}
+		GeoDaSpace - Command line
+			| \begin{figure}
+			| \includegraphics[height=0.65\linewidth]{figs/output.png}
+			| \end{figure}
+	Timeline
+		Timeline
+			Current
+			|* OLS (PySAL)
+			|* Diagnostics (PySAL)
+			Imminent future
+			|* GUI release (soon!!!)
+			|* All models and methods as part of PySAL (Jan. 2012)
+			Medium run
+			|* Maximum likelihood
+			|* Spatial regimes
+	Get in touch
+		Get in touch!
+			| \begin{table}
+			| \centering
+			| \begin{tabular}{c l}
+			|  \includegraphics[scale=0.20]{figs/geoda_logo.png}  & http://geodacenter.asu.edu \\
+			|  \includegraphics[scale=0.10]{figs/google-groups-logo.png}  & http://groups.google.com/group/openspace-list \\
+			|  \includegraphics[scale=0.40]{figs/twitter.png}  & @geodacenter \\
+			|  \includegraphics[scale=0.10]{figs/f_logo.png}  & https://www.facebook.com/geodacenter \\
+			| \end{tabular}
+			| \end{table}
