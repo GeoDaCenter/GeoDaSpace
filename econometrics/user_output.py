@@ -96,7 +96,7 @@ class DiagnosticBuilder:
 
     """
     def __init__(self, w, vm, pred, instruments=False, beta_diag=True,\
-                        nonspat_diag=True, spat_diag=True):
+                        nonspat_diag=True, spat_diag=False, lamb=False):
 
         #Coefficient, Std.Error, t-Statistic, Probability 
         if beta_diag:
@@ -147,7 +147,21 @@ class DiagnosticBuilder:
                     self.moran_res = moran_res.I, moran_res.zI, moran_res.p_norm 
 
         #part 5: summary output
-        self.summary = summary_results(self, spat_diag, vm, pred, instruments)
+        summary = summary_intro(self)
+        if nonspat_diag:
+            summary += summary_nonspat_diag_1(self)
+        if beta_diag:
+            summary += summary_coefs(self, instruments, lamb)
+        if nonspat_diag:
+            summary += summary_nonspat_diag_2(self)
+        if spat_diag:
+            summary += summary_spat_diag(self)
+        if vm:
+            summary += summary_vm(self)
+        if pred:
+            summary += summary_pred(self)
+        summary += summary_close()
+        self.summary = summary
 
 def set_name_ds(name_ds):
     """Set the dataset name in regression; return generic name if user
@@ -345,6 +359,132 @@ def set_robust(robust):
     if not robust:
         robust = 'unadjusted'
     return robust
+
+
+def summary_intro(reg):
+    strSummary = ""
+    strSummary += "REGRESSION\n"
+    strSummary += "----------\n"
+    title = "SUMMARY OF OUTPUT: " + reg.title + " ESTIMATION\n"
+    strSummary += title
+    strSummary += "-" * (len(title)-1) + "\n"
+    strSummary += "%-20s:%12s\n" % ('Data set',reg.name_ds)
+    strSummary += "%-20s:%12s  %-22s:%12d\n" % ('Dependent Variable',reg.name_y,'Number of Observations',reg.n)
+    strSummary += "%-20s:%12.4f  %-22s:%12d\n" % ('Mean dependent var',reg.mean_y,'Number of Variables',reg.k)
+    strSummary += "%-20s:%12.4f  %-22s:%12d\n" % ('S.D. dependent var',reg.std_y,'Degrees of Freedom',reg.n-reg.k)
+    strSummary += '\n'
+    return strSummary
+
+def summary_coefs(reg, instruments, lamb):
+    strSummary = ""
+    strSummary += "----------------------------------------------------------------------------\n"
+    if instruments:
+        strSummary += "    Variable     Coefficient       Std.Error     z-Statistic     Probability\n"
+    else:
+        strSummary += "    Variable     Coefficient       Std.Error     t-Statistic     Probability\n"
+    strSummary += "----------------------------------------------------------------------------\n"
+    i = 0
+    if instruments:
+        for name in reg.name_x:        
+            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.z_stat[i][0],reg.z_stat[i][1])
+            i += 1
+        for name in reg.name_yend:        
+            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.z_stat[i][0],reg.z_stat[i][1])
+            i += 1
+    else:
+        for name in reg.name_x:        
+            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.t_stat[i][0],reg.t_stat[i][1])
+            i += 1
+    if lamb:
+        if instruments:
+            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % ('lambda',reg.betas[-1][0],reg.std_err[-1],reg.z_stat[-1][0],reg.z_stat[-1][1])
+        else:
+            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % ('lambda',reg.betas[-1][0],reg.std_err[-1],reg.t_stat[-1][0],reg.t_stat[-1][1])
+        i += 1
+    strSummary += "----------------------------------------------------------------------------\n"
+    if instruments:
+        insts = "Instruments: "
+        for name in reg.name_h:
+            insts += name + ", "
+        text_wrapper = TW.TextWrapper(width=76, subsequent_indent="             ")
+        insts = text_wrapper.fill(insts[:-2])
+        strSummary += insts + "\n"
+    return strSummary
+
+def summary_nonspat_diag_1(reg):
+    strSummary = ""
+    strSummary += "%-20s:%12.6f  %-22s:%12.4f\n" % ('R-squared',reg.r2,'F-statistic',reg.f_stat[0])
+    strSummary += "%-20s:%12.6f  %-22s:%12.8g\n" % ('Adjusted R-squared',reg.ar2,'Prob(F-statistic)',reg.f_stat[1])
+    strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('Sum squared residual',reg.utu,'Log likelihood',reg.logll)
+    strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('Sigma-square',reg.sig2,'Akaike info criterion',reg.aic)
+    strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('S.E. of regression',np.sqrt(reg.sig2),'Schwarz criterion',reg.schwarz)
+    strSummary += "%-20s:%12.3f\n%-20s:%12.4f\n" % ('Sigma-square ML',reg.sigML,'S.E of regression ML',np.sqrt(reg.sigML))
+    strSummary += '\n'
+    return strSummary
+    
+def summary_nonspat_diag_2(reg):
+    strSummary = ""
+    strSummary += "\n\nREGRESSION DIAGNOSTICS\n"
+    if reg.mulColli:
+        strSummary += "MULTICOLLINEARITY CONDITION NUMBER%12.6f\n" % (reg.mulColli)
+    strSummary += "TEST ON NORMALITY OF ERRORS\n"
+    strSummary += "TEST                  DF          VALUE            PROB\n"
+    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ('Jarque-Bera',reg.jarque_bera['df'],reg.jarque_bera['jb'],reg.jarque_bera['pvalue'])
+    strSummary += "DIAGNOSTICS FOR HETEROSKEDASTICITY\n"
+    strSummary += "RANDOM COEFFICIENTS\n"
+    strSummary += "TEST                  DF          VALUE            PROB\n"
+    strSummary += "%-22s%2d       %12.6f        %9.7f\n" % ('Breusch-Pagan test',reg.breusch_pagan['df'],reg.breusch_pagan['bp'],reg.breusch_pagan['pvalue'])
+    strSummary += "%-22s%2d       %12.6f        %9.7f\n" % ('Koenker-Bassett test',reg.koenker_bassett['df'],reg.koenker_bassett['kb'],reg.koenker_bassett['pvalue'])
+    if reg.white:
+        strSummary += "SPECIFICATION ROBUST TEST\n"
+        strSummary += "TEST                  DF          VALUE            PROB\n"
+        strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ('White',reg.white['df'],reg.white['wh'],reg.white['pvalue'])
+    return strSummary
+
+def summary_spat_diag(reg):
+    strSummary = ""
+    strSummary += "DIAGNOSTICS FOR SPATIAL DEPENDENCE\n"
+    strSummary += "TEST                          MI/DF      VALUE          PROB\n" 
+    strSummary += "%-22s  %12.6f %12.6f       %9.7f\n" % ("Moran's I (error)", reg.moran_res[0], reg.moran_res[1], reg.moran_res[2])
+    strSummary += "%-22s      %2d    %12.6f       %9.7f\n" % ("Lagrange Multiplier (lag)", 1, reg.lm_lag[0], reg.lm_lag[1])
+    strSummary += "%-22s         %2d    %12.6f       %9.7f\n" % ("Robust LM (lag)", 1, reg.rlm_lag[0], reg.rlm_lag[1])
+    strSummary += "%-22s    %2d    %12.6f       %9.7f\n" % ("Lagrange Multiplier (error)", 1, reg.lm_error[0], reg.lm_error[1])
+    strSummary += "%-22s         %2d    %12.6f       %9.7f\n" % ("Robust LM (error)", 1, reg.rlm_error[0], reg.rlm_error[1])
+    strSummary += "%-22s    %2d    %12.6f       %9.7f\n\n" % ("Lagrange Multiplier (SARMA)", 2, reg.lm_sarma[0], reg.lm_sarma[1])
+    return strSummary
+
+def summary_vm(reg):
+    strVM = ""
+    strVM += "COEFFICIENTS VARIANCE MATRIX\n"
+    strVM += "----------------------------\n"
+    strVM += "%12s" % ('CONSTANT')
+    for name in reg.name_x:
+        strVM += "%12s" % (name)
+    strVM += "\n"
+    nrow = reg.vm.shape[0]
+    ncol = reg.vm.shape[1]
+    for i in range(nrow):
+        for j in range(ncol):
+            strVM += "%12.6f" % (reg.vm[i][j]) 
+        strVM += "\n"
+    return strVM
+
+def summary_pred(reg):
+    strPred = "\n\n"
+    strPred += "%16s%16s%16s%16s\n" % ('OBS',reg.name_y,'PREDICTED','RESIDUAL')
+    for i in range(reg.n):
+        strPred += "%16d%16.5f%16.5f%16.5f\n" % (i+1,reg.y[i][0],reg.predy[i][0],reg.u[i][0])
+    return strPred
+            
+def summary_close():
+    return "========================= END OF REPORT =============================="
+        
+
+
+
+
+
+
 
 def summary_results(reg, spat_diag, vm, pred, instruments):
     """
@@ -626,21 +766,15 @@ def check_robust(robust, wk):
         elif robust.lower() == 'white':
             if wk:
                 raise Exception, "White requires that wk be set to None"
-
-        # set size of matrix
-        n = w.n
-        # get matrix diagonal
         diag = w.sparse.diagonal()
-        dmin = diag.min()
-        dmax = diag.max()
         # check to make sure all entries equal 1
-        if dmin < 1.0:
+        if diag.min() < 1.0:
             raise Exception, "All entries on diagonal must equal 1."
-        if dmax > 1.0:
+        if diag.max() > 1.0:
             raise Exception, "All entries on diagonal must equal 1."
         # ensure off-diagonal entries are in the set of real numbers [0,1)
         wegt = w.weights
-        for i in range(1,n+1):
+        for i in range(1,w.n+1):
             vals = np.array(wegt[str(i)])
             vmin = vals.min()
             vmax = vals.max()
@@ -650,7 +784,6 @@ def check_robust(robust, wk):
             if vmax >= 1.0:
                 raise Exception, "Off-diagonal entries must be less\
                 than 1."
-
         else:
             raise Exception, "invalid value passed to robust, see docs for valid options"
 

@@ -229,9 +229,10 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
 
     """
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True, robust=None, wk=None, nonspat_diag=True, name_y=None,
-                    name_x=None, name_yend=None, name_q=None, name_ds=None,\
+                    constant=True, robust=None, wk=None, nonspat_diag=True,\
+                    name_y=None, name_x=None, name_yend=None, name_q=None, name_ds=None,\
                     vm=False, pred=False, spat_lags='xq'):
+        #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
@@ -248,7 +249,8 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
         self.name_q = USER.set_name_q(name_q, q)
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=nonspat_diag,\
+        #### we currently ignore nonspat_diag parameter ####
+        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
                                     vm=vm, pred=pred)
 
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\

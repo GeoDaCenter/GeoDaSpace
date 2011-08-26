@@ -307,6 +307,8 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
                         nonspat_diag=True, spat_diag=False,\
                         name_y=None, name_x=None, name_yend=None, name_q=None,\
                         name_ds=None, vm=False, pred=False):
+        #### we currently ignore nonspat_diag parameter ####
+
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
         USER.check_robust(robust, wk)
@@ -322,7 +324,8 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
         self.name_q = USER.set_name_q(name_q, q)
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         self.robust = USER.set_robust(robust)
-        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=nonspat_diag,\
+        #### we currently ignore nonspat_diag parameter ####
+        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
                                     spat_diag=spat_diag, vm=vm, pred=pred)
 
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
@@ -332,15 +335,6 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
                                             spat_diag=spat_diag, vm=vm,\
                                             pred=pred, instruments=True)
         
-        ### tsls.summary output needs to be checked. Currently uses z-stats
-        ### and prints names of instruments. Need to replace R squared with
-        ### some pseudo version. Need to add multicollinearity test back in.
-        ### Need to bring in correct f_stat.
-
-
-
-
-
 
 def _test():
     import doctest
