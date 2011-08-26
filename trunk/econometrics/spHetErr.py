@@ -4,10 +4,11 @@ import ols as OLS
 import user_output as USER
 import utils as GMM
 import twosls as TSLS
+from utils import RegressionProps
 from scipy import sparse as SP
 from pysal import lag_spatial
 
-class BaseGM_Error_Het:
+class BaseGM_Error_Het(RegressionProps):
     """
     GMM method for a spatial error model with heteroskedasticity (note: no
     consistency checks)
@@ -120,7 +121,7 @@ class BaseGM_Error_Het:
         self.betas = np.vstack((ols_s.betas, lambda3))
         self._cache = {}
 
-class GM_Error_Het(BaseGM_Error_Het):
+class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
     """
     GMM method for a spatial error model with heteroskedasticity
     Based on Arraiz et al [1]_
@@ -200,7 +201,10 @@ class GM_Error_Het(BaseGM_Error_Het):
     """
 
     def __init__(self, y, x, w, cycles=1, constant=True, step1c=True,\
-                        name_y=None, name_x=None, name_ds=None):
+                        nonspat_diag=True, name_y=None, name_x=None, name_ds=None,\
+                        vm=False, pred=False):        
+        #### we currently ignore nonspat_diag parameter ####
+
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
         BaseGM_Error_Het.__init__(self, y, x, w, cycles=cycles, constant=constant, step1c=step1c)
@@ -209,11 +213,18 @@ class GM_Error_Het(BaseGM_Error_Het):
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x, constant)
         self.name_x.append('lambda')
-        self.summary = str(np.around(np.hstack((self.betas,
-               np.sqrt(self.vm.diagonal()).reshape(self.betas.shape[0],1))),4))
-        
+        #### we currently ignore nonspat_diag parameter ####
+        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
+                                    vm=vm, pred=pred)
 
-class BaseGM_Endog_Error_Het:
+    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
+                              vm=False, pred=False):
+        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
+                                            nonspat_diag=nonspat_diag,\
+                                            vm=vm, pred=pred, instruments=False)
+
+
+class BaseGM_Endog_Error_Het(RegressionProps):
     """
     GMM method for a spatial error model with heteroskedasticity and
     endogenous variables (note: no consistency checks)
@@ -348,7 +359,7 @@ class BaseGM_Endog_Error_Het:
         self._cache = {}
 
 
-class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
+class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
     """
     GMM method for a spatial error model with heteroskedasticity and endogenous variables
 
@@ -451,9 +462,12 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
      [  0.4114   0.1777]]
 
     """
-    def __init__(self, y, x, w, yend, q, cycles=1, constant=True,\
-                        step1c=True, name_y=None, name_x=None,\
-                        name_yend=None, name_q=None, name_ds=None):
+    def __init__(self, y, x, w, yend, q, cycles=1, constant=True, step1c=True,\
+                    nonspat_diag=True, name_y=None, name_x=None,\
+                    name_yend=None, name_q=None, name_ds=None,\
+                    vm=False, pred=False):        
+        #### we currently ignore nonspat_diag parameter ####
+
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
         BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend, q, cycles=cycles,\
@@ -467,11 +481,17 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
         self.name_z.append('lambda')  #listing lambda last
         self.name_q = USER.set_name_q(name_q, q)
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        self.summary = str(np.around(np.hstack((self.betas,
-               np.sqrt(self.vm.diagonal()).reshape(self.betas.shape[0],1))),4))
+        #### we currently ignore nonspat_diag parameter ####
+        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
+                                    vm=vm, pred=pred)
         
+    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
+                              vm=False, pred=False):
+        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
+                                            nonspat_diag=nonspat_diag, lamb=True,\
+                                            vm=vm, pred=pred, instruments=True)        
 
-class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
+class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
     """
     GMM method for a spatial lag and error model with heteroskedasticity and
     endogenous variables  (note: no consistency checks) 
@@ -587,6 +607,8 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
 
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
                     constant=True, cycles=1, step1c=True):
+        ## DF: need to add in spat_lags='xq' parameter???
+
         # Create spatial lag of y
         yl = lag_spatial(w, y)
         if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
@@ -601,7 +623,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
             raise Exception, "invalid value passed to yend"
         BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend, q, cycles=cycles, constant=constant, step1c=step1c)
 
-class GM_Combo_Het(BaseGM_Combo_Het):
+class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     """
     GMM method for a spatial lag and error model with heteroskedasticity and
     endogenous variables  (note: no consistency checks) 
@@ -722,9 +744,11 @@ class GM_Combo_Het(BaseGM_Combo_Het):
     """
     
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True, cycles=1, step1c=True,\
+                    constant=True, cycles=1, step1c=True, nonspat_diag=True,\
                     name_y=None, name_x=None, name_yend=None,\
-                    name_q=None, name_ds=None):
+                    name_q=None, name_ds=None,\
+                    vm=False, pred=False):        
+        #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
@@ -741,8 +765,16 @@ class GM_Combo_Het(BaseGM_Combo_Het):
         self.name_q = USER.set_name_q(name_q, q)
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        self.summary = str(np.around(np.hstack((self.betas,
-               np.sqrt(self.vm.diagonal()).reshape(self.betas.shape[0],1))),4))
+        #### we currently ignore nonspat_diag parameter ####
+        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
+                                    vm=vm, pred=pred)
+     
+    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
+                              vm=False, pred=False):
+        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
+                                            nonspat_diag=nonspat_diag, lamb=True,\
+                                            vm=vm, pred=pred, instruments=True)        
+
 
 def get_psi_sigma(w, u, lamb):
     """

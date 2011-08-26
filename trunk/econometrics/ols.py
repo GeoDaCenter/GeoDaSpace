@@ -86,9 +86,9 @@ class BaseOLS(RegressionProps):
            [  0.62898397],
            [ -0.48488854]])
     >>> ols.vm
-    array([[  1.63368018e+02,  -6.12138301e+00,  -2.01939875e+00],
-           [ -6.12138301e+00,   2.69616334e-01,   6.39265555e-02],
-           [ -2.01939875e+00,   6.39265555e-02,   3.13263671e-02]])
+    array([[  1.74022453e+02,  -6.52060364e+00,  -2.15109867e+00],
+           [ -6.52060364e+00,   2.87200008e-01,   6.80956787e-02],
+           [ -2.15109867e+00,   6.80956787e-02,   3.33693910e-02]])
     """
     def __init__(self, y, x, constant=True, robust=None, wk=None):
         if constant:
@@ -111,7 +111,7 @@ class BaseOLS(RegressionProps):
 
         RegressionProps()
         self._cache = {}
-        self.sig2 = self.sig2n_k    #LA why? in OLS typically sig2n_k
+        self.sig2 = self.sig2n_k
 
 
 class OLS(BaseOLS, USER.DiagnosticBuilder):
@@ -291,9 +291,9 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
            [  0.62898397],
            [ -0.48488854]])
     >>> print ols.t_stat[2][0]
-    -2.73959841902
+    -2.65440864272
     >>> print ols.t_stat[2][1]
-    0.00872490020902
+    0.0108745049098
     >>> ols.r2
     0.34951437785126105
     >>> print ols.summary
@@ -309,17 +309,17 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     R-squared           :    0.349514  F-statistic           :     12.3582
     Adjusted R-squared  :    0.321232  Prob(F-statistic)     :5.0636903e-05
     Sum squared residual:   10647.015  Log likelihood        :    -201.368
-    Sigma-square        :     217.286  Akaike info criterion :     408.735
-    S.E. of regression  :      14.741  Schwarz criterion     :     414.411
+    Sigma-square        :     231.457  Akaike info criterion :     408.735
+    S.E. of regression  :      15.214  Schwarz criterion     :     414.411
     Sigma-square ML     :     217.286
     S.E of regression ML:     14.7406
     <BLANKLINE>
     ----------------------------------------------------------------------------
         Variable     Coefficient       Std.Error     t-Statistic     Probability
     ----------------------------------------------------------------------------
-        CONSTANT      46.4281827      12.7815499       3.6324376    0.0007042722
-          income       0.6289840       0.5192459       1.2113412        0.231951
-           crime      -0.4848885       0.1769926      -2.7395984       0.0087249
+        CONSTANT      46.4281827      13.1917570       3.5194844    0.0009866767
+          income       0.6289840       0.5359104       1.1736736       0.2465669
+           crime      -0.4848885       0.1826729      -2.6544086       0.0108745
     ----------------------------------------------------------------------------
     <BLANKLINE>
     <BLANKLINE>

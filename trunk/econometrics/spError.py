@@ -13,7 +13,7 @@ from pysal import lag_spatial
 from utils import power_expansion
 from utils import get_A1_hom, get_A2_hom, get_A1_het, optim_moments, get_spFilter, get_lags, _moments2eqs
 import twosls as TSLS
-import pysal.spreg.user_output as USER
+import user_output as USER
 
 
 
