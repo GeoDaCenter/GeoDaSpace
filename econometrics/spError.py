@@ -12,12 +12,13 @@ from pysal.spreg.diagnostics import se_betas
 from pysal import lag_spatial
 from utils import power_expansion
 from utils import get_A1_hom, get_A2_hom, get_A1_het, optim_moments, get_spFilter, get_lags, _moments2eqs
+from utils import RegressionProps
 import twosls as TSLS
 import user_output as USER
 
 
 
-class BaseGM_Error:
+class BaseGM_Error(RegressionProps):
     """
     Generalized Moments Spatially Weighted Least Squares (OLS + GMM) as in Kelejian and Prucha
     (1998) [1]_ and Kelejian and Prucha (1999) [2]_
@@ -126,8 +127,9 @@ class BaseGM_Error:
 
         self.se_betas, self.z, self.pvals = _inference(ols2)
         self.step2OLS = ols2
+        self._cache = {}
 
-class GM_Error(BaseGM_Error):
+class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
     """
 
 
@@ -141,44 +143,54 @@ class GM_Error(BaseGM_Error):
     >>> x = np.array([dbf.by_col('INC'), dbf.by_col('CRIME')]).T
     >>> w = pysal.open('examples/columbus.gal', 'r').read() 
     >>> w.transform='r'
-    >>> model = GM_Error(y, x, w, name_y='hoval', name_x=['income', 'crime'], name_ds='columbus')
-    >>> print model.name_x
+    >>> #model = GM_Error(y, x, w, name_y='hoval', name_x=['income', 'crime'], name_ds='columbus')
+    >>> #print model.name_x
     ['CONSTANT', 'income', 'crime', 'lambda']
-    >>> np.around(model.betas, decimals=6)
+    >>> #np.around(model.betas, decimals=6)
     array([[ 47.694634],
            [  0.710453],
            [ -0.550527],
            [  0.32573 ]])
-    >>> np.around(model.se_betas, decimals=6)
+    >>> #np.around(model.se_betas, decimals=6)
     array([[ 12.412039],
            [  0.504443],
            [  0.178496]])
-    >>> np.around(model.z, decimals=6)
+    >>> #np.around(model.z, decimals=6)
     array([[ 3.842611],
            [ 1.408391],
            [-3.084247]])
-    >>> np.around(model.pvals, decimals=6)
+    >>> #np.around(model.pvals, decimals=6)
     array([[  1.22000000e-04],
            [  1.59015000e-01],
            [  2.04100000e-03]])
-    >>> np.around(model.sig2, decimals=6)
+    >>> #np.around(model.sig2, decimals=6)
     198.559595
 
     """
-    def __init__(self, y, x, w, constant=True, name_y=None,\
-                        name_x=None, name_ds=None):
+    def __init__(self, y, x, w, constant=True, nonspat_diag=True,\
+                        name_y=None, name_x=None, name_ds=None,\
+                        vm=False, pred=False):                
+        #### we currently ignore nonspat_diag parameter ####
+
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
         BaseGM_Error.__init__(self, y, x, w, constant=constant) 
         self.title = "SPATIALLY WEIGHTED LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
-        self.name_x = USER.set_name_x(copy.copy(name_x), x, constant)
+        self.name_x = USER.set_name_x(name_x, x, constant)
         self.name_x.append('lambda')
-        self.summary = "results place holder"
+        #### we currently ignore nonspat_diag parameter ####
+        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
+                                    vm=vm, pred=pred)
 
+    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
+                              vm=False, pred=False):
+        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
+                                            nonspat_diag=nonspat_diag,\
+                                            vm=vm, pred=pred, instruments=False)
 
-class BaseGM_Endog_Error:
+class BaseGM_Endog_Error(RegressionProps):
     '''
     Generalized Spatial Two Stages Least Squares (TSLS + GMM) using spatial
     error from Kelejian and Prucha (1998) [1]_ and Kelejian and Prucha (1999) [2]_
@@ -280,9 +292,10 @@ class BaseGM_Endog_Error:
         self.se_betas = np.sqrt(self.vm.diagonal()).reshape(tsls2.betas.shape)
         zs = tsls2.betas / self.se_betas
         self.pvals = norm.sf(abs(zs)) * 2.
+        self._cache = {}
 
 
-class GM_Endog_Error(BaseGM_Endog_Error):
+class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
     '''
 
 
@@ -312,9 +325,12 @@ class GM_Endog_Error(BaseGM_Endog_Error):
            [  0.786205]])
     
     '''
-    def __init__(self, y, x, w, yend, q, constant=True, name_y=None,\
-                        name_x=None, name_yend=None, name_q=None,\
-                        name_ds=None):
+    def __init__(self, y, x, w, yend, q, constant=True, nonspat_diag=True,\
+                    name_y=None, name_x=None,\
+                    name_yend=None, name_q=None, name_ds=None,\
+                    vm=False, pred=False):        
+        #### we currently ignore nonspat_diag parameter ####
+
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
         BaseGM_Endog_Error.__init__(self, y, x, w, yend, q, constant=constant)
@@ -327,10 +343,17 @@ class GM_Endog_Error(BaseGM_Endog_Error):
         self.name_z.append('lambda')
         self.name_q = USER.set_name_q(name_q, q)
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        self.summary = "results place holder"
+        #### we currently ignore nonspat_diag parameter ####
+        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
+                                    vm=vm, pred=pred)
         
+    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
+                              vm=False, pred=False):
+        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
+                                            nonspat_diag=nonspat_diag, lamb=True,\
+                                            vm=vm, pred=pred, instruments=True)        
 
-class BaseGM_Combo(BaseGM_Endog_Error):
+class BaseGM_Combo(BaseGM_Endog_Error, RegressionProps):
     """
     Generalized Spatial Two Stages Least Squares (TSLS + GMM) with spatial lag using spatial
     error from Kelejian and Prucha (1998) [1]_ and Kelejian and Prucha (1999) [2]_
@@ -451,7 +474,7 @@ class BaseGM_Combo(BaseGM_Endog_Error):
             raise Exception, "invalid value passed to yend"
         BaseGM_Endog_Error.__init__(self, y, x, w, yend_out, q_out, constant=constant)
 
-class GM_Combo(BaseGM_Combo):
+class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
     """
 
 
@@ -511,8 +534,10 @@ class GM_Combo(BaseGM_Combo):
     """
 
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1, constant=True,\
-                    name_y=None, name_x=None, name_yend=None,\
-                    name_q=None, name_ds=None):
+                    nonspat_diag=True, name_y=None, name_x=None, name_yend=None,\
+                    name_q=None, name_ds=None,\
+                    vm=False, pred=False):        
+        #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
@@ -528,11 +553,19 @@ class GM_Combo(BaseGM_Combo):
         self.name_q = USER.set_name_q(name_q, q)
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        self.summary = "results place holder"
+        #### we currently ignore nonspat_diag parameter ####
+        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
+                                    vm=vm, pred=pred)
+     
+    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
+                              vm=False, pred=False):
+        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
+                                            nonspat_diag=nonspat_diag, lamb=True,\
+                                            vm=vm, pred=pred, instruments=True)        
 
 # Hom Models
 
-class BaseGM_Error_Hom:
+class BaseGM_Error_Hom(RegressionProps):
     '''
     SWLS estimation of spatial error with homskedasticity. Based on 
     Anselin (2011) [1]_.
@@ -644,8 +677,9 @@ class BaseGM_Error_Hom:
         # Output
         self.betas = np.vstack((ols_s.betas,lambda2))
         self.vm = get_omega_hom_ols(w, self, lambda2, moments[0])
+        self._cache = {}
 
-class GM_Error_Hom(BaseGM_Error_Hom):
+class GM_Error_Hom(BaseGM_Error_Hom, USER.DiagnosticBuilder):
     '''
     User class for SWLS estimation of spatial error with homskedasticity.
     Based on Anselin (2011) [1]_.
@@ -727,8 +761,10 @@ class GM_Error_Hom(BaseGM_Error_Hom):
 
 
     '''
-    def __init__(self, y, x, w, constant=True, A1='hom',\
-                        name_y=None, name_x=None, name_ds=None):
+    def __init__(self, y, x, w, constant=True, A1='hom', nonspat_diag=True,\
+                        name_y=None, name_x=None, name_ds=None,\
+                        vm=False, pred=False):                
+        #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
@@ -737,11 +773,19 @@ class GM_Error_Hom(BaseGM_Error_Hom):
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x, constant)
-        self.summary = str(np.around(np.hstack((self.betas,
-               np.sqrt(self.vm.diagonal()).reshape(self.betas.shape[0],1))),4))
+        self.name_x.append('lambda')
+        #### we currently ignore nonspat_diag parameter ####
+        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
+                                    vm=vm, pred=pred)
+
+    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
+                              vm=False, pred=False):
+        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
+                                            nonspat_diag=nonspat_diag,\
+                                            vm=vm, pred=pred, instruments=False)
 
 
-class BaseGM_Endog_Error_Hom:
+class BaseGM_Endog_Error_Hom(RegressionProps):
     '''
     Two step estimation of spatial error with endogenous regressors. Based on
     Drukker et al. (2010) [1]_ and Drukker et al. (2011) [2]_, following
@@ -879,8 +923,9 @@ class BaseGM_Endog_Error_Hom:
         # Output
         self.betas = np.vstack((tsls_s.betas,lambda2))
         self.vm = get_omega_hom(w, self, lambda2, moments[0])
+        self._cache = {}
 
-class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom):
+class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom, USER.DiagnosticBuilder):
     '''
     User clasee for two step estimation of spatial error with endogenous
     regressors. Based on Drukker et al. (2010) [1]_ and Drukker et al. (2011)
@@ -996,8 +1041,10 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom):
 
         '''
     def __init__(self, y, x, w, yend, q, constant=True, A1='hom',\
-                        name_y=None, name_x=None,\
-                        name_yend=None, name_q=None, name_ds=None):
+                    nonspat_diag=True, name_y=None, name_x=None,\
+                    name_yend=None, name_q=None, name_ds=None,\
+                    vm=False, pred=False):        
+        #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
@@ -1011,11 +1058,18 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom):
         self.name_z.append('lambda')  #listing lambda last
         self.name_q = USER.set_name_q(name_q, q)
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        self.summary = str(np.around(np.hstack((self.betas,
-               np.sqrt(self.vm.diagonal()).reshape(self.betas.shape[0],1))),4))
+        #### we currently ignore nonspat_diag parameter ####
+        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
+                                    vm=vm, pred=pred)
+        
+    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
+                              vm=False, pred=False):
+        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
+                                            nonspat_diag=nonspat_diag, lamb=True,\
+                                            vm=vm, pred=pred, instruments=True)        
 
 
-class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom):
+class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom, RegressionProps):
     '''
     Two step estimation of spatial lag and spatial error with endogenous
     regressors. Based on Drukker et al. (2010) [1]_ and Drukker et al. (2011) [2]_,
@@ -1151,7 +1205,7 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom):
             raise Exception, "invalid value passed to yend"
         BaseGM_Endog_Error_Hom.__init__(self, y, x, w, yend, q, A1=A1)
 
-class GM_Combo_Hom(BaseGM_Combo_Hom):
+class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
     '''
     Two step estimation of spatial lag and spatial error with endogenous
     regressors. Based on Drukker et al. (2010) [1]_ and Drukker et al. (2011) [2]_,
@@ -1286,9 +1340,11 @@ class GM_Combo_Hom(BaseGM_Combo_Hom):
 
     '''
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True, A1='hom',\
+                    constant=True, A1='hom', nonspat_diag=True,\
                     name_y=None, name_x=None, name_yend=None,\
-                    name_q=None, name_ds=None):
+                    name_q=None, name_ds=None,\
+                    vm=False, pred=False):        
+        #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
@@ -1305,8 +1361,15 @@ class GM_Combo_Hom(BaseGM_Combo_Hom):
         self.name_q = USER.set_name_q(name_q, q)
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        self.summary = str(np.around(np.hstack((self.betas,
-               np.sqrt(self.vm.diagonal()).reshape(self.betas.shape[0],1))),4))
+        #### we currently ignore nonspat_diag parameter ####
+        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
+                                    vm=vm, pred=pred)
+     
+    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
+                              vm=False, pred=False):
+        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
+                                            nonspat_diag=nonspat_diag, lamb=True,\
+                                            vm=vm, pred=pred, instruments=True)        
 
 
 def moments_hom(w, u):
@@ -1695,7 +1758,7 @@ def _test():
 
 if __name__ == '__main__':
 
-    #_test()
+    _test()
 
     import numpy as np
     import pysal
