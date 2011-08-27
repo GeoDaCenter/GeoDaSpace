@@ -125,7 +125,13 @@ class BaseGM_Error(RegressionProps):
         self.betas = np.vstack((ols2.betas, np.array([[lambda1]])))
         self.sig2 = ols2.sig2n
 
-        self.se_betas, self.z, self.pvals = _inference(ols2)
+        self.vm = self.sig2 * ols2.xtxi
+        se_betas = np.sqrt(self.vm.diagonal())
+        self.se_betas = se_betas.reshape((len(ols2.betas), 1))
+        zs = ols2.betas / self.se_betas
+        pvals = norm.sf(abs(zs)) * 2.
+        self.z, self.pvals = zs, pvals
+        
         self.step2OLS = ols2
         self._cache = {}
 
@@ -1724,6 +1730,8 @@ def _get_traces(A1, s):
 
 def _inference(ols):
     """
+    DEPRECATED: not in current use
+
     Inference for estimated coefficients
     Coded as in GMerrorsar from R (which matches) using se_betas from diagnostics module
     """
@@ -1760,6 +1768,7 @@ if __name__ == '__main__':
 
     _test()
 
+    """
     import numpy as np
     import pysal
     db=pysal.open("examples/columbus.dbf","r")
@@ -1792,7 +1801,6 @@ if __name__ == '__main__':
     for row in model.vm:
         print map(np.round, row, [5]*len(row))
 
-    """
     tsls = TSLS.BaseTSLS(y, x, yd, q=q, constant=True)
     print tsls.betas
     psi = get_vc_hom(w, tsls, 0.3)
