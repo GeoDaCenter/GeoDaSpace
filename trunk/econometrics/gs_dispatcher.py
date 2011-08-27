@@ -4,6 +4,7 @@ from twosls import TSLS
 from twosls_sp import GM_Lag
 from spHetErr import GM_Error_Het, GM_Endog_Error_Het, GM_Combo_Het
 from spError import GM_Endog_Error, GM_Error, GM_Combo
+from spError import GM_Endog_Error_Hom, GM_Error_Hom, GM_Combo_Hom
 import robust as ROBUST
 
 def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
@@ -126,20 +127,42 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         white=False, hac=True, kp_het=False, gm=False)
     >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'lag_crime']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> #reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', endog=False, nonspat_diag=True, spat_diag=False,\
         white=False, hac=False, kp_het=False, gm=False)
+    >>> #print reg[0].name_x
+    ['CONSTANT', 'inc', 'hoval', 'lambda']
+    >>> #reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+        ye=[], name_ye=[], h=[], name_h=[],\
+        r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
+        model_type='Spatial Error', endog=False, nonspat_diag=True, spat_diag=False,\
+        white=False, hac=False, kp_het=True, gm=False)
+    >>> #print reg[0].name_x
+    ['CONSTANT', 'inc', 'hoval', 'lambda']
+
+
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+        ye=[], name_ye=[], h=[], name_h=[],\
+        r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
+        model_type='Spatial Error', endog=False, nonspat_diag=True, spat_diag=False,\
+        white=False, hac=False, kp_het=False, gm=True)
     >>> print reg[0].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', endog=False, nonspat_diag=True, spat_diag=False,\
-        white=False, hac=False, kp_het=True, gm=False)
+        white=False, hac=False, kp_het=True, gm=True)
     >>> print reg[0].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
+
+
+
+
+
+
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
@@ -297,21 +320,29 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
 
 
     elif model_type == 'Spatial Error':
-        gm_regs = []
         kp_het_regs = []
-        for w in w_list:
-            if endog:
-                #GM Spatial error with non-spatial endogenous variable
-                output.append(GM_Endog_Error(y=y, x=x, w=w, yend=ye, q=h,\
-                              name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                              name_q=name_h, name_ds=name_ds))
-            else:
-                #GM Spatial error
-                output.append(GM_Error(y=y, x=x, w=w,\
-                              name_y=name_y, name_x=name_x, name_ds=name_ds))
         if gm:
             for w in w_list:
-                raise Exception, "not yet implimneted"
+                if endog:
+                    #GM Spatial error (hom) with non-spatial endogenous variable
+                    output.append(GM_Endog_Error_Hom(y=y, x=x, w=w, yend=ye, q=h,\
+                                  name_y=name_y, name_x=name_x, name_yend=name_ye,\
+                                  name_q=name_h, name_ds=name_ds))
+                else:
+                    #GM Spatial error (hom) 
+                    output.append(GM_Error_Hom(y=y, x=x, w=w,\
+                                  name_y=name_y, name_x=name_x, name_ds=name_ds))
+        else:
+            for w in w_list:
+                if endog:
+                    #GM Spatial error with non-spatial endogenous variable (KP 98-99)
+                    output.append(GM_Endog_Error(y=y, x=x, w=w, yend=ye, q=h,\
+                                  name_y=name_y, name_x=name_x, name_yend=name_ye,\
+                                  name_q=name_h, name_ds=name_ds))
+                else:
+                    #GM Spatial error (KP 98-99)
+                    output.append(GM_Error(y=y, x=x, w=w,\
+                                  name_y=name_y, name_x=name_x, name_ds=name_ds))
         if kp_het:
             for w in w_list:
                 if endog:
@@ -323,30 +354,35 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                     #GM Spatial error with het
                     kp_het_regs.append(GM_Error_Het(y=y, x=x, w=w,\
                                          name_y=name_y, name_x=name_x, name_ds=name_ds))
-        elif gm:
-            raise Exception, "not yet implimneted"
-        output.extend(gm_regs)
         output.extend(kp_het_regs)
         return output
 
 
 
     elif model_type == 'Spatial Lag+Error':
-        gm_regs = []
         kp_het_regs = []
-        for w in w_list:
-            if endog:
-                #GM Spatial combo with non-spatial endogenous variables
-                output.append(GM_Combo(y=y, x=x, w=w, yend=ye, q=h,\
-                              name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                              name_q=name_h, name_ds=name_ds))
-            else:
-                #GM Spatial combo
-                output.append(GM_Combo(y=y, x=x, w=w,\
-                              name_y=name_y, name_x=name_x, name_ds=name_ds))
         if gm:
             for w in w_list:
-                raise Exception, "not yet implimneted"
+                if endog:
+                    #GM Spatial combo (hom) with non-spatial endogenous variables
+                    output.append(GM_Combo_Hom(y=y, x=x, w=w, yend=ye, q=h,\
+                                  name_y=name_y, name_x=name_x, name_yend=name_ye,\
+                                  name_q=name_h, name_ds=name_ds))
+                else:
+                    #GM Spatial combo (hom)
+                    output.append(GM_Combo_Hom(y=y, x=x, w=w,\
+                                  name_y=name_y, name_x=name_x, name_ds=name_ds))
+        else:
+            for w in w_list:
+                if endog:
+                    #GM Spatial combo with non-spatial endogenous variables (KP 98-99)
+                    output.append(GM_Combo(y=y, x=x, w=w, yend=ye, q=h,\
+                                  name_y=name_y, name_x=name_x, name_yend=name_ye,\
+                                  name_q=name_h, name_ds=name_ds))
+                else:
+                    #GM Spatial combo (KP 98-99)
+                    output.append(GM_Combo(y=y, x=x, w=w,\
+                                  name_y=name_y, name_x=name_x, name_ds=name_ds))
         if kp_het:
             for w in w_list:
                 if endog:
@@ -358,7 +394,6 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                     #GM Spatial combo with het
                     kp_het_regs.append(GM_Combo_Het(y=y, x=x, w=w_list[0],\
                                          name_y=name_y, name_x=name_x, name_ds=name_ds))
-        output.extend(gm_regs)
         output.extend(kp_het_regs)
         return output
     
