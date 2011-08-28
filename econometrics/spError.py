@@ -149,27 +149,27 @@ class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
     >>> x = np.array([dbf.by_col('INC'), dbf.by_col('CRIME')]).T
     >>> w = pysal.open('examples/columbus.gal', 'r').read() 
     >>> w.transform='r'
-    >>> #model = GM_Error(y, x, w, name_y='hoval', name_x=['income', 'crime'], name_ds='columbus')
-    >>> #print model.name_x
+    >>> model = GM_Error(y, x, w, name_y='hoval', name_x=['income', 'crime'], name_ds='columbus')
+    >>> print model.name_x
     ['CONSTANT', 'income', 'crime', 'lambda']
-    >>> #np.around(model.betas, decimals=6)
+    >>> np.around(model.betas, decimals=6)
     array([[ 47.694634],
            [  0.710453],
            [ -0.550527],
            [  0.32573 ]])
-    >>> #np.around(model.se_betas, decimals=6)
+    >>> np.around(model.se_betas, decimals=6)
     array([[ 12.412039],
            [  0.504443],
            [  0.178496]])
-    >>> #np.around(model.z, decimals=6)
+    >>> np.around(model.z, decimals=6)
     array([[ 3.842611],
            [ 1.408391],
            [-3.084247]])
-    >>> #np.around(model.pvals, decimals=6)
+    >>> np.around(model.pvals, decimals=6)
     array([[  1.22000000e-04],
            [  1.59015000e-01],
            [  2.04100000e-03]])
-    >>> #np.around(model.sig2, decimals=6)
+    >>> np.around(model.sig2, decimals=6)
     198.559595
 
     """
@@ -193,7 +193,7 @@ class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
                               vm=False, pred=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
-                                            nonspat_diag=nonspat_diag,\
+                                            nonspat_diag=nonspat_diag, lamb=True,\
                                             vm=vm, pred=pred, instruments=False)
 
 class BaseGM_Endog_Error(RegressionProps):
@@ -352,7 +352,7 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
         #### we currently ignore nonspat_diag parameter ####
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
                                     vm=vm, pred=pred)
-        
+     
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
                               vm=False, pred=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\

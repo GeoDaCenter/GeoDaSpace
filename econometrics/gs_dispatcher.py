@@ -6,6 +6,7 @@ from spHetErr import GM_Error_Het, GM_Endog_Error_Het, GM_Combo_Het
 from spError import GM_Endog_Error, GM_Error, GM_Combo
 from spError import GM_Endog_Error_Hom, GM_Error_Hom, GM_Combo_Hom
 import robust as ROBUST
+import user_output as USER
 
 def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                 h, name_h, r, name_r, s, name_s, t, name_t,\
@@ -74,6 +75,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
     >>> import pysal
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
+    >>> wk = pysal.kernelW_from_shapefile("examples/columbus.shp",k=4,function='epanechnikov',idVariable=None,fixed=False)
     >>> db=pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -99,7 +101,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         white=True, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_x
     ['CONSTANT', 'inc', 'hoval']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[w], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[wk], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', endog=False, nonspat_diag=True, spat_diag=False,\
@@ -127,22 +129,20 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         white=False, hac=True, kp_het=False, gm=False)
     >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'lag_crime']
-    >>> #reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', endog=False, nonspat_diag=True, spat_diag=False,\
         white=False, hac=False, kp_het=False, gm=False)
-    >>> #print reg[0].name_x
+    >>> print reg[0].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
-    >>> #reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', endog=False, nonspat_diag=True, spat_diag=False,\
         white=False, hac=False, kp_het=True, gm=False)
-    >>> #print reg[0].name_x
+    >>> print reg[0].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
-
-
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
@@ -200,7 +200,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         white=True, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[w], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[wk], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', endog=True, nonspat_diag=True, spat_diag=False,\
@@ -282,11 +282,11 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
             output.append(reg)
         if white:
             # compute White std errors
-            output.append(get_robust(reg))
+            output.append(get_robust(reg, 'white'))
         if hac:
             for wk in wk_list:
                 # compute HAC std errors
-                output.append(get_robust(reg, wk))
+                output.append(get_robust(reg, 'hac', wk))
         return output
 
 
@@ -306,13 +306,13 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         if white:
             for reg in output:
                 # compute White std errors
-                white_regs.append(get_robust(reg))
+                white_regs.append(get_robust(reg, 'white'))
         hac_regs = []
         if hac:
             for reg in output:
                 for wk in wk_list:
                     # compute HAC std errors
-                    hac_regs.append(get_robust(reg, wk))
+                    hac_regs.append(get_robust(reg, 'hac', wk))
         output.extend(white_regs)
         output.extend(hac_regs)
         return output
@@ -398,11 +398,12 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         return output
     
 
-def get_robust(reg, wk=None):
+def get_robust(reg, robust, wk=None):
     """Creates a new regression object, computes the robust standard errors,
     resets the regression object's internal cache and recompute the non-spatial 
     diagnostics.
     """
+    USER.check_robust(robust, wk)    
     reg_robust = COPY.copy(reg)
     reg_robust._cache = {}
     reg_robust.vm = ROBUST.robust_vm(reg=reg_robust, wk=wk)
