@@ -507,29 +507,28 @@ def check_robust(robust, wk):
     """
     if robust:
         if robust.lower() == 'hac':
-            if type(wk).__name__ != 'W':
+            if type(wk).__name__ != 'W' and type(wk).__name__ != 'Kernel':
                 raise Exception, "HAC requires that wk be a pysal.W object"
+            diag = wk.sparse.diagonal()
+            # check to make sure all entries equal 1
+            if diag.min() < 1.0:
+                raise Exception, "All entries on diagonal must equal 1."
+            if diag.max() > 1.0:
+                raise Exception, "All entries on diagonal must equal 1."
+            # ensure off-diagonal entries are in the set of real numbers [0,1)
+            wegt = wk.weights
+            for i in wk.id_order:
+                vals = wegt[i]
+                vmin = min(vals)
+                vmax = max(vals)
+                if vmin < 0.0:
+                    raise Exception, "Off-diagonal entries must be greater than or equal to 0."
+                if vmax > 1.0:
+                    ##### NOTE: we are not checking for the case of exactly 1.0 #####
+                    raise Exception, "Off-diagonal entries must be less than 1."
         elif robust.lower() == 'white':
             if wk:
                 raise Exception, "White requires that wk be set to None"
-        diag = w.sparse.diagonal()
-        # check to make sure all entries equal 1
-        if diag.min() < 1.0:
-            raise Exception, "All entries on diagonal must equal 1."
-        if diag.max() > 1.0:
-            raise Exception, "All entries on diagonal must equal 1."
-        # ensure off-diagonal entries are in the set of real numbers [0,1)
-        wegt = w.weights
-        for i in range(1,w.n+1):
-            vals = np.array(wegt[str(i)])
-            vmin = vals.min()
-            vmax = vals.max()
-            if vmin < 0.0:
-                raise Exception, "Off-diagonal entries must be \
-                greater than or equal to 0."
-            if vmax >= 1.0:
-                raise Exception, "Off-diagonal entries must be less\
-                than 1."
         else:
             raise Exception, "invalid value passed to robust, see docs for valid options"
 
@@ -728,16 +727,26 @@ def summary_coefs(reg, instruments, lamb):
         for name in reg.name_yend:        
             strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.z_stat[i][0],reg.z_stat[i][1])
             i += 1
-    else:
-        for name in reg.name_x:        
-            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.t_stat[i][0],reg.t_stat[i][1])
+        if lamb:
+            if len(reg.betas) == len(reg.z_stat):
+                strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % ('lambda',reg.betas[-1][0],reg.std_err[-1],reg.z_stat[-1][0],reg.z_stat[-1][1])
+            else:
+                strSummary += "%12s    %12.7f    \n" % ('lambda',reg.betas[-1][0])
             i += 1
-    if lamb:
-        if instruments:
-            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % ('lambda',reg.betas[-1][0],reg.std_err[-1],reg.z_stat[-1][0],reg.z_stat[-1][1])
+    else:
+        if lamb:
+            for name in reg.name_x[0:-1]:        
+                strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.t_stat[i][0],reg.t_stat[i][1])
+                i += 1
+            if len(reg.betas) == len(reg.t_stat):
+                strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % ('lambda',reg.betas[-1][0],reg.std_err[-1],reg.t_stat[-1][0],reg.t_stat[-1][1])
+            else:
+                strSummary += "%12s    %12.7f    \n" % ('lambda',reg.betas[-1][0])
+            i += 1
         else:
-            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % ('lambda',reg.betas[-1][0],reg.std_err[-1],reg.t_stat[-1][0],reg.t_stat[-1][1])
-        i += 1
+            for name in reg.name_x:        
+                strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.t_stat[i][0],reg.t_stat[i][1])
+                i += 1
     strSummary += "----------------------------------------------------------------------------\n"
     if instruments:
         insts = "Instruments: "
