@@ -5,7 +5,7 @@ import numpy.linalg as la
 import twosls as TSLS
 import robust as ROBUST
 import user_output as USER
-from utils import get_lags
+from utils import get_lags, set_endog
 
 class BaseGM_Lag(TSLS.BaseTSLS):
     """
@@ -34,6 +34,9 @@ class BaseGM_Lag(TSLS.BaseTSLS):
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
+    lag_q       : boolean
+                  Optional. Whether to include or not as instruments spatial
+                  lags of the additional instruments q. Set to True by default                   
     robust      : string
                   If 'white' or 'hac' then a White consistent or HAC estimator
                   of the variance-covariance matrix is given. If 'gls' then
@@ -144,26 +147,11 @@ class BaseGM_Lag(TSLS.BaseTSLS):
     Econometrics, 18, 163-198.
     """
 
-    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True, robust=None, spat_lags='xq', wk=None):
-        yl = pysal.lag_spatial(w, y)
-        if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
-            if spat_lags == 'xq':
-                lag_vars = np.hstack((x, q))
-            elif spat_lags == 'x':
-                lag_vars = np.hstack((x))
-            else:
-                raise Exception, "invalid value passed to spat_lags"
-            spatial_inst = get_lags(w, lag_vars, w_lags)
-            q = np.hstack((q, spatial_inst))
-            yend_out = np.hstack((yend, yl))
-        elif yend == None:                   # spatial instruments only
-            q = get_lags(w, x, w_lags)
-            yend_out = yl
-        else:
-            raise Exception, "invalid value passed to yend"
-        TSLS.BaseTSLS.__init__(self, y, x, yend_out, q=q, constant=constant)
-        self.sig2 = self.sig2n
+    def __init__(self, y, x, w, yend=None, q=None, w_lags=1, lag_q=True,\
+                    constant=True, robust=None, wk=None, sig2n_k=False):
+        yend2, q2 = set_endog(y, x, w, yend, q, constant, w_lags, lag_q)
+        TSLS.BaseTSLS.__init__(self, y, x, yend2, q=q2, constant=constant,\
+                               sig2n_k=sig2n_k)
         if robust:
             self.vm = ROBUST.robust_vm(self, wk=wk)
 
@@ -231,14 +219,14 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
                     constant=True, robust=None, wk=None, nonspat_diag=True,\
                     name_y=None, name_x=None, name_yend=None, name_q=None, name_ds=None,\
-                    vm=False, pred=False, spat_lags='xq'):
+                    vm=False, pred=False, lag_q=True, sig2n_k=False):
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
         BaseGM_Lag.__init__(self, y=y, x=x, w=w, yend=yend, q=q,\
                             w_lags=w_lags, constant=constant, robust=robust,\
-                            spat_lags=spat_lags)
+                            lag_q=lag_q, sig2n_k=sig2n_k)
         self.title = "SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)

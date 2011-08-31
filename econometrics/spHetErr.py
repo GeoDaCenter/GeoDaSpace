@@ -2,8 +2,8 @@ import numpy as np
 import numpy.linalg as la
 import ols as OLS
 import user_output as USER
-import utils as GMM
 import twosls as TSLS
+import utils as UTILS
 from utils import RegressionProps
 from scipy import sparse as SP
 from pysal import lag_spatial
@@ -30,6 +30,9 @@ class BaseGM_Error_Het(RegressionProps):
     cycles      : int
                   Optional. Number of iterations of steps 2a. and 2b. Set to 1
                   by default
+    step1c      : boolean
+                  Optional. Whether to include or not Step 1c in the estimation
+                  Set to True by default
 
     Attributes
     ----------
@@ -85,25 +88,25 @@ class BaseGM_Error_Het(RegressionProps):
         #1a. OLS --> \tilde{betas}
         ols = OLS.BaseOLS(y, x, constant=constant)
         self.x, self.y, self.n, self.k = ols.x, ols.y, ols.n, ols.k
-        w.A1 = GMM.get_A1_het(w.sparse)
+        w.A1 = UTILS.get_A1_het(w.sparse)
 
         #1b. GMM --> \tilde{\lambda1}
-        moments = GMM._moments2eqs(w.A1, w.sparse, ols.u)
-        lambda1 = GMM.optim_moments(moments)
+        moments = UTILS._moments2eqs(w.A1, w.sparse, ols.u)
+        lambda1 = UTILS.optim_moments(moments)
 
         if step1c:
             #1c. GMM --> \tilde{\lambda2}
             sigma = get_psi_sigma(w, ols.u, lambda1)
             vc1 = get_vc_het(w, sigma)
-            lambda2 = GMM.optim_moments(moments,vc1)
+            lambda2 = UTILS.optim_moments(moments,vc1)
         else:
             lambda2 = lambda1 #Required to match Stata.
         lambda_i = [lambda2]
 
         for i in range(cycles):
             #2a. reg -->\hat{betas}
-            xs = GMM.get_spFilter(w, lambda_i[-1], self.x)
-            ys = GMM.get_spFilter(w, lambda_i[-1], self.y)
+            xs = UTILS.get_spFilter(w, lambda_i[-1], self.x)
+            ys = UTILS.get_spFilter(w, lambda_i[-1], self.y)
             ols_s = OLS.BaseOLS(ys, xs, constant=False)
             self.predy = np.dot(self.x, ols_s.betas)
             self.u = self.y - self.predy
@@ -111,8 +114,8 @@ class BaseGM_Error_Het(RegressionProps):
             #2b. GMM --> \hat{\lambda}
             sigma_i = get_psi_sigma(w, self.u, lambda_i[-1])
             vc_i = get_vc_het(w, sigma_i)
-            moments_i = GMM._moments2eqs(w.A1, w.sparse, self.u)
-            lambda3 = GMM.optim_moments(moments_i, vc_i)
+            moments_i = UTILS._moments2eqs(w.A1, w.sparse, self.u)
+            lambda3 = UTILS.optim_moments(moments_i, vc_i)
             lambda_i.append(lambda3)
 
         sigma = get_psi_sigma(w, self.u, lambda3)
@@ -141,6 +144,9 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
     cycles      : int
                   Optional. Number of iterations of steps 2a. and 2b. Set to 1
                   by default
+    step1c      : boolean
+                  Optional. Whether to include or not Step 1c in the estimation
+                  Set to True by default                  
     name_ds     : string
                   dataset's name
     name_y      : string
@@ -250,6 +256,9 @@ class BaseGM_Endog_Error_Het(RegressionProps):
     cycles      : int
                   Optional. Number of iterations of steps 2a. and 2b. Set to 1
                   by default
+    step1c      : boolean
+                  Optional. Whether to include or not Step 1c in the estimation
+                  Set to True by default                  
 
     Attributes
     ----------
@@ -320,38 +329,38 @@ class BaseGM_Endog_Error_Het(RegressionProps):
         tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=constant)
         self.x, self.z, self.h, self.y = tsls.x, tsls.z, tsls.h, tsls.y
         self.yend, self.q, self.n, self.k = tsls.yend, tsls.q, tsls.n, tsls.k
-        w.A1 = GMM.get_A1_het(w.sparse)
+        w.A1 = UTILS.get_A1_het(w.sparse)
 
         #1b. GMM --> \tilde{\lambda1}
-        moments = GMM._moments2eqs(w.A1, w.sparse, tsls.u)
-        lambda1 = GMM.optim_moments(moments)
+        moments = UTILS._moments2eqs(w.A1, w.sparse, tsls.u)
+        lambda1 = UTILS.optim_moments(moments)
 
         if step1c:
             #1c. GMM --> \tilde{\lambda2}
             self.u = tsls.u
-            zs = GMM.get_spFilter(w, lambda1, self.z)
+            zs = UTILS.get_spFilter(w, lambda1, self.z)
             vc1 = get_vc_het_tsls(w, self, lambda1, tsls.pfora1a2, zs, filt=False)
-            lambda2 = GMM.optim_moments(moments,vc1)
+            lambda2 = UTILS.optim_moments(moments,vc1)
         else:
             lambda2 = lambda1 #Required to match Stata.
         lambda_i = [lambda2]
 
         for i in range(cycles):
             #2a. reg -->\hat{betas}
-            xs = GMM.get_spFilter(w, lambda_i[-1], self.x)
-            ys = GMM.get_spFilter(w, lambda_i[-1], self.y)
-            yend_s = GMM.get_spFilter(w, lambda_i[-1], self.yend)
+            xs = UTILS.get_spFilter(w, lambda_i[-1], self.x)
+            ys = UTILS.get_spFilter(w, lambda_i[-1], self.y)
+            yend_s = UTILS.get_spFilter(w, lambda_i[-1], self.yend)
             tsls_s = TSLS.BaseTSLS(ys, xs, yend_s, h=self.h, constant=False)
             self.predy = np.dot(self.z, tsls_s.betas)
             self.u = self.y - self.predy
 
             #2b. GMM --> \hat{\lambda}
             vc2 = get_vc_het_tsls(w, self, lambda_i[-1], tsls_s.pfora1a2, np.hstack((xs,yend_s)))
-            moments_i = GMM._moments2eqs(w.A1, w.sparse, self.u)
-            lambda3 = GMM.optim_moments(moments_i, vc2)
+            moments_i = UTILS._moments2eqs(w.A1, w.sparse, self.u)
+            lambda3 = UTILS.optim_moments(moments_i, vc2)
             lambda_i.append(lambda3)
 
-        zs = GMM.get_spFilter(w, lambda3, self.z)
+        zs = UTILS.get_spFilter(w, lambda3, self.z)
         P = get_P_hat(self, tsls.hthi, zs)
         vc3 = get_vc_het_tsls(w, self, lambda3, P, zs, save_a1a2=True)
         self.vm = get_Omega_GS2SLS(w, lambda3, self, moments_i[0], vc3, P)
@@ -384,6 +393,9 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
     cycles      : int
                   Optional. Number of iterations of steps 2a. and 2b. Set to 1
                   by default
+    step1c      : boolean
+                  Optional. Whether to include or not Step 1c in the estimation
+                  Set to True by default                  
     name_y      : string
                   Name of dependent variables for use in output
     name_x      : list of strings
@@ -519,13 +531,19 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
                   Number of orders to power W when including it as intrument
                   for the spatial lag (e.g. if w_lags=1, then the only
                   instrument is WX; if w_lags=2, the instrument is WWX; and so
-                  on)    
+                  on)
+    lag_q       : boolean
+                  Optional. Whether to include or not as instruments spatial
+                  lags of the additional instruments q. Set to True by default                  
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
     cycles      : int
                   Optional. Number of iterations of steps 2a. and 2b. Set to 1
                   by default
+    step1c      : boolean
+                  Optional. Whether to include or not Step 1c in the estimation
+                  Set to True by default                  
 
     Attributes
     ----------
@@ -605,23 +623,10 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
      ['lambda' '0.65608' '0.15719']]
     """
 
-    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True, cycles=1, step1c=True):
-        ## DF: need to add in spat_lags='xq' parameter???
-
-        # Create spatial lag of y
-        yl = lag_spatial(w, y)
-        if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
-            lag_vars = np.hstack((x, q))
-            spatial_inst = GMM.get_lags(w ,lag_vars, w_lags)
-            q = np.hstack((q, spatial_inst))
-            yend = np.hstack((yend, yl))
-        elif yend == None:                   # spatial instruments only
-            q = GMM.get_lags(w, x, w_lags)
-            yend = yl
-        else:
-            raise Exception, "invalid value passed to yend"
-        BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend, q, cycles=cycles, constant=constant, step1c=step1c)
+    def __init__(self, y, x, w, yend=None, q=None, constant=True, w_lags=1,\
+                     cycles=1, step1c=True, lag_q=True):
+        yend2, q2 = UTILS.set_endog(y, x, w, yend, q, constant, w_lags, lag_q)
+        BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend2, q2, cycles=cycles, constant=constant, step1c=step1c)
 
 class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     """
@@ -651,13 +656,19 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
                   Number of orders to power W when including it as intrument
                   for the spatial lag (e.g. if w_lags=1, then the only
                   instrument is WX; if w_lags=2, the instrument is WWX; and so
-                  on)    
+                  on)
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
+    lag_q       : boolean
+                  Optional. Whether to include or not as instruments spatial
+                  lags of the additional instruments q. Set to True by default                                 
     cycles      : int
                   Optional. Number of iterations of steps 2a. and 2b. Set to 1
                   by default
+    step1c      : boolean
+                  Optional. Whether to include or not Step 1c in the estimation
+                  Set to True by default                  
     name_y      : string
                   Name of dependent variables for use in output
     name_x      : list of strings
@@ -743,8 +754,8 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     
     """
     
-    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True, cycles=1, step1c=True, nonspat_diag=True,\
+    def __init__(self, y, x, w, yend=None, q=None, constant=True, w_lags=1,\
+                    cycles=1, step1c=True, lag_q=True, nonspat_diag=True,\
                     name_y=None, name_x=None, name_yend=None,\
                     name_q=None, name_ds=None,\
                     vm=False, pred=False):        
@@ -752,8 +763,8 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
-        BaseGM_Combo_Het.__init__(self, y, x, w, yend, q, w_lags,\
-                                           constant, cycles, step1c)
+        BaseGM_Combo_Het.__init__(self, y, x, w, yend=yend, q=q, w_lags=w_lags,\
+                   constant=constant, cycles=cycles, step1c=step1c, lag_q=lag_q)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -888,7 +899,7 @@ def get_vm_het(G, lamb, reg, w, psi):
     """
 
     J = np.dot(G, np.array([[1],[2 * lamb]]))
-    Zs = GMM.get_spFilter(w,lamb,reg.x)
+    Zs = UTILS.get_spFilter(w,lamb,reg.x)
     ZstEZs = np.dot((Zs.T * get_psi_sigma(w, reg.u, lamb)), Zs)
     ZsZsi = la.inv(np.dot(Zs.T,Zs))
     omega11 = w.n * np.dot(np.dot(ZsZsi,ZstEZs),ZsZsi)
@@ -936,14 +947,14 @@ def get_a1a2(w, reg, lambdapar, P, zs, filt):
     .. [1] Anselin, L. GMM Estimation of Spatial Error Autocorrelation with Heteroskedasticity
     
     """
-    us = GMM.get_spFilter(w, lambdapar, reg.u)
+    us = UTILS.get_spFilter(w, lambdapar, reg.u)
     alpha1 = (-2.0/w.n) * (np.dot((zs.T * w.A1), us))
     alpha2 = (-1.0/w.n) * (np.dot((zs.T * (w.sparse + w.sparse.T)), us))
     a1 = np.dot(np.dot(reg.h, P), alpha1)
     a2 = np.dot(np.dot(reg.h, P), alpha2)
     if not filt:
-        a1 = GMM.power_expansion(w, a1, lambdapar, transpose=True).T
-        a2 = GMM.power_expansion(w, a2, lambdapar, transpose=True).T
+        a1 = UTILS.power_expansion(w, a1, lambdapar, transpose=True).T
+        a2 = UTILS.power_expansion(w, a2, lambdapar, transpose=True).T
     return [a1, a2]
 
 def get_vc_het_tsls(w, reg, lambdapar, P, zs, filt=True, save_a1a2=False):
