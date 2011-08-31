@@ -32,6 +32,9 @@ class BaseOLS(RegressionProps):
                matrix.
     wk       : spatial weights object
                pysal kernel weights object
+    sig2n_k  : boolean
+               Whether to use n-k (if True, default) or n (if False) to
+               estimate sigma2
                
     Attributes
     ----------
@@ -90,7 +93,7 @@ class BaseOLS(RegressionProps):
            [ -6.52060364e+00,   2.87200008e-01,   6.80956787e-02],
            [ -2.15109867e+00,   6.80956787e-02,   3.33693910e-02]])
     """
-    def __init__(self, y, x, constant=True, robust=None, wk=None):
+    def __init__(self, y, x, constant=True, robust=None, wk=None, sig2n_k=True):
         if constant:
             self.x = np.hstack((np.ones(y.shape), x))
         else:
@@ -111,7 +114,10 @@ class BaseOLS(RegressionProps):
 
         RegressionProps()
         self._cache = {}
-        self.sig2 = self.sig2n_k
+        if sig2n_k:
+            self.sig2 = self.sig2n_k
+        else:
+            self.sig2 = self.sig2n
 
 
 class OLS(BaseOLS, USER.DiagnosticBuilder):
@@ -130,6 +136,9 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     constant : boolean
                If true it appends a vector of ones to the independent variables
                to estimate intercept (set to True by default)
+    sig2n_k  : boolean
+               Whether to use n-k (if True, default) or n (if False) to
+               estimate sigma2               
     name_y   : string
                Name of dependent variables for use in output
     name_x   : list of strings
@@ -367,14 +376,15 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
 
     """
     def __init__(self, y, x, w=None, constant=True, robust=None, wk=None,\
-                        nonspat_diag=True, spat_diag=False,\
+                        sig2n_k = True, nonspat_diag=True, spat_diag=False,\
                         name_y=None, name_x=None, name_ds=None,\
                         vm=False, pred=False):
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
         USER.check_robust(robust, wk)
         USER.check_spat_diag(spat_diag, w)
-        BaseOLS.__init__(self, y=y, x=x, constant=constant, robust=robust, wk=wk) 
+        BaseOLS.__init__(self, y=y, x=x, constant=constant, robust=robust,\
+                         wk=wk, sig2n_k=sig2n_k) 
         self.title = "ORDINARY LEAST SQUARES"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)

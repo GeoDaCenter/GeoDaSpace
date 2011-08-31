@@ -10,7 +10,7 @@ from numpy import linalg as la
 import pysal.spreg.ols as OLS
 from pysal.spreg.diagnostics import se_betas
 from pysal import lag_spatial
-from utils import power_expansion
+from utils import power_expansion, set_endog
 from utils import get_A1_hom, get_A2_hom, get_A1_het, optim_moments, get_spFilter, get_lags, _moments2eqs
 from utils import RegressionProps
 import twosls as TSLS
@@ -385,6 +385,9 @@ class BaseGM_Combo(BaseGM_Endog_Error, RegressionProps):
                   for the spatial lag (e.g. if w_lags=1, then the only
                   instrument is WX; if w_lags=2, the instrument is WWX; and so
                   on)
+    lag_q       : boolean
+                  Optional. Whether to include or not as instruments spatial
+                  lags of the additional instruments q. Set to True by default                  
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
@@ -464,21 +467,10 @@ class BaseGM_Combo(BaseGM_Endog_Error, RegressionProps):
      ['W_CRIME' '0.4375' '0.2314']]
 
         """
-    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True):
-        # Create spatial lag of y
-        yl = lag_spatial(w, y)
-        if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
-            lag_vars = np.hstack((x, q))
-            spatial_inst = get_lags(w, lag_vars, w_lags)
-            q_out = np.hstack((q, spatial_inst))
-            yend_out = np.hstack((yend, yl))
-        elif yend == None:                   # spatial instruments only
-            q_out = get_lags(w, x, w_lags)
-            yend_out = yl
-        else:
-            raise Exception, "invalid value passed to yend"
-        BaseGM_Endog_Error.__init__(self, y, x, w, yend_out, q_out, constant=constant)
+    def __init__(self, y, x, w, yend=None, q=None, constant=True,\
+                 w_lags=1, lag_q=True):
+        yend2, q2 = set_endog(y, x, w, yend, q, constant, w_lags, lag_q)
+        BaseGM_Endog_Error.__init__(self, y, x, w, yend2, q2, constant=constant)
 
 class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
     """
@@ -540,14 +532,15 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
     """
 
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1, constant=True,\
-                    nonspat_diag=True, name_y=None, name_x=None, name_yend=None,\
-                    name_q=None, name_ds=None,\
+                    lag_q=True, nonspat_diag=True, name_y=None, name_x=None, \
+                    name_yend=None, name_q=None, name_ds=None,\
                     vm=False, pred=False):        
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
-        BaseGM_Combo.__init__(self, y, x, w, yend, q, w_lags, constant)
+        BaseGM_Combo.__init__(self, y, x, w, yend=yend, q=q, w_lags=w_lags,\
+                              constant=constant, lag_q=lag_q)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -1100,7 +1093,10 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom, RegressionProps):
                   Number of orders to power W when including it as intrument
                   for the spatial lag (e.g. if w_lags=1, then the only
                   instrument is WX; if w_lags=2, the instrument is WWX; and so
-                  on)    
+                  on)
+    lag_q       : boolean
+                  Optional. Whether to include or not as instruments spatial
+                  lags of the additional instruments q. Set to True by default                  
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
@@ -1196,20 +1192,9 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom, RegressionProps):
 
     '''
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True, A1='hom'):
-        # Create spatial lag of y
-        yl = lag_spatial(w, y)
-        if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
-            lag_vars = np.hstack((x, q))
-            spatial_inst = get_lags(w ,lag_vars, w_lags)
-            q = np.hstack((q, spatial_inst))
-            yend = np.hstack((yend, yl))
-        elif yend == None:                   # spatial instruments only
-            q = get_lags(w, x, w_lags)
-            yend = yl
-        else:
-            raise Exception, "invalid value passed to yend"
-        BaseGM_Endog_Error_Hom.__init__(self, y, x, w, yend, q, A1=A1)
+                    constant=True, lag_q=True, A1='hom'):
+        yend2, q2 = set_endog(y, x, w, yend, q, constant, w_lags, lag_q)
+        BaseGM_Endog_Error_Hom.__init__(self, y, x, w, yend2, q2, A1=A1)
 
 class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
     '''
@@ -1236,7 +1221,10 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
                   Number of orders to power W when including it as intrument
                   for the spatial lag (e.g. if w_lags=1, then the only
                   instrument is WX; if w_lags=2, the instrument is WWX; and so
-                  on)    
+                  on)
+    lag_q       : boolean
+                  Optional. Whether to include or not as instruments spatial
+                  lags of the additional instruments q. Set to True by default                  
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
@@ -1346,16 +1334,16 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
 
     '''
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True, A1='hom', nonspat_diag=True,\
+                    constant=True, A1='hom', lag_q=True,\
                     name_y=None, name_x=None, name_yend=None,\
-                    name_q=None, name_ds=None,\
+                    name_q=None, name_ds=None, nonspat_diag=True,\
                     vm=False, pred=False):        
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
-        BaseGM_Combo_Hom.__init__(self, y, x, w, yend, q, w_lags,\
-                constant, A1)
+        BaseGM_Combo_Hom.__init__(self, y, x, w, yend=yend, q=q,\
+                    w_lags=w_lags, constant=constant, A1=A1, lag_q=lag_q)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES (Hom)"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)

@@ -31,7 +31,10 @@ class BaseTSLS(RegressionProps):
                   (note: user must provide either q or h, but not both)
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
-                  to estimate intercept (set to True by default)            
+                  to estimate intercept (set to True by default)
+    sig2n_k     : boolean
+                  Whether to use n-k (if True) or n (if False, default) to
+                  estimate sigma2                  
     robust      : string
                   If 'white' or 'hac' then a White consistent or HAC estimator of the
                   variance-covariance matrix is given. If 'gls' then
@@ -114,7 +117,7 @@ class BaseTSLS(RegressionProps):
     >>> reg = BaseTSLS(y, X, yd, q=q, robust="white")
     
     """
-    def __init__(self, y, x, yend, q=None, h=None, constant=True, \
+    def __init__(self, y, x, yend, q=None, h=None, constant=True, sig2n_k=False,\
                         robust=None, wk=None):
         
         if issubclass(type(q), np.ndarray) and issubclass(type(h), np.ndarray):  
@@ -182,7 +185,10 @@ class BaseTSLS(RegressionProps):
 
         self._cache = {}
         RegressionProps()
-        self.sig2 = self.sig2n
+        if sig2n_k:
+            self.sig2 = self.sig2n_k
+        else:
+            self.sig2 = self.sig2n
 
     @property
     def pfora1a2(self):
@@ -221,7 +227,10 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
                   (note: this should not contain any variables from x)
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
-                  to estimate intercept (set to True by default)            
+                  to estimate intercept (set to True by default)
+    sig2n_k     : boolean
+                  Whether to use n-k (if True) or n (if False, default) to
+                  estimate sigma2                  
     robust      : string
                   If 'white' then a White consistent estimator of the
                   variance-covariance matrix is given. If 'gls' then
@@ -302,7 +311,7 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
     
 
     """
-    def __init__(self, y, x, yend, q, w=None, constant=True,\
+    def __init__(self, y, x, yend, q, w=None, constant=True, sig2n_k=False,\
                         robust=None, wk=None,\
                         nonspat_diag=True, spat_diag=False,\
                         name_y=None, name_x=None, name_yend=None, name_q=None,\
@@ -314,7 +323,7 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
         USER.check_robust(robust, wk)
         USER.check_spat_diag(spat_diag, w)
         BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q, constant=constant,\
-                              robust=robust, wk=wk)
+                              robust=robust, wk=wk, sig2n_k=sig2n_k)
         self.title = "TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)

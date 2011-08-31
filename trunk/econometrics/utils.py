@@ -462,6 +462,24 @@ def rev_lag_spatial(w, y):
     """
     return y * w.sparse
 
+def set_endog(y, x, w, yend, q, constant, w_lags, lag_q):
+    # Create spatial lag of y
+    yl = lag_spatial(w, y)
+    if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
+        if lag_q:
+            lag_vars = np.hstack((x, q))
+        else:
+            lag_vars = x
+        spatial_inst = get_lags(w ,lag_vars, w_lags)
+        q = np.hstack((q, spatial_inst))
+        yend = np.hstack((yend, yl))
+    elif yend == None: # spatial instruments only
+        q = get_lags(w, x, w_lags)
+        yend = yl
+    else:
+        raise Exception, "invalid value passed to yend"
+    return yend, q
+
 
 def _test():
     import doctest
