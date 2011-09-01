@@ -330,7 +330,7 @@ class BaseGM_Endog_Error_Het(RegressionProps):
      [  0.4114   0.1777]]
     """
 
-    def __init__(self,y,x,w,yend,q,constant=True,step1c=False,max_iter=1,epsilon=1e-5): 
+    def __init__(self,y,x,w,yend,q,constant=True,step1c=False,max_iter=1,epsilon=1e-5, inv_method="power_exp"): 
         #1a. reg --> \tilde{betas} 
         tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=constant)
         self.x, self.z, self.h, self.y = tsls.x, tsls.z, tsls.h, tsls.y
@@ -345,7 +345,7 @@ class BaseGM_Endog_Error_Het(RegressionProps):
             #1c. GMM --> \tilde{\lambda2}
             self.u = tsls.u
             zs = UTILS.get_spFilter(w, lambda1, self.z)
-            vc1 = get_vc_het_tsls(w, self, lambda1, tsls.pfora1a2, zs, filt=False)
+            vc1 = get_vc_het_tsls(w, self, lambda1, tsls.pfora1a2, zs, inv_method, filt=False)
             lambda2 = UTILS.optim_moments(moments,vc1)
         else:
             lambda2 = lambda1 #Required to match Stata.
@@ -362,7 +362,7 @@ class BaseGM_Endog_Error_Het(RegressionProps):
             self.u = self.y - self.predy
 
             #2b. GMM --> \hat{\lambda}
-            vc2 = get_vc_het_tsls(w, self, lambda_i[-1], tsls_s.pfora1a2, np.hstack((xs,yend_s)))
+            vc2 = get_vc_het_tsls(w, self, lambda_i[-1], tsls_s.pfora1a2, np.hstack((xs,yend_s)), inv_method)
             moments_i = UTILS._moments2eqs(w.A1, w.sparse, self.u)
             lambda3 = UTILS.optim_moments(moments_i, vc2)
             eps = abs(lambda3 - lambda_i[-1])
@@ -373,7 +373,7 @@ class BaseGM_Endog_Error_Het(RegressionProps):
 
         zs = UTILS.get_spFilter(w, lambda3, self.z)
         P = get_P_hat(self, tsls.hthi, zs)
-        vc3 = get_vc_het_tsls(w, self, lambda3, P, zs, save_a1a2=True)
+        vc3 = get_vc_het_tsls(w, self, lambda3, P, zs, inv_method, save_a1a2=True)
         self.vm = get_Omega_GS2SLS(w, lambda3, self, moments_i[0], vc3, P)
         self.betas = np.vstack((tsls_s.betas, lambda3))
         self._cache = {}
@@ -487,14 +487,14 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
     """
     def __init__(self, y, x, w, yend, q, max_iter=1, constant=True, step1c=False,\
                     epsilon=1e-5, nonspat_diag=True, name_y=None, name_x=None,\
-                    name_yend=None, name_q=None, name_ds=None,\
+                    name_yend=None, name_q=None, name_ds=None, inv_method="power_exp",\
                     vm=False, pred=False):        
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
         BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend, q, max_iter=max_iter,\
-                                       constant=constant, step1c=step1c, epsilon=epsilon)
+             constant=constant, step1c=step1c, epsilon=epsilon, inv_method=inv_method)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -635,10 +635,10 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
     """
 
     def __init__(self, y, x, w, yend=None, q=None, constant=True, w_lags=1,\
-                     max_iter=1, step1c=False, lag_q=True, epsilon=1e-5):
+        max_iter=1, step1c=False, lag_q=True, epsilon=1e-5, inv_method="power_exp"):
         yend2, q2 = UTILS.set_endog(y, x, w, yend, q, constant, w_lags, lag_q)
         BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend2, q2, max_iter=max_iter,\
-                constant=constant, step1c=step1c, epsilon=epsilon)
+                constant=constant, step1c=step1c, epsilon=epsilon, inv_method=inv_method)
 
 class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     """
@@ -767,7 +767,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     """
     
     def __init__(self, y, x, w, yend=None, q=None, constant=True, w_lags=1,\
-                    max_iter=1, step1c=False, lag_q=True, epsilon=1e-5,\
+                    max_iter=1, step1c=False, lag_q=True, epsilon=1e-5, inv_method="power_exp",\
                     nonspat_diag=True, name_y=None, name_x=None, name_yend=None,\
                     name_q=None, name_ds=None, vm=False, pred=False):        
         #### we currently ignore nonspat_diag parameter ####
@@ -776,7 +776,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
         USER.check_weights(w, y)
         BaseGM_Combo_Het.__init__(self, y, x, w, yend=yend, q=q, w_lags=w_lags,\
               constant=constant, max_iter=max_iter, step1c=step1c, lag_q=lag_q,\
-              epsilon=epsilon)
+              epsilon=epsilon, inv_method=inv_method)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -930,7 +930,7 @@ def get_P_hat(reg, hthi, zf):
     P2i = la.inv(P2)
     return reg.n*np.dot(P1, P2i)
 
-def get_a1a2(w, reg, lambdapar, P, zs, filt):
+def get_a1a2(w, reg, lambdapar, P, zs, inv_method, filt):
     """
     Computes the a1 in psi assuming residuals come from original regression
     ...
@@ -965,15 +965,15 @@ def get_a1a2(w, reg, lambdapar, P, zs, filt):
     a1 = np.dot(np.dot(reg.h, P), alpha1)
     a2 = np.dot(np.dot(reg.h, P), alpha2)
     if not filt:
-        a1 = UTILS.power_expansion(w, a1, lambdapar, transpose=True).T
-        a2 = UTILS.power_expansion(w, a2, lambdapar, transpose=True).T
+        a1 = UTILS.inverse_prod(w, a1, lambdapar, post_multiply=True, inv_method=inv_method).T
+        a2 = UTILS.inverse_prod(w, a2, lambdapar, post_multiply=True, inv_method=inv_method).T
     return [a1, a2]
 
-def get_vc_het_tsls(w, reg, lambdapar, P, zs, filt=True, save_a1a2=False):
+def get_vc_het_tsls(w, reg, lambdapar, P, zs, inv_method, filt=True, save_a1a2=False):
 
     sigma = get_psi_sigma(w, reg.u, lambdapar)
     vc1 = get_vc_het(w, sigma)
-    a1, a2 = get_a1a2(w, reg, lambdapar, P, zs, filt)
+    a1, a2 = get_a1a2(w, reg, lambdapar, P, zs, inv_method, filt)
     a1s = a1.T * sigma
     a2s = a2.T * sigma
     psi11 = float(np.dot(a1s, a1))

@@ -353,15 +353,8 @@ def get_lags(w, x, w_lags):
         spat_lags = np.hstack((spat_lags, lag))
     return spat_lags
 
-def power_expansion(w, data, scalar, transpose=False, threshold=0.0000000001, max_iterations=None):
-    """
-    Compute the inverse of a matrix using the power expansion (Leontief
-    expansion).  General form is:
-    
-        .. math:: 
-            x &= (I - \rho W)^{-1}v = [I + \rho W + \rho^2 WW + \dots]v \\
-              &= v + \rho Wv + \rho^2 WWv + \dots
- 
+def inverse_prod(w, data, scalar, post_multiply=False, inv_method="power_exp", threshold=0.0000000001, max_iterations=None):
+    """ 
 
     Parameters
     ----------
@@ -375,10 +368,13 @@ def power_expansion(w, data, scalar, transpose=False, threshold=0.0000000001, ma
     scalar          : float
                       Scalar value (typically rho or lambda)
 
-    transpose       : boolean
+    post_multiply   : boolean
                       If True then post-multiplies the data vector by the
                       inverse of the spatial filter, if false then
                       pre-multiplies.
+    inv_method      : string
+                      If "regular" uses the inverse of W (slow);
+                      If "power_exp" uses the power expansion method (default)
 
     threshold       : float
                       Test value to stop the iterations. Test is against
@@ -387,8 +383,7 @@ def power_expansion(w, data, scalar, transpose=False, threshold=0.0000000001, ma
                       iteration.
 
     max_iterations  : integer
-                      Maximum number of iterations for the expansion. 
-
+                      Maximum number of iterations for the expansion.   
 
     Examples
     --------
@@ -410,14 +405,40 @@ def power_expansion(w, data, scalar, transpose=False, threshold=0.0000000001, ma
     True
     >>> inv_cg = inverse_cg(w, data, rho)
     >>> # test the transpose version
-    >>> inv_pow = power_expansion(w, data, rho, transpose=True)
+    >>> inv_pow = power_expansion(w, data, rho, post_multiply=True)
     >>> inv_reg = np.dot(data.T, matrix)
     >>> np.allclose(inv_pow, inv_reg, atol=0.0001)
     True
 
+    """                      
+    if inv_method=="power_exp":
+        inv_prod = power_expansion(w, data, scalar, post_multiply=post_multiply,\
+                threshold=threshold, max_iterations=max_iterations)
+    elif inv_method=="regular":
+        matrix = la.inv(np.eye(w.n) - (scalar * w.full()[0]))
+        if post_multiply:
+            inv_prod = np.dot(data.T, matrix)
+        else:
+            inv_prod = np.dot(matrix, data)
+    else:
+        raise Exception, "Invalid method selected for inversion."
+    return inv_prod
+
+def power_expansion(w, data, scalar, post_multiply=False, threshold=0.0000000001, max_iterations=None):
+    """
+    Compute the inverse of a matrix using the power expansion (Leontief
+    expansion).  General form is:
+    
+        .. math:: 
+            x &= (I - \rho W)^{-1}v = [I + \rho W + \rho^2 WW + \dots]v \\
+              &= v + \rho Wv + \rho^2 WWv + \dots
+
+    Examples
+    --------
+    Tests for this function are in inverse_prod()
 
     """
-    if transpose:
+    if post_multiply:
         lag = rev_lag_spatial
         data = data.T
     else:
@@ -457,7 +478,7 @@ def rev_lag_spatial(w, y):
 
     Examples
     --------
-    Tests for this function are in power_expansion()
+    Tests for this function are in inverse_prod()
 
     """
     return y * w.sparse
