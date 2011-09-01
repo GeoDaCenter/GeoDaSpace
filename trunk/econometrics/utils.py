@@ -480,6 +480,12 @@ def set_endog(y, x, w, yend, q, constant, w_lags, lag_q):
         raise Exception, "invalid value passed to yend"
     return yend, q
 
+def iter_msg(iteration,max_iter):
+    if iteration==max_iter:
+        iter_stop = "Maximum number of iterations reached."
+    else:
+        iter_stop = "Convergence threshold (epsilon) reached."
+    return iter_stop
 
 def _test():
     import doctest

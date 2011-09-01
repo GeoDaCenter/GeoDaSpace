@@ -27,7 +27,7 @@ class BaseGM_Error_Het(RegressionProps):
     w           : W
                   PySAL weights instance aligned with y and with instances S
                   and A1 created
-    cycles      : int
+    max_iter      : int
                   Optional. Number of iterations of steps 2a. and 2b. Set to 1
                   by default
     step1c      : boolean
@@ -75,7 +75,7 @@ class BaseGM_Error_Het(RegressionProps):
     >>> X = np.array(X).T
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
-    >>> reg = BaseGM_Error_Het(y, X, w)
+    >>> reg = BaseGM_Error_Het(y, X, w, step1c=True)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[ 47.9963  11.479 ]
      [  0.7105   0.3681]
@@ -83,7 +83,7 @@ class BaseGM_Error_Het(RegressionProps):
      [  0.4118   0.168 ]]
     """
 
-    def __init__(self,y,x,w,cycles=1,constant=True,step1c=True): 
+    def __init__(self,y,x,w,constant=True,step1c=False,max_iter=1,epsilon=1e-5): 
         
         #1a. OLS --> \tilde{betas}
         ols = OLS.BaseOLS(y, x, constant=constant)
@@ -102,8 +102,9 @@ class BaseGM_Error_Het(RegressionProps):
         else:
             lambda2 = lambda1 #Required to match Stata.
         lambda_i = [lambda2]
-
-        for i in range(cycles):
+        
+        self.iteration, eps = 0, 1
+        while self.iteration<max_iter and eps>epsilon:
             #2a. reg -->\hat{betas}
             xs = UTILS.get_spFilter(w, lambda_i[-1], self.x)
             ys = UTILS.get_spFilter(w, lambda_i[-1], self.y)
@@ -116,7 +117,11 @@ class BaseGM_Error_Het(RegressionProps):
             vc_i = get_vc_het(w, sigma_i)
             moments_i = UTILS._moments2eqs(w.A1, w.sparse, self.u)
             lambda3 = UTILS.optim_moments(moments_i, vc_i)
+            eps = abs(lambda3 - lambda_i[-1])
             lambda_i.append(lambda3)
+            self.iteration+=1
+
+        self.iter_stop = UTILS.iter_msg(self.iteration,max_iter)
 
         sigma = get_psi_sigma(w, self.u, lambda3)
         vc3 = get_vc_het(w, sigma)
@@ -141,7 +146,7 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
     w           : W
                   PySAL weights instance aligned with y and with instances S
                   and A1 created
-    cycles      : int
+    max_iter      : int
                   Optional. Number of iterations of steps 2a. and 2b. Set to 1
                   by default
     step1c      : boolean
@@ -195,7 +200,7 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
     >>> X = np.array(X).T
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
-    >>> reg = GM_Error_Het(y, X, w, name_y='home value', name_x=['income', 'crime'], name_ds='columbus')
+    >>> reg = GM_Error_Het(y, X, w, step1c=True, name_y='home value', name_x=['income', 'crime'], name_ds='columbus')
     >>> print reg.name_x
     ['CONSTANT', 'income', 'crime', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
@@ -206,14 +211,15 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
 
     """
 
-    def __init__(self, y, x, w, cycles=1, constant=True, step1c=True,\
+    def __init__(self, y, x, w, max_iter=1, constant=True, step1c=False, epsilon=1e-5,\
                         nonspat_diag=True, name_y=None, name_x=None, name_ds=None,\
                         vm=False, pred=False):        
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
-        BaseGM_Error_Het.__init__(self, y, x, w, cycles=cycles, constant=constant, step1c=step1c)
+        BaseGM_Error_Het.__init__(self, y, x, w, max_iter=max_iter, constant=constant,\
+                step1c=step1c, epsilon=epsilon)
         self.title = "SPATIALLY WEIGHTED LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -253,7 +259,7 @@ class BaseGM_Endog_Error_Het(RegressionProps):
                   any variables from x;
     w           : W
                   PySAL weights instance aligned with y
-    cycles      : int
+    max_iter      : int
                   Optional. Number of iterations of steps 2a. and 2b. Set to 1
                   by default
     step1c      : boolean
@@ -316,7 +322,7 @@ class BaseGM_Endog_Error_Het(RegressionProps):
     >>> q = np.array(q).T
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
-    >>> reg = BaseGM_Endog_Error_Het(y, X, w, yd, q)
+    >>> reg = BaseGM_Endog_Error_Het(y, X, w, yd, q, step1c=True)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[ 55.3971  28.8901]
      [  0.4656   0.7731]
@@ -324,7 +330,7 @@ class BaseGM_Endog_Error_Het(RegressionProps):
      [  0.4114   0.1777]]
     """
 
-    def __init__(self,y,x,w,yend,q,cycles=1,constant=True,step1c=True): 
+    def __init__(self,y,x,w,yend,q,constant=True,step1c=False,max_iter=1,epsilon=1e-5): 
         #1a. reg --> \tilde{betas} 
         tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=constant)
         self.x, self.z, self.h, self.y = tsls.x, tsls.z, tsls.h, tsls.y
@@ -344,8 +350,9 @@ class BaseGM_Endog_Error_Het(RegressionProps):
         else:
             lambda2 = lambda1 #Required to match Stata.
         lambda_i = [lambda2]
-
-        for i in range(cycles):
+        
+        self.iteration, eps = 0, 1
+        while self.iteration<max_iter and eps>epsilon:
             #2a. reg -->\hat{betas}
             xs = UTILS.get_spFilter(w, lambda_i[-1], self.x)
             ys = UTILS.get_spFilter(w, lambda_i[-1], self.y)
@@ -358,7 +365,11 @@ class BaseGM_Endog_Error_Het(RegressionProps):
             vc2 = get_vc_het_tsls(w, self, lambda_i[-1], tsls_s.pfora1a2, np.hstack((xs,yend_s)))
             moments_i = UTILS._moments2eqs(w.A1, w.sparse, self.u)
             lambda3 = UTILS.optim_moments(moments_i, vc2)
+            eps = abs(lambda3 - lambda_i[-1])
             lambda_i.append(lambda3)
+            self.iteration+=1
+
+        self.iter_stop = UTILS.iter_msg(self.iteration,max_iter)
 
         zs = UTILS.get_spFilter(w, lambda3, self.z)
         P = get_P_hat(self, tsls.hthi, zs)
@@ -390,7 +401,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
                   any variables from x;
     w           : W
                   PySAL weights instance aligned with y
-    cycles      : int
+    max_iter      : int
                   Optional. Number of iterations of steps 2a. and 2b. Set to 1
                   by default
     step1c      : boolean
@@ -464,7 +475,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
     >>> q = np.array(q).T
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
-    >>> reg = GM_Endog_Error_Het(y, X, w, yd, q, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
+    >>> reg = GM_Endog_Error_Het(y, X, w, yd, q, step1c=True, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'crime', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
@@ -474,16 +485,16 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
      [  0.4114   0.1777]]
 
     """
-    def __init__(self, y, x, w, yend, q, cycles=1, constant=True, step1c=True,\
-                    nonspat_diag=True, name_y=None, name_x=None,\
+    def __init__(self, y, x, w, yend, q, max_iter=1, constant=True, step1c=False,\
+                    epsilon=1e-5, nonspat_diag=True, name_y=None, name_x=None,\
                     name_yend=None, name_q=None, name_ds=None,\
                     vm=False, pred=False):        
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
-        BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend, q, cycles=cycles,\
-                                       constant=constant, step1c=step1c)
+        BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend, q, max_iter=max_iter,\
+                                       constant=constant, step1c=step1c, epsilon=epsilon)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -538,7 +549,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
     constant    : boolean
                   If true it appends a vector of ones to the independent variables
                   to estimate intercept (set to True by default)
-    cycles      : int
+    max_iter      : int
                   Optional. Number of iterations of steps 2a. and 2b. Set to 1
                   by default
     step1c      : boolean
@@ -598,7 +609,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
 
     Example only with spatial lag
 
-    >>> reg = BaseGM_Combo_Het(y, X, w)
+    >>> reg = BaseGM_Combo_Het(y, X, w, step1c=True)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[  9.9753  14.1434]
      [  1.5742   0.374 ]
@@ -613,7 +624,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = BaseGM_Combo_Het(y, X, w, yd, q)
+    >>> reg = BaseGM_Combo_Het(y, X, w, yd, q, step1c=True)
     >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['lag_hoval'],['lambda']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
     [['CONSTANT' '113.91292' '64.38815']
@@ -624,9 +635,10 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
     """
 
     def __init__(self, y, x, w, yend=None, q=None, constant=True, w_lags=1,\
-                     cycles=1, step1c=True, lag_q=True):
+                     max_iter=1, step1c=False, lag_q=True, epsilon=1e-5):
         yend2, q2 = UTILS.set_endog(y, x, w, yend, q, constant, w_lags, lag_q)
-        BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend2, q2, cycles=cycles, constant=constant, step1c=step1c)
+        BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend2, q2, max_iter=max_iter,\
+                constant=constant, step1c=step1c, epsilon=epsilon)
 
 class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     """
@@ -663,7 +675,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     lag_q       : boolean
                   Optional. Whether to include or not as instruments spatial
                   lags of the additional instruments q. Set to True by default                                 
-    cycles      : int
+    max_iter    : int
                   Optional. Number of iterations of steps 2a. and 2b. Set to 1
                   by default
     step1c      : boolean
@@ -725,7 +737,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
 
     Example only with spatial lag
 
-    >>> reg = GM_Combo_Het(y, X, w, name_y='hoval', name_x=['income'], name_ds='columbus')
+    >>> reg = GM_Combo_Het(y, X, w, step1c=True, name_y='hoval', name_x=['income'], name_ds='columbus')
     >>> print reg.name_z
     ['CONSTANT', 'income', 'lag_hoval', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
@@ -742,7 +754,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = GM_Combo_Het(y, X, w, yd, q, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
+    >>> reg = GM_Combo_Het(y, X, w, yd, q, step1c=True, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'crime', 'lag_hoval', 'lambda']
     >>> print np.round(reg.betas,4)
@@ -755,16 +767,16 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     """
     
     def __init__(self, y, x, w, yend=None, q=None, constant=True, w_lags=1,\
-                    cycles=1, step1c=True, lag_q=True, nonspat_diag=True,\
-                    name_y=None, name_x=None, name_yend=None,\
-                    name_q=None, name_ds=None,\
-                    vm=False, pred=False):        
+                    max_iter=1, step1c=False, lag_q=True, epsilon=1e-5,\
+                    nonspat_diag=True, name_y=None, name_x=None, name_yend=None,\
+                    name_q=None, name_ds=None, vm=False, pred=False):        
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
         BaseGM_Combo_Het.__init__(self, y, x, w, yend=yend, q=q, w_lags=w_lags,\
-                   constant=constant, cycles=cycles, step1c=step1c, lag_q=lag_q)
+              constant=constant, max_iter=max_iter, step1c=step1c, lag_q=lag_q,\
+              epsilon=epsilon)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
