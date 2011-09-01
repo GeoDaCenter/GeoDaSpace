@@ -10,7 +10,7 @@ from numpy import linalg as la
 import pysal.spreg.ols as OLS
 from pysal.spreg.diagnostics import se_betas
 from pysal import lag_spatial
-from utils import power_expansion, set_endog
+from utils import power_expansion, set_endog, iter_msg
 from utils import get_A1_hom, get_A2_hom, get_A1_het, optim_moments, get_spFilter, get_lags, _moments2eqs
 from utils import RegressionProps
 import twosls as TSLS
@@ -643,7 +643,7 @@ class BaseGM_Error_Hom(RegressionProps):
      [ -1.85650000e+00   5.14000000e-02   3.21000000e-02  -2.90000000e-03]
      [ -1.17200000e-01   1.56000000e-02  -2.90000000e-03   1.64980000e+00]]
     '''
-    def __init__(self, y, x, w, constant=True, A1='hom'):
+    def __init__(self, y, x, w, constant=True, A1='hom', max_iter=1, epsilon=1e-5):
         if A1 == 'hom':
             w.A1 = get_A1_hom(w.sparse)
         elif A1 == 'hom_sc':
@@ -660,18 +660,26 @@ class BaseGM_Error_Hom(RegressionProps):
         # 1b. GM --> \tilde{\rho}
         moments = moments_hom(w, ols.u)
         lambda1 = optim_moments(moments)
+        lambda_i = [lambda1]
 
-        # 2a. SWLS --> \hat{\delta}
-        x_s = get_spFilter(w,lambda1,self.x)
-        y_s = get_spFilter(w,lambda1,self.y)
-        ols_s = OLS.BaseOLS(y_s, x_s, constant=False)
-        self.predy = np.dot(self.x, ols_s.betas)
-        self.u = self.y - self.predy
+        iteration, eps = 0, 1
+        while iteration<max_iter and eps>epsilon:
+            # 2a. SWLS --> \hat{\delta}
+            x_s = get_spFilter(w,lambda_i[-1],self.x)
+            y_s = get_spFilter(w,lambda_i[-1],self.y)
+            ols_s = OLS.BaseOLS(y_s, x_s, constant=False)
+            self.predy = np.dot(self.x, ols_s.betas)
+            self.u = self.y - self.predy
 
-        # 2b. GM 2nd iteration --> \hat{\rho}
-        moments = moments_hom(w, self.u)
-        psi = get_vc_hom(w, self, lambda1)[0]
-        lambda2 = optim_moments(moments, psi)
+            # 2b. GM 2nd iteration --> \hat{\rho}
+            moments = moments_hom(w, self.u)
+            psi = get_vc_hom(w, self, lambda_i[-1])[0]
+            lambda2 = optim_moments(moments, psi)
+            eps = abs(lambda2 - lambda_i[-1])
+            lambda_i.append(lambda2)
+            iteration+=1
+
+        self.iter_stop = iter_msg(iteration,max_iter)
 
         # Output
         self.betas = np.vstack((ols_s.betas,lambda2))
@@ -761,13 +769,14 @@ class GM_Error_Hom(BaseGM_Error_Hom, USER.DiagnosticBuilder):
 
     '''
     def __init__(self, y, x, w, constant=True, A1='hom', nonspat_diag=True,\
-                        name_y=None, name_x=None, name_ds=None,\
-                        vm=False, pred=False):                
+                        max_iter=1, epsilon=1e-5, name_y=None, name_x=None,\
+                        name_ds=None, vm=False, pred=False):                
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
-        BaseGM_Error_Hom.__init__(self, y, x, w, constant=constant, A1=A1)
+        BaseGM_Error_Hom.__init__(self, y, x, w, constant=constant, A1=A1,\
+                max_iter=max_iter, epsilon=epsilon)
         self.title = "GENERALIZED SPATIAL LEAST SQUARES (Hom)"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -885,7 +894,7 @@ class BaseGM_Endog_Error_Hom(RegressionProps):
 
     
     '''
-    def __init__(self, y, x, w, yend, q, constant=True, A1='hom'):
+    def __init__(self, y, x, w, yend, q, constant=True, A1='hom', max_iter=1, epsilon=1e-5):
 
         if A1 == 'hom':
             w.A1 = get_A1_hom(w.sparse)
@@ -904,20 +913,28 @@ class BaseGM_Endog_Error_Hom(RegressionProps):
         # 1b. GM --> \tilde{\rho}
         moments = moments_hom(w, tsls.u)
         lambda1 = optim_moments(moments)
+        lambda_i = [lambda1]
 
-        # 2a. GS2SLS --> \hat{\delta}
-        x_s = get_spFilter(w,lambda1,self.x)
-        y_s = get_spFilter(w,lambda1,self.y)
-        yend_s = get_spFilter(w, lambda1, self.yend)
-        tsls_s = TSLS.BaseTSLS(y_s, x_s, yend_s, h=self.h, constant=False)
-        predy = np.dot(self.z, tsls_s.betas)
-        self.u = self.y - predy
-        self.predy = predy
+        iteration, eps = 0, 1
+        while iteration<max_iter and eps>epsilon:
+            # 2a. GS2SLS --> \hat{\delta}
+            x_s = get_spFilter(w,lambda_i[-1],self.x)
+            y_s = get_spFilter(w,lambda_i[-1],self.y)
+            yend_s = get_spFilter(w, lambda_i[-1], self.yend)
+            tsls_s = TSLS.BaseTSLS(y_s, x_s, yend_s, h=self.h, constant=False)
+            predy = np.dot(self.z, tsls_s.betas)
+            self.u = self.y - predy
+            self.predy = predy
 
-        # 2b. GM 2nd iteration --> \hat{\rho}
-        moments = moments_hom(w, self.u)
-        psi = get_vc_hom(w, self, lambda1, tsls_s.z)[0]
-        lambda2 = optim_moments(moments, psi)
+            # 2b. GM 2nd iteration --> \hat{\rho}
+            moments = moments_hom(w, self.u)
+            psi = get_vc_hom(w, self, lambda_i[-1], tsls_s.z)[0]
+            lambda2 = optim_moments(moments, psi)
+            eps = abs(lambda2 - lambda_i[-1])
+            lambda_i.append(lambda2)
+            iteration+=1
+
+        self.iter_stop = iter_msg(iteration,max_iter)            
 
         # Output
         self.betas = np.vstack((tsls_s.betas,lambda2))
@@ -1040,6 +1057,7 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom, USER.DiagnosticBuilder):
 
         '''
     def __init__(self, y, x, w, yend, q, constant=True, A1='hom',\
+                    max_iter=1, epsilon=1e-5,\
                     nonspat_diag=True, name_y=None, name_x=None,\
                     name_yend=None, name_q=None, name_ds=None,\
                     vm=False, pred=False):        
@@ -1047,7 +1065,8 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom, USER.DiagnosticBuilder):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
-        BaseGM_Endog_Error_Hom.__init__(self, y, x, w, yend, q, constant=constant, A1=A1)
+        BaseGM_Endog_Error_Hom.__init__(self, y, x, w, yend, q, constant=constant,\
+                A1=A1, max_iter=max_iter, epsilon=epsilon)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES (Hom)"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -1192,9 +1211,10 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom, RegressionProps):
 
     '''
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True, lag_q=True, A1='hom'):
+         constant=True, lag_q=True, A1='hom', max_iter=1, epsilon=1e-5):
         yend2, q2 = set_endog(y, x, w, yend, q, constant, w_lags, lag_q)
-        BaseGM_Endog_Error_Hom.__init__(self, y, x, w, yend2, q2, A1=A1)
+        BaseGM_Endog_Error_Hom.__init__(self, y, x, w, yend2, q2, A1=A1,\
+                max_iter=max_iter, epsilon=epsilon)
 
 class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
     '''
@@ -1333,8 +1353,8 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
      ['lambda' '0.60116' '0.18605']]
 
     '''
-    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True, A1='hom', lag_q=True,\
+    def __init__(self, y, x, w, yend=None, q=None, w_lags=1, constant=True,\
+                    A1='hom', lag_q=True, max_iter=1, epsilon=1e-5,\
                     name_y=None, name_x=None, name_yend=None,\
                     name_q=None, name_ds=None, nonspat_diag=True,\
                     vm=False, pred=False):        
@@ -1343,7 +1363,8 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
         BaseGM_Combo_Hom.__init__(self, y, x, w, yend=yend, q=q,\
-                    w_lags=w_lags, constant=constant, A1=A1, lag_q=lag_q)
+                    w_lags=w_lags, constant=constant, A1=A1, lag_q=lag_q,\
+                    max_iter=max_iter, epsilon=epsilon)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES (Hom)"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)

@@ -43,10 +43,6 @@ class BaseGM_Lag(TSLS.BaseTSLS):
                   generalized least squares is performed resulting in new
                   coefficient estimates along with a new variance-covariance
                   matrix. 
-    spat_lags   : string
-                  If 'xq' (default) then spatial lags of all exogenous
-                  variables are used as instruments (i.e. lags of x and q); if
-                  'x' then just spatial lags of x are included
     wk          : spatial weights object
                   pysal kernel weights object
 
