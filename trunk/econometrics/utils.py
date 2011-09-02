@@ -55,8 +55,7 @@ class RegressionProps:
     def vm(self):
         if 'vm' not in self._cache:
             self._cache['vm'] = np.dot(self.sig2, self.xtxi)  #LA which sig2?
-        return self._cache['vm']
-    
+        return self._cache['vm']    
     @property
     def mean_y(self):
         if 'mean_y' not in self._cache:
@@ -67,7 +66,7 @@ class RegressionProps:
         if 'std_y' not in self._cache:
             self._cache['std_y']=np.std(self.y, ddof=1)
         return self._cache['std_y']
-
+    
 def get_A1_het(S):
     """
     Builds A1 as in Arraiz et al [1]_
@@ -396,17 +395,14 @@ def inverse_prod(w, data, scalar, post_multiply=False, inv_method="power_exp", t
     >>> data = np.random.randn(w.n)
     >>> data.shape = (w.n, 1)
     >>> rho = 0.4
-    >>> inv_pow = power_expansion(w, data, rho)
+    >>> inv_pow = inverse_prod(w, data, rho, inv_method="power_exp")
     >>> # regular matrix inverse
-    >>> matrix = np.eye(w.n) - (rho * w.full()[0])
-    >>> matrix = la.inv(matrix)
-    >>> inv_reg = np.dot(matrix, data)
+    >>> inv_reg = inverse_prod(w, data, rho, inv_method="regular")
     >>> np.allclose(inv_pow, inv_reg, atol=0.0001)
     True
-    >>> inv_cg = inverse_cg(w, data, rho)
     >>> # test the transpose version
-    >>> inv_pow = power_expansion(w, data, rho, post_multiply=True)
-    >>> inv_reg = np.dot(data.T, matrix)
+    >>> inv_pow = power_expansion(w, data, rho, inv_method="power_exp", post_multiply=True)
+    >>> inv_reg = inverse_prod(w, data, rho, inv_method="regular", post_multiply=True)
     >>> np.allclose(inv_pow, inv_reg, atol=0.0001)
     True
 
@@ -507,6 +503,12 @@ def iter_msg(iteration,max_iter):
     else:
         iter_stop = "Convergence threshold (epsilon) reached."
     return iter_stop
+
+def sp_att(w,y,predy,w_y,rho):
+    xb = predy - rho*w_y
+    predy_sp = inverse_prod(w, xb, rho) 
+    resid_sp = y - predy_sp
+    return predy_sp, resid_sp
 
 def _test():
     import doctest

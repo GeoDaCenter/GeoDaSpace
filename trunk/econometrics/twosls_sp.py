@@ -5,7 +5,7 @@ import numpy.linalg as la
 import twosls as TSLS
 import robust as ROBUST
 import user_output as USER
-from utils import get_lags, set_endog
+from utils import get_lags, set_endog, sp_att
 
 class BaseGM_Lag(TSLS.BaseTSLS):
     """
@@ -69,7 +69,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
     u           : array
                   nx1 array of residuals
     predy       : array
-                  nx1 array of predicted values
+                  nx1 array of predicted values              
     n           : int
                   Number of observations
     k           : int
@@ -147,7 +147,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
                     constant=True, robust=None, wk=None, sig2n_k=False):
         yend2, q2 = set_endog(y, x, w, yend, q, constant, w_lags, lag_q)
         TSLS.BaseTSLS.__init__(self, y, x, yend2, q=q2, constant=constant,\
-                               sig2n_k=sig2n_k)
+                               sig2n_k=sig2n_k)        
         if robust:
             self.vm = ROBUST.robust_vm(self, wk=wk)
 
@@ -157,18 +157,92 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
     Spatial two stage least squares (S2SLS). Also accommodates the case of
     endogenous explanatory variables.  Note: pure non-spatial 2SLS can be run
     using the class TSLS.
+
+    Parameters
+    ----------
+
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  array of independent variables, excluding endogenous
+                  variables
+    w           : spatial weights object
+                  pysal spatial weights object
+    yend        : array
+                  non-spatial endogenous variables [optional]
+    q           : array
+                  array of instruments for yend (note: this should not contain
+                  any variables from x; spatial instruments are computed by 
+                  default) [only if 'yend' passed]
+    w_lags      : integer
+                  Number of spatial lags of the exogenous variables to be
+                  included as spatial instruments (default set to 1)
+    constant    : boolean
+                  If true it appends a vector of ones to the independent variables
+                  to estimate intercept (set to True by default)
+    lag_q       : boolean
+                  Optional. Whether to include or not as instruments spatial
+                  lags of the additional instruments q. Set to True by default                   
+    robust      : string
+                  If 'white' or 'hac' then a White consistent or HAC estimator
+                  of the variance-covariance matrix is given. If 'gls' then
+                  generalized least squares is performed resulting in new
+                  coefficient estimates along with a new variance-covariance
+                  matrix. 
+    wk          : spatial weights object
+                  pysal kernel weights object
+
+    Attributes
+    ----------
+
+    y           : array
+                  nx1 array of dependent variable
+    x           : array
+                  array of independent variables (with constant added if
+                  constant parameter set to True)
+    z           : array
+                  nxk array of variables (combination of x, yend and spatial
+                  lag of y)
+    h           : array
+                  nxl array of instruments (combination of x, q, spatial lags)
+    yend        : array
+                  endogenous variables (including spatial lag)
+    q           : array
+                  array of external exogenous variables (including spatial
+                  lags)
+    betas       : array
+                  kx1 array of estimated coefficients
+    u           : array
+                  nx1 array of residuals
+    predy       : array
+                  nx1 array of predicted values
+    predy_sp    : array
+                  nx1 array of spatially weighted predicted values
+                  predy_sp = (I - \rho W)^{-1}predy
+    resid_sp    : array
+                  nx1 array of residuals considering predy_sp as predicted values                  
+    n           : int
+                  Number of observations
+    k           : int
+                  Number of variables, including exogenous and endogenous
+                  variables and constant
+    kstar       : int
+                  Number of endogenous variables. 
+    zth         : array
+                  z.T * h
+    hth         : array
+                  h.T * h
+    htz         : array
+                  h.T * z
+    hthi        : array
+                  inverse of h.T * h
+    xp          : array
+                  h * np.dot(hthi, htz)           
+    xptxpi      : array
+                  inverse of np.dot(xp.T,xp), used to compute vm
+    pfora1a2    : array
+                  used to compute a1, a2
     
-
-
-        # Need to check the shape of user input arrays, and report back descriptive
-        # errors when necessary
-
-        # check the x array for a vector of ones... do we take the spatial lag
-        # of these if W is not binary or row standardized?
-
-        # check capitalization in the string passed to robust parameter. 
-
-
     Examples
     --------
 
@@ -223,6 +297,8 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
         BaseGM_Lag.__init__(self, y=y, x=x, w=w, yend=yend, q=q,\
                             w_lags=w_lags, constant=constant, robust=robust,\
                             lag_q=lag_q, sig2n_k=sig2n_k)
+        self.predy_sp, self.resid_sp = sp_att(w,self.y,self.predy,\
+                      self.z[:,-1].reshape(self.n,1),self.betas[-1])
         self.title = "SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -242,8 +318,6 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=nonspat_diag,\
                                             vm=vm, pred=pred, instruments=True)
-
-
 
 def _test():
     import doctest

@@ -10,7 +10,7 @@ from numpy import linalg as la
 import pysal.spreg.ols as OLS
 from pysal.spreg.diagnostics import se_betas
 from pysal import lag_spatial
-from utils import power_expansion, set_endog, iter_msg
+from utils import power_expansion, set_endog, iter_msg, sp_att
 from utils import get_A1_hom, get_A2_hom, get_A1_het, optim_moments, get_spFilter, get_lags, _moments2eqs
 from utils import RegressionProps
 import twosls as TSLS
@@ -121,7 +121,8 @@ class BaseGM_Error(RegressionProps):
         ols2 = OLS.BaseOLS(ys, xs, constant=False)
 
         #Output
-        self.u = y - np.dot(self.x, ols2.betas)
+        self.predy = np.dot(self.x, ols2.betas)
+        self.u = y - self.predy
         self.betas = np.vstack((ols2.betas, np.array([[lambda1]])))
         self.sig2 = ols2.sig2n
 
@@ -278,7 +279,7 @@ class BaseGM_Endog_Error(RegressionProps):
         self.n, self.k = tsls.x.shape
         self.x = tsls.x
         self.y = tsls.y
-        self.yend = tsls.yend
+        self.yend, self.z = tsls.yend, tsls.z
 
         #1b. GMM --> \tilde{\lambda1}
         moments = _momentsGM_Error(w, tsls.u)
@@ -292,7 +293,8 @@ class BaseGM_Endog_Error(RegressionProps):
 
         #Output
         self.betas = np.vstack((tsls2.betas, np.array([[lambda1]])))
-        self.u = y - np.dot(tsls.z, tsls2.betas)
+        self.predy = np.dot(tsls.z, tsls2.betas)
+        self.u = y - self.predy
         sig2 = np.dot(tsls2.u.T,tsls2.u) / self.n
         self.vm = sig2 * tsls2.varb 
         self.se_betas = np.sqrt(self.vm.diagonal()).reshape(tsls2.betas.shape)
@@ -541,6 +543,8 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
         USER.check_weights(w, y)
         BaseGM_Combo.__init__(self, y, x, w, yend=yend, q=q, w_lags=w_lags,\
                               constant=constant, lag_q=lag_q)
+        self.predy_sp, self.resid_sp = sp_att(w,self.y,\
+                   self.predy,self.z[:,-1].reshape(self.n,1),self.betas[-2])        
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -922,9 +926,8 @@ class BaseGM_Endog_Error_Hom(RegressionProps):
             y_s = get_spFilter(w,lambda_i[-1],self.y)
             yend_s = get_spFilter(w, lambda_i[-1], self.yend)
             tsls_s = TSLS.BaseTSLS(y_s, x_s, yend_s, h=self.h, constant=False)
-            predy = np.dot(self.z, tsls_s.betas)
-            self.u = self.y - predy
-            self.predy = predy
+            self.predy = np.dot(self.z, tsls_s.betas)
+            self.u = self.y - self.predy
 
             # 2b. GM 2nd iteration --> \hat{\rho}
             moments = moments_hom(w, self.u)
@@ -1285,7 +1288,12 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
     u           : array
                   nx1 array of residuals 
     predy       : array
-                  nx1 array of predicted values 
+                  nx1 array of predicted values
+    predy_sp    : array
+                  nx1 array of spatially weighted predicted values
+                  predy_sp = (I - \rho W)^{-1}predy
+    resid_sp    : array
+                  nx1 array of residuals considering predy_sp as predicted values                  
     n           : integer
                   number of observations
     k           : int
@@ -1365,6 +1373,8 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
         BaseGM_Combo_Hom.__init__(self, y, x, w, yend=yend, q=q,\
                     w_lags=w_lags, constant=constant, A1=A1, lag_q=lag_q,\
                     max_iter=max_iter, epsilon=epsilon)
+        self.predy_sp, self.resid_sp = sp_att(w,self.y,self.predy,\
+                             self.z[:,-1].reshape(self.n,1),self.betas[-2])        
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES (Hom)"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
