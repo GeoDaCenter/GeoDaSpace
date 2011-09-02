@@ -144,23 +144,19 @@ class BaseTSLS(RegressionProps):
         self.yend = yend
         self.k = z.shape[1]    # k = number of exogenous variables and endogenous variables 
         
-        hth = np.dot(h.T,h)    #H'H
+        hth = np.dot(h.T,h)    
         hthi = la.inv(hth)
-#        htz = np.dot(h.T,z)    #H'Z  not needed
         zth = np.dot(z.T,h)    
-        hty = np.dot(h.T,y)     #H'y
+        hty = np.dot(h.T,y) 
         
-        factor_1 = np.dot(zth,hthi)  #LA Z'H (H'H)^-1   np.dot(htz.T,hthi)
-#        factor_2 = np.dot(factor_1,htz)   # (Z'H (H'H)^-1 H'Z)
-        factor_2 = np.dot(factor_1,zth.T)  # LA added
+        factor_1 = np.dot(zth,hthi)  
+        factor_2 = np.dot(factor_1,zth.T)  
         varb = la.inv(factor_2)          # this one needs to be in cache to be used in AK
-#        factor_2 = np.dot(varb,factor_1)  # LA (Z'H (H'H)^-1 H'Z)^-1 Z'H (H'H)^-1  -- do not reuse factor_2, define new
-        factor_3 = np.dot(varb,factor_1)   #LA
-#        betas = np.dot(factor_2,hty)         # (Z'H (H'H)^-1 H'Z)^-1 Z'H (H'H)^-1 H'y -- LA removed
-        betas = np.dot(factor_3,hty)  #LA
+        factor_3 = np.dot(varb,factor_1)   
+        betas = np.dot(factor_3,hty)  
         self.betas = betas
         self.varb = varb
-        self.zthhthi = factor_1   # need this for HAC
+        self.zthhthi = factor_1  
         
         # predicted values
         self.predy = np.dot(z,betas)
@@ -173,11 +169,8 @@ class BaseTSLS(RegressionProps):
         self.zth = zth
         self.hthi =hthi
         
-        xp = np.dot(h, self.zthhthi.T)    # H (H'H)^-1 H'Z 
-#        xptxp = np.dot(xp.T,xp)    # LA Z'H (H'H)^-1 H' H (H'H)^-1 H'Z  -- note that the H'H cancel out, not needed
-#        xptxpi = la.inv(xptxp)        # LA is really (Z'H (H'H)^-1 H'Z)^1 -- already there as varb!
+        xp = np.dot(h, self.zthhthi.T)    
         self.xp = xp
-#        self.xptxpi = xptxpi  # LA remove
         self.xptxpi = varb
       
         if robust:
@@ -193,9 +186,6 @@ class BaseTSLS(RegressionProps):
     @property
     def pfora1a2(self):
         if 'pfora1a2' not in self._cache:
-            # pfora1a2
-#            factor_4 = np.dot(self.zth, self.zthhthi.T)         # LA  Z'H (H'H)^-1 H'Z  #note is factor 2 above
-#          self._cache['pfora1a2'] = self.n*np.dot(self.zthhthi.T, la.inv(factor_4))  # LA inverse is already varb
             self._cache['pfora1a2'] = self.n*np.dot(self.zthhthi.T,self.varb)  #LA
         return self._cache['pfora1a2']    
             
