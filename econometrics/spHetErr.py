@@ -713,7 +713,12 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     u           : array
                   nx1 array of residuals 
     predy       : array
-                  nx1 array of predicted values 
+                  nx1 array of predicted values
+    predy_sp    : array
+                  nx1 array of spatially weighted predicted values
+                  predy_sp = (I - \rho W)^{-1}predy
+    resid_sp    : array
+                  nx1 array of residuals considering predy_sp as predicted values
     n           : integer
                   number of observations
     k           : int
@@ -777,6 +782,8 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
         BaseGM_Combo_Het.__init__(self, y, x, w, yend=yend, q=q, w_lags=w_lags,\
               constant=constant, max_iter=max_iter, step1c=step1c, lag_q=lag_q,\
               epsilon=epsilon, inv_method=inv_method)
+        self.predy_sp, self.resid_sp = UTILS.sp_att(w,self.y,self.predy,\
+                            self.z[:,-1].reshape(self.n,1),self.betas[-1])        
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
