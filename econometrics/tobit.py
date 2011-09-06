@@ -4,7 +4,7 @@ import scipy.optimize as op
 import scipy.stats as stats
 import scipy.sparse as SP
 from math import pi
-from probit import newton
+from probit import newton,moran_KP
 
 class tobit:
     """
@@ -63,19 +63,12 @@ class tobit:
         return self._cache['u']
     @property
     def MoransI(self):
-        if 'MoransI' not in self._cache: 
+        if 'MoransI' not in self._cache:
             if self.w:
-                w = self.w.sparse
-                moran_num = np.dot(self.u.T, (w * self.u))
-                sig2i = self.predy*(self.xb-self.predy)+self.sigma2*self.cdfxbs
-                E = SP.lil_matrix(w.get_shape())
-                E.setdiag(sig2i.flat)
-                E = E.asformat('csr')
-                WE = w*E
-                moran_den = np.sqrt(np.sum((WE*WE + (w.T*E)*WE).diagonal()))                
-                moran = float(1.0*moran_num / moran_den)
-                moran = np.array([moran,stats.norm.sf(abs(moran)) * 2.])                
-            self._cache['MoransI'] = moran
+                sig2i = self.predy*(self.xb-self.predy)+self.sigma2*self.cdfxbs                
+                self._cache['MoransI'] = moran_KP(self.w,self.u,sig2i)
+            else:
+                raise Exception, "W matrix not provided to calculate spatial test."            
         return self._cache['MoransI']
     
     def par_est(self):
@@ -91,7 +84,10 @@ class tobit:
         x2t = np.hstack((np.ones(self.y1.shape),self.x1*np.dot(self.x1,ols1))).T
         xy1 = np.hstack((np.ones(self.y1.shape),self.x1*self.y1))
         start0 = np.dot(la.inv(np.dot(x2t,xy1)),np.dot(x2t,self.y1**2))
-        start = np.vstack((1./np.sqrt(start0[0]),start0[1:]/np.sqrt(start0[0])))
+        if start0[0]>0:
+            start = np.vstack((1./np.sqrt(start0[0]),start0[1:]/np.sqrt(start0[0])))
+        else:
+            start = np.vstack((1.,start0[1:]))
         warn = 0
         flogl = lambda par: -self.ll(par)
         if self.optim == 'newton':            
@@ -155,7 +151,8 @@ if __name__ == '__main__':
     import numpy as np
     import pysal
     from econometrics.utils import power_expansion
-    n = 1600
+    n = 625
+    np.random.seed(5)    
     x = np.random.uniform(-5,1,(n,1))
     x = np.hstack((np.ones(x.shape),x))
     xb = np.dot(x,np.reshape(np.array([1,0.5]),(2,1)))
@@ -173,6 +170,6 @@ if __name__ == '__main__':
     print "Constant %5.4f %5.4f %5.4f %5.4f" % (tobit1.betas[0],np.sqrt(tobit1.vm.diagonal())[1],tobit1.Zstat[0][0],tobit1.Zstat[0][1])
     for i in range(x.shape[1]-1):
         print "%-9s %5.4f %5.4f %5.4f %5.4f" % ('Var'+str([i]),tobit1.betas[i+1],np.sqrt(tobit1.vm.diagonal())[i+2],tobit1.Zstat[i+1][0],tobit1.Zstat[i+1][1])
-    print "Sigma:", round(np.sqrt(float(tobit1.sigma2)),4)
+    print "Sigma:", round(float(tobit1.sigma),4)
     print "Log-Likelihood:", round(tobit1.logl,4)
     print "Moran's I:", round(tobit1.MoransI[0],3), "; pvalue:", round(tobit1.MoransI[1],4)

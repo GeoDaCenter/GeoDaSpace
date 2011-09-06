@@ -164,9 +164,13 @@ class probit: #DEV class required.
             self._cache['xmean'] = np.reshape(sum(self.x)/self.n,(self.k,1))
         return self._cache['xmean']
     @property
+    def xb(self):
+        if 'xb' not in self._cache:
+            self._cache['xb'] = np.dot(self.x,self.betas)
+        return self._cache['xb']    
+    @property
     def predy(self):
         if 'predy' not in self._cache:
-            self.xb = np.dot(self.x,self.betas)
             self._cache['predy'] = norm.cdf(self.xb)
         return self._cache['predy']
     @property
@@ -245,14 +249,7 @@ class probit: #DEV class required.
                 LM_err = float(1.0 * LM_err_num / (sig2**2 * trWWWWp))
                 LM_err = np.array([LM_err,chisqprob(LM_err,1)])
                 #KP_error:
-                E = SP.lil_matrix(w.get_shape()) #There's a similar code in gmm_utils to create the Sigma matrix for the Psi.
-                E.setdiag(Phi_prod.flat)
-                E = E.asformat('csr')
-                WE = w*E
-                moran_den = np.sqrt(np.sum((WE*WE + (w.T*E)*WE).diagonal()))
-                moran_num = np.dot(u_naive.T, (w * u_naive))
-                moran = float(1.0*moran_num / moran_den)
-                moran = np.array([moran,norm.sf(abs(moran)) * 2.])
+                moran = moran_KP(self.w,u_naive,Phi_prod)
                 #Pinkse-Slade_error:
                 u_std = u_naive / np.sqrt(Phi_prod)
                 ps_num = np.dot(u_std.T, (w * u_std))**2
@@ -270,13 +267,13 @@ class probit: #DEV class required.
                 Jnn0 = trWpW*np.dot(self.betas.T,np.dot(np.cov(self.x,rowvar=0,bias=1),self.betas))
                 Jnn = ((sig2*trWWWWp) + Jnn0 + ((muxb**2)*(la.norm(W1)**2)))*sig2
                 LM_lag = Fn2 / (Jnn - LM_lag_den0)
-                LM_lag = np.array([LM_lag,chisqprob(LM_lag,1)])
+                LM_lag = np.array([float(LM_lag),chisqprob(LM_lag,1)])
                 self._cache['Pinkse_error'] = LM_err
                 self._cache['KP_error'] = moran
                 self._cache['PS_error'] = ps
                 self._cache['Pinkse_lag'] = LM_lag
             else:
-                print "W not specified."
+                raise Exception, "W matrix not provided to calculate spatial test."
         return self._cache['Pinkse_error']
     @property
     def KP_error(self): #All tests for spatial error correlation are calculated together.
@@ -363,6 +360,7 @@ class probit: #DEV class required.
             curves.append([x0,marg,cumu])
         return curves
 
+#The following functions are to be moved to utils:
 def newton(flogl,start,fgrad,fhess,maxiter):
     warn = 0
     iteration = 0
@@ -378,7 +376,19 @@ def newton(flogl,start,fgrad,fhess,maxiter):
     if iteration == maxiter:
         warn = 1
     logl = flogl(par_hat0)
-    return (par_hat0, logl, warn)  
+    return (par_hat0, logl, warn)
+
+def moran_KP(w,u,sig2i):
+    w = w.sparse
+    moran_num = np.dot(u.T, (w * u))
+    E = SP.lil_matrix(w.get_shape())
+    E.setdiag(sig2i.flat)
+    E = E.asformat('csr')
+    WE = w*E
+    moran_den = np.sqrt(np.sum((WE*WE + (w.T*E)*WE).diagonal()))      
+    moran = float(1.0*moran_num / moran_den)
+    moran = np.array([moran,norm.sf(abs(moran)) * 2.])
+    return moran
 
 def _test():
     import doctest
@@ -413,6 +423,7 @@ if __name__ == '__main__':
     print "Log-Likelihood:", round(probit1.logl,4)
     print "LR test:", round(probit1.LR[0],3), "; pvalue:", round(probit1.LR[1],4)
     print "% correctly predicted:", round(probit1.predpc,2),"%"
+    print "Spatial tests use fictional weights matrix:"
     print "Pinkse Spatial Error:", round(probit1.Pinkse_error[0],3), "; pvalue:", round(probit1.Pinkse_error[1],4)
     print "Pinkse Spatial Lag:", round(probit1.Pinkse_lag[0],3), "; pvalue:", round(probit1.Pinkse_lag[1],4)
     print "KP Spatial Error:", round(probit1.KP_error[0],3), "; pvalue:", round(probit1.KP_error[1],4)
