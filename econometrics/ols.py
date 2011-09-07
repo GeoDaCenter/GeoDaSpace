@@ -311,13 +311,13 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     Mean dependent var  :     38.4362  Number of Variables   :           3
     S.D. dependent var  :     18.4661  Degrees of Freedom    :          46
     <BLANKLINE>
-    R-squared           :    0.349514  F-statistic           :     12.3582
-    Adjusted R-squared  :    0.321232  Prob(F-statistic)     :5.0636903e-05
-    Sum squared residual:   10647.015  Log likelihood        :    -201.368
-    Sigma-square        :     231.457  Akaike info criterion :     408.735
-    S.E. of regression  :      15.214  Schwarz criterion     :     414.411
-    Sigma-square ML     :     217.286
-    S.E of regression ML:     14.7406
+    R-squared           :    0.349514
+    Adjusted R-squared  :      0.3212
+    Sum squared residual:   10647.015  F-statistic           :     12.3582
+    Sigma-square        :     231.457  Prob(F-statistic)     : 5.06369e-05
+    S.E. of regression  :      15.214  Log likelihood        :    -201.368
+    Sigma-square ML     :     217.286  Akaike info criterion :     408.735
+    S.E of regression ML:     14.7406  Schwarz criterion     :     414.411
     <BLANKLINE>
     ----------------------------------------------------------------------------
         Variable     Coefficient       Std.Error     t-Statistic     Probability
