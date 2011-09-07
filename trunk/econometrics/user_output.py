@@ -103,13 +103,15 @@ class DiagnosticBuilder:
             self.std_err = diagnostics.se_betas(self)
             if instruments:
                 self.z_stat = diagnostics.t_stat(self, z_stat=True)
+                self.r2 = -.9999    
+                self.ar2 =  -.9999   
             else:
                 self.t_stat = diagnostics.t_stat(self)
-       
+                self.r2 = diagnostics.r2(self)    
+                self.ar2 = diagnostics.ar2(self)   
+
         if nonspat_diag:
             #general information
-            self.r2 = diagnostics.r2(self)    
-            self.ar2 = diagnostics.ar2(self)   
             self.sigML = self.sig2n  
             self.f_stat = diagnostics.f_stat(self)  
             self.logll = diagnostics.log_likelihood(self) 
@@ -148,6 +150,7 @@ class DiagnosticBuilder:
 
         #part 5: summary output
         summary = summary_intro(self)
+        summary += summary_r2(self)
         if nonspat_diag:
             summary += summary_nonspat_diag_1(self)
         if beta_diag:
@@ -678,17 +681,22 @@ def summary_coefs(reg, instruments, lamb):
         strSummary += insts + "\n"
     return strSummary
 
+def summary_r2(reg):
+    strSummary = "%-20s:%12.6f\n%-20s:%12.4f\n" % ('R-squared',reg.r2,'Adjusted R-squared',reg.ar2)
+    return strSummary
+
+
 def summary_nonspat_diag_1(reg):
     strSummary = ""
-    strSummary += "%-20s:%12.6f  %-22s:%12.4f\n" % ('R-squared',reg.r2,'F-statistic',reg.f_stat[0])
-    strSummary += "%-20s:%12.6f  %-22s:%12.8g\n" % ('Adjusted R-squared',reg.ar2,'Prob(F-statistic)',reg.f_stat[1])
-    strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('Sum squared residual',reg.utu,'Log likelihood',reg.logll)
-    strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('Sigma-square',reg.sig2,'Akaike info criterion',reg.aic)
-    strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('S.E. of regression',np.sqrt(reg.sig2),'Schwarz criterion',reg.schwarz)
-    strSummary += "%-20s:%12.3f\n%-20s:%12.4f\n" % ('Sigma-square ML',reg.sigML,'S.E of regression ML',np.sqrt(reg.sigML))
+    strSummary += "%-20s:%12.3f  %-22s:%12.4f\n" % ('Sum squared residual',reg.utu,'F-statistic',reg.f_stat[0])
+    strSummary += "%-20s:%12.3f  %-22s:%12.7g\n" % ('Sigma-square',reg.sig2,'Prob(F-statistic)',reg.f_stat[1])
+    strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('S.E. of regression',np.sqrt(reg.sig2),'Log likelihood',reg.logll)
+    strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('Sigma-square ML',reg.sigML,'Akaike info criterion',reg.aic)
+    strSummary += "%-20s:%12.4f  %-22s:%12.3f\n" % ('S.E of regression ML',np.sqrt(reg.sigML),'Schwarz criterion',reg.schwarz)
     strSummary += '\n'
     return strSummary
     
+
 def summary_nonspat_diag_2(reg):
     strSummary = ""
     strSummary += "\n\nREGRESSION DIAGNOSTICS\n"
