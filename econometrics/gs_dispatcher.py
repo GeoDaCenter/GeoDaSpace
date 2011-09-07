@@ -114,21 +114,21 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         model_type='Spatial Lag', endog=False, nonspat_diag=True, spat_diag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
-    ['CONSTANT', 'inc', 'hoval', 'lag_crime']
+    ['CONSTANT', 'inc', 'hoval', 'W_crime']
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', endog=False, nonspat_diag=True, spat_diag=False,\
         white=True, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
-    ['CONSTANT', 'inc', 'hoval', 'lag_crime']
+    ['CONSTANT', 'inc', 'hoval', 'W_crime']
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', endog=False, nonspat_diag=True, spat_diag=False,\
         white=False, hac=True, kp_het=False, gm=False)
     >>> print reg[0].name_z
-    ['CONSTANT', 'inc', 'hoval', 'lag_crime']
+    ['CONSTANT', 'inc', 'hoval', 'W_crime']
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
@@ -169,14 +169,14 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         model_type='Spatial Lag+Error', endog=False, nonspat_diag=True, spat_diag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
-    ['CONSTANT', 'inc', 'hoval', 'lag_crime', 'lambda']
+    ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', endog=False, nonspat_diag=True, spat_diag=False,\
         white=False, hac=False, kp_het=True, gm=False)
     >>> print reg[0].name_z
-    ['CONSTANT', 'inc', 'hoval', 'lag_crime', 'lambda']
+    ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
     
     Add in non-spatial endogenous variables
 
@@ -213,21 +213,21 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         model_type='Spatial Lag', endog=True, nonspat_diag=True, spat_diag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
-    ['CONSTANT', 'inc', 'hoval', 'lag_crime']
+    ['CONSTANT', 'inc', 'hoval', 'W_crime']
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', endog=True, nonspat_diag=True, spat_diag=False,\
         white=True, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
-    ['CONSTANT', 'inc', 'hoval', 'lag_crime']
+    ['CONSTANT', 'inc', 'hoval', 'W_crime']
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', endog=True, nonspat_diag=True, spat_diag=False,\
         white=False, hac=True, kp_het=False, gm=False)
     >>> print reg[0].name_z
-    ['CONSTANT', 'inc', 'hoval', 'lag_crime']
+    ['CONSTANT', 'inc', 'hoval', 'W_crime']
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
@@ -248,14 +248,14 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         model_type='Spatial Lag+Error', endog=True, nonspat_diag=True, spat_diag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
-    ['CONSTANT', 'inc', 'hoval', 'lag_crime', 'lambda']
+    ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', endog=True, nonspat_diag=True, spat_diag=False,\
         white=False, hac=False, kp_het=True, gm=False)
     >>> print reg[0].name_z
-    ['CONSTANT', 'inc', 'hoval', 'lag_crime', 'lambda']
+    ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
 
     """
     output = []

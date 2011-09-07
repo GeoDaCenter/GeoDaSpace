@@ -203,7 +203,7 @@ def set_name_y(name_y):
         name_y = 'dep_var'
     return name_y
 
-def set_name_x(name_x, x, constant):
+def set_name_x(name_x, x):
     """Set the independent variable names in regression; return generic name if user
     provides no explicit name."
 
@@ -213,6 +213,9 @@ def set_name_x(name_x, x, constant):
     name_x      : list of string
                   User provided exogenous variable names.
 
+    x           : array
+                  User provided exogenous variables.
+
     Returns
     -------
     
@@ -221,9 +224,9 @@ def set_name_x(name_x, x, constant):
     """
     if not name_x:
         name_x = ['var_'+str(i+1) for i in range(len(x[0]))]
-    name_x = name_x[:]
-    if constant:
-        name_x.insert(0, 'CONSTANT')
+    else:
+        name_x = name_x[:]
+    name_x.insert(0, 'CONSTANT')
     return name_x
     
 def set_name_yend(name_yend, yend):
@@ -292,9 +295,9 @@ def set_name_yend_sp(name_y):
     name_yend_sp : string
                   
     """
-    return 'lag_' + name_y
+    return 'W_' + name_y
 
-def set_name_q_sp(name_x, w_lags):
+def set_name_q_sp(name_x, w_lags, name_q, lag_q):
     """Set the spatial instrument names in regression; return generic name if user
     provides no explicit name."
 
@@ -313,10 +316,17 @@ def set_name_q_sp(name_x, w_lags):
     name_q_sp   : list of strings
                   
     """
+    if lag_q:
+        names = name_x[1:] + name_q   # drop the constant
+    else:
+        names = name_x[1:]   # drop the constant
     sp_inst_names = []
-    for i in range(w_lags):
-        for j in name_x:
-            sp_inst_names.append('lag'+str(i+1)+'_'+j)
+    for j in names:
+        sp_inst_names.append('W_'+j)
+    if w_lags > 1:
+        for i in range(2, w_lags+1):
+            for j in names:
+                sp_inst_names.append('W'+str(i)+'_'+j)
     return sp_inst_names
     
 def set_name_h(name_x, name_q):
@@ -460,7 +470,7 @@ def check_weights(w, y):
         if w.n != y.shape[0]:
             raise Exception, "y must be nx1, and w must be an nxn PySAL W object"
         diag = w.sparse.diagonal()
-        # check to make sure all entries equal 1
+        # check to make sure all entries equal 0
         if diag.min() != 0:
             raise Exception, "All entries on diagonal must equal 0."
         if diag.max() != 0:
@@ -574,128 +584,39 @@ def check_spat_diag(spat_diag, w):
             raise Exception, "w must be a pysal.W object to run spatial diagnostics"
 
 
+def check_constant(x):
+    """Check if the X matrix contains a constant, raise exception if it does
+    not
 
-def summary_intro(reg):
-    strSummary = ""
-    strSummary += "REGRESSION\n"
-    strSummary += "----------\n"
-    title = "SUMMARY OF OUTPUT: " + reg.title + " ESTIMATION\n"
-    strSummary += title
-    strSummary += "-" * (len(title)-1) + "\n"
-    strSummary += "%-20s:%12s\n" % ('Data set',reg.name_ds)
-    strSummary += "%-20s:%12s  %-22s:%12d\n" % ('Dependent Variable',reg.name_y,'Number of Observations',reg.n)
-    strSummary += "%-20s:%12.4f  %-22s:%12d\n" % ('Mean dependent var',reg.mean_y,'Number of Variables',reg.k)
-    strSummary += "%-20s:%12.4f  %-22s:%12d\n" % ('S.D. dependent var',reg.std_y,'Degrees of Freedom',reg.n-reg.k)
-    strSummary += '\n'
-    return strSummary
+    Parameters
+    ----------
 
-def summary_coefs(reg, instruments, lamb):
-    strSummary = ""
-    strSummary += "----------------------------------------------------------------------------\n"
-    if instruments:
-        strSummary += "    Variable     Coefficient       Std.Error     z-Statistic     Probability\n"
-    else:
-        strSummary += "    Variable     Coefficient       Std.Error     t-Statistic     Probability\n"
-    strSummary += "----------------------------------------------------------------------------\n"
-    i = 0
-    if instruments:
-        for name in reg.name_x:        
-            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.z_stat[i][0],reg.z_stat[i][1])
-            i += 1
-        for name in reg.name_yend:        
-            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.z_stat[i][0],reg.z_stat[i][1])
-            i += 1
-    else:
-        for name in reg.name_x:        
-            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.t_stat[i][0],reg.t_stat[i][1])
-            i += 1
-    if lamb:
-        if instruments:
-            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % ('lambda',reg.betas[-1][0],reg.std_err[-1],reg.z_stat[-1][0],reg.z_stat[-1][1])
-        else:
-            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % ('lambda',reg.betas[-1][0],reg.std_err[-1],reg.t_stat[-1][0],reg.t_stat[-1][1])
-        i += 1
-    strSummary += "----------------------------------------------------------------------------\n"
-    if instruments:
-        insts = "Instruments: "
-        for name in reg.name_h:
-            insts += name + ", "
-        text_wrapper = TW.TextWrapper(width=76, subsequent_indent="             ")
-        insts = text_wrapper.fill(insts[:-2])
-        strSummary += insts + "\n"
-    return strSummary
+    x           : array
+                  Value passed by a used to a regression class
 
-def summary_nonspat_diag_1(reg):
-    strSummary = ""
-    strSummary += "%-20s:%12.6f  %-22s:%12.4f\n" % ('R-squared',reg.r2,'F-statistic',reg.f_stat[0])
-    strSummary += "%-20s:%12.6f  %-22s:%12.8g\n" % ('Adjusted R-squared',reg.ar2,'Prob(F-statistic)',reg.f_stat[1])
-    strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('Sum squared residual',reg.utu,'Log likelihood',reg.logll)
-    strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('Sigma-square',reg.sig2,'Akaike info criterion',reg.aic)
-    strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('S.E. of regression',np.sqrt(reg.sig2),'Schwarz criterion',reg.schwarz)
-    strSummary += "%-20s:%12.3f\n%-20s:%12.4f\n" % ('Sigma-square ML',reg.sigML,'S.E of regression ML',np.sqrt(reg.sigML))
-    strSummary += '\n'
-    return strSummary
-    
-def summary_nonspat_diag_2(reg):
-    strSummary = ""
-    strSummary += "\n\nREGRESSION DIAGNOSTICS\n"
-    if reg.mulColli:
-        strSummary += "MULTICOLLINEARITY CONDITION NUMBER%12.6f\n" % (reg.mulColli)
-    strSummary += "TEST ON NORMALITY OF ERRORS\n"
-    strSummary += "TEST                  DF          VALUE            PROB\n"
-    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ('Jarque-Bera',reg.jarque_bera['df'],reg.jarque_bera['jb'],reg.jarque_bera['pvalue'])
-    strSummary += "DIAGNOSTICS FOR HETEROSKEDASTICITY\n"
-    strSummary += "RANDOM COEFFICIENTS\n"
-    strSummary += "TEST                  DF          VALUE            PROB\n"
-    strSummary += "%-22s%2d       %12.6f        %9.7f\n" % ('Breusch-Pagan test',reg.breusch_pagan['df'],reg.breusch_pagan['bp'],reg.breusch_pagan['pvalue'])
-    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ('Koenker-Bassett test',reg.koenker_bassett['df'],reg.koenker_bassett['kb'],reg.koenker_bassett['pvalue'])
-    if reg.white:
-        strSummary += "SPECIFICATION ROBUST TEST\n"
-        if len(reg.white)>3:
-            strSummary += reg.white+'\n'
-        else:
-            strSummary += "TEST                  DF          VALUE            PROB\n"
-            strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" %('White',reg.white['df'],reg.white['wh'],reg.white['pvalue'])
-    return strSummary
+    Returns
+    -------
 
-def summary_spat_diag(reg):
-    strSummary = ""
-    strSummary += "DIAGNOSTICS FOR SPATIAL DEPENDENCE\n"
-    strSummary += "TEST                          MI/DF      VALUE          PROB\n" 
-    strSummary += "%-22s  %12.6f %12.6f       %9.7f\n" % ("Moran's I (error)", reg.moran_res[0], reg.moran_res[1], reg.moran_res[2])
-    strSummary += "%-22s      %2d    %12.6f       %9.7f\n" % ("Lagrange Multiplier (lag)", 1, reg.lm_lag[0], reg.lm_lag[1])
-    strSummary += "%-22s         %2d    %12.6f       %9.7f\n" % ("Robust LM (lag)", 1, reg.rlm_lag[0], reg.rlm_lag[1])
-    strSummary += "%-22s    %2d    %12.6f       %9.7f\n" % ("Lagrange Multiplier (error)", 1, reg.lm_error[0], reg.lm_error[1])
-    strSummary += "%-22s         %2d    %12.6f       %9.7f\n" % ("Robust LM (error)", 1, reg.rlm_error[0], reg.rlm_error[1])
-    strSummary += "%-22s    %2d    %12.6f       %9.7f\n\n" % ("Lagrange Multiplier (SARMA)", 2, reg.lm_sarma[0], reg.lm_sarma[1])
-    return strSummary
+    Returns : nothing
+              Nothing is returned
+              
+    Examples
+    --------
 
-def summary_vm(reg):
-    strVM = ""
-    strVM += "COEFFICIENTS VARIANCE MATRIX\n"
-    strVM += "----------------------------\n"
-    strVM += "%12s" % ('CONSTANT')
-    for name in reg.name_x:
-        strVM += "%12s" % (name)
-    strVM += "\n"
-    nrow = reg.vm.shape[0]
-    ncol = reg.vm.shape[1]
-    for i in range(nrow):
-        for j in range(ncol):
-            strVM += "%12.6f" % (reg.vm[i][j]) 
-        strVM += "\n"
-    return strVM
+    >>> import numpy as np
+    >>> import pysal
+    >>> db=pysal.open("../examples/columbus.dbf","r")
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X.append(db.by_col("HOVAL"))
+    >>> X = np.array(X).T
+    >>> check_constant(x)
+    >>> # should not raise an exception
 
-def summary_pred(reg):
-    strPred = "\n\n"
-    strPred += "%16s%16s%16s%16s\n" % ('OBS',reg.name_y,'PREDICTED','RESIDUAL')
-    for i in range(reg.n):
-        strPred += "%16d%16.5f%16.5f%16.5f\n" % (i+1,reg.y[i][0],reg.predy[i][0],reg.u[i][0])
-    return strPred
-            
-def summary_close():
-    return "========================= END OF REPORT =============================="
-        
+    """
+    if not diagnostics.constant_check:
+        raise Exception, "x array cannot contain a constant vector"
+
 
 def summary_intro(reg):
     strSummary = ""

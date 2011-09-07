@@ -123,10 +123,6 @@ class Test_TSLS(unittest.TestCase):
         self.assertEquals(tsls.name_z, ['CONSTANT', 'inc', 'hoval'])
         self.assertEquals(tsls.name_q, ['discbd'])
         self.assertEquals(tsls.name_h, ['CONSTANT', 'inc', 'discbd'])
-        # test not using constant
-        tsls = TSLS.TSLS(self.y, self.X, self.yd, self.q, constant=False)
-        betas = np.array([[ 2.61999431], [-0.30612671]])
-        np.testing.assert_array_almost_equal(tsls.betas, betas, decimal=8)
         # test robust results
         ###################################################    
         # currently don't have any software to test against

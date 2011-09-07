@@ -94,6 +94,7 @@ class BaseOLS(RegressionProps):
            [ -2.15109867e+00,   6.80956787e-02,   3.33693910e-02]])
     """
     def __init__(self, y, x, constant=True, robust=None, wk=None, sig2n_k=True):
+
         if constant:
             self.x = np.hstack((np.ones(y.shape), x))
         else:
@@ -130,12 +131,9 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     y        : array
                nx1 array of dependent variable
     x        : array
-               nxj array of j independent variables
+               nxj array of j independent variables (without a constant) 
     w        : spatial weights object
                if provided then spatial diagnostics are computed
-    constant : boolean
-               If true it appends a vector of ones to the independent variables
-               to estimate intercept (set to True by default)
     sig2n_k  : boolean
                Whether to use n-k (if True, default) or n (if False) to
                estimate sigma2               
@@ -157,8 +155,7 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     y        : array
                nx1 array of dependent variable
     x        : array
-               nxk array of independent variables (with constant added if
-               constant parameter set to True)
+               nxk array of independent variables (with constant)
     betas    : array
                kx1 array with estimated coefficients
     u        : array
@@ -270,9 +267,8 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     Extract CRIME (crime) and INC (income) vectors from the DBF to be used as
     independent variables in the regression.  Note that PySAL requires this to
     be an nxj numpy array, where j is the number of independent variables (not
-    including a constant). By default pysal.spreg.OLS adds a vector of ones to the
-    independent variables passed in, this can be overridden by passing
-    constant=False.
+    including a constant). pysal.spreg.OLS adds a vector of ones to the
+    independent variables passed in.
 
     >>> X = []
     >>> X.append(db.by_col("INC"))
@@ -343,6 +339,7 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     TEST                  DF          VALUE            PROB
     Breusch-Pagan test     2           5.766791        0.0559445
     Koenker-Bassett test   2           2.270038        0.3214160
+    <BLANKLINE>    
     SPECIFICATION ROBUST TEST
     TEST                  DF          VALUE            PROB
     White                  5           2.906067        0.7144648
@@ -375,7 +372,7 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     0.00954740031251
 
     """
-    def __init__(self, y, x, w=None, constant=True, robust=None, wk=None,\
+    def __init__(self, y, x, w=None, robust=None, wk=None,\
                         sig2n_k = True, nonspat_diag=True, spat_diag=False,\
                         name_y=None, name_x=None, name_ds=None,\
                         vm=False, pred=False):
@@ -383,12 +380,13 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
         USER.check_weights(w, y)
         USER.check_robust(robust, wk)
         USER.check_spat_diag(spat_diag, w)
-        BaseOLS.__init__(self, y=y, x=x, constant=constant, robust=robust,\
+        USER.check_constant(x)
+        BaseOLS.__init__(self, y=y, x=x, robust=robust,\
                          wk=wk, sig2n_k=sig2n_k) 
         self.title = "ORDINARY LEAST SQUARES"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
-        self.name_x = USER.set_name_x(name_x, x, constant)
+        self.name_x = USER.set_name_x(name_x, x)
         self.robust = USER.set_robust(robust)
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=nonspat_diag,\
                                     spat_diag=spat_diag, vm=vm, pred=pred)
