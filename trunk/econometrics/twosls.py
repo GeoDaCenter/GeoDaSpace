@@ -207,7 +207,7 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
                   nx1 array of dependent variable
     x           : array
                   array of independent variables, excluding endogenous
-                  variables
+                  variables and constant
     w           : spatial weights object
                   if provided then spatial diagnostics are computed       
     yend        : array
@@ -215,9 +215,6 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
     q           : array
                   array of external exogenous variables to use as instruments
                   (note: this should not contain any variables from x)
-    constant    : boolean
-                  If true it appends a vector of ones to the independent variables
-                  to estimate intercept (set to True by default)
     sig2n_k     : boolean
                   Whether to use n-k (if True) or n (if False, default) to
                   estimate sigma2                  
@@ -248,8 +245,7 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
     y           : array
                   nx1 array of dependent variable
     x           : array
-                  array of independent variables (with constant added if
-                  constant parameter set to True)
+                  array of independent variables (with constant)
     z           : array
                   nxk array of variables (combination of x and yend)
     h           : array
@@ -272,9 +268,6 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
     kstar       : int
                   Number of endogenous variables. 
 
-    Notes
-    -----
-    Sigma squared calculated using n in the denominator. 
     
     Examples
     --------
@@ -301,7 +294,7 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
     
 
     """
-    def __init__(self, y, x, yend, q, w=None, constant=True, sig2n_k=False,\
+    def __init__(self, y, x, yend, q, w=None, sig2n_k=False,\
                         robust=None, wk=None,\
                         nonspat_diag=True, spat_diag=False,\
                         name_y=None, name_x=None, name_yend=None, name_q=None,\
@@ -312,12 +305,13 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
         USER.check_weights(w, y)
         USER.check_robust(robust, wk)
         USER.check_spat_diag(spat_diag, w)
-        BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q, constant=constant,\
+        USER.check_constant(x)
+        BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q,\
                               robust=robust, wk=wk, sig2n_k=sig2n_k)
         self.title = "TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
-        self.name_x = USER.set_name_x(name_x, x, constant)
+        self.name_x = USER.set_name_x(name_x, x)
         self.name_yend = USER.set_name_yend(name_yend, yend)
         self.name_z = self.name_x + self.name_yend
         self.name_q = USER.set_name_q(name_q, q)

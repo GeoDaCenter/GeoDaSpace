@@ -19,7 +19,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
                   nx1 array of dependent variable
     x           : array
                   array of independent variables, excluding endogenous
-                  variables
+                  variables and constant
     w           : spatial weights object
                   pysal spatial weights object
     yend        : array
@@ -31,9 +31,6 @@ class BaseGM_Lag(TSLS.BaseTSLS):
     w_lags      : integer
                   Number of spatial lags of the exogenous variables to be
                   included as spatial instruments (default set to 1)
-    constant    : boolean
-                  If true it appends a vector of ones to the independent variables
-                  to estimate intercept (set to True by default)
     lag_q       : boolean
                   Optional. Whether to include or not as instruments spatial
                   lags of the additional instruments q. Set to True by default                   
@@ -52,8 +49,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
     y           : array
                   nx1 array of dependent variable
     x           : array
-                  array of independent variables (with constant added if
-                  constant parameter set to True)
+                  array of independent variables (with constant)
     z           : array
                   nxk array of variables (combination of x, yend and spatial
                   lag of y)
@@ -144,9 +140,9 @@ class BaseGM_Lag(TSLS.BaseTSLS):
     """
 
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1, lag_q=True,\
-                    constant=True, robust=None, wk=None, sig2n_k=False):
-        yend2, q2 = set_endog(y, x, w, yend, q, constant, w_lags, lag_q)
-        TSLS.BaseTSLS.__init__(self, y, x, yend2, q=q2, constant=constant,\
+                    robust=None, wk=None, sig2n_k=False):
+        yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
+        TSLS.BaseTSLS.__init__(self, y, x, yend2, q=q2,\
                                sig2n_k=sig2n_k)        
         if robust:
             self.vm = ROBUST.robust_vm(self, wk=wk)
@@ -165,7 +161,7 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
                   nx1 array of dependent variable
     x           : array
                   array of independent variables, excluding endogenous
-                  variables
+                  variables and constant
     w           : spatial weights object
                   pysal spatial weights object
     yend        : array
@@ -177,9 +173,6 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
     w_lags      : integer
                   Number of spatial lags of the exogenous variables to be
                   included as spatial instruments (default set to 1)
-    constant    : boolean
-                  If true it appends a vector of ones to the independent variables
-                  to estimate intercept (set to True by default)
     lag_q       : boolean
                   Optional. Whether to include or not as instruments spatial
                   lags of the additional instruments q. Set to True by default                   
@@ -198,8 +191,7 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
     y           : array
                   nx1 array of dependent variable
     x           : array
-                  array of independent variables (with constant added if
-                  constant parameter set to True)
+                  array of independent variables (with constant)
     z           : array
                   nxk array of variables (combination of x, yend and spatial
                   lag of y)
@@ -273,7 +265,7 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
            [  6.20888617e-01],
            [ -4.80723451e-01],
            [  2.83622122e-02]])
-    >>> D.se_betas(reg)
+    >>> reg.std_err
     array([ 20.47077481,   0.50613931,   0.20138425,   0.38028295])
     >>> # instrument for HOVAL with DISCBD
     >>> X = np.array(db.by_col("INC"))
@@ -287,27 +279,29 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
 
     """
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    constant=True, robust=None, wk=None, nonspat_diag=True,\
+                    robust=None, wk=None, nonspat_diag=True,\
                     name_y=None, name_x=None, name_yend=None, name_q=None, name_ds=None,\
                     vm=False, pred=False, lag_q=True, sig2n_k=False):
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
+        USER.check_robust(robust, wk)
+        USER.check_constant(x)
         BaseGM_Lag.__init__(self, y=y, x=x, w=w, yend=yend, q=q,\
-                            w_lags=w_lags, constant=constant, robust=robust,\
+                            w_lags=w_lags, robust=robust,\
                             lag_q=lag_q, sig2n_k=sig2n_k)
         self.predy_sp, self.resid_sp = sp_att(w,self.y,self.predy,\
                       self.z[:,-1].reshape(self.n,1),self.betas[-1])
         self.title = "SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
-        self.name_x = USER.set_name_x(name_x, x, constant)
+        self.name_x = USER.set_name_x(name_x, x)
         self.name_yend = USER.set_name_yend(name_yend, yend)
         self.name_yend.append(USER.set_name_yend_sp(self.name_y))
         self.name_z = self.name_x + self.name_yend
         self.name_q = USER.set_name_q(name_q, q)
-        self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags))
+        self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags, self.name_q, lag_q))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         #### we currently ignore nonspat_diag parameter ####
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\

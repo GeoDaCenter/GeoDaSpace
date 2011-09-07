@@ -479,7 +479,7 @@ def rev_lag_spatial(w, y):
     """
     return y * w.sparse
 
-def set_endog(y, x, w, yend, q, constant, w_lags, lag_q):
+def set_endog(y, x, w, yend, q, w_lags, lag_q):
     # Create spatial lag of y
     yl = lag_spatial(w, y)
     if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments

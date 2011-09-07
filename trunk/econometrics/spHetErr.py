@@ -20,10 +20,10 @@ class BaseGM_Error_Het(RegressionProps):
     Parameters
     ----------
 
-    x           : array
-                  nxk array with independent variables aligned with y
     y           : array
                   nx1 array with dependent variables
+    x           : array
+                  nxk array with independent variables aligned with y
     w           : W
                   PySAL weights instance aligned with y and with instances S
                   and A1 created
@@ -37,10 +37,10 @@ class BaseGM_Error_Het(RegressionProps):
     Attributes
     ----------
 
-    x           : array
-                  nxk array of independent variables
     y           : array
                   nx1 array of dependent variable  
+    x           : array
+                  nxk array of independent variables (with constant)
     betas       : array
                   (k+1)x1 array with estimates for betas and lambda
     n           : int
@@ -83,10 +83,10 @@ class BaseGM_Error_Het(RegressionProps):
      [  0.4118   0.168 ]]
     """
 
-    def __init__(self,y,x,w,constant=True,step1c=False,max_iter=1,epsilon=1e-5): 
+    def __init__(self,y,x,w,step1c=False,max_iter=1,epsilon=1e-5): 
         
         #1a. OLS --> \tilde{betas}
-        ols = OLS.BaseOLS(y, x, constant=constant)
+        ols = OLS.BaseOLS(y=y, x=x)
         self.x, self.y, self.n, self.k = ols.x, ols.y, ols.n, ols.k
         w.A1 = UTILS.get_A1_het(w.sparse)
 
@@ -101,24 +101,24 @@ class BaseGM_Error_Het(RegressionProps):
             lambda2 = UTILS.optim_moments(moments,vc1)
         else:
             lambda2 = lambda1 #Required to match Stata.
-        lambda_i = [lambda2]
+        lambda_old = lambda2
         
         self.iteration, eps = 0, 1
         while self.iteration<max_iter and eps>epsilon:
             #2a. reg -->\hat{betas}
-            xs = UTILS.get_spFilter(w, lambda_i[-1], self.x)
-            ys = UTILS.get_spFilter(w, lambda_i[-1], self.y)
-            ols_s = OLS.BaseOLS(ys, xs, constant=False)
+            xs = UTILS.get_spFilter(w, lambda_old, self.x)
+            ys = UTILS.get_spFilter(w, lambda_old, self.y)
+            ols_s = OLS.BaseOLS(y=ys, x=xs, constant=False)
             self.predy = np.dot(self.x, ols_s.betas)
             self.u = self.y - self.predy
 
             #2b. GMM --> \hat{\lambda}
-            sigma_i = get_psi_sigma(w, self.u, lambda_i[-1])
+            sigma_i = get_psi_sigma(w, self.u, lambda_old)
             vc_i = get_vc_het(w, sigma_i)
             moments_i = UTILS._moments2eqs(w.A1, w.sparse, self.u)
             lambda3 = UTILS.optim_moments(moments_i, vc_i)
-            eps = abs(lambda3 - lambda_i[-1])
-            lambda_i.append(lambda3)
+            eps = abs(lambda3 - lambda_old)
+            lambda_old = lambda3
             self.iteration+=1
 
         self.iter_stop = UTILS.iter_msg(self.iteration,max_iter)
@@ -139,10 +139,10 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
     Parameters
     ----------
 
-    x           : array
-                  nxk array with independent variables aligned with y
     y           : array
-                  nx1 array with dependent variables
+                  nx1 array of dependent variable
+    x           : array
+                  nxj array of j independent variables (without a constant) 
     w           : W
                   PySAL weights instance aligned with y and with instances S
                   and A1 created
@@ -163,7 +163,7 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
     ----------
 
     x           : array
-                  nxk array of independent variables
+                  nxk array of independent variables (with constant)
     y           : array
                   nx1 array of dependent variable  
     betas       : array
@@ -211,19 +211,20 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
 
     """
 
-    def __init__(self, y, x, w, max_iter=1, constant=True, step1c=False, epsilon=1e-5,\
+    def __init__(self, y, x, w, max_iter=1, step1c=False, epsilon=1e-5,\
                         nonspat_diag=True, name_y=None, name_x=None, name_ds=None,\
                         vm=False, pred=False):        
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
-        BaseGM_Error_Het.__init__(self, y, x, w, max_iter=max_iter, constant=constant,\
+        USER.check_constant(x)
+        BaseGM_Error_Het.__init__(self, y, x, w, max_iter=max_iter,\
                 step1c=step1c, epsilon=epsilon)
         self.title = "SPATIALLY WEIGHTED LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
-        self.name_x = USER.set_name_x(name_x, x, constant)
+        self.name_x = USER.set_name_x(name_x, x)
         self.name_x.append('lambda')
         #### we currently ignore nonspat_diag parameter ####
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
@@ -272,8 +273,7 @@ class BaseGM_Endog_Error_Het(RegressionProps):
     y           : array
                   nx1 array of dependent variable
     x           : array
-                  array of independent variables (with constant added if
-                  constant parameter set to True)
+                  array of independent variables (with constant)
     z           : array
                   nxk array of variables (combination of x and yend)
     h           : array
@@ -330,9 +330,9 @@ class BaseGM_Endog_Error_Het(RegressionProps):
      [  0.4114   0.1777]]
     """
 
-    def __init__(self,y,x,w,yend,q,constant=True,step1c=False,max_iter=1,epsilon=1e-5, inv_method="power_exp"): 
+    def __init__(self,y,x,w,yend,q,step1c=False,max_iter=1,epsilon=1e-5, inv_method="power_exp"): 
         #1a. reg --> \tilde{betas} 
-        tsls = TSLS.BaseTSLS(y, x, yend, q=q, constant=constant)
+        tsls = TSLS.BaseTSLS(y=y, x=x, yend=yend, q=q)
         self.x, self.z, self.h, self.y = tsls.x, tsls.z, tsls.h, tsls.y
         self.yend, self.q, self.n, self.k = tsls.yend, tsls.q, tsls.n, tsls.k
         w.A1 = UTILS.get_A1_het(w.sparse)
@@ -349,24 +349,24 @@ class BaseGM_Endog_Error_Het(RegressionProps):
             lambda2 = UTILS.optim_moments(moments,vc1)
         else:
             lambda2 = lambda1 #Required to match Stata.
-        lambda_i = [lambda2]
+        lambda_old = lambda2
         
         self.iteration, eps = 0, 1
         while self.iteration<max_iter and eps>epsilon:
             #2a. reg -->\hat{betas}
-            xs = UTILS.get_spFilter(w, lambda_i[-1], self.x)
-            ys = UTILS.get_spFilter(w, lambda_i[-1], self.y)
-            yend_s = UTILS.get_spFilter(w, lambda_i[-1], self.yend)
+            xs = UTILS.get_spFilter(w, lambda_old, self.x)
+            ys = UTILS.get_spFilter(w, lambda_old, self.y)
+            yend_s = UTILS.get_spFilter(w, lambda_old, self.yend)
             tsls_s = TSLS.BaseTSLS(ys, xs, yend_s, h=self.h, constant=False)
             self.predy = np.dot(self.z, tsls_s.betas)
             self.u = self.y - self.predy
 
             #2b. GMM --> \hat{\lambda}
-            vc2 = get_vc_het_tsls(w, self, lambda_i[-1], tsls_s.pfora1a2, np.hstack((xs,yend_s)), inv_method)
+            vc2 = get_vc_het_tsls(w, self, lambda_old, tsls_s.pfora1a2, np.hstack((xs,yend_s)), inv_method)
             moments_i = UTILS._moments2eqs(w.A1, w.sparse, self.u)
             lambda3 = UTILS.optim_moments(moments_i, vc2)
-            eps = abs(lambda3 - lambda_i[-1])
-            lambda_i.append(lambda3)
+            eps = abs(lambda3 - lambda_old)
+            lambda_old = lambda3
             self.iteration+=1
 
         self.iter_stop = UTILS.iter_msg(self.iteration,max_iter)
@@ -424,8 +424,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
     y           : array
                   nx1 array of dependent variable
     x           : array
-                  array of independent variables (with constant added if
-                  constant parameter set to True)
+                  array of independent variables (with constant)
     z           : array
                   nxk array of variables (combination of x and yend)
     h           : array
@@ -485,7 +484,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
      [  0.4114   0.1777]]
 
     """
-    def __init__(self, y, x, w, yend, q, max_iter=1, constant=True, step1c=False,\
+    def __init__(self, y, x, w, yend, q, max_iter=1, step1c=False,\
                     epsilon=1e-5, nonspat_diag=True, name_y=None, name_x=None,\
                     name_yend=None, name_q=None, name_ds=None, inv_method="power_exp",\
                     vm=False, pred=False):        
@@ -493,12 +492,13 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
+        USER.check_constant(x)
         BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend, q, max_iter=max_iter,\
-             constant=constant, step1c=step1c, epsilon=epsilon, inv_method=inv_method)
+                                        step1c=step1c, epsilon=epsilon, inv_method=inv_method)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
-        self.name_x = USER.set_name_x(name_x, x, constant)
+        self.name_x = USER.set_name_x(name_x, x)
         self.name_yend = USER.set_name_yend(name_yend, yend)
         self.name_z = self.name_x + self.name_yend
         self.name_z.append('lambda')  #listing lambda last
@@ -546,9 +546,6 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
     lag_q       : boolean
                   Optional. Whether to include or not as instruments spatial
                   lags of the additional instruments q. Set to True by default                  
-    constant    : boolean
-                  If true it appends a vector of ones to the independent variables
-                  to estimate intercept (set to True by default)
     max_iter      : int
                   Optional. Number of iterations of steps 2a. and 2b. Set to 1
                   by default
@@ -562,8 +559,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
     y           : array
                   nx1 array of dependent variable
     x           : array
-                  array of independent variables (with constant added if
-                  constant parameter set to True)
+                  array of independent variables (with constant)
     z           : array
                   nxk array of variables (combination of x and yend)
     h           : array
@@ -634,11 +630,12 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
      ['lambda' '0.65608' '0.15719']]
     """
 
-    def __init__(self, y, x, w, yend=None, q=None, constant=True, w_lags=1,\
+    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
         max_iter=1, step1c=False, lag_q=True, epsilon=1e-5, inv_method="power_exp"):
-        yend2, q2 = UTILS.set_endog(y, x, w, yend, q, constant, w_lags, lag_q)
+
+        yend2, q2 = UTILS.set_endog(y, x, w, yend, q, w_lags, lag_q)
         BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend2, q2, max_iter=max_iter,\
-                constant=constant, step1c=step1c, epsilon=epsilon, inv_method=inv_method)
+                                        step1c=step1c, epsilon=epsilon, inv_method=inv_method)
 
 class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     """
@@ -669,9 +666,6 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
                   for the spatial lag (e.g. if w_lags=1, then the only
                   instrument is WX; if w_lags=2, the instrument is WWX; and so
                   on)
-    constant    : boolean
-                  If true it appends a vector of ones to the independent variables
-                  to estimate intercept (set to True by default)
     lag_q       : boolean
                   Optional. Whether to include or not as instruments spatial
                   lags of the additional instruments q. Set to True by default                                 
@@ -698,8 +692,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     y           : array
                   nx1 array of dependent variable
     x           : array
-                  array of independent variables (with constant added if
-                  constant parameter set to True)
+                  array of independent variables (with constant)
     z           : array
                   nxk array of variables (combination of x and yend)
     h           : array
@@ -744,7 +737,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
 
     >>> reg = GM_Combo_Het(y, X, w, step1c=True, name_y='hoval', name_x=['income'], name_ds='columbus')
     >>> print reg.name_z
-    ['CONSTANT', 'income', 'lag_hoval', 'lambda']
+    ['CONSTANT', 'income', 'W_hoval', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[  9.9753  14.1434]
      [  1.5742   0.374 ]
@@ -761,7 +754,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     >>> q = np.array(q).T
     >>> reg = GM_Combo_Het(y, X, w, yd, q, step1c=True, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
     >>> print reg.name_z
-    ['CONSTANT', 'inc', 'crime', 'lag_hoval', 'lambda']
+    ['CONSTANT', 'inc', 'crime', 'W_hoval', 'lambda']
     >>> print np.round(reg.betas,4)
     [[ 113.9129]
      [  -0.3482]
@@ -771,7 +764,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     
     """
     
-    def __init__(self, y, x, w, yend=None, q=None, constant=True, w_lags=1,\
+    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
                     max_iter=1, step1c=False, lag_q=True, epsilon=1e-5, inv_method="power_exp",\
                     nonspat_diag=True, name_y=None, name_x=None, name_yend=None,\
                     name_q=None, name_ds=None, vm=False, pred=False):        
@@ -779,21 +772,22 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
+        USER.check_constant(x)
         BaseGM_Combo_Het.__init__(self, y, x, w, yend=yend, q=q, w_lags=w_lags,\
-              constant=constant, max_iter=max_iter, step1c=step1c, lag_q=lag_q,\
+              max_iter=max_iter, step1c=step1c, lag_q=lag_q,\
               epsilon=epsilon, inv_method=inv_method)
         self.predy_sp, self.resid_sp = UTILS.sp_att(w,self.y,self.predy,\
                             self.z[:,-1].reshape(self.n,1),self.betas[-1])        
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
-        self.name_x = USER.set_name_x(name_x, x, constant)
+        self.name_x = USER.set_name_x(name_x, x)
         self.name_yend = USER.set_name_yend(name_yend, yend)
         self.name_yend.append(USER.set_name_yend_sp(self.name_y))
         self.name_z = self.name_x + self.name_yend
         self.name_z.append('lambda')  #listing lambda last
         self.name_q = USER.set_name_q(name_q, q)
-        self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags))
+        self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags, self.name_q, lag_q))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         #### we currently ignore nonspat_diag parameter ####
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
