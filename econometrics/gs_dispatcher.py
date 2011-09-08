@@ -11,6 +11,7 @@ import user_output as USER
 def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                 h, name_h, r, name_r, s, name_s, t, name_t,\
                 model_type, endog, nonspat_diag, spat_diag,\
+                sig2n_k_ols, sig2n_k_tsls, sig2n_k_gmlag,\
                 white, hac, kp_het, gm):
     """
     A single function to call all the econometric models in pysal.
@@ -20,8 +21,10 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
 
     name_ds     : string
                   Name of dataset for use in output
-    w           : spatial weights object
-                  PySAL W object
+    w_list      : list
+                  List of PySAL W objects
+    wk_list     : list
+                  List of PySAL W kernel objects
     y           : array
                   nx1 array of dependent variable
     name_y      : string
@@ -56,11 +59,27 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
     model_type  : string
                   Options: 'Standard', 'Spatial Lag', 'Spatial Error', 
                   'Spatial Lag+Error'; must be one of these options
-    spat_tests  : boolean
-                  Boolean indicating whether spatial tests should be run
-    std_err     : string
-                  Options: 'White', 'HAC', 'KP HAC', ''; the empty string will    LA: Note, should be KP HET?
-                  return unadjusted standard errors
+    endog       : boolean
+                  If True, use the ye and h arrays in the regession (i.e., a
+                  2SLS type approach); if False ignore ye and h
+    nonspat_diag : boolean
+                   Run nonspatial diagnositcs (this might be removed later or
+                   only applied to OLS)
+    spat_diag   : boolean
+                  Run spatial tests such as Moran's I on the residuals, LM and
+                  AK tests
+    sig2n_k_ols : boolean
+                  If Ture use n-k to compute OLS standard errors; if False use n
+    sig2n_k_tsls : boolean
+                   If Ture use N-k to compute 2SLS standard errors; if False use n
+    sig2n_k_gmlag : boolean
+                    If Ture use N-k to compute GM Lag standard errors; if False use n
+    white       : boolean
+                  Compute White standard errors
+    hac         : boolean
+                  Compute HAC standard errors
+    kp_het      : boolean
+                  Run regression using KP2010 GMM approach for heteroskedasticity
 
     Returns
     -------
@@ -90,14 +109,16 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Standard', endog=False, nonspat_diag=True, spat_diag=False,\
+        model_type='Standard', endog=False, nonspat_diag=True, spat_diag=True,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_x
     ['CONSTANT', 'inc', 'hoval']
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Standard', endog=False, nonspat_diag=True, spat_diag=False,\
+        model_type='Standard', endog=False, nonspat_diag=True, spat_diag=True,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=True, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_x
     ['CONSTANT', 'inc', 'hoval']
@@ -105,6 +126,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', endog=False, nonspat_diag=True, spat_diag=False,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=True, kp_het=False, gm=False)
     >>> print reg[0].name_x
     ['CONSTANT', 'inc', 'hoval']
@@ -112,13 +134,15 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', endog=False, nonspat_diag=True, spat_diag=False,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Spatial Lag', endog=False, nonspat_diag=True, spat_diag=False,\
+        model_type='Spatial Lag', endog=False, nonspat_diag=True, spat_diag=True,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=True, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
@@ -126,6 +150,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', endog=False, nonspat_diag=True, spat_diag=False,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=True, kp_het=False, gm=False)
     >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
@@ -133,13 +158,15 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', endog=False, nonspat_diag=True, spat_diag=False,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Spatial Error', endog=False, nonspat_diag=True, spat_diag=False,\
+        model_type='Spatial Error', endog=False, nonspat_diag=True, spat_diag=True,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, gm=False)
     >>> print reg[0].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
@@ -147,6 +174,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', endog=False, nonspat_diag=True, spat_diag=False,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, gm=True)
     >>> print reg[0].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
@@ -154,19 +182,15 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', endog=False, nonspat_diag=True, spat_diag=False,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, gm=True)
     >>> print reg[0].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
-
-
-
-
-
-
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', endog=False, nonspat_diag=True, spat_diag=False,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
@@ -174,6 +198,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', endog=False, nonspat_diag=True, spat_diag=False,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, gm=False)
     >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
@@ -190,6 +215,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', endog=True, nonspat_diag=True, spat_diag=False,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval']
@@ -197,13 +223,15 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', endog=True, nonspat_diag=True, spat_diag=False,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=True, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval']
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[wk], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Standard', endog=True, nonspat_diag=True, spat_diag=False,\
+        model_type='Standard', endog=True, nonspat_diag=True, spat_diag=True,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=True, kp_het=False, gm=False)
     >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval']
@@ -211,6 +239,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', endog=True, nonspat_diag=True, spat_diag=False,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
@@ -218,6 +247,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', endog=True, nonspat_diag=True, spat_diag=False,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=True, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
@@ -225,20 +255,23 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', endog=True, nonspat_diag=True, spat_diag=False,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=True, kp_het=False, gm=False)
     >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Spatial Error', endog=True, nonspat_diag=True, spat_diag=False,\
+        model_type='Spatial Error', endog=True, nonspat_diag=True, spat_diag=True,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'lambda']
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Spatial Error', endog=True, nonspat_diag=True, spat_diag=False,\
+        model_type='Spatial Error', endog=True, nonspat_diag=True, spat_diag=True,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, gm=False)
     >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'lambda']
@@ -246,6 +279,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', endog=True, nonspat_diag=True, spat_diag=False,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
@@ -253,6 +287,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', endog=True, nonspat_diag=True, spat_diag=False,\
+        sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, gm=False)
     >>> print reg[0].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
@@ -265,12 +300,13 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
             reg = TSLS(y=y, x=x, yend=ye, q=h,\
                         nonspat_diag=nonspat_diag, spat_diag=False,\
                         name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                        name_q=name_h, name_ds=name_ds)
+                        name_q=name_h, name_ds=name_ds, sig2n_k=sig2n_k_tsls)
         else:
             # run OLS regression; with or without nonspatial diagnostics
             reg = OLS(y=y, x=x,\
                        nonspat_diag=nonspat_diag, spat_diag=False,\
-                       name_y=name_y, name_x=name_x, name_ds=name_ds)
+                       name_y=name_y, name_x=name_x, name_ds=name_ds,
+                       sig2n_k=sig2n_k_ols)
         if w_list and spat_diag:
             for w in w_list:
                 # add spatial diagnostics for each W
@@ -297,11 +333,12 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                #GM Spatial lag with non-spatial endog variables
                 output.append(GM_Lag(y=y, x=x, w=w, yend=ye, q=h,\
                              name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                             name_q=name_h, name_ds=name_ds))
+                             name_q=name_h, name_ds=name_ds, sig2n_k=sig2n_k_gmlag))
             else:
                #GM Spatial lag
                 output.append(GM_Lag(y=y, x=x, w=w,\
-                             name_y=name_y, name_x=name_x, name_ds=name_ds))
+                             name_y=name_y, name_x=name_x, name_ds=name_ds,\
+                             sig2n_k=sig2n_k_gmlag))
         white_regs = []
         if white:
             for reg in output:
