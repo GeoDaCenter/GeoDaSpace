@@ -6,6 +6,7 @@ import numpy as np
 import copy as COPY
 import pysal.spreg.diagnostics as diagnostics
 import pysal.spreg.diagnostics_sp as diagnostics_sp
+import ak as AK
 
 __all__ = []
 
@@ -111,33 +112,34 @@ class DiagnosticBuilder:
                 self.ar2 = diagnostics.ar2(self)   
 
         if nonspat_diag:
-            #general information
-            self.sigML = self.sig2n  
-            self.f_stat = diagnostics.f_stat(self)  
-            self.logll = diagnostics.log_likelihood(self) 
-            self.aic = diagnostics.akaike(self) 
-            self.schwarz = diagnostics.schwarz(self) 
-            
-            #part 2: REGRESSION DIAGNOSTICS 
-            if instruments:
-                self.mulColli = None
-            else:
+            if not instruments:  # quicky hack until we figure out the global nonspatial diag rules
+                #general information
+                self.sigML = self.sig2n  
+                self.f_stat = diagnostics.f_stat(self)  
+                self.logll = diagnostics.log_likelihood(self) 
+                self.aic = diagnostics.akaike(self) 
+                self.schwarz = diagnostics.schwarz(self) 
+                
+                #part 2: REGRESSION DIAGNOSTICS 
                 self.mulColli = diagnostics.condition_index(self)
-            self.jarque_bera = diagnostics.jarque_bera(self)
-            
-            #part 3: DIAGNOSTICS FOR HETEROSKEDASTICITY         
-            self.breusch_pagan = diagnostics.breusch_pagan(self)
-            self.koenker_bassett = diagnostics.koenker_bassett(self)
-            if instruments:
-                self.white = None
-            else:
+                self.jarque_bera = diagnostics.jarque_bera(self)
+                
+                #part 3: DIAGNOSTICS FOR HETEROSKEDASTICITY         
+                self.breusch_pagan = diagnostics.breusch_pagan(self)
+                self.koenker_bassett = diagnostics.koenker_bassett(self)
                 self.white = diagnostics.white(self)
         
         if spat_diag:
             #part 4: spatial diagnostics
             if spat_diag:
                 if instruments:
-                    pass
+                    cache = diagnostics_sp.spDcache(self, w)
+                    mi, ak, ak_p = AK.akTest(self, w, cache)
+                    #mi_ei = diagnostics_sp.get_eI(self, w, cache)
+                    #mi_vi = diagnostics_sp.get_vI(self, w, mi_ei, cache)
+                    #mi_zi, mi_p = diagnostics_sp.get_zI(mi_zi, mi_ei, mi_vi)
+                    #self.moran_res = mi, mi_zi, mi_p 
+                    self.ak_test = ak, ak_p
                 else:
                     lm_tests = diagnostics_sp.LMtests(self, w)
                     self.lm_error = lm_tests.lme
@@ -152,13 +154,15 @@ class DiagnosticBuilder:
         summary = summary_intro(self)
         summary += summary_r2(self)
         if nonspat_diag:
-            summary += summary_nonspat_diag_1(self)
+            if not instruments:  # quicky hack until we figure out the global nonspatial diag rules
+                summary += summary_nonspat_diag_1(self)
         if beta_diag:
             summary += summary_coefs(self, instruments, lamb)
         if nonspat_diag:
-            summary += summary_nonspat_diag_2(self)
+            if not instruments:  # quicky hack until we figure out the global nonspatial diag rules
+                summary += summary_nonspat_diag_2(self)
         if spat_diag:
-            summary += summary_spat_diag(self)
+            summary += summary_spat_diag(self, instruments)
         if vm:
             summary += summary_vm(self)
         if pred:
@@ -719,16 +723,20 @@ def summary_nonspat_diag_2(reg):
             strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" %('White',reg.white['df'],reg.white['wh'],reg.white['pvalue'])
     return strSummary
 
-def summary_spat_diag(reg):
+def summary_spat_diag(reg, instruments):
     strSummary = ""
     strSummary += "DIAGNOSTICS FOR SPATIAL DEPENDENCE\n"
     strSummary += "TEST                          MI/DF      VALUE          PROB\n" 
-    strSummary += "%-22s  %12.6f %12.6f       %9.7f\n" % ("Moran's I (error)", reg.moran_res[0], reg.moran_res[1], reg.moran_res[2])
-    strSummary += "%-22s      %2d    %12.6f       %9.7f\n" % ("Lagrange Multiplier (lag)", 1, reg.lm_lag[0], reg.lm_lag[1])
-    strSummary += "%-22s         %2d    %12.6f       %9.7f\n" % ("Robust LM (lag)", 1, reg.rlm_lag[0], reg.rlm_lag[1])
-    strSummary += "%-22s    %2d    %12.6f       %9.7f\n" % ("Lagrange Multiplier (error)", 1, reg.lm_error[0], reg.lm_error[1])
-    strSummary += "%-22s         %2d    %12.6f       %9.7f\n" % ("Robust LM (error)", 1, reg.rlm_error[0], reg.rlm_error[1])
-    strSummary += "%-22s    %2d    %12.6f       %9.7f\n\n" % ("Lagrange Multiplier (SARMA)", 2, reg.lm_sarma[0], reg.lm_sarma[1])
+    if instruments:
+        #strSummary += "%-22s  %12.6f %12.6f       %9.7f\n" % ("Moran's I (error)", reg.moran_res[0], reg.moran_res[1], reg.moran_res[2])
+        strSummary += "%-22s      %2d    %12.6f       %9.7f\n" % ("Anselin-Kelejian Test", 1, reg.ak_test[0], reg.ak_test[1])
+    else:
+        strSummary += "%-22s  %12.6f %12.6f       %9.7f\n" % ("Moran's I (error)", reg.moran_res[0], reg.moran_res[1], reg.moran_res[2])
+        strSummary += "%-22s      %2d    %12.6f       %9.7f\n" % ("Lagrange Multiplier (lag)", 1, reg.lm_lag[0], reg.lm_lag[1])
+        strSummary += "%-22s         %2d    %12.6f       %9.7f\n" % ("Robust LM (lag)", 1, reg.rlm_lag[0], reg.rlm_lag[1])
+        strSummary += "%-22s    %2d    %12.6f       %9.7f\n" % ("Lagrange Multiplier (error)", 1, reg.lm_error[0], reg.lm_error[1])
+        strSummary += "%-22s         %2d    %12.6f       %9.7f\n" % ("Robust LM (error)", 1, reg.rlm_error[0], reg.rlm_error[1])
+        strSummary += "%-22s    %2d    %12.6f       %9.7f\n\n" % ("Lagrange Multiplier (SARMA)", 2, reg.lm_sarma[0], reg.lm_sarma[1])
     return strSummary
 
 def summary_vm(reg):
