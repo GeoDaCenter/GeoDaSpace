@@ -27,10 +27,10 @@ import pysal
 #    0:"Choose this option if you have additional endogenous variables within your set of explanatory variables. Drag your additional endogenous variables to the box labeled YE. Instruments for these variables should be defined in the box labeled H.", #Yes
 #    1:"No endogenous variables within the set of explanatory variables.", #No
 #}
-WHITE_TOOL_TIP = "White Correction for Standard Errors"
-HAC_TOOL_TIP = "Spatial Heteroskedastic and Autocorrelation Consistent Estimator for the Standard Errors -Kelejian, H. and Prucha, I. (2007), Journal of Econometrics" #HAC
+WHITE_TOOL_TIP = "White, H. (1980), Econometrica"
+HAC_TOOL_TIP = "Kelejian, H. and Prucha, I. (2007), Journal of Econometrics" #HAC
 #HET_TOOL_TIP = "Consistent Estimator Under Heteroskedastic Error Terms. -Kelejian , H. and Prucha, I. (Forthcoming), Journal of Econometrics" #HET
-HET_TOOL_TIP = "Specification and Estimation of Spatial Autoregressive Models with Autoregressive and Heteroskedastic Disturbances - Kelejian, H and Prucha, I. (2010), Journal of Econometrics" #HET
+HET_TOOL_TIP = "Kelejian, H. and Prucha, I. (2010), Journal of Econometrics" #HET
 
 myEVT_LIST_BOX_UPDATE = wx.NewEventType()
 EVT_LIST_BOX_UPDATE = wx.PyEventBinder(myEVT_LIST_BOX_UPDATE, 1)
