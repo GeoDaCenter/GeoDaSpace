@@ -9,9 +9,9 @@ from pysal.spreg.ols import OLS
 from pysal.spreg.ols import BaseOLS
 #from opt_diagnostics_sp import LMtests, MoranRes
 from pysal.spreg.diagnostics_sp import LMtests, MoranRes
-from econometrics.spError import BaseGMSWLS, GMSWLS
-from econometrics.spHetErr import BaseSWLS_Het, BaseGSTSLS_Het_lag, SWLS_Het, GSTSLS_Het_lag
-from econometrics.twosls_sp import BaseSTSLS, STSLS
+from econometrics.spError import BaseGM_Error, GM_Error
+from econometrics.spHetErr import BaseGM_Error_Het, BaseGM_Combo_Het, GM_Error_Het, GM_Combo_Het
+from econometrics.twosls_sp import BaseGM_Lag, GM_Lag
 from econometrics.testing_utils import Test_Data as Data
 from workbench import Model_Inputs
 
@@ -194,11 +194,11 @@ def test_large_GMSWLS(s, k, log=None, base=False, sw=False, a=True):
 
     t0 = time.time()
     if base:
-        print 'Running barebone version of GMSWLS'
-        gmswls = BaseGMSWLS(y, x, w)
+        print 'Running barebone version of GM_Error'
+        gmswls = BaseGM_Error(y, x, w)
     else:
-        print 'Running full end-user version of GMSWLS'
-        gmswls = GMSWLS(y, x, w)
+        print 'Running full end-user version of GM_Error'
+        gmswls = GM_Error(y, x, w)
     t1 = time.time()
     tf = t1 - t0
     runGmswls = 'Regression:\t\t\t%.5f seconds\n'%tf
@@ -494,10 +494,10 @@ def test_large_spHet_error_models(s, k, log=None, base=False, sw=False, a=True):
     t0 = time.time()
     if base:
         print 'Running barebone version of SWLS_Het'
-        swls_het = BaseSWLS_Het(y, x, w)
+        swls_het = BaseGM_Error_Het(y, x, w)
     else:
         print 'Running full end-user version of SWLS_Het'
-        swls_het = SWLS_Het(y, x, w)
+        swls_het = GM_Error_Het(y, x, w)
     t1 = time.time()
     tf = t1 - t0
     runSwls_het = 'SWLS_Het:\t\t\t%.5f seconds\n'%tf
@@ -685,10 +685,10 @@ def test_small_all(s, k, log=None, base=False, sw=False, a=True):
     t0 = time.time()
     if base:
         print 'Running barebone version of OLS'
-        ols = BaseOLS(data.y, data.x)
+        ols = BaseOLS(y, x)
     else:
         print 'Running full end-user version of OLS'
-        ols = OLS(data.y, data.x)
+        ols = OLS(y, x)
     t1 = time.time()
     tf = t1 - t0
     runOls = 'Regression:\t\t\t%.5f seconds\n'%tf
@@ -716,14 +716,14 @@ def test_small_all(s, k, log=None, base=False, sw=False, a=True):
 
     t0 = time.time()
     if base:
-        print 'Running barebone version of GMSWLS'
-        gmswls = BaseGMSWLS(y, x, w)
+        print 'Running barebone version of GM_Error'
+        gmswls = BaseGM_Error(y, x, w)
     else:
-        print 'Running full end-user version of GMSWLS'
-        gmswls = GMSWLS(y, x, w)
+        print 'Running full end-user version of GM_Error'
+        gmswls = GM_Error(y, x, w)
     t1 = time.time()
     tf = t1 - t0
-    runGmswls = 'GMSWLS:\t\t\t%.5f seconds\n'%tf
+    runGmswls = 'GM_Error:\t\t\t%.5f seconds\n'%tf
     if a:
         log.write(runGmswls)
     print runGmswls
@@ -731,10 +731,10 @@ def test_small_all(s, k, log=None, base=False, sw=False, a=True):
     t0 = time.time()
     if base:
         print 'Running barebone version of STSLS'
-        stsls = BaseSTSLS(y, x, w)
+        stsls = BaseGM_Lag(y, x, w)
     else:
         print 'Running full end-user version of STSLS'
-        stsls = STSLS(y, x, w)
+        stsls = GM_Lag(y, x, w)
     t1 = time.time()
     tf = t1 - t0
     runStsls = 'STSLS:\t\t\t%.5f seconds\n'%tf
@@ -745,10 +745,10 @@ def test_small_all(s, k, log=None, base=False, sw=False, a=True):
     t0 = time.time()
     if base:
         print 'Running barebone version of SWLS_Het'
-        swls_het = BaseSWLS_Het(y, x, w)
+        swls_het = BaseGM_Error_Het(y, x, w)
     else:
         print 'Running full end-user version of SWLS_Het'
-        swls_het = SWLS_Het(y, x, w)
+        swls_het = GM_Error_Het(y, x, w)
     t1 = time.time()
     tf = t1 - t0
     runSwls_het = 'SWLS_Het:\t\t\t%.5f seconds\n'%tf
@@ -759,10 +759,10 @@ def test_small_all(s, k, log=None, base=False, sw=False, a=True):
     t0 = time.time()
     if base:
         print 'Running barebone version of GSTSLS_Het_lag'
-        gstsls_het = BaseGSTSLS_Het_lag(y, x, w)
+        gstsls_het = BaseGM_Combo_Het(y, x, w)
     else:
         print 'Running full end-user version of GSTSLS_Het_lag'
-        gstsls_het = GSTSLS_Het_lag(y, x, w)
+        gstsls_het = GM_Combo_Het(y, x, w)
     t1 = time.time()
     tf = t1 - t0
     runGstsls_het = 'STSLS_het:\t\t\t%.5f seconds\n'%tf
@@ -786,6 +786,7 @@ sizes = [150, 300, 450, 600, 750, 800, 850, 900, 1000]
 #sizes = [1750, 1900, 2000, 2050, 2100]
 #sizes = [1750]
 sizes = [30, 50, 70, 100]
+sizes = [1000]
 
 for side in sizes:
    #ols_models = test_large_olsSPd(side, 10, log='/Users/dani/Dropbox/aagLogs/ols_py.log', a=True, base=True, sw=False)
@@ -795,6 +796,7 @@ for side in sizes:
    #        log='/Users/dani/Dropbox/aagLogs/spHet_error_py.log', a=True, base=True, sw=False)
    #sp_models = test_large_spHet_sarar_models(side, 10,
    #        log='/Users/dani/Dropbox/aagLogs/spHet_sarar_py.log', a=True, base=True, sw=False)
-    smAll = test_small_all(side, 10,
+   #smAll = test_small_all(side, 10, base=True)
+    smAll = test_large_spHet_error_models(side, 10, base=True)
 
 
