@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <resource>
   <object class="wxFrame" name="GMM_REGRESSION">
-    <title>GeoDaSpace Regression</title>
-    <centered>1</centered>
-    <size>570,650</size>
-    <style>wxCAPTION|wxSYSTEM_MENU|wxRESIZE_BORDER|wxRESIZE_BOX|wxCLOSE_BOX|wxMAXIMIZE_BOX|wxMINIMIZE_BOX</style>
     <object class="wxToolBar" name="RegressionToolBar">
       <object class="tool" name="ToolNewModel">
         <bitmap stock_id="wxART_NEW"/>
@@ -628,7 +624,11 @@
         <assign_var>1</assign_var>
       </XRCED>
     </object>
+    <size>570,650</size>
+    <title>GeoDaSpace Regression</title>
+    <centered>1</centered>
     <bg>#E8E8E8</bg>
+    <style>wxCAPTION|wxSYSTEM_MENU|wxRESIZE_BORDER|wxRESIZE_BOX|wxCLOSE_BOX|wxMAXIMIZE_BOX|wxMINIMIZE_BOX</style>
   </object>
   <object class="wxFrame" name="TextWindow">
     <title>Results</title>
