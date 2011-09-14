@@ -344,12 +344,16 @@ class guiRegModel(abstractmodel.AbstractModel):
         name_s = None
         t = None
         name_t = None
+        sig2n_k_ols = False
+        sig2n_k_tsls = False
+        sig2n_k_gmlag = False
 
         print w_list
         results = spmodel(data['fname'], w_list, wk_list, y, name_y, x, x_names, ye, ye_names,\
                  h, h_names, r, name_r, s, name_s, t, name_t,
                  model_type, data['modelType']['endogenous'], nonspat_diag,
                  data['modelType']['spatial_tests']['lm'],
+                 sig2n_k_ols, sig2n_k_tsls, sig2n_k_gmlag,
                  data['modelType']['error']['white'],
                  data['modelType']['error']['hac'],
                  data['modelType']['error']['het'],
