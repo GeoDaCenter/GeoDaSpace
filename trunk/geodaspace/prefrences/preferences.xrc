@@ -4,7 +4,7 @@
     <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
       <object class="sizeritem">
-        <object class="wxNotebook">
+        <object class="wxNotebook" name="prefNoteBook">
           <object class="notebookpage">
             <object class="wxPanel" name="stddev">
               <object class="wxBoxSizer">
@@ -307,7 +307,7 @@
                       </object>
                     </object>
                     <object class="sizeritem">
-                      <object class="wxSpinCtrl" name="NumSpatialLabs">
+                      <object class="wxSpinCtrl" name="NumSpatialLags">
                         <value>1</value>
                         <min>1</min>
                         <max>5</max>
@@ -501,6 +501,9 @@
             <label>Other</label>
           </object>
           <size>450,300</size>
+          <XRCED>
+            <assign_var>1</assign_var>
+          </XRCED>
         </object>
         <option>1</option>
         <flag>wxALL|wxEXPAND</flag>
@@ -509,7 +512,7 @@
       <object class="sizeritem">
         <object class="wxBoxSizer">
           <object class="sizeritem">
-            <object class="wxButton" name="restore">
+            <object class="wxButton" name="restoreButton">
               <label>Restore Defaults</label>
               <XRCED>
                 <events>EVT_BUTTON</events>
@@ -521,7 +524,7 @@
             <option>1</option>
           </object>
           <object class="sizeritem">
-            <object class="wxButton" name="cancel">
+            <object class="wxButton" name="cancelButton">
               <label>Cancel</label>
               <XRCED>
                 <events>EVT_BUTTON</events>
@@ -532,7 +535,7 @@
             <border>15</border>
           </object>
           <object class="sizeritem">
-            <object class="wxButton" name="save">
+            <object class="wxButton" name="saveButton">
               <label>Save</label>
               <default>1</default>
               <XRCED>
