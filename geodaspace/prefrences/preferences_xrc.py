@@ -36,6 +36,7 @@ class xrcgsPrefsFrame(wx.Frame):
         self.PostCreate(pre)
 
         # Define variables for the controls, bind event handlers
+        self.prefNoteBook = xrc.XRCCTRL(self, "prefNoteBook")
         self.stddev = xrc.XRCCTRL(self, "stddev")
         self.OLSNk = xrc.XRCCTRL(self, "OLSNk")
         self.OLSN = xrc.XRCCTRL(self, "OLSN")
@@ -57,7 +58,7 @@ class xrcgsPrefsFrame(wx.Frame):
         self.Step1c = xrc.XRCCTRL(self, "Step1c")
         self.instruments = xrc.XRCCTRL(self, "instruments")
         self.NumSpatialLagsLabel = xrc.XRCCTRL(self, "NumSpatialLagsLabel")
-        self.NumSpatialLabs = xrc.XRCCTRL(self, "NumSpatialLabs")
+        self.NumSpatialLags = xrc.XRCCTRL(self, "NumSpatialLags")
         self.IncludeLagsofUserInstLabel = xrc.XRCCTRL(self, "IncludeLagsofUserInstLabel")
         self.IncludeLagsofUserInst = xrc.XRCCTRL(self, "IncludeLagsofUserInst")
         self.output = xrc.XRCCTRL(self, "output")
@@ -71,9 +72,9 @@ class xrcgsPrefsFrame(wx.Frame):
         self.residualMoran = xrc.XRCCTRL(self, "residualMoran")
         self.numcoresLabel = xrc.XRCCTRL(self, "numcoresLabel")
         self.numcores = xrc.XRCCTRL(self, "numcores")
-        self.restore = xrc.XRCCTRL(self, "restore")
-        self.cancel = xrc.XRCCTRL(self, "cancel")
-        self.save = xrc.XRCCTRL(self, "save")
+        self.restoreButton = xrc.XRCCTRL(self, "restoreButton")
+        self.cancelButton = xrc.XRCCTRL(self, "cancelButton")
+        self.saveButton = xrc.XRCCTRL(self, "saveButton")
 
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_OLSNk, self.OLSNk)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_OLSN, self.OLSN)
@@ -85,16 +86,16 @@ class xrcgsPrefsFrame(wx.Frame):
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_inferenceOnLambda, self.inferenceOnLambda)
         self.Bind(wx.EVT_CHOICE, self.OnChoice_CompInverse, self.CompInverse)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_Step1c, self.Step1c)
-        self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_NumSpatialLabs, self.NumSpatialLabs)
+        self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_NumSpatialLags, self.NumSpatialLags)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_IncludeLagsofUserInst, self.IncludeLagsofUserInst)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_ShowVarCovarMatrix, self.ShowVarCovarMatrix)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_saveValuesResiduals, self.saveValuesResiduals)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_OLSdiagnostics, self.OLSdiagnostics)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_residualMoran, self.residualMoran)
         self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_numcores, self.numcores)
-        self.Bind(wx.EVT_BUTTON, self.OnButton_restore, self.restore)
-        self.Bind(wx.EVT_BUTTON, self.OnButton_cancel, self.cancel)
-        self.Bind(wx.EVT_BUTTON, self.OnButton_save, self.save)
+        self.Bind(wx.EVT_BUTTON, self.OnButton_restoreButton, self.restoreButton)
+        self.Bind(wx.EVT_BUTTON, self.OnButton_cancelButton, self.cancelButton)
+        self.Bind(wx.EVT_BUTTON, self.OnButton_saveButton, self.saveButton)
 
 #!XRCED:begin-block:xrcgsPrefsFrame.OnRadiobutton_OLSNk
     def OnRadiobutton_OLSNk(self, evt):
@@ -156,11 +157,11 @@ class xrcgsPrefsFrame(wx.Frame):
         print "OnCheckbox_Step1c()"
 #!XRCED:end-block:xrcgsPrefsFrame.OnCheckbox_Step1c        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnSpinctrl_NumSpatialLabs
-    def OnSpinctrl_NumSpatialLabs(self, evt):
+#!XRCED:begin-block:xrcgsPrefsFrame.OnSpinctrl_NumSpatialLags
+    def OnSpinctrl_NumSpatialLags(self, evt):
         # Replace with event handler code
-        print "OnSpinctrl_NumSpatialLabs()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnSpinctrl_NumSpatialLabs        
+        print "OnSpinctrl_NumSpatialLags()"
+#!XRCED:end-block:xrcgsPrefsFrame.OnSpinctrl_NumSpatialLags        
 
 #!XRCED:begin-block:xrcgsPrefsFrame.OnCheckbox_IncludeLagsofUserInst
     def OnCheckbox_IncludeLagsofUserInst(self, evt):
@@ -198,23 +199,23 @@ class xrcgsPrefsFrame(wx.Frame):
         print "OnSpinctrl_numcores()"
 #!XRCED:end-block:xrcgsPrefsFrame.OnSpinctrl_numcores        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnButton_restore
-    def OnButton_restore(self, evt):
+#!XRCED:begin-block:xrcgsPrefsFrame.OnButton_restoreButton
+    def OnButton_restoreButton(self, evt):
         # Replace with event handler code
-        print "OnButton_restore()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnButton_restore        
+        print "OnButton_restoreButton()"
+#!XRCED:end-block:xrcgsPrefsFrame.OnButton_restoreButton        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnButton_cancel
-    def OnButton_cancel(self, evt):
+#!XRCED:begin-block:xrcgsPrefsFrame.OnButton_cancelButton
+    def OnButton_cancelButton(self, evt):
         # Replace with event handler code
-        print "OnButton_cancel()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnButton_cancel        
+        print "OnButton_cancelButton()"
+#!XRCED:end-block:xrcgsPrefsFrame.OnButton_cancelButton        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnButton_save
-    def OnButton_save(self, evt):
+#!XRCED:begin-block:xrcgsPrefsFrame.OnButton_saveButton
+    def OnButton_saveButton(self, evt):
         # Replace with event handler code
-        print "OnButton_save()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnButton_save        
+        print "OnButton_saveButton()"
+#!XRCED:end-block:xrcgsPrefsFrame.OnButton_saveButton        
 
 
 
@@ -233,7 +234,7 @@ def __init_resources():
     <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
       <object class="sizeritem">
-        <object class="wxNotebook">
+        <object class="wxNotebook" name="prefNoteBook">
           <object class="notebookpage">
             <object class="wxPanel" name="stddev">
               <object class="wxBoxSizer">
@@ -536,7 +537,7 @@ def __init_resources():
                       </object>
                     </object>
                     <object class="sizeritem">
-                      <object class="wxSpinCtrl" name="NumSpatialLabs">
+                      <object class="wxSpinCtrl" name="NumSpatialLags">
                         <value>1</value>
                         <min>1</min>
                         <max>5</max>
@@ -730,6 +731,9 @@ def __init_resources():
             <label>Other</label>
           </object>
           <size>450,300</size>
+          <XRCED>
+            <assign_var>1</assign_var>
+          </XRCED>
         </object>
         <option>1</option>
         <flag>wxALL|wxEXPAND</flag>
@@ -738,7 +742,7 @@ def __init_resources():
       <object class="sizeritem">
         <object class="wxBoxSizer">
           <object class="sizeritem">
-            <object class="wxButton" name="restore">
+            <object class="wxButton" name="restoreButton">
               <label>Restore Defaults</label>
               <XRCED>
                 <events>EVT_BUTTON</events>
@@ -750,7 +754,7 @@ def __init_resources():
             <option>1</option>
           </object>
           <object class="sizeritem">
-            <object class="wxButton" name="cancel">
+            <object class="wxButton" name="cancelButton">
               <label>Cancel</label>
               <XRCED>
                 <events>EVT_BUTTON</events>
@@ -761,7 +765,7 @@ def __init_resources():
             <border>15</border>
           </object>
           <object class="sizeritem">
-            <object class="wxButton" name="save">
+            <object class="wxButton" name="saveButton">
               <label>Save</label>
               <default>1</default>
               <XRCED>
