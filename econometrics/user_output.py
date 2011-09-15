@@ -135,10 +135,6 @@ class DiagnosticBuilder:
                 if instruments:
                     cache = diagnostics_sp.spDcache(self, w)
                     mi, ak, ak_p = AK.akTest(self, w, cache)
-                    #mi_ei = diagnostics_sp.get_eI(self, w, cache)
-                    #mi_vi = diagnostics_sp.get_vI(self, w, mi_ei, cache)
-                    #mi_zi, mi_p = diagnostics_sp.get_zI(mi_zi, mi_ei, mi_vi)
-                    #self.moran_res = mi, mi_zi, mi_p 
                     self.ak_test = ak, ak_p
                 else:
                     lm_tests = diagnostics_sp.LMtests(self, w)
@@ -728,7 +724,6 @@ def summary_spat_diag(reg, instruments):
     strSummary += "DIAGNOSTICS FOR SPATIAL DEPENDENCE\n"
     strSummary += "TEST                          MI/DF      VALUE          PROB\n" 
     if instruments:
-        #strSummary += "%-22s  %12.6f %12.6f       %9.7f\n" % ("Moran's I (error)", reg.moran_res[0], reg.moran_res[1], reg.moran_res[2])
         strSummary += "%-22s      %2d    %12.6f       %9.7f\n" % ("Anselin-Kelejian Test", 1, reg.ak_test[0], reg.ak_test[1])
     else:
         strSummary += "%-22s  %12.6f %12.6f       %9.7f\n" % ("Moran's I (error)", reg.moran_res[0], reg.moran_res[1], reg.moran_res[2])
