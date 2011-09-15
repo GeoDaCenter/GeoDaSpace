@@ -64,7 +64,7 @@
                       </object>
                     </object>
                     <object class="sizeritem">
-                      <object class="wxRadioButton" name="2SLSNk">
+                      <object class="wxRadioButton" name="twoSLSNk">
                         <style>wxRB_GROUP</style>
                         <XRCED>
                           <events>EVT_RADIOBUTTON</events>
@@ -73,7 +73,7 @@
                       </object>
                     </object>
                     <object class="sizeritem">
-                      <object class="wxRadioButton" name="2SLSN">
+                      <object class="wxRadioButton" name="twoSLSN">
                         <value>1</value>
                         <XRCED>
                           <events>EVT_RADIOBUTTON</events>
@@ -160,9 +160,13 @@
                       <border>10</border>
                     </object>
                     <object class="sizeritem">
-                      <object class="wxTextCtrl" name="MaxIterations">
+                      <object class="wxSpinCtrl" name="MaxIterations">
+                        <size>100,-1</size>
                         <value>1</value>
+                        <min>1</min>
+                        <max>999999999</max>
                         <XRCED>
+                          <events>EVT_SPINCTRL</events>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
@@ -244,7 +248,8 @@
                     <object class="sizeritem">
                       <object class="wxChoice" name="CompInverse">
                         <content>
-                          <item>Power exp</item>
+                          <item>Power Expansion</item>
+                          <item>True Inverse</item>
                         </content>
                         <XRCED>
                           <events>EVT_CHOICE</events>
@@ -303,6 +308,9 @@
                     </object>
                     <object class="sizeritem">
                       <object class="wxSpinCtrl" name="NumSpatialLabs">
+                        <value>1</value>
+                        <min>1</min>
+                        <max>5</max>
                         <XRCED>
                           <events>EVT_SPINCTRL</events>
                           <assign_var>1</assign_var>
@@ -320,6 +328,7 @@
                     </object>
                     <object class="sizeritem">
                       <object class="wxCheckBox" name="IncludeLagsofUserInst">
+                        <checked>1</checked>
                         <XRCED>
                           <events>EVT_CHECKBOX</events>
                           <assign_var>1</assign_var>
@@ -467,6 +476,8 @@
                     </object>
                     <object class="sizeritem">
                       <object class="wxSpinCtrl" name="numcores">
+                        <value>1</value>
+                        <min>1</min>
                         <XRCED>
                           <events>EVT_SPINCTRL</events>
                           <assign_var>1</assign_var>
