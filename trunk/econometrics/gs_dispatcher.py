@@ -1,3 +1,4 @@
+import numpy as np
 import copy as COPY
 from ols import OLS
 from twosls import TSLS
@@ -10,9 +11,11 @@ import user_output as USER
 
 def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                 h, name_h, r, name_r, s, name_s, t, name_t,\
-                model_type, endog, nonspat_diag, spat_diag,\
+                model_type, endog,\
+                nonspat_diag, spat_diag, vc_matrix, predy_resid,\
                 sig2n_k_ols, sig2n_k_tsls, sig2n_k_gmlag,\
-                white, hac, kp_het, gm):
+                white, hac, kp_het, gm,\
+                ):
     """
     A single function to call all the econometric models in pysal.
 
@@ -65,6 +68,11 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
     nonspat_diag : boolean
                    Run nonspatial diagnositcs (this might be removed later or
                    only applied to OLS)
+    vc_matrix   : boolean
+                  If True print VC matrix to screen in output, if False do
+                  nothing
+    predy_resid : string
+                  Name of file to write output to, if None or False do nothing
     spat_diag   : boolean
                   Run spatial tests such as Moran's I on the residuals, LM and
                   AK tests
@@ -110,6 +118,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', endog=False, nonspat_diag=True, spat_diag=True,\
+        vc_matrix=True, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_x
@@ -118,6 +127,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', endog=False, nonspat_diag=True, spat_diag=True,\
+        vc_matrix=False, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=True, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_x
@@ -126,6 +136,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', endog=False, nonspat_diag=True, spat_diag=False,\
+        vc_matrix=False, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=True, kp_het=False, gm=False)
     >>> print reg[0].name_x
@@ -134,6 +145,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', endog=False, nonspat_diag=True, spat_diag=False,\
+        vc_matrix=True, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
@@ -142,6 +154,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', endog=False, nonspat_diag=True, spat_diag=True,\
+        vc_matrix=False, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=True, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
@@ -150,6 +163,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', endog=False, nonspat_diag=True, spat_diag=False,\
+        vc_matrix=False, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=True, kp_het=False, gm=False)
     >>> print reg[0].name_z
@@ -158,6 +172,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', endog=False, nonspat_diag=True, spat_diag=False,\
+        vc_matrix=True, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_x
@@ -166,6 +181,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', endog=False, nonspat_diag=True, spat_diag=True,\
+        vc_matrix=False, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, gm=False)
     >>> print reg[0].name_x
@@ -174,6 +190,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', endog=False, nonspat_diag=True, spat_diag=False,\
+        vc_matrix=False, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, gm=True)
     >>> print reg[0].name_x
@@ -182,6 +199,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', endog=False, nonspat_diag=True, spat_diag=False,\
+        vc_matrix=False, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, gm=True)
     >>> print reg[0].name_x
@@ -190,6 +208,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', endog=False, nonspat_diag=True, spat_diag=False,\
+        vc_matrix=False, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
@@ -198,6 +217,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', endog=False, nonspat_diag=True, spat_diag=False,\
+        vc_matrix=True, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, gm=False)
     >>> print reg[0].name_z
@@ -215,6 +235,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', endog=True, nonspat_diag=True, spat_diag=False,\
+        vc_matrix=False, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
@@ -223,6 +244,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', endog=True, nonspat_diag=True, spat_diag=False,\
+        vc_matrix=False, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=True, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
@@ -231,6 +253,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', endog=True, nonspat_diag=True, spat_diag=True,\
+        vc_matrix=True, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=True, kp_het=False, gm=False)
     >>> print reg[0].name_z
@@ -239,6 +262,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', endog=True, nonspat_diag=True, spat_diag=False,\
+        vc_matrix=False, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
@@ -247,6 +271,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', endog=True, nonspat_diag=True, spat_diag=False,\
+        vc_matrix=False, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=True, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
@@ -255,6 +280,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', endog=True, nonspat_diag=True, spat_diag=False,\
+        vc_matrix=False, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=True, kp_het=False, gm=False)
     >>> print reg[0].name_z
@@ -263,6 +289,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', endog=True, nonspat_diag=True, spat_diag=True,\
+        vc_matrix=True, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
@@ -271,6 +298,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', endog=True, nonspat_diag=True, spat_diag=True,\
+        vc_matrix=False, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, gm=False)
     >>> print reg[0].name_z
@@ -279,6 +307,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', endog=True, nonspat_diag=True, spat_diag=False,\
+        vc_matrix=False, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, gm=False)
     >>> print reg[0].name_z
@@ -287,6 +316,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', endog=True, nonspat_diag=True, spat_diag=False,\
+        vc_matrix=True, predy_resid=False,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, gm=False)
     >>> print reg[0].name_z
@@ -294,19 +324,29 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
 
     """
     output = []
+    if predy_resid:
+        pred_res = y
+        pred_res.shape = (y.shape[0], 1)
+        header_pr = name_y
+
+
+
     if model_type == 'Standard':
         if endog:
             # run 2SLS regression; with or without nonspatial diagnostics
             reg = TSLS(y=y, x=x, yend=ye, q=h,\
-                        nonspat_diag=nonspat_diag, spat_diag=False,\
+                        nonspat_diag=nonspat_diag, spat_diag=False, vm=vc_matrix,\
                         name_y=name_y, name_x=name_x, name_yend=name_ye,\
                         name_q=name_h, name_ds=name_ds, sig2n_k=sig2n_k_tsls)
         else:
             # run OLS regression; with or without nonspatial diagnostics
             reg = OLS(y=y, x=x,\
-                       nonspat_diag=nonspat_diag, spat_diag=False,\
+                       nonspat_diag=nonspat_diag, spat_diag=False, vm=vc_matrix,\
                        name_y=name_y, name_x=name_x, name_ds=name_ds,
                        sig2n_k=sig2n_k_ols)
+        if predy_resid:  # write out predicted values and residuals
+            pred_res = np.hstack((pred_res, reg.predy, reg.u))
+            header_pr += ',standard_predy,standard_resid'
         if w_list and spat_diag:
             for w in w_list:
                 # add spatial diagnostics for each W
@@ -323,22 +363,28 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
             for wk in wk_list:
                 # compute HAC std errors
                 output.append(get_robust(reg, 'hac', wk))
-        return output
 
 
 
     elif model_type == 'Spatial Lag':
+        counter = 1
         for w in w_list:
             if endog:
                #GM Spatial lag with non-spatial endog variables
-                output.append(GM_Lag(y=y, x=x, w=w, yend=ye, q=h,\
-                             name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                             name_q=name_h, name_ds=name_ds, sig2n_k=sig2n_k_gmlag))
+                reg = GM_Lag(y=y, x=x, w=w, yend=ye, q=h, vm=vc_matrix,\
+                      name_y=name_y, name_x=name_x, name_yend=name_ye,\
+                      name_q=name_h, name_ds=name_ds, sig2n_k=sig2n_k_gmlag)
             else:
                #GM Spatial lag
-                output.append(GM_Lag(y=y, x=x, w=w,\
-                             name_y=name_y, name_x=name_x, name_ds=name_ds,\
-                             sig2n_k=sig2n_k_gmlag))
+                reg = GM_Lag(y=y, x=x, w=w, vm=vc_matrix,\
+                      name_y=name_y, name_x=name_x, name_ds=name_ds,\
+                      sig2n_k=sig2n_k_gmlag)
+            if predy_resid:  # write out predicted values and residuals
+                pred_res, header_pr, counter = collect_predy_resid(\
+                                       pred_res, header_pr, reg, '',\
+                                       True, len(w_list), counter)
+            output.append(reg)
+
         white_regs = []
         if white:
             for reg in output:
@@ -352,87 +398,123 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                     hac_regs.append(get_robust(reg, 'hac', wk))
         output.extend(white_regs)
         output.extend(hac_regs)
-        return output
 
 
 
     elif model_type == 'Spatial Error':
-        kp_het_regs = []
+        counter = 1
         if gm:
             for w in w_list:
                 if endog:
                     #GM Spatial error (hom) with non-spatial endogenous variable
-                    output.append(GM_Endog_Error_Hom(y=y, x=x, w=w, yend=ye, q=h,\
-                                  name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                                  name_q=name_h, name_ds=name_ds))
+                    reg = GM_Endog_Error_Hom(y=y, x=x, w=w, yend=ye, q=h, vm=vc_matrix,\
+                          name_y=name_y, name_x=name_x, name_yend=name_ye,\
+                          name_q=name_h, name_ds=name_ds)
                 else:
                     #GM Spatial error (hom) 
-                    output.append(GM_Error_Hom(y=y, x=x, w=w,\
-                                  name_y=name_y, name_x=name_x, name_ds=name_ds))
+                    reg = GM_Error_Hom(y=y, x=x, w=w, vm=vc_matrix,\
+                          name_y=name_y, name_x=name_x, name_ds=name_ds)
+                if predy_resid:  # write out predicted values and residuals
+                    pred_res, header_pr, counter = collect_predy_resid(\
+                                           pred_res, header_pr, reg, '',\
+                                           False, len(w_list), counter)
+                output.append(reg)
         else:
             for w in w_list:
                 if endog:
                     #GM Spatial error with non-spatial endogenous variable (KP 98-99)
-                    output.append(GM_Endog_Error(y=y, x=x, w=w, yend=ye, q=h,\
-                                  name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                                  name_q=name_h, name_ds=name_ds))
+                    reg = GM_Endog_Error(y=y, x=x, w=w, yend=ye, q=h, vm=vc_matrix,\
+                          name_y=name_y, name_x=name_x, name_yend=name_ye,\
+                          name_q=name_h, name_ds=name_ds)
                 else:
                     #GM Spatial error (KP 98-99)
-                    output.append(GM_Error(y=y, x=x, w=w,\
-                                  name_y=name_y, name_x=name_x, name_ds=name_ds))
+                    reg = GM_Error(y=y, x=x, w=w, vm=vc_matrix,\
+                          name_y=name_y, name_x=name_x, name_ds=name_ds)
+                if predy_resid:  # write out predicted values and residuals
+                    pred_res, header_pr, counter = collect_predy_resid(\
+                                           pred_res, header_pr, reg, '',\
+                                           False, len(w_list), counter)
+                output.append(reg)
+
+        counter = 1
         if kp_het:
             for w in w_list:
                 if endog:
                     #GM Spatial error with het and with non-spatial endogenous variable
-                    kp_het_regs.append(GM_Endog_Error_Het(y=y, x=x, w=w, yend=ye, q=h,\
-                                        name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                                        name_q=name_h, name_ds=name_ds))
+                    reg = GM_Endog_Error_Het(y=y, x=x, w=w, yend=ye, q=h, vm=vc_matrix,\
+                          name_y=name_y, name_x=name_x, name_yend=name_ye,\
+                          name_q=name_h, name_ds=name_ds)
                 else:
                     #GM Spatial error with het
-                    kp_het_regs.append(GM_Error_Het(y=y, x=x, w=w,\
-                                         name_y=name_y, name_x=name_x, name_ds=name_ds))
-        output.extend(kp_het_regs)
-        return output
+                    reg = GM_Error_Het(y=y, x=x, w=w, vm=vc_matrix,\
+                          name_y=name_y, name_x=name_x, name_ds=name_ds)
+                if predy_resid:  # write out predicted values and residuals
+                    pred_res, header_pr, counter = collect_predy_resid(\
+                                           pred_res, header_pr, reg, 'het_',\
+                                           False, len(w_list), counter)
+                output.append(reg)
 
 
 
     elif model_type == 'Spatial Lag+Error':
-        kp_het_regs = []
+        counter = 1
         if gm:
             for w in w_list:
                 if endog:
                     #GM Spatial combo (hom) with non-spatial endogenous variables
-                    output.append(GM_Combo_Hom(y=y, x=x, w=w, yend=ye, q=h,\
-                                  name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                                  name_q=name_h, name_ds=name_ds))
+                    reg = GM_Combo_Hom(y=y, x=x, w=w, yend=ye, q=h, vm=vc_matrix,\
+                          name_y=name_y, name_x=name_x, name_yend=name_ye,\
+                          name_q=name_h, name_ds=name_ds)
                 else:
                     #GM Spatial combo (hom)
-                    output.append(GM_Combo_Hom(y=y, x=x, w=w,\
-                                  name_y=name_y, name_x=name_x, name_ds=name_ds))
+                    reg = GM_Combo_Hom(y=y, x=x, w=w, vm=vc_matrix,\
+                          name_y=name_y, name_x=name_x, name_ds=name_ds)
+                if predy_resid:  # write out predicted values and residuals
+                    pred_res, header_pr, counter = collect_predy_resid(\
+                                           pred_res, header_pr, reg, '',\
+                                           True, len(w_list), counter)
+                output.append(reg)
         else:
             for w in w_list:
                 if endog:
                     #GM Spatial combo with non-spatial endogenous variables (KP 98-99)
-                    output.append(GM_Combo(y=y, x=x, w=w, yend=ye, q=h,\
-                                  name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                                  name_q=name_h, name_ds=name_ds))
+                    reg = GM_Combo(y=y, x=x, w=w, yend=ye, q=h, vm=vc_matrix,\
+                          name_y=name_y, name_x=name_x, name_yend=name_ye,\
+                          name_q=name_h, name_ds=name_ds)
                 else:
                     #GM Spatial combo (KP 98-99)
-                    output.append(GM_Combo(y=y, x=x, w=w,\
-                                  name_y=name_y, name_x=name_x, name_ds=name_ds))
+                    reg = GM_Combo(y=y, x=x, w=w, vm=vc_matrix,\
+                          name_y=name_y, name_x=name_x, name_ds=name_ds)
+                if predy_resid:  # write out predicted values and residuals
+                    pred_res, header_pr, counter = collect_predy_resid(\
+                                           pred_res, header_pr, reg, '',\
+                                           True, len(w_list), counter)
+                output.append(reg)
+
+        counter = 1
         if kp_het:
             for w in w_list:
                 if endog:
                     #GM Spatial combo with het with non-spatial endogenous variables
-                    kp_het_regs.append(GM_Combo_Het(y=y, x=x, w=w_list[0], yend=ye, q=h,\
-                                         name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                                         name_q=name_h, name_ds=name_ds))
+                    reg = GM_Combo_Het(y=y, x=x, w=w_list[0], yend=ye, q=h, vm=vc_matrix,\
+                          name_y=name_y, name_x=name_x, name_yend=name_ye,\
+                          name_q=name_h, name_ds=name_ds)
                 else:
                     #GM Spatial combo with het
-                    kp_het_regs.append(GM_Combo_Het(y=y, x=x, w=w_list[0],\
-                                         name_y=name_y, name_x=name_x, name_ds=name_ds))
-        output.extend(kp_het_regs)
-        return output
+                    reg = GM_Combo_Het(y=y, x=x, w=w_list[0], vm=vc_matrix,\
+                          name_y=name_y, name_x=name_x, name_ds=name_ds)
+                if predy_resid:  # write out predicted values and residuals
+                    pred_res, header_pr, counter = collect_predy_resid(\
+                                           pred_res, header_pr, reg, 'het',\
+                                           True, len(w_list), counter)
+                output.append(reg)
+
+
+    if predy_resid:
+        outfile = open(predy_resid, 'w')
+        outfile.write(header_pr+'\n')
+        np.savetxt(outfile, pred_res, delimiter=',')
+    return output
     
 
 def get_robust(reg, robust, wk=None):
@@ -446,6 +528,23 @@ def get_robust(reg, robust, wk=None):
     reg_robust.vm = ROBUST.robust_vm(reg=reg_robust, wk=wk)
     reg_robust._get_diagnostics()
     return reg_robust
+
+
+def collect_predy_resid(pred_res, header_pr, reg, model, spatial, ws, counter):
+    if ws > 1:
+        lead = model+'W'+str(counter)+'_'
+        counter += 1
+    else:
+        lead = model
+    if spatial:
+        pred_res = np.hstack((pred_res, reg.predy, reg.u, reg.predy_sp, reg.resid_sp))
+        header_pr += ','+lead+'predy,'+lead+'resid,'+lead+'predy_sp,'+lead+'resid_sp'
+    else:
+        pred_res = np.hstack((pred_res, reg.predy, reg.u))
+        header_pr += ','+lead+'predy,'+lead+'resid'
+    return pred_res, header_pr, counter
+    
+
 
 
 def _test():
