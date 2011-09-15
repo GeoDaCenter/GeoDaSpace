@@ -39,8 +39,8 @@ class xrcgsPrefsFrame(wx.Frame):
         self.stddev = xrc.XRCCTRL(self, "stddev")
         self.OLSNk = xrc.XRCCTRL(self, "OLSNk")
         self.OLSN = xrc.XRCCTRL(self, "OLSN")
-        self.2SLSNk = xrc.XRCCTRL(self, "2SLSNk")
-        self.2SLSN = xrc.XRCCTRL(self, "2SLSN")
+        self.twoSLSNk = xrc.XRCCTRL(self, "twoSLSNk")
+        self.twoSLSN = xrc.XRCCTRL(self, "twoSLSN")
         self.GMlagNk = xrc.XRCCTRL(self, "GMlagNk")
         self.GMlagN = xrc.XRCCTRL(self, "GMlagN")
         self.othermodelsN = xrc.XRCCTRL(self, "othermodelsN")
@@ -77,10 +77,11 @@ class xrcgsPrefsFrame(wx.Frame):
 
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_OLSNk, self.OLSNk)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_OLSN, self.OLSN)
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_2SLSNk, self.2SLSNk)
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_2SLSN, self.2SLSN)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_twoSLSNk, self.twoSLSNk)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_twoSLSN, self.twoSLSN)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_GMlagNk, self.GMlagNk)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_GMlagN, self.GMlagN)
+        self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_MaxIterations, self.MaxIterations)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_inferenceOnLambda, self.inferenceOnLambda)
         self.Bind(wx.EVT_CHOICE, self.OnChoice_CompInverse, self.CompInverse)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_Step1c, self.Step1c)
@@ -107,17 +108,17 @@ class xrcgsPrefsFrame(wx.Frame):
         print "OnRadiobutton_OLSN()"
 #!XRCED:end-block:xrcgsPrefsFrame.OnRadiobutton_OLSN        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnRadiobutton_2SLSNk
-    def OnRadiobutton_2SLSNk(self, evt):
+#!XRCED:begin-block:xrcgsPrefsFrame.OnRadiobutton_twoSLSNk
+    def OnRadiobutton_twoSLSNk(self, evt):
         # Replace with event handler code
-        print "OnRadiobutton_2SLSNk()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnRadiobutton_2SLSNk        
+        print "OnRadiobutton_twoSLSNk()"
+#!XRCED:end-block:xrcgsPrefsFrame.OnRadiobutton_twoSLSNk        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnRadiobutton_2SLSN
-    def OnRadiobutton_2SLSN(self, evt):
+#!XRCED:begin-block:xrcgsPrefsFrame.OnRadiobutton_twoSLSN
+    def OnRadiobutton_twoSLSN(self, evt):
         # Replace with event handler code
-        print "OnRadiobutton_2SLSN()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnRadiobutton_2SLSN        
+        print "OnRadiobutton_twoSLSN()"
+#!XRCED:end-block:xrcgsPrefsFrame.OnRadiobutton_twoSLSN        
 
 #!XRCED:begin-block:xrcgsPrefsFrame.OnRadiobutton_GMlagNk
     def OnRadiobutton_GMlagNk(self, evt):
@@ -130,6 +131,12 @@ class xrcgsPrefsFrame(wx.Frame):
         # Replace with event handler code
         print "OnRadiobutton_GMlagN()"
 #!XRCED:end-block:xrcgsPrefsFrame.OnRadiobutton_GMlagN        
+
+#!XRCED:begin-block:xrcgsPrefsFrame.OnSpinctrl_MaxIterations
+    def OnSpinctrl_MaxIterations(self, evt):
+        # Replace with event handler code
+        print "OnSpinctrl_MaxIterations()"
+#!XRCED:end-block:xrcgsPrefsFrame.OnSpinctrl_MaxIterations        
 
 #!XRCED:begin-block:xrcgsPrefsFrame.OnCheckbox_inferenceOnLambda
     def OnCheckbox_inferenceOnLambda(self, evt):
@@ -286,7 +293,7 @@ def __init_resources():
                       </object>
                     </object>
                     <object class="sizeritem">
-                      <object class="wxRadioButton" name="2SLSNk">
+                      <object class="wxRadioButton" name="twoSLSNk">
                         <style>wxRB_GROUP</style>
                         <XRCED>
                           <events>EVT_RADIOBUTTON</events>
@@ -295,7 +302,7 @@ def __init_resources():
                       </object>
                     </object>
                     <object class="sizeritem">
-                      <object class="wxRadioButton" name="2SLSN">
+                      <object class="wxRadioButton" name="twoSLSN">
                         <value>1</value>
                         <XRCED>
                           <events>EVT_RADIOBUTTON</events>
@@ -382,9 +389,13 @@ def __init_resources():
                       <border>10</border>
                     </object>
                     <object class="sizeritem">
-                      <object class="wxTextCtrl" name="MaxIterations">
+                      <object class="wxSpinCtrl" name="MaxIterations">
+                        <size>100,-1</size>
                         <value>1</value>
+                        <min>1</min>
+                        <max>999999999</max>
                         <XRCED>
+                          <events>EVT_SPINCTRL</events>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
@@ -466,7 +477,8 @@ def __init_resources():
                     <object class="sizeritem">
                       <object class="wxChoice" name="CompInverse">
                         <content>
-                          <item>Power exp</item>
+                          <item>Power Expansion</item>
+                          <item>True Inverse</item>
                         </content>
                         <XRCED>
                           <events>EVT_CHOICE</events>
@@ -525,6 +537,9 @@ def __init_resources():
                     </object>
                     <object class="sizeritem">
                       <object class="wxSpinCtrl" name="NumSpatialLabs">
+                        <value>1</value>
+                        <min>1</min>
+                        <max>5</max>
                         <XRCED>
                           <events>EVT_SPINCTRL</events>
                           <assign_var>1</assign_var>
@@ -542,6 +557,7 @@ def __init_resources():
                     </object>
                     <object class="sizeritem">
                       <object class="wxCheckBox" name="IncludeLagsofUserInst">
+                        <checked>1</checked>
                         <XRCED>
                           <events>EVT_CHECKBOX</events>
                           <assign_var>1</assign_var>
@@ -689,6 +705,8 @@ def __init_resources():
                     </object>
                     <object class="sizeritem">
                       <object class="wxSpinCtrl" name="numcores">
+                        <value>1</value>
+                        <min>1</min>
                         <XRCED>
                           <events>EVT_SPINCTRL</events>
                           <assign_var>1</assign_var>
