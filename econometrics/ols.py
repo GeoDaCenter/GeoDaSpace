@@ -375,7 +375,7 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     def __init__(self, y, x, w=None, robust=None, wk=None,\
                         sig2n_k = True, nonspat_diag=True, spat_diag=False,\
                         name_y=None, name_x=None, name_ds=None,\
-                        vm=False, pred=False):
+                        vm=False, pred=False, moran=False):
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
         USER.check_robust(robust, wk)
@@ -389,14 +389,14 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
         self.name_x = USER.set_name_x(name_x, x)
         self.robust = USER.set_robust(robust)
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=nonspat_diag,\
-                                    spat_diag=spat_diag, vm=vm, pred=pred)
+                                    spat_diag=spat_diag, vm=vm, pred=pred, moran=moran)
 
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              spat_diag=False, vm=False, pred=False):
+                              spat_diag=False, vm=False, pred=False, moran=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=nonspat_diag,\
                                             spat_diag=spat_diag, vm=vm,\
-                                            pred=pred)
+                                            pred=pred, moran=moran)
 
 def _test():
     import doctest
