@@ -97,7 +97,8 @@ class DiagnosticBuilder:
 
     """
     def __init__(self, w, vm, pred, instruments=False, beta_diag=True,\
-                        nonspat_diag=True, spat_diag=False, lamb=False):
+                        nonspat_diag=True, spat_diag=False, lamb=False,\
+                        moran=False):
 
         #Coefficient, Std.Error, t-Statistic, Probability 
         if beta_diag:
@@ -143,8 +144,9 @@ class DiagnosticBuilder:
                     self.rlm_error = lm_tests.rlme
                     self.rlm_lag = lm_tests.rlml
                     self.lm_sarma = lm_tests.sarma
-                    moran_res = diagnostics_sp.MoranRes(self, w, z=True)
-                    self.moran_res = moran_res.I, moran_res.zI, moran_res.p_norm 
+                    if moran:
+                        moran_res = diagnostics_sp.MoranRes(self, w, z=True)
+                        self.moran_res = moran_res.I, moran_res.zI, moran_res.p_norm 
 
         #part 5: summary output
         summary = summary_intro(self)
@@ -158,7 +160,7 @@ class DiagnosticBuilder:
             if not instruments:  # quicky hack until we figure out the global nonspatial diag rules
                 summary += summary_nonspat_diag_2(self)
         if spat_diag:
-            summary += summary_spat_diag(self, instruments)
+            summary += summary_spat_diag(self, instruments, moran)
         if vm:
             summary += summary_vm(self)
         if pred:
@@ -719,14 +721,15 @@ def summary_nonspat_diag_2(reg):
             strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" %('White',reg.white['df'],reg.white['wh'],reg.white['pvalue'])
     return strSummary
 
-def summary_spat_diag(reg, instruments):
+def summary_spat_diag(reg, instruments, moran):
     strSummary = ""
     strSummary += "DIAGNOSTICS FOR SPATIAL DEPENDENCE\n"
     strSummary += "TEST                          MI/DF      VALUE          PROB\n" 
     if instruments:
         strSummary += "%-22s      %2d    %12.6f       %9.7f\n" % ("Anselin-Kelejian Test", 1, reg.ak_test[0], reg.ak_test[1])
     else:
-        strSummary += "%-22s  %12.6f %12.6f       %9.7f\n" % ("Moran's I (error)", reg.moran_res[0], reg.moran_res[1], reg.moran_res[2])
+        if moran:
+            strSummary += "%-22s  %12.6f %12.6f       %9.7f\n" % ("Moran's I (error)", reg.moran_res[0], reg.moran_res[1], reg.moran_res[2])
         strSummary += "%-22s      %2d    %12.6f       %9.7f\n" % ("Lagrange Multiplier (lag)", 1, reg.lm_lag[0], reg.lm_lag[1])
         strSummary += "%-22s         %2d    %12.6f       %9.7f\n" % ("Robust LM (lag)", 1, reg.rlm_lag[0], reg.rlm_lag[1])
         strSummary += "%-22s    %2d    %12.6f       %9.7f\n" % ("Lagrange Multiplier (error)", 1, reg.lm_error[0], reg.lm_error[1])
