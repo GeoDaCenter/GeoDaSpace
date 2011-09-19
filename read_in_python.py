@@ -5,7 +5,7 @@ from scipy.optimize import fmin_l_bfgs_b
 import scipy.optimize as op
 
 a = []
-txt_link = 'matlab/LocOMGrubs.txt'
+txt_link = 'LocOMGrubs.txt'
 txt = open(txt_link)
 for line in txt:
     line = line.strip('\n').strip('\r').split()
@@ -42,10 +42,10 @@ for i in beta0:
     theta0.append(float(i))
 #theta0 = [np.log(alphaN0/(1-alphaN0)), np.log((alphaR0/B)/(1-alphaR0/B)), np.log((phi0/Bphi)/(1-phi0/Bphi)), beta0]
 dimbeta = beta0.shape[0]
-numu = 20
-#U = np.random.uniform(0, 1, (n, numu))
+numu = 10
+U = np.random.uniform(0, 1, (n, numu))
 #np.savetxt('U.txt',U,delimiter=",")
-U = np.loadtxt('U.txt',delimiter=",")
+#U = np.loadtxt('U.txt',delimiter=",")
 print np.array(theta0)
 bounds=[(0.,1.),(None,B),(None,Bphi),(None,None),(None,None),(None,None),(None,None)]
 par_hat = negLogEL(np.array(theta0), y, U, XX, H, dimbeta, B, Bphi, want_derivatives=1)
