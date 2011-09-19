@@ -41,7 +41,8 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
         Ui = np.reshape(U[i, :],(1,m))
         F[i, :] = np.array([np.sum(p(np.array(range(int(round(y[i])))), phi, np.array(mu[i])))] * m) \
                  + Ui * p(np.array([y[i]]), phi, np.array(mu[i]))
-        print np.sum(p(np.array(range(int(round(y[i])))), phi, np.array(mu[i]))),Ui, p(np.array([y[i]]), phi, np.array(mu[i]))
+        #print '$$$', np.sum(p(np.array(range(int(round(y[i])))), phi, np.array(mu[i]))),p(np.array([y[i]]), phi, np.array(mu[i])),Ui,y[i],phi,mu[i]
+        #print F[i, :]
         z[i, :] = np.array([norm.ppf(j, 0) for j in F[i, :]])
         dFdphi[i, :] = np.array([np.sum(dpdphi(np.array(range(int(round(y[i])))), phi, np.array(mu[i])))] * m) \
                 + Ui * dpdphi(np.array([y[i]]), phi, np.array(mu[i]))
@@ -122,6 +123,8 @@ def p(y,phi,mu):
             p[i]=(phi**2./(1+phi**2))**(phi**2.*mu[i])
         else:
             p[i]=1./(y[i]*beta(y[i],phi**2.*mu[i]))*(phi**2/(1+phi**2))**(phi**2.*mu[i])*(1./(1+phi**2)**y[i])
+    if sum(p)==1:
+        p[0]=0.9999
     return p
 
 # dpdphi(y,phi,mu) is the derivative of p(y,phi,mu) with respect to phi.
