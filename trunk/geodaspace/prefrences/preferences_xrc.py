@@ -660,6 +660,8 @@ def __init_resources():
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
+                      <flag>wxLEFT</flag>
+                      <border>10</border>
                     </object>
                     <object class="sizeritem">
                       <object class="wxCheckBox" name="OLSdiagnostics">
@@ -675,6 +677,8 @@ def __init_resources():
                       <object class="wxStaticText">
                         <label>Moran's I of the\nResiduals</label>
                       </object>
+                      <flag>wxLEFT</flag>
+                      <border>10</border>
                     </object>
                     <object class="sizeritem">
                       <object class="wxCheckBox" name="residualMoran">
@@ -691,6 +695,7 @@ def __init_resources():
                         <font>
                           <weight>bold</weight>
                         </font>
+                        <hidden>1</hidden>
                       </object>
                       <flag>wxTOP</flag>
                       <border>15</border>
@@ -699,6 +704,7 @@ def __init_resources():
                     <object class="sizeritem">
                       <object class="wxStaticText" name="numcoresLabel">
                         <label>Multi-Core</label>
+                        <hidden>1</hidden>
                         <XRCED>
                           <assign_var>1</assign_var>
                         </XRCED>
@@ -708,6 +714,7 @@ def __init_resources():
                       <object class="wxSpinCtrl" name="numcores">
                         <value>1</value>
                         <min>1</min>
+                        <hidden>1</hidden>
                         <XRCED>
                           <events>EVT_SPINCTRL</events>
                           <assign_var>1</assign_var>
@@ -717,10 +724,11 @@ def __init_resources():
                     </object>
                     <cols>2</cols>
                     <rows>5</rows>
-                    <vgap>5</vgap>
+                    <vgap>7</vgap>
                     <hgap>25</hgap>
                   </object>
-                  <flag>wxALIGN_CENTRE</flag>
+                  <flag>wxALL|wxALIGN_CENTRE</flag>
+                  <border>10</border>
                 </object>
               </object>
               <size>650,300</size>
