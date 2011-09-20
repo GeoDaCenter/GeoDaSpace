@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <resource>
-  <object class="wxFrame" name="gsPrefsFrame">
+  <object class="wxDialog" name="gsPrefsDialog">
     <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
       <object class="sizeritem">
@@ -186,6 +186,7 @@
                       <object class="wxTextCtrl" name="StoppingCriterion">
                         <value>0.00001</value>
                         <XRCED>
+                          <events>EVT_TEXT</events>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
@@ -560,5 +561,10 @@
     </object>
     <size>650,400</size>
     <title>GeoDaSpace Preferences</title>
+    <centered>1</centered>
+    <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
+    <XRCED>
+      <events>EVT_CLOSE|EVT_WINDOW_DESTROY</events>
+    </XRCED>
   </object>
 </resource>

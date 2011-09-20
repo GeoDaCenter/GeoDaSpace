@@ -16,8 +16,8 @@ def get_resources():
 
 
 
-class xrcgsPrefsFrame(wx.Frame):
-#!XRCED:begin-block:xrcgsPrefsFrame.PreCreate
+class xrcgsPrefsDialog(wx.Dialog):
+#!XRCED:begin-block:xrcgsPrefsDialog.PreCreate
     def PreCreate(self, pre):
         """ This function is called during the class's initialization.
         
@@ -26,13 +26,13 @@ class xrcgsPrefsFrame(wx.Frame):
         """
         pass
         
-#!XRCED:end-block:xrcgsPrefsFrame.PreCreate
+#!XRCED:end-block:xrcgsPrefsDialog.PreCreate
 
     def __init__(self, parent):
         # Two stage creation (see http://wiki.wxpython.org/index.cgi/TwoStageCreation)
-        pre = wx.PreFrame()
+        pre = wx.PreDialog()
         self.PreCreate(pre)
-        get_resources().LoadOnFrame(pre, parent, "gsPrefsFrame")
+        get_resources().LoadOnDialog(pre, parent, "gsPrefsDialog")
         self.PostCreate(pre)
 
         # Define variables for the controls, bind event handlers
@@ -83,6 +83,7 @@ class xrcgsPrefsFrame(wx.Frame):
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_GMlagNk, self.GMlagNk)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_GMlagN, self.GMlagN)
         self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_MaxIterations, self.MaxIterations)
+        self.Bind(wx.EVT_TEXT, self.OnText_StoppingCriterion, self.StoppingCriterion)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_inferenceOnLambda, self.inferenceOnLambda)
         self.Bind(wx.EVT_CHOICE, self.OnChoice_CompInverse, self.CompInverse)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_Step1c, self.Step1c)
@@ -96,126 +97,146 @@ class xrcgsPrefsFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.OnButton_restoreButton, self.restoreButton)
         self.Bind(wx.EVT_BUTTON, self.OnButton_cancelButton, self.cancelButton)
         self.Bind(wx.EVT_BUTTON, self.OnButton_saveButton, self.saveButton)
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnWindow_destroy)
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnRadiobutton_OLSNk
+#!XRCED:begin-block:xrcgsPrefsDialog.OnRadiobutton_OLSNk
     def OnRadiobutton_OLSNk(self, evt):
         # Replace with event handler code
         print "OnRadiobutton_OLSNk()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnRadiobutton_OLSNk        
+#!XRCED:end-block:xrcgsPrefsDialog.OnRadiobutton_OLSNk        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnRadiobutton_OLSN
+#!XRCED:begin-block:xrcgsPrefsDialog.OnRadiobutton_OLSN
     def OnRadiobutton_OLSN(self, evt):
         # Replace with event handler code
         print "OnRadiobutton_OLSN()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnRadiobutton_OLSN        
+#!XRCED:end-block:xrcgsPrefsDialog.OnRadiobutton_OLSN        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnRadiobutton_twoSLSNk
+#!XRCED:begin-block:xrcgsPrefsDialog.OnRadiobutton_twoSLSNk
     def OnRadiobutton_twoSLSNk(self, evt):
         # Replace with event handler code
         print "OnRadiobutton_twoSLSNk()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnRadiobutton_twoSLSNk        
+#!XRCED:end-block:xrcgsPrefsDialog.OnRadiobutton_twoSLSNk        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnRadiobutton_twoSLSN
+#!XRCED:begin-block:xrcgsPrefsDialog.OnRadiobutton_twoSLSN
     def OnRadiobutton_twoSLSN(self, evt):
         # Replace with event handler code
         print "OnRadiobutton_twoSLSN()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnRadiobutton_twoSLSN        
+#!XRCED:end-block:xrcgsPrefsDialog.OnRadiobutton_twoSLSN        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnRadiobutton_GMlagNk
+#!XRCED:begin-block:xrcgsPrefsDialog.OnRadiobutton_GMlagNk
     def OnRadiobutton_GMlagNk(self, evt):
         # Replace with event handler code
         print "OnRadiobutton_GMlagNk()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnRadiobutton_GMlagNk        
+#!XRCED:end-block:xrcgsPrefsDialog.OnRadiobutton_GMlagNk        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnRadiobutton_GMlagN
+#!XRCED:begin-block:xrcgsPrefsDialog.OnRadiobutton_GMlagN
     def OnRadiobutton_GMlagN(self, evt):
         # Replace with event handler code
         print "OnRadiobutton_GMlagN()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnRadiobutton_GMlagN        
+#!XRCED:end-block:xrcgsPrefsDialog.OnRadiobutton_GMlagN        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnSpinctrl_MaxIterations
+#!XRCED:begin-block:xrcgsPrefsDialog.OnSpinctrl_MaxIterations
     def OnSpinctrl_MaxIterations(self, evt):
         # Replace with event handler code
         print "OnSpinctrl_MaxIterations()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnSpinctrl_MaxIterations        
+#!XRCED:end-block:xrcgsPrefsDialog.OnSpinctrl_MaxIterations        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnCheckbox_inferenceOnLambda
+#!XRCED:begin-block:xrcgsPrefsDialog.OnText_StoppingCriterion
+    def OnText_StoppingCriterion(self, evt):
+        # Replace with event handler code
+        print "OnText_StoppingCriterion()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnText_StoppingCriterion        
+
+#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_inferenceOnLambda
     def OnCheckbox_inferenceOnLambda(self, evt):
         # Replace with event handler code
         print "OnCheckbox_inferenceOnLambda()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnCheckbox_inferenceOnLambda        
+#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_inferenceOnLambda        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnChoice_CompInverse
+#!XRCED:begin-block:xrcgsPrefsDialog.OnChoice_CompInverse
     def OnChoice_CompInverse(self, evt):
         # Replace with event handler code
         print "OnChoice_CompInverse()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnChoice_CompInverse        
+#!XRCED:end-block:xrcgsPrefsDialog.OnChoice_CompInverse        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnCheckbox_Step1c
+#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_Step1c
     def OnCheckbox_Step1c(self, evt):
         # Replace with event handler code
         print "OnCheckbox_Step1c()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnCheckbox_Step1c        
+#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_Step1c        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnSpinctrl_NumSpatialLags
+#!XRCED:begin-block:xrcgsPrefsDialog.OnSpinctrl_NumSpatialLags
     def OnSpinctrl_NumSpatialLags(self, evt):
         # Replace with event handler code
         print "OnSpinctrl_NumSpatialLags()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnSpinctrl_NumSpatialLags        
+#!XRCED:end-block:xrcgsPrefsDialog.OnSpinctrl_NumSpatialLags        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnCheckbox_IncludeLagsofUserInst
+#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_IncludeLagsofUserInst
     def OnCheckbox_IncludeLagsofUserInst(self, evt):
         # Replace with event handler code
         print "OnCheckbox_IncludeLagsofUserInst()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnCheckbox_IncludeLagsofUserInst        
+#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_IncludeLagsofUserInst        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnCheckbox_ShowVarCovarMatrix
+#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_ShowVarCovarMatrix
     def OnCheckbox_ShowVarCovarMatrix(self, evt):
         # Replace with event handler code
         print "OnCheckbox_ShowVarCovarMatrix()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnCheckbox_ShowVarCovarMatrix        
+#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_ShowVarCovarMatrix        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnCheckbox_saveValuesResiduals
+#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_saveValuesResiduals
     def OnCheckbox_saveValuesResiduals(self, evt):
         # Replace with event handler code
         print "OnCheckbox_saveValuesResiduals()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnCheckbox_saveValuesResiduals        
+#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_saveValuesResiduals        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnCheckbox_OLSdiagnostics
+#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_OLSdiagnostics
     def OnCheckbox_OLSdiagnostics(self, evt):
         # Replace with event handler code
         print "OnCheckbox_OLSdiagnostics()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnCheckbox_OLSdiagnostics        
+#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_OLSdiagnostics        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnCheckbox_residualMoran
+#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_residualMoran
     def OnCheckbox_residualMoran(self, evt):
         # Replace with event handler code
         print "OnCheckbox_residualMoran()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnCheckbox_residualMoran        
+#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_residualMoran        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnSpinctrl_numcores
+#!XRCED:begin-block:xrcgsPrefsDialog.OnSpinctrl_numcores
     def OnSpinctrl_numcores(self, evt):
         # Replace with event handler code
         print "OnSpinctrl_numcores()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnSpinctrl_numcores        
+#!XRCED:end-block:xrcgsPrefsDialog.OnSpinctrl_numcores        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnButton_restoreButton
+#!XRCED:begin-block:xrcgsPrefsDialog.OnButton_restoreButton
     def OnButton_restoreButton(self, evt):
         # Replace with event handler code
         print "OnButton_restoreButton()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnButton_restoreButton        
+#!XRCED:end-block:xrcgsPrefsDialog.OnButton_restoreButton        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnButton_cancelButton
+#!XRCED:begin-block:xrcgsPrefsDialog.OnButton_cancelButton
     def OnButton_cancelButton(self, evt):
         # Replace with event handler code
         print "OnButton_cancelButton()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnButton_cancelButton        
+#!XRCED:end-block:xrcgsPrefsDialog.OnButton_cancelButton        
 
-#!XRCED:begin-block:xrcgsPrefsFrame.OnButton_saveButton
+#!XRCED:begin-block:xrcgsPrefsDialog.OnButton_saveButton
     def OnButton_saveButton(self, evt):
         # Replace with event handler code
         print "OnButton_saveButton()"
-#!XRCED:end-block:xrcgsPrefsFrame.OnButton_saveButton        
+#!XRCED:end-block:xrcgsPrefsDialog.OnButton_saveButton        
+
+#!XRCED:begin-block:xrcgsPrefsDialog.OnClose
+    def OnClose(self, evt):
+        # Replace with event handler code
+        print "OnClose()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnClose        
+
+#!XRCED:begin-block:xrcgsPrefsDialog.OnWindow_destroy
+    def OnWindow_destroy(self, evt):
+        # Replace with event handler code
+        print "OnWindow_destroy()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnWindow_destroy        
 
 
 
@@ -230,7 +251,7 @@ def __init_resources():
 
     preferences_xrc = '''\
 <?xml version="1.0" ?><resource>
-  <object class="wxFrame" name="gsPrefsFrame">
+  <object class="wxDialog" name="gsPrefsDialog">
     <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
       <object class="sizeritem">
@@ -416,6 +437,7 @@ def __init_resources():
                       <object class="wxTextCtrl" name="StoppingCriterion">
                         <value>0.00001</value>
                         <XRCED>
+                          <events>EVT_TEXT</events>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
@@ -790,6 +812,11 @@ def __init_resources():
     </object>
     <size>650,400</size>
     <title>GeoDaSpace Preferences</title>
+    <centered>1</centered>
+    <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
+    <XRCED>
+      <events>EVT_CLOSE|EVT_WINDOW_DESTROY</events>
+    </XRCED>
   </object>
 </resource>'''
 

@@ -1,12 +1,15 @@
 import wx
-from control import preferencesFrame
+from control import preferencesDialog
 
 class SimpleStandaloneApp(wx.App):
     def OnInit(self):
-        self.frame = preferencesFrame()
-        self.frame.Show()
-        self.SetTopWindow(self.frame)
-        return True
+        self.dlg = preferencesDialog()
+        #print "prefs:"
+        #print self.dlg.GetPrefs()
+        #print "show()"
+        self.SetTopWindow(self.dlg)
+        self.dlg.ShowModal()
+        return False
 
 def run():
     app = SimpleStandaloneApp(redirect=False)
