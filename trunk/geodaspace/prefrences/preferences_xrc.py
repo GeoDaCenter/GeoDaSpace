@@ -69,6 +69,7 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.other = xrc.XRCCTRL(self, "other")
         self.OLSdiagnosticsLabel = xrc.XRCCTRL(self, "OLSdiagnosticsLabel")
         self.OLSdiagnostics = xrc.XRCCTRL(self, "OLSdiagnostics")
+        self.residualMoranLabel = xrc.XRCCTRL(self, "residualMoranLabel")
         self.residualMoran = xrc.XRCCTRL(self, "residualMoran")
         self.numcoresLabel = xrc.XRCCTRL(self, "numcoresLabel")
         self.numcores = xrc.XRCCTRL(self, "numcores")
@@ -719,8 +720,11 @@ def __init_resources():
                       <flag>wxALIGN_CENTRE</flag>
                     </object>
                     <object class="sizeritem">
-                      <object class="wxStaticText">
+                      <object class="wxStaticText" name="residualMoranLabel">
                         <label>Moran's I of the\nResiduals</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
                       </object>
                       <flag>wxLEFT</flag>
                       <border>10</border>
