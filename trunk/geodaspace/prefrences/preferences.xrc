@@ -564,7 +564,25 @@
     <centered>1</centered>
     <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
     <XRCED>
-      <events>EVT_CLOSE|EVT_WINDOW_DESTROY</events>
+      <events>EVT_CLOSE</events>
     </XRCED>
+  </object>
+  <object class="wxFrame" name="Demo">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxButton" name="prefsButton">
+          <label>Preferences...</label>
+          <XRCED>
+            <events>EVT_BUTTON</events>
+          </XRCED>
+        </object>
+        <flag>wxALL|wxALIGN_CENTRE</flag>
+        <border>100</border>
+      </object>
+    </object>
+    <size>400,300</size>
+    <title>Preferences Demo</title>
+    <centered>1</centered>
   </object>
 </resource>

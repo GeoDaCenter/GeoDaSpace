@@ -5,6 +5,7 @@ import json
 import wx
 #local
 from geodaspace import remapEvtsToDispatcher#,DEBUG
+from model import preferencesModel
 import preferences_xrc
 
 DEBUG = True
@@ -34,14 +35,21 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
     Notes
     -----
     Settings Dictionary Format,
-    {'stddev':{'ols':True,'2sls':False...
+
+    Proper Usage
+    ------------
+    configDlg = preferencesDialog(parent_frame)
+    configDlg.ShowModal()
+    #if ShowModal ends with wx.ID_CANCEL, prefs are defaults.
+    prefs = configDlg.GetPrefs()
+
     """
-    DEFAULTS = {
-        'sig2n_k': {'other': False, 'ols': True, 'gmlag': False, '2sls': False},
-        'gmm': {'epsilon': 1e-05, 'inferenceOnLambda': True, 'max_iter': 1, 'step1c': False, 'inv_method': 'power_exp'},
-        'instruments': {'lag_q': True, 'w_lags': 1},
-        'other': {'ols_diagnostics': True, 'numcores': 1, 'residualMoran': False},
-        'output': {'save_pred_residuals': False, 'vm_summary': False}}
+    #DEFAULTS = {
+    #    'sig2n_k': {'other': False, 'ols': True, 'gmlag': False, '2sls': False},
+    #    'gmm': {'epsilon': 1e-05, 'inferenceOnLambda': True, 'max_iter': 1, 'step1c': False, 'inv_method': 'power_exp'},
+    #    'instruments': {'lag_q': True, 'w_lags': 1},
+    #    'other': {'ols_diagnostics': True, 'numcores': 1, 'residualMoran': False},
+    #    'output': {'save_pred_residuals': False, 'vm_summary': False}}
 
     def __init__(self,parent=None):
         self.__mod = False
@@ -55,24 +63,85 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         d['saveButton'] = self.save
         d['restoreButton'] = self.restore
         d['cancelButton'] = self.cancel
+        d['sig2n_k_ols'] = self.sig2n_k_ols
+        d['OLSNk'] = self.sig2n_k_ols
+        d['OLSN'] = self.sig2n_k_ols
+        d['sig2n_k_2sls'] = self.sig2n_k_2sls
+        d['twoSLSNk'] = self.sig2n_k_2sls
+        d['twoSLSN'] = self.sig2n_k_2sls
+        d['sig2n_k_gmlag'] = self.sig2n_k_gm
+        d['GMlagNk'] = self.sig2n_k_gm
+        d['GMlagN'] = self.sig2n_k_gm
+        d['gmm_max_iter'] = self.gmm_max_iter
+        d['MaxIterations'] = self.gmm_max_iter
+        d['StoppingCriterion'] = self.gmm_epsilon
+        d['gmm_epsilon'] = self.gmm_epsilon
+        d['inferenceOnLambda'] = self.gmm_inferenceOnLambda
+        d['gmm_inferenceOnLambda'] = self.gmm_inferenceOnLambda
+        d['gmm_inv_method'] = self.gmm_inv_method
+        d['CompInverse'] = self.gmm_inv_method
+        d['gmm_step1c'] = self.gmm_step1c
+        d['Step1c'] = self.gmm_step1c
+        d['NumSpatialLags'] = self.instruments_w_lags
+        d['instruments_w_lags'] = self.instruments_w_lags
+        d['IncludeLagsofUserInst'] = self.instruments_lag_q
+        d['instruments_lag_q'] = self.instruments_lag_q
+        d['output_vm_summary'] = self.output_vm_summary
+        d['ShowVarCovarMatrix'] = self.output_vm_summary
+        d['output_save_pred_residuals'] = self.output_save_pred_residuals
+        d['saveValuesResiduals'] = self.output_save_pred_residuals
+        d['other_ols_diagnostics'] = self.other_ols_diagnostics
+        d['OLSdiagnostics'] = self.other_ols_diagnostics
+        d['other_numcores'] = self.other_numcores
+        d['numcores'] = self.other_numcores
+        d['other_residualMoran'] = self.other_residualMoran
+        d['residualMoran'] = self.other_residualMoran
+
+        self.model = preferencesModel()
+        self.reset_model()
+        self.modified = False
+        self.model.addListener(self.update)
+        self.update()
+    def reset_model(self):
+        self.model.reset()
         if os.path.exists(self.config_file):
             config_fp = open(self.config_file,'r')
-            prefs = json.load(config_fp)
+            self.model.load(config_fp)
             config_fp.close()
-            try:
-                self.SetPrefs(prefs)
-            except:
-                self.SetPrefs(self.DEFAULTS)
+        self.update()
+        
+    def update(self,tag=False):
+        if DEBUG: print "CONTROL... updating tag:",tag
+        if tag:
+            if tag in self.dispatch:
+                self.dispatch[tag](value=self.model.getByTag(tag))
+            else:
+                if DEBUG: print "Warning: %s, has not been implemented"%tag
         else:
-            self.SetPrefs(self.DEFAULTS)
-        self.modified = False
+            for key,value in self.model:
+                if key in self.dispatch:
+                    self.dispatch[key](value=value)
+                else:
+                    if DEBUG: print "Warning: %s, has not been implemented"%key
+        if self.modified:
+            self.SetTitle("GeoDaSpace Preferences*")
+        else:
+            self.SetTitle("GeoDaSpace Preferences")
+    def evtDispatch(self,evtName, evt):
+        evtName,widgetName = evtName.rsplit('_',1)
+        if widgetName not in ['restoreButton','saveButton','cancelButton']:
+            #print widgetName
+            self.modified = True
+        if widgetName in self.dispatch:
+            self.dispatch[widgetName](evtName,evt)
+        else:
+            if DEBUG: print "not implemented:", evtName, widgetName
     def OnClose(self,evt):
         return self.cancel(evt=evt)
     @property
     def config_file(self):
         paths = wx.StandardPaths_Get()
         return os.path.join(paths.GetUserConfigDir(),'GeoDaSpace.config')
-
     def __set_modified(self,val):
         self.__mod = bool(val)
         if self.__mod:
@@ -82,28 +151,15 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
     def __get_modified(self):
         return self.__mod
     modified = property(fget = __get_modified, fset = __set_modified)
-
-    def evtDispatch(self,evtName, evt):
-        evtName,widgetName = evtName.rsplit('_',1)
-        if widgetName not in ['restoreButton','saveButton','cancelButton']:
-            print widgetName
-            self.modified = True
-        if widgetName in self.dispatch:
-            self.dispatch[widgetName](evtName,evt)
-        else:
-            if DEBUG: print "not implemented:", evtName, widgetName
-
     def error(self, msg, tagline="An Error has occurred"):
         """ Display an error message to the user """
         dlg = wx.MessageDialog(self, msg, tagline, style=wx.OK|wx.ICON_ERROR).ShowModal()
-        dlg.ShowModal()
         return
-        
     def cancel(self, evtName=None, evt=None, value=None):
-        print "hide dialog"
         if self.modified:
             dlg = wx.MessageDialog(self,"Unsaved changes will be lost.","Are you sure you wish to cancel?", style=wx.YES_NO|wx.ICON_QUESTION)
             if dlg.ShowModal() == wx.ID_YES:
+                self.reset_model()
                 if self.IsModal():
                     self.EndModal(wx.ID_CANCEL)
                 else:
@@ -116,62 +172,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
             else:
                 return wx.ID_CANCEL
             
-    def save(self, evtName=None, evt=None, value=None):
-        config = self.GetPrefs()
-        config_fp = open(self.config_file,'w')
-        json.dump(config,config_fp)
-        config_fp.close()
-        print config
-        print "hide dialog"
-        self.modified = False
-        if self.IsModal():
-            self.EndModal(wx.ID_OK)
-        else:
-            return wx.ID_OK
-    def restore(self, evtName=None, evt=None, value=None):
-        if self.modified:
-            dlg = wx.MessageDialog(self,"All unsaved preferences will be lost.","Are you sure you wish to restore defaults?", style=wx.CANCEL|wx.OK|wx.ICON_QUESTION)
-            if dlg.ShowModal() == wx.ID_OK:
-                print 'ok to clear'
-                self.SetPrefs(self.DEFAULTS)
-        else:
-            self.SetPrefs(self.DEFAULTS)
-    def SetPrefs(self,prefs):
-        """
-        'sig2n_k': {'other': False, 'ols': True, 'gmlag': False, '2sls': False},
-        'gmm': {'epsilon': 1e-05, 'inferenceOnLambda': True, 'max_iter': 1, 'step1c': False, 'inv_method': 'power_exp'},
-        'instruments': {'lag_q': True, 'w_lags': 1},
-        'other': {'ols_diagnostics': True, 'numcores': 1, 'residualMoran': False},
-        'output': {'save_pred_residuals': False, 'vm_summary': False}}
-        """
-        if 'sig2n_k' in prefs:
-            sig = prefs['sig2n_k']
-            # No option for other models.
-            self.othermodelsN.SetValue(True)
-            if 'ols' in sig:
-                self.OLSNk.SetValue(bool(sig['ols']))
-                self.OLSN.SetValue(not bool(sig['ols']))
-            if '2sls' in sig:
-                print sig['2sls']
-                self.twoSLSNk.SetValue(bool(sig['2sls']))
-                self.twoSLSN.SetValue(not bool(sig['2sls']))
-            if 'gmlag' in sig:
-                self.GMlagNk.SetValue(bool(sig['gmlag']))
-                self.GMlagN.SetValue(not bool(sig['gmlag']))
-        if 'gmm' in prefs:
-            gmm = prefs['gmm']
-            if 'max_iter' in gmm:
-                self.MaxIterations.SetValue(int(gmm['max_iter']))
-            if 'epsilon' in gmm:
-                self.StoppingCriterion.SetValue(str(float(gmm['epsilon'])))
-            if 'inferenceOnLambda' in gmm:
-                self.inferenceOnLambda.SetValue(bool(gmm['inferenceOnLambda']))
-            if 'inv_method' in gmm:
-                if gmm['inv_method'] in INV_METHODS:
-                    self.CompInverse.SetSelection(INV_METHODS.index(gmm['inv_method']))
-        self._prefs=prefs
-    def GetPrefs(self):
-        #validation section, local names used in settings dict below.
+    def validate(self):
         try:
             epsilon = float(self.StoppingCriterion.GetValue())
             if epsilon >= 1.0:
@@ -180,24 +181,119 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
             self.prefNoteBook.SetSelection(GMM_PAGE)
             self.StoppingCriterion.SetFocus()
             self.error("Stopping Criterion must be a number < 1.0")
-            return
+            return False
+        return True
+    def save(self, evtName=None, evt=None, value=None):
+        if self.validate():
+            config_fp = open(self.config_file,'w')
+            self.model.dump(config_fp)
+            config_fp.close()
+            print self.model._modelData
+            self.modified = False
+            if self.IsModal():
+                self.EndModal(wx.ID_OK)
+            else:
+                return wx.ID_OK
+    def restore(self, evtName=None, evt=None, value=None):
+        dlg = wx.MessageDialog(self,"All unsaved preferences will be lost.","Are you sure you wish to restore defaults?", style=wx.CANCEL|wx.OK|wx.ICON_QUESTION)
+        if dlg.ShowModal() == wx.ID_OK:
+            print 'ok to clear'
+            self.model.reset()
+            self.modified = True
+    def sig2n_k_ols(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.sig2n_k_ols = self.OLSNk.GetValue() 
+        elif value != None:
+            self.OLSNk.SetValue(self.model.sig2n_k_ols)
+            self.OLSN.SetValue(not self.model.sig2n_k_ols)
+    def sig2n_k_2sls(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.sig2n_k_2sls = self.twoSLSNk.GetValue() 
+        elif value != None:
+            self.twoSLSNk.SetValue(self.model.sig2n_k_2sls)
+            self.twoSLSN.SetValue(not self.model.sig2n_k_2sls)
+    def sig2n_k_gm(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.sig2n_k_gmlag = self.GMlagNk.GetValue() 
+        elif value != None:
+            self.GMlagNk.SetValue(self.model.sig2n_k_gmlag)
+            self.GMlagN.SetValue(not self.model.sig2n_k_gmlag)
+    def gmm_max_iter(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.gmm_max_iter = self.MaxIterations.GetValue()
+        elif value != None:
+            self.MaxIterations.SetValue(self.model.gmm_max_iter)
+    def gmm_epsilon(self, evtName=None, evt=None, value=None):
+        if evt:
+            try:
+                self.model.gmm_epsilon = float(self.StoppingCriterion.GetValue())
+            except:
+                pass
+        elif value != None:
+            try:
+                curval = float(self.StoppingCriterion.GetValue())
+            except:
+                curval = None
+            if self.model.gmm_epsilon != curval:
+                self.StoppingCriterion.SetValue(str(self.model.gmm_epsilon))
+    def gmm_inferenceOnLambda(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.gmm_inferenceOnLambda = self.inferenceOnLambda.GetValue()
+        elif value != None:
+            self.inferenceOnLambda.SetValue(self.model.gmm_inferenceOnLambda)
+    def gmm_inv_method(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.gmm_inv_method = INV_METHODS[self.CompInverse.GetSelection()]
+        elif value != None:
+            self.CompInverse.SetSelection(INV_METHODS.index(self.model.gmm_inv_method))
+    def gmm_step1c(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.gmm_step1c = self.Step1c.GetValue()
+        elif value != None:
+            self.Step1c.SetValue(self.model.gmm_step1c)
+    def instruments_w_lags(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.instruments_w_lags = self.NumSpatialLags.GetValue()
+        elif value != None:
+            self.NumSpatialLags.SetValue(self.model.instruments_w_lags)
+    def instruments_lag_q(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.instruments_lag_q = self.IncludeLagsofUserInst.GetValue()
+        elif value != None:
+            self.IncludeLagsofUserInst.SetValue(self.model.instruments_lag_q)
+    def output_vm_summary(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.output_vm_summary = self.ShowVarCovarMatrix.GetValue()
+        elif value != None:
+            self.ShowVarCovarMatrix.SetValue(self.model.output_vm_summary)
+    def output_save_pred_residuals(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.output_save_pred_residuals = self.saveValuesResiduals.GetValue()
+        elif value != None:
+            self.saveValuesResiduals.SetValue(self.model.output_save_pred_residuals)
+    def other_ols_diagnostics(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.other_ols_diagnostics = self.OLSdiagnostics.GetValue()
+        elif value != None:
+            self.OLSdiagnostics.SetValue(self.model.other_ols_diagnostics)
+    def other_numcores(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.other_numcores = self.numcores.GetValue()
+        elif value != None:
+            self.numcores.SetValue(self.model.other_numcores)
+    def other_residualMoran(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.other_residualMoran = self.residualMoran.GetValue()
+        elif value != None:
+            self.residualMoran.SetValue(self.model.other_residualMoran)
 
-        s = {}
-        s['sig2n_k'] = { 'ols':self.OLSNk.GetValue(),
-                        '2sls':self.twoSLSNk.GetValue(),
-                        'gmlag':self.GMlagNk.GetValue(),
-                        'other':(not self.othermodelsN.GetValue()) }
-        s['gmm'] = {'max_iter':self.MaxIterations.GetValue(),
-                    'epsilon': epsilon,
-                    'inferenceOnLambda': self.inferenceOnLambda.GetValue(),
-                    'inv_method': {0:'power_exp',1:'true_inverse'}[self.CompInverse.GetSelection()],
-                    'step1c': self.Step1c.GetValue()
-                   }
-        s['instruments'] = {'w_lags':self.NumSpatialLags.GetValue(), 'lag_q':self.IncludeLagsofUserInst.GetValue()}
-        s['output'] = {'vm_summary':self.ShowVarCovarMatrix.GetValue(), 'save_pred_residuals':self.saveValuesResiduals.GetValue()}
-        s['other'] = {'ols_diagnostics':self.OLSdiagnostics.GetValue(), 'residualMoran':self.residualMoran.GetValue()}
-        s['other']['numcores'] = self.numcores.GetValue()
-        self._prefs = s
-        return s
-            
+    def SetPrefs(self,prefs):
+        for key in prefs:
+            if hasattr(self.model,key):
+                self.model.setattr(key,prefs[key])
+        self.model.update()
+    def GetPrefs(self):
+        d = {}
+        d.update(self.model._modelData)
+        return d
 

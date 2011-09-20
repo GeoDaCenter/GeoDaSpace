@@ -1,5 +1,6 @@
 #System
 import os
+import json
 #3rd Party
 #Local
 from geodaspace import AbstractModel
@@ -8,6 +9,9 @@ from geodaspace import DEBUG
 DEBUG = True
 
 class preferencesModel(AbstractModel):
+    """
+    Model for GeoDaSpace Prefernese with save/load support.
+    """
     DEFAULTS = {
         'sig2n_k_other':False, 'sig2n_k_ols':True, 'sig2n_k_gmlag':False, 'sig2n_k_2sls':False,
         'gmm_epsilon':1e-05, 'gmm_inferenceOnLambda':True, 'gmm_max_iter':1, 'gmm_step1c':False, 'gmm_inv_method':'power_exp',
@@ -15,20 +19,6 @@ class preferencesModel(AbstractModel):
         'other_ols_diagnostics':True, 'other_numcores':1, 'other_residualMoran':False,
         'output_save_pred_residuals':False, 'output_vm_summary':False
     }
-    def __init__(self):
-        AbstractModel.__init__(self)
-        self.reset()
-    def reset(self):
-        self._modelData.update(self.DEFAULTS)
-
-    """
-    'sig2n_k': {'other': False, 'ols': True, 'gmlag': False, '2sls': False},
-    'gmm': {'epsilon': 1e-05, 'inferenceOnLambda': True, 'max_iter': 1, 'step1c': False, 'inv_method': 'power_exp'},
-    'instruments': {'lag_q': True, 'w_lags': 1},
-    'other': {'ols_diagnostics': True, 'numcores': 1, 'residualMoran': False},
-    'output': {'save_pred_residuals': False, 'vm_summary': False}}
-    """
-
     sig2n_k_other = AbstractModel.abstractProp('sig2n_k_other',bool)
     sig2n_k_ols = AbstractModel.abstractProp('sig2n_k_ols',bool)
     sig2n_k_2sls = AbstractModel.abstractProp('sig2n_k_2sls',bool)
@@ -49,6 +39,29 @@ class preferencesModel(AbstractModel):
 
     output_save_pred_residuals = AbstractModel.abstractProp('output_save_pred_residuals',bool)
     output_vm_summary = AbstractModel.abstractProp('output_vm_summary',bool)
+
+    def __init__(self):
+        AbstractModel.__init__(self)
+        self.reset()
+    def reset(self):
+        self._modelData.update(self.DEFAULTS)
+        self.update()
+    def dump(self,fp):
+        """
+        Serialize this preferencesModel as a JSON formatted stream to fp
+        
+        fp -- open file-like obj -- must support write.
+        """
+        json.dump(self._modelData, fp)
+    def load(self,fp):
+        """
+        Deserialize the contents of fp into this preferencesModel
+
+        fp -- open file-like obj -- must support read.
+        """
+        dict = json.load(fp)
+        self._modelData.update(dict)
+        self.update()
     
 if __name__ == '__main__':
     m = preferencesModel()
