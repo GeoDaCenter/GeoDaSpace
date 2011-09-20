@@ -786,7 +786,7 @@ sizes = [150, 300, 450, 600, 750, 800, 850, 900, 1000]
 #sizes = [1750, 1900, 2000, 2050, 2100]
 #sizes = [1750]
 sizes = [30, 50, 70, 100]
-sizes = [1000]
+sizes = [100]
 
 for side in sizes:
    #ols_models = test_large_olsSPd(side, 10, log='/Users/dani/Dropbox/aagLogs/ols_py.log', a=True, base=True, sw=False)
