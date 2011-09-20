@@ -98,7 +98,6 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnButton_cancelButton, self.cancelButton)
         self.Bind(wx.EVT_BUTTON, self.OnButton_saveButton, self.saveButton)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
-        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnWindow_destroy)
 
 #!XRCED:begin-block:xrcgsPrefsDialog.OnRadiobutton_OLSNk
     def OnRadiobutton_OLSNk(self, evt):
@@ -232,11 +231,35 @@ class xrcgsPrefsDialog(wx.Dialog):
         print "OnClose()"
 #!XRCED:end-block:xrcgsPrefsDialog.OnClose        
 
-#!XRCED:begin-block:xrcgsPrefsDialog.OnWindow_destroy
-    def OnWindow_destroy(self, evt):
+
+class xrcDemo(wx.Frame):
+#!XRCED:begin-block:xrcDemo.PreCreate
+    def PreCreate(self, pre):
+        """ This function is called during the class's initialization.
+        
+        Override it for custom setup before the window is created usually to
+        set additional window styles using SetWindowStyle() and SetExtraStyle().
+        """
+        pass
+        
+#!XRCED:end-block:xrcDemo.PreCreate
+
+    def __init__(self, parent):
+        # Two stage creation (see http://wiki.wxpython.org/index.cgi/TwoStageCreation)
+        pre = wx.PreFrame()
+        self.PreCreate(pre)
+        get_resources().LoadOnFrame(pre, parent, "Demo")
+        self.PostCreate(pre)
+
+        # Define variables for the controls, bind event handlers
+
+        self.Bind(wx.EVT_BUTTON, self.OnButton_prefsButton, id=xrc.XRCID('prefsButton'))
+
+#!XRCED:begin-block:xrcDemo.OnButton_prefsButton
+    def OnButton_prefsButton(self, evt):
         # Replace with event handler code
-        print "OnWindow_destroy()"
-#!XRCED:end-block:xrcgsPrefsDialog.OnWindow_destroy        
+        print "OnButton_prefsButton()"
+#!XRCED:end-block:xrcDemo.OnButton_prefsButton        
 
 
 
@@ -815,8 +838,26 @@ def __init_resources():
     <centered>1</centered>
     <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
     <XRCED>
-      <events>EVT_CLOSE|EVT_WINDOW_DESTROY</events>
+      <events>EVT_CLOSE</events>
     </XRCED>
+  </object>
+  <object class="wxFrame" name="Demo">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxButton" name="prefsButton">
+          <label>Preferences...</label>
+          <XRCED>
+            <events>EVT_BUTTON</events>
+          </XRCED>
+        </object>
+        <flag>wxALL|wxALIGN_CENTRE</flag>
+        <border>100</border>
+      </object>
+    </object>
+    <size>400,300</size>
+    <title>Preferences Demo</title>
+    <centered>1</centered>
   </object>
 </resource>'''
 
