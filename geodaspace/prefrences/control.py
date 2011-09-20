@@ -4,11 +4,10 @@ import json
 #3rd Part
 import wx
 #local
-from geodaspace import remapEvtsToDispatcher#,DEBUG
+from geodaspace import remapEvtsToDispatcher,DEBUG
 from model import preferencesModel
 import preferences_xrc
-
-DEBUG = True
+from tooltips import tips
 
 STD_DEV_PAGE = 0
 GMM_PAGE = 1
@@ -17,6 +16,7 @@ OUTPUT_PAGE = 3
 OTHER_PAGE = 4
 
 INV_METHODS = ('power_exp','true_inverse',)
+
 class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
     """
     GeoDaSpace Preference Dialog -- Displays a Dialog for editing GeoDaSpace Preferences
@@ -58,6 +58,13 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         self.CompInverse.SetItems(list(INV_METHODS))
         self.SetEscapeId(self.cancelButton.GetId())
         self.SetAffirmativeId(self.saveButton.GetId())
+
+        for widget in tips:
+            try:
+                getattr(self,widget).SetToolTipString(tips[widget])
+                getattr(self,widget+'Label').SetToolTipString(tips[widget])
+            except:
+                print "could not set tool tip for %s"%widget
 
         self.dispatch = d = {}
         d['saveButton'] = self.save
@@ -130,7 +137,6 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
     def evtDispatch(self,evtName, evt):
         evtName,widgetName = evtName.rsplit('_',1)
         if widgetName not in ['restoreButton','saveButton','cancelButton']:
-            #print widgetName
             self.modified = True
         if widgetName in self.dispatch:
             self.dispatch[widgetName](evtName,evt)
@@ -188,7 +194,6 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
             config_fp = open(self.config_file,'w')
             self.model.dump(config_fp)
             config_fp.close()
-            print self.model._modelData
             self.modified = False
             if self.IsModal():
                 self.EndModal(wx.ID_OK)
@@ -197,7 +202,6 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
     def restore(self, evtName=None, evt=None, value=None):
         dlg = wx.MessageDialog(self,"All unsaved preferences will be lost.","Are you sure you wish to restore defaults?", style=wx.CANCEL|wx.OK|wx.ICON_QUESTION)
         if dlg.ShowModal() == wx.ID_OK:
-            print 'ok to clear'
             self.model.reset()
             self.modified = True
     def sig2n_k_ols(self, evtName=None, evt=None, value=None):

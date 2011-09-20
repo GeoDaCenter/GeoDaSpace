@@ -7,12 +7,11 @@ class demo(xrcDemo):
         xrcDemo.__init__(self,parent)
         self.config  = preferencesDialog()
     def OnButton_prefsButton(self,evt):
-        print self.config.model._modelData
         rs = self.config.ShowModal()
         if rs == wx.ID_OK:
-            print "Prefs updated!"
+            print "Prefs updated:",self.config.GetPrefs()
         elif rs == wx.ID_CANCEL:
-            print "Canceled..."
+            print "Canceled:",self.config.GetPrefs()
         else:
             print "no idea?,",rs
 
