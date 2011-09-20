@@ -1,3 +1,5 @@
+#!/Library/Frameworks/EPD64.framework/Versions/7.0/bin/python2.7
+
 """
 Script to create large datasets and benchmark times
 """
@@ -12,7 +14,7 @@ from pysal.spreg.diagnostics_sp import LMtests, MoranRes
 from econometrics.spError import BaseGM_Error, GM_Error
 from econometrics.spHetErr import BaseGM_Error_Het, BaseGM_Combo_Het, GM_Error_Het, GM_Combo_Het
 from econometrics.twosls_sp import BaseGM_Lag, GM_Lag
-from econometrics.testing_utils import Test_Data as Data
+#from econometrics.testing_utils import Test_Data as Data
 from workbench import Model_Inputs
 
 print '\n\t\t\t### Large simulated dataset benchmarking ###\n'
@@ -797,6 +799,6 @@ for side in sizes:
    #sp_models = test_large_spHet_sarar_models(side, 10,
    #        log='/Users/dani/Dropbox/aagLogs/spHet_sarar_py.log', a=True, base=True, sw=False)
    #smAll = test_small_all(side, 10, base=True)
-    smAll = test_large_spHet_error_models(side, 10, base=True)
+    smAll = test_large_spHet_error_models(side, 10, base=True, sw=True)
 
 
