@@ -5,6 +5,7 @@ from geodaspace import abstractmodel
 import pysal
 import numpy as np
 from econometrics.gs_dispatcher import spmodel
+from geodaspace.preferences.model import preferencesModel
 
 class guiRegModel(abstractmodel.AbstractModel):
     STATE_EMPTY = 0
@@ -145,6 +146,9 @@ class guiRegModel(abstractmodel.AbstractModel):
         self.data['modelType'] = {'mType':0,'endogenous':False,'method':0}
         self.data['modelType']['error'] = {'classic':True,'white':False,'hac':False,'het':False}
         self.data['modelType']['spatial_tests'] = {'lm':False}
+        config = {}
+        config.update(preferencesModel.DEFAULTS)
+        self.data['config'] = config
     def loadFieldNames(self):
         """Sets the db with field names"""
         self.data['db'] = self.db(headerOnly=True)
@@ -294,7 +298,7 @@ class guiRegModel(abstractmodel.AbstractModel):
         if self.data['modelType']['spatial_tests']['lm'] and not self.data['mWeights']:
             return False,'LM Test requires Model Weights, please add or create a weights file, or disable "LM".'
         return True,None
-    def run(self,path=None):
+    def run(self,path=None, predy_resid=None):
         """ Runs the Model """
         print self.verify()
         if not self.verify()[0]:
@@ -336,8 +340,6 @@ class guiRegModel(abstractmodel.AbstractModel):
         model_type = mtypes[data['modelType']['mType']]
 
         # These options are not available yet....
-        nonspat_diag = True
-        gm = False
         r = None
         name_r = None
         s = None
@@ -347,17 +349,21 @@ class guiRegModel(abstractmodel.AbstractModel):
         sig2n_k_ols = False
         sig2n_k_tsls = False
         sig2n_k_gmlag = False
+        config = data['config']
 
         print w_list
-        results = spmodel(data['fname'], w_list, wk_list, y, name_y, x, x_names, ye, ye_names,\
+        results = spmodel(data['fname'], w_list, wk_list, y, name_y, x, x_names, ye, ye_names,
                  h, h_names, r, name_r, s, name_s, t, name_t,
-                 model_type, data['modelType']['endogenous'], nonspat_diag,
+                 model_type, #data['modelType']['endogenous'],
                  data['modelType']['spatial_tests']['lm'],
-                 sig2n_k_ols, sig2n_k_tsls, sig2n_k_gmlag,
-                 data['modelType']['error']['white'],
-                 data['modelType']['error']['hac'],
-                 data['modelType']['error']['het'],
-                 gm)
+                 data['modelType']['error']['white'], data['modelType']['error']['hac'], data['modelType']['error']['het'],
+                 #config.....
+                 config['sig2n_k_ols'], config['sig2n_k_2sls'], config['sig2n_k_gmlag'],
+                 config['gmm_max_iter'], config['gmm_epsilon'], config['gmm_inferenceOnLambda'], config['gmm_inv_method'], config['gmm_step1c'],
+                 config['instruments_w_lags'], config['instruments_lag_q'],
+                 config['output_vm_summary'], predy_resid,
+                 config['other_ols_diagnostics'], config['other_residualMoran']
+                 )
         print results
         for r in results:
             path.write(r.summary)

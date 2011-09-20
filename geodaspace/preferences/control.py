@@ -15,7 +15,7 @@ INSTRUMENTS_PAGE = 2
 OUTPUT_PAGE = 3
 OTHER_PAGE = 4
 
-INV_METHODS = ('power_exp','true_inverse',)
+INV_METHODS = ('Power exp','True inv',)
 
 class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
     """
