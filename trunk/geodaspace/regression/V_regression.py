@@ -11,6 +11,7 @@ from geodaspace.regression.rc import OGRegression_xrc
 from geodaspace import weights
 from geodaspace.weights.control import ENABLE_CONTIGUITY_WEIGHTS, ENABLE_DISTANCE_WEIGHTS, ENABLE_KERNEL_WEIGTHS
 from geodaspace import spatialLag
+from geodaspace.preferences import preferencesDialog
 import variableTools
 import M_regression
 import pysal
@@ -109,6 +110,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
     def __init__(self,parent=None,results=None):
         self.results = results
         OGRegression_xrc.xrcGMM_REGRESSION.__init__(self,parent)
+        self.config = preferencesDialog(self)
         self.SetIcon(icons.getGeoDaIcon())
         self.modelFileName = None
         self.BASE_TITLE = self.GetTitle()
@@ -158,6 +160,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.X_ListBox.SetDropTarget(ListBoxDropTarget(self.X_ListBox))
         # The Model
         self.model = M_regression.guiRegModel()
+        self.model.data['config'] = self.config.GetPrefs()
         self.model.addListener(self.populate)
         #self.model.addListener(self.verbose)
         # The Bindings
@@ -215,6 +218,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.RegressionToolBar.Bind(wx.EVT_MENU, self.saveModelAs, id = wx.xrc.XRCID("ToolSaveModelAs"))
         self.RegressionToolBar.Bind(wx.EVT_MENU, self.showVarSelector, id = wx.xrc.XRCID("ToolVariableSelector"))
         self.RegressionToolBar.Bind(wx.EVT_MENU, self.openResultsWindow, id = wx.xrc.XRCID("ToolResultsWindow"))
+        self.RegressionToolBar.Bind(wx.EVT_MENU, self.openConfig, id = wx.xrc.XRCID("ToolAdvanced"))
 
         self.textFrame.Bind(wx.EVT_CLOSE,self.openResultsWindow)
         self.Bind(wx.EVT_CLOSE,self.close)
@@ -513,6 +517,9 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         else:
             self.textFrame.Show()
             self.textFrame.Raise()
+    def openConfig(self, evt=None):
+        rs = self.config.ShowModal()
+        self.model.data['config'] = self.config.GetPrefs()
 
     def newVarSelector(self,evt=None):
         """ Util function, recreates the Variable Selector as needed """
@@ -693,9 +700,20 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         #    path = fileDialog.GetPath()
         #    if not '.' in path:
         #        path += '.txt'
+        if self.config.model.output_save_pred_residuals:
+            fname = self.model.data['fname']
+            suggestion = os.path.split(fname)[1].split('.')[0]+'_predY_resid.csv'
+            fileDialog = wx.FileDialog(self,defaultFile=suggestion,message="Save Predicted Values and Residuals As...",wildcard="*.csv",style=wx.SAVE+wx.OVERWRITE_PROMPT)
+            if fileDialog.ShowModal() == wx.ID_OK:
+                predy_resid = fileDialog.GetPath()
+                print predy_resid
+            else:
+                return
+        else:
+            predy_resid = None
         try:
             pos = self.textFrame.Text.GetLastPosition()
-            result = self.model.run(self.textFrame)
+            result = self.model.run(self.textFrame, predy_resid)
             if not result: #model.verify failed
                 cause = self.model.verify()[1]
                 dialog = wx.MessageDialog(self,cause,"Model Error",wx.OK|wx.ICON_ERROR)
