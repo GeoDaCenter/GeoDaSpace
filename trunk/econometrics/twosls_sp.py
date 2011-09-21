@@ -279,7 +279,7 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
 
     """
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    robust=None, wk=None, nonspat_diag=True,\
+                    robust=None, wk=None, nonspat_diag=True, spat_diag=False,\
                     name_y=None, name_x=None, name_yend=None, name_q=None, name_ds=None,\
                     vm=False, pred=False, lag_q=True, sig2n_k=False):
         #### we currently ignore nonspat_diag parameter ####
@@ -305,13 +305,14 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         #### we currently ignore nonspat_diag parameter ####
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm, pred=pred)
+                                    vm=vm, pred=pred, spat_diag=spat_diag)
 
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False, pred=False):
-        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
+                              spat_diag=False, vm=False, pred=False):
+        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=beta_diag,\
                                             nonspat_diag=nonspat_diag,\
-                                            vm=vm, pred=pred, instruments=True)
+                                            spat_diag=spat_diag, vm=vm,\
+                                            pred=pred, instruments=True)
 
 def _test():
     import doctest
