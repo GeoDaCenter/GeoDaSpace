@@ -3,9 +3,9 @@ import copy as COPY
 from ols import OLS
 from twosls import TSLS
 from twosls_sp import GM_Lag
-from spHetErr import GM_Error_Het, GM_Endog_Error_Het, GM_Combo_Het
-from spError import GM_Endog_Error, GM_Error, GM_Combo
-from spError import GM_Endog_Error_Hom, GM_Error_Hom, GM_Combo_Hom
+from error_sp_het import GM_Error_Het, GM_Endog_Error_Het, GM_Combo_Het
+from error_sp import GM_Endog_Error, GM_Error, GM_Combo
+from error_sp_hom import GM_Endog_Error_Hom, GM_Error_Hom, GM_Combo_Hom
 import robust as ROBUST
 import user_output as USER
 
