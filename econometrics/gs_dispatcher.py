@@ -140,7 +140,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Standard', ols_diag=True, spat_diag=True, moran=False,\
+        model_type='Standard', ols_diag=True, spat_diag=True, moran=True,\
         vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power_exp', step1c=False,\
@@ -176,7 +176,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Spatial Lag', ols_diag=True, spat_diag=False, moran=False,\
+        model_type='Spatial Lag', ols_diag=True, spat_diag=True, moran=False,\
         vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power_exp', step1c=False,\
@@ -189,7 +189,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=True, moran=False,\
-        vc_matrix=False, predy_resid=False,\
+        vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power_exp', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -200,7 +200,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Spatial Lag', ols_diag=True, spat_diag=False, moran=False,\
+        model_type='Spatial Lag', ols_diag=True, spat_diag=True, moran=False,\
         vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power_exp', step1c=False,\
@@ -293,8 +293,8 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
     >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
-        model_type='Standard', ols_diag=True, spat_diag=False, moran=False,\
-        vc_matrix=False, predy_resid=False,\
+        model_type='Standard', ols_diag=True, spat_diag=True, moran=False,\
+        vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power_exp', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -424,15 +424,15 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         if name_ye:
             # run 2SLS regression; with or without nonspatial diagnostics
             reg = TSLS(y=y, x=x, yend=ye, q=h,\
-                        nonspat_diag=ols_diag, spat_diag=False, vm=vc_matrix,\
+                        nonspat_diag=ols_diag, spat_diag=False, vm=False,\
                         name_y=name_y, name_x=name_x, name_yend=name_ye,\
                         name_q=name_h, name_ds=name_ds, sig2n_k=sig2n_k_tsls)
         else:
             # run OLS regression; with or without nonspatial diagnostics
             reg = OLS(y=y, x=x,\
-                       nonspat_diag=ols_diag, spat_diag=False, vm=vc_matrix,\
+                       nonspat_diag=ols_diag, spat_diag=False, vm=False,\
                        name_y=name_y, name_x=name_x, name_ds=name_ds,
-                       sig2n_k=sig2n_k_ols, moran=moran)
+                       sig2n_k=sig2n_k_ols)
         if predy_resid:  # write out predicted values and residuals
             pred_res = np.hstack((pred_res, reg.predy, reg.u))
             header_pr += ',standard_predy,standard_resid'
@@ -440,10 +440,15 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
             for w in w_list:
                 # add spatial diagnostics for each W
                 reg_spat = COPY.copy(reg)
-                reg_spat._get_diagnostics(w=w, beta_diag=False,\
-                                          nonspat_diag=False, spat_diag=True)
+                reg_spat._get_diagnostics(w=w, beta_diag=False, moran=moran,\
+                                          nonspat_diag=False, spat_diag=True,
+                                          vm=vc_matrix)
                 output.append(reg_spat)
         else:
+            if vc_matrix:
+                reg._get_diagnostics(beta_diag=False,\
+                                          nonspat_diag=False, spat_diag=False,
+                                          vm=vc_matrix)
             output.append(reg)
         if white:
             # compute White std errors
@@ -463,13 +468,14 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                 reg = GM_Lag(y=y, x=x, w=w, yend=ye, q=h, vm=vc_matrix,\
                       w_lags=instrument_lags, lag_q=lag_user_inst,\
                       name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                      name_q=name_h, name_ds=name_ds, sig2n_k=sig2n_k_gmlag)
+                      name_q=name_h, name_ds=name_ds, sig2n_k=sig2n_k_gmlag,\
+                      spat_diag=spat_diag)
             else:
                #GM Spatial lag
                 reg = GM_Lag(y=y, x=x, w=w, vm=vc_matrix,\
                       w_lags=instrument_lags, lag_q=lag_user_inst,\
                       name_y=name_y, name_x=name_x, name_ds=name_ds,\
-                      sig2n_k=sig2n_k_gmlag)
+                      sig2n_k=sig2n_k_gmlag, spat_diag=spat_diag)
             if predy_resid:  # write out predicted values and residuals
                 pred_res, header_pr, counter = collect_predy_resid(\
                                        pred_res, header_pr, reg, '',\

@@ -322,11 +322,12 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
                                     spat_diag=spat_diag, vm=vm, pred=pred)
 
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              spat_diag=False, vm=False, pred=False):
-        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
+                              spat_diag=False, vm=False, pred=False, moran=False):
+        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=beta_diag,\
                                             nonspat_diag=nonspat_diag,\
                                             spat_diag=spat_diag, vm=vm,\
-                                            pred=pred, instruments=True)
+                                            pred=pred, instruments=True,
+                                            moran=False)
         
 
 def _test():

@@ -149,24 +149,27 @@ class DiagnosticBuilder:
                         self.moran_res = moran_res.I, moran_res.zI, moran_res.p_norm 
 
         #part 5: summary output
-        summary = summary_intro(self)
-        summary += summary_r2(self)
+        if not hasattr(self, 'summary'):
+            summary = summary_intro(self)
+            summary += summary_r2(self)
+            self.summary = summary
+        else:
+            self.summary = summary_unclose(self.summary)
         if nonspat_diag:
             if not instruments:  # quicky hack until we figure out the global nonspatial diag rules
-                summary += summary_nonspat_diag_1(self)
+                self.summary += summary_nonspat_diag_1(self)
         if beta_diag:
-            summary += summary_coefs(self, instruments, lamb)
+            self.summary += summary_coefs(self, instruments, lamb)
         if nonspat_diag:
             if not instruments:  # quicky hack until we figure out the global nonspatial diag rules
-                summary += summary_nonspat_diag_2(self)
+                self.summary += summary_nonspat_diag_2(self)
         if spat_diag:
-            summary += summary_spat_diag(self, instruments, moran)
+            self.summary += summary_spat_diag(self, instruments, moran)
         if vm:
-            summary += summary_vm(self)
+            self.summary += summary_vm(self, instruments)
         if pred:
-            summary += summary_pred(self)
-        summary += summary_close()
-        self.summary = summary
+            self.summary += summary_pred(self)
+        self.summary += summary_close()
 
 def set_name_ds(name_ds):
     """Set the dataset name in regression; return generic name if user
@@ -638,7 +641,7 @@ def summary_intro(reg):
     return strSummary
 
 def summary_coefs(reg, instruments, lamb):
-    strSummary = ""
+    strSummary = "\n"
     strSummary += "----------------------------------------------------------------------------\n"
     if instruments:
         strSummary += "    Variable     Coefficient       Std.Error     z-Statistic     Probability\n"
@@ -695,13 +698,12 @@ def summary_nonspat_diag_1(reg):
     strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('S.E. of regression',np.sqrt(reg.sig2),'Log likelihood',reg.logll)
     strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('Sigma-square ML',reg.sigML,'Akaike info criterion',reg.aic)
     strSummary += "%-20s:%12.4f  %-22s:%12.3f\n" % ('S.E of regression ML',np.sqrt(reg.sigML),'Schwarz criterion',reg.schwarz)
-    strSummary += '\n'
     return strSummary
     
 
 def summary_nonspat_diag_2(reg):
     strSummary = ""
-    strSummary += "\n\nREGRESSION DIAGNOSTICS\n"
+    strSummary += "\nREGRESSION DIAGNOSTICS\n"
     if reg.mulColli:
         strSummary += "MULTICOLLINEARITY CONDITION NUMBER%12.6f\n" % (reg.mulColli)
     strSummary += "TEST ON NORMALITY OF ERRORS\n"
@@ -711,19 +713,19 @@ def summary_nonspat_diag_2(reg):
     strSummary += "RANDOM COEFFICIENTS\n"
     strSummary += "TEST                  DF          VALUE            PROB\n"
     strSummary += "%-22s%2d       %12.6f        %9.7f\n" % ('Breusch-Pagan test',reg.breusch_pagan['df'],reg.breusch_pagan['bp'],reg.breusch_pagan['pvalue'])
-    strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" % ('Koenker-Bassett test',reg.koenker_bassett['df'],reg.koenker_bassett['kb'],reg.koenker_bassett['pvalue'])
+    strSummary += "%-22s%2d       %12.6f        %9.7f\n" % ('Koenker-Bassett test',reg.koenker_bassett['df'],reg.koenker_bassett['kb'],reg.koenker_bassett['pvalue'])
     if reg.white:
-        strSummary += "SPECIFICATION ROBUST TEST\n"
+        strSummary += "\nSPECIFICATION ROBUST TEST\n"
         if len(reg.white)>3:
             strSummary += reg.white+'\n'
         else:
             strSummary += "TEST                  DF          VALUE            PROB\n"
-            strSummary += "%-22s%2d       %12.6f        %9.7f\n\n" %('White',reg.white['df'],reg.white['wh'],reg.white['pvalue'])
+            strSummary += "%-22s%2d       %12.6f        %9.7f\n" %('White',reg.white['df'],reg.white['wh'],reg.white['pvalue'])
     return strSummary
 
 def summary_spat_diag(reg, instruments, moran):
     strSummary = ""
-    strSummary += "DIAGNOSTICS FOR SPATIAL DEPENDENCE\n"
+    strSummary += "\nDIAGNOSTICS FOR SPATIAL DEPENDENCE\n"
     strSummary += "TEST                          MI/DF      VALUE          PROB\n" 
     if instruments:
         strSummary += "%-22s      %2d    %12.6f       %9.7f\n" % ("Anselin-Kelejian Test", 1, reg.ak_test[0], reg.ak_test[1])
@@ -737,13 +739,16 @@ def summary_spat_diag(reg, instruments, moran):
         strSummary += "%-22s    %2d    %12.6f       %9.7f\n\n" % ("Lagrange Multiplier (SARMA)", 2, reg.lm_sarma[0], reg.lm_sarma[1])
     return strSummary
 
-def summary_vm(reg):
-    strVM = ""
+def summary_vm(reg, instruments):
+    strVM = "\n"
     strVM += "COEFFICIENTS VARIANCE MATRIX\n"
     strVM += "----------------------------\n"
-    strVM += "%12s" % ('CONSTANT')
-    for name in reg.name_x:
-        strVM += "%12s" % (name)
+    if instruments:
+        for name in reg.name_z:
+            strVM += "%12s" % (name)
+    else:
+        for name in reg.name_x:
+            strVM += "%12s" % (name)
     strVM += "\n"
     nrow = reg.vm.shape[0]
     ncol = reg.vm.shape[1]
@@ -763,8 +768,8 @@ def summary_pred(reg):
 def summary_close():
     return "========================= END OF REPORT =============================="
     
-
-
+def summary_unclose(summary):
+    return summary[:-70]
 
 
 def _test():
