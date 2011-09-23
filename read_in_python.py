@@ -55,10 +55,9 @@ for i in beta0:
 #theta0 = [np.log(alphaN0/(1-alphaN0)), np.log((alphaR0/B)/(1-alphaR0/B)), np.log((phi0/Bphi)/(1-phi0/Bphi)), beta0]
 dimbeta = beta0.shape[0]
 numu = 10
-U = np.random.uniform(0, 1, (n, numu))
+#U = np.random.uniform(0, 1, (n, numu))
 #np.savetxt('U.txt',U,delimiter=",")
-#U = np.loadtxt('U.txt',delimiter=",")
-'''
+U = np.loadtxt('U.txt',delimiter=",")
 print np.array(theta0)
 bounds=[(0.,1.),(None,B),(None,Bphi),(None,None),(None,None),(None,None),(None,None)]
 par_hat = negLogEL(np.array(theta0), y, U, XX, H, dimbeta, B, Bphi, want_derivatives=1)
@@ -78,3 +77,4 @@ for i in range(len(coefs)):
 '''
 print(dpdmu(np.array([0]), np.array([11.1004]), np.array([.6576])))
 print(dpdmu(np.array([4]), np.array([11.1004]), np.array([1.3605])))
+'''
