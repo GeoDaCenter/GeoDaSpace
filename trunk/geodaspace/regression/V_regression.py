@@ -2,6 +2,7 @@
 import cPickle
 import os.path
 import StringIO
+import sys,traceback
 #Custom
 import wx
 #Local
@@ -753,7 +754,18 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             predy_resid = None
         try:
             pos = self.textFrame.Text.GetLastPosition()
-            result = self.model.run(self.textFrame, predy_resid)
+            try:
+                result = self.model.run(self.textFrame, predy_resid)
+            except Exception:
+                et,e,tb = sys.exc_info()
+                dialog = wx.MessageDialog(self,"\"%s\"\nDisplay detailed error message in results window?"%str(e),"Model Error:",wx.YES_NO|wx.ICON_ERROR)
+                res = dialog.ShowModal()
+                if res == wx.ID_YES:
+                    traceback.print_tb(tb,file=self.textFrame)
+                    self.textFrame.Text.SetInsertionPoint(pos)
+                    self.textFrame.Show()
+                    self.textFrame.Raise()
+                return False
             if not result: #model.verify failed
                 cause = self.model.verify()[1]
                 dialog = wx.MessageDialog(self,cause,"Model Error",wx.OK|wx.ICON_ERROR)
