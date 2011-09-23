@@ -545,7 +545,7 @@ def __init_resources():
                                     <object class="sizeritem">
                                       <object class="wxRadioButton" name="MT_LAG">
                                         <label>Spatial Lag</label>
-                                        <tooltip>Estimated using S2SLS -Kelejian, H. and Prucha, I., (1998), Journal of Real Estate, Finance and Economics</tooltip>
+                                        <tooltip>Estimated using S2SLS -Anselin, L., (1988), Spatial Economitrics, Methods and Models</tooltip>
                                         <XRCED>
                                           <assign_var>1</assign_var>
                                         </XRCED>
@@ -556,7 +556,7 @@ def __init_resources():
                                     <object class="sizeritem">
                                       <object class="wxRadioButton" name="MT_ERR">
                                         <label>Spatial Error</label>
-                                        <tooltip>Estimated using GM estimator -Kelejian, H. and Prucha, I., (1999), International Economic Review</tooltip>
+                                        <tooltip>Estimated using GM estimator -Kelejian, H. and Prucha, I., (1999), International Economic Review or Drukker, D. et al. (2010), University of Maryland Working Paper</tooltip>
                                         <XRCED>
                                           <assign_var>1</assign_var>
                                         </XRCED>
@@ -567,7 +567,7 @@ def __init_resources():
                                     <object class="sizeritem">
                                       <object class="wxRadioButton" name="MT_LAGERR">
                                         <label>Spatial Lag+Error</label>
-                                        <tooltip>Estimated using GM estimator -Kelejian, H. and Prucha, I., (1999), International Economic Review</tooltip>
+                                        <tooltip>Estimated using GM estimator -Kelejian, H. and Prucha, I., (1998), Journal of Real Estate, Finance and Economics or Drukker, D. et al. (2010), University of Maryland Working Paper</tooltip>
                                         <XRCED>
                                           <assign_var>1</assign_var>
                                         </XRCED>
@@ -605,7 +605,7 @@ def __init_resources():
                                     <object class="sizeritem">
                                       <object class="wxCheckBox" name="ST_LM">
                                         <label>LM</label>
-                                        <tooltip>Lagrange Multiplier Tests for Spatial Autocorrelation, (see Anselin et al. 1996, Regional Science and Urban Economics)</tooltip>
+                                        <tooltip>Lagrange Multiplier Tests -Anselin, L. et al. (1996), Regional Science and Urban Economics or Anselin, L. and Kelejian, H. (1997), International Regional Science Review</tooltip>
                                         <XRCED>
                                           <assign_var>1</assign_var>
                                         </XRCED>
