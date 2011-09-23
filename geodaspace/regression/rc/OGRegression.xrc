@@ -424,7 +424,6 @@
                                       <flag>wxTOP</flag>
                                       <border>4</border>
                                     </object>
-                                  
                                   </object>
                                   <option>1</option>
                                   <flag>wxBOTTOM|wxLEFT|wxRIGHT|wxGROW</flag>
@@ -500,20 +499,7 @@
                           <flag>wxALL|wxEXPAND|wxGROW|wxALIGN_CENTRE</flag>
                         </object>
                         <object class="sizeritem">
-                          <flag>wxALIGN_CENTER_HORIZONTAL|wxALL</flag>
-                          <border>2</border>
                           <object class="wxBoxSizer">
-                            <orient>wxHORIZONTAL</orient>
-                            <object class="sizeritem">
-                              <object class="wxButton" name="RunButton">
-                                <label>Run</label>
-                                <XRCED>
-                                  <assign_var>1</assign_var>
-                                </XRCED>
-                              </object>
-                              <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
-                              <border>2</border>
-                            </object>
                             <object class="spacer">
                               <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                               <border>5</border>
@@ -542,6 +528,7 @@
                             <object class="sizeritem">
                               <object class="wxButton" name="SaveButton">
                                 <label>&amp;Sa&amp;ve</label>
+                                <hidden>1</hidden>
                                 <XRCED>
                                   <assign_var>1</assign_var>
                                 </XRCED>
@@ -577,6 +564,7 @@
                             <object class="sizeritem">
                               <object class="wxButton" name="CloseButton">
                                 <label>Close</label>
+                                <hidden>1</hidden>
                                 <XRCED>
                                   <assign_var>1</assign_var>
                                 </XRCED>
@@ -584,7 +572,21 @@
                               <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                               <border>2</border>
                             </object>
+                            <object class="sizeritem">
+                              <object class="wxButton" name="RunButton">
+                                <label>Run</label>
+                                <XRCED>
+                                  <assign_var>1</assign_var>
+                                </XRCED>
+                              </object>
+                              <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                              <border>7</border>
+                            </object>
+                            <orient>wxHORIZONTAL</orient>
                           </object>
+                          <option>0</option>
+                          <flag>wxALIGN_RIGHT</flag>
+                          <border>2</border>
                         </object>
                         <label>Model Estimation</label>
                       </object>

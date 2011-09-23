@@ -65,9 +65,9 @@ class xrcGMM_REGRESSION(wx.Frame):
         self.SEWhiteCheckBox = xrc.XRCCTRL(self, "SEWhiteCheckBox")
         self.SEHACCheckBox = xrc.XRCCTRL(self, "SEHACCheckBox")
         self.SEHETCheckBox = xrc.XRCCTRL(self, "SEHETCheckBox")
-        self.RunButton = xrc.XRCCTRL(self, "RunButton")
         self.SaveButton = xrc.XRCCTRL(self, "SaveButton")
         self.CloseButton = xrc.XRCCTRL(self, "CloseButton")
+        self.RunButton = xrc.XRCCTRL(self, "RunButton")
 
 
 
@@ -574,7 +574,6 @@ def __init_resources():
                                       <flag>wxTOP</flag>
                                       <border>4</border>
                                     </object>
-                                  
                                   </object>
                                   <option>1</option>
                                   <flag>wxBOTTOM|wxLEFT|wxRIGHT|wxGROW</flag>
@@ -650,20 +649,7 @@ def __init_resources():
                           <flag>wxALL|wxEXPAND|wxGROW|wxALIGN_CENTRE</flag>
                         </object>
                         <object class="sizeritem">
-                          <flag>wxALIGN_CENTER_HORIZONTAL|wxALL</flag>
-                          <border>2</border>
                           <object class="wxBoxSizer">
-                            <orient>wxHORIZONTAL</orient>
-                            <object class="sizeritem">
-                              <object class="wxButton" name="RunButton">
-                                <label>Run</label>
-                                <XRCED>
-                                  <assign_var>1</assign_var>
-                                </XRCED>
-                              </object>
-                              <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
-                              <border>2</border>
-                            </object>
                             <object class="spacer">
                               <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                               <border>5</border>
@@ -692,6 +678,7 @@ def __init_resources():
                             <object class="sizeritem">
                               <object class="wxButton" name="SaveButton">
                                 <label>&amp;Sa&amp;ve</label>
+                                <hidden>1</hidden>
                                 <XRCED>
                                   <assign_var>1</assign_var>
                                 </XRCED>
@@ -727,6 +714,7 @@ def __init_resources():
                             <object class="sizeritem">
                               <object class="wxButton" name="CloseButton">
                                 <label>Close</label>
+                                <hidden>1</hidden>
                                 <XRCED>
                                   <assign_var>1</assign_var>
                                 </XRCED>
@@ -734,7 +722,21 @@ def __init_resources():
                               <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                               <border>2</border>
                             </object>
+                            <object class="sizeritem">
+                              <object class="wxButton" name="RunButton">
+                                <label>Run</label>
+                                <XRCED>
+                                  <assign_var>1</assign_var>
+                                </XRCED>
+                              </object>
+                              <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                              <border>7</border>
+                            </object>
+                            <orient>wxHORIZONTAL</orient>
                           </object>
+                          <option>0</option>
+                          <flag>wxALIGN_RIGHT</flag>
+                          <border>2</border>
                         </object>
                         <label>Model Estimation</label>
                       </object>
