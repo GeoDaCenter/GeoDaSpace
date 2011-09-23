@@ -14,7 +14,7 @@ class TextWindow(view.xrcTextWindow,StringIO.StringIO):
         view.xrcTextWindow.__init__(self,parent=parent)
         StringIO.StringIO.__init__(self)
         self.bindings()
-        print "setting modified == false"
+        #print "setting modified == false"
         self.Text.SetModified(False)
         #self.Text.SetModified(True)
         self.path = None
@@ -117,11 +117,11 @@ class TextWindow(view.xrcTextWindow,StringIO.StringIO):
         self.Text.SetValue(self.read())
         self.Text.SetInsertionPoint(pos)
     def Close(self,evt=None):
-        print "here"
+        #print "here"
         if self.confirm():
-            print "confirm True!"
+            #print "confirm True!"
             return view.xrcTextWindow.Close(self)
             #self.Destroy()
         else:
-            print "confirm False!"
+            #print "confirm False!"
             return False

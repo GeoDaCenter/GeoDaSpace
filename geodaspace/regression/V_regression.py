@@ -115,7 +115,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.SetIcon(icons.getGeoDaIcon())
         self.modelFileName = None
         self.BASE_TITLE = self.GetTitle()
-        print "BASE_TITLE: ",self.BASE_TITLE
+        #print "BASE_TITLE: ",self.BASE_TITLE
         self.CreateStatusBar()
         self.GetStatusBar().SetStatusText("Welcome to GeoDaSpace")
 
@@ -211,7 +211,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.MT_ERR.Bind(wx.EVT_RADIOBUTTON,self.updateModelType)
         self.MT_LAGERR.Bind(wx.EVT_RADIOBUTTON,self.updateModelType)
         #self.ModelTypeRadioBox.Bind(wx.EVT_RADIOBOX, self.updateModelType)
-        self.ENDO_CHECK.Bind(wx.EVT_CHECKBOX, self.updateModelType)
+        #self.ENDO_CHECK.Bind(wx.EVT_CHECKBOX, self.updateModelType)
         #self.EndogenousRadioBox.Bind(wx.EVT_RADIOBOX, self.updateModelType)
         #self.MethodsRadioBox.Bind(wx.EVT_RADIOBOX, self.updateModelType)
         #self.SEClassicCheckBox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
@@ -243,21 +243,21 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             if type(evt.EventObject) == wx.ListBox:
                 if evt.EventObject.GetSelection() != wx.NOT_FOUND:
                     to_drag = evt.EventObject.GetSelection()
-                print to_drag
+                #print to_drag
                 if to_drag not in [wx.NOT_FOUND, None]:
                     data = wx.PyTextDataObject()
                     data.SetText(evt.EventObject.GetString(to_drag))
                     dropSource = wx.DropSource(evt.EventObject)
                     dropSource.SetData(data)
                     res = dropSource.DoDragDrop(flags=wx.Drag_DefaultMove)
-                    print res
+                    #print res
                     if res == wx.DragMove:
                         evt.EventObject.Delete(to_drag)
                     
                 
         evt.Skip()
     def close(self,evt=None):
-        print "close"
+        #print "close"
         if self.textFrame.Close():
             self.Destroy()
     def able(self):
@@ -294,12 +294,12 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             #self.EnableMethods()
             m = self.model.data
             if m['fname']:
-                if m['modelType']['endogenous'] == True: #Yes
-                    self.YE_ListBox.Enable()
-                    self.H_ListBox.Enable()
-                else: #No
-                    self.YE_ListBox.Disable()
-                    self.H_ListBox.Disable()
+                #if m['modelType']['endogenous'] == True: #Yes
+                #    self.YE_ListBox.Enable()
+                #    self.H_ListBox.Enable()
+                #else: #No
+                #    self.YE_ListBox.Disable()
+                #    self.H_ListBox.Disable()
 
                 if m['modelType']['mType'] == 2 or m['modelType']['mType'] == 3: # an error model
                     #No White in Error Models
@@ -357,9 +357,10 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             f.close()
             self.modelFileName = path
             self.setTitle()
-            print "saveModelAs, path...",path
+            #print "saveModelAs, path...",path
         else:
-            print "canceled"
+            #print "canceled"
+            pass
     def saveModel(self,evt):
         if self.modelFileName:
             f = open(self.modelFileName,'w')
@@ -436,7 +437,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                 self.setTitle()
                 if changed:
                     self.model.update() #sets modified flag
-                print "openModel, path... ",path
+                #print "openModel, path... ",path
             else:
                 print "canceled"
         except:
@@ -451,7 +452,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         modelSetup['mType'] = [m.GetValue() for m in self.MODELTYPES].index(True)
         #modelSetup['mType'] = self.ModelTypeRadioBox.GetSelection() # Zero Base
         #modelSetup['endogenous'] = self.EndogenousRadioBox.GetSelection()
-        modelSetup['endogenous'] = self.ENDO_CHECK.GetValue()
+        #modelSetup['endogenous'] = self.ENDO_CHECK.GetValue()
         #modelSetup['method'] = self.MethodsRadioBox.GetSelection()
         modelSetup['error'] = {}
         modelSetup['error']['classic'] = True #self.SEClassicCheckBox.GetValue() #True or False
@@ -469,9 +470,9 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             self.MODELTYPES[setup['mType']].SetValue(True)
             #self.ModelTypeRadioBox.SetSelection(setup['mType'])
         #if not setup['endogenous'] == self.EndogenousRadioBox.GetSelection():
-        if not setup['endogenous'] == self.ENDO_CHECK.GetValue():
+        #if not setup['endogenous'] == self.ENDO_CHECK.GetValue():
             #self.EndogenousRadioBox.SetSelection(setup['endogenous'])
-            self.ENDO_CHECK.SetValue(setup['endogenous'])
+        #    self.ENDO_CHECK.SetValue(setup['endogenous'])
         #if not setup['method'] == self.MethodsRadioBox.GetSelection():
         #    self.MethodsRadioBox.SetSelection(setup['method'])
         #if not setup['error']['classic'] == self.SEClassicCheckBox.GetValue():

@@ -61,7 +61,6 @@ class xrcGMM_REGRESSION(wx.Frame):
         self.MT_LAG = xrc.XRCCTRL(self, "MT_LAG")
         self.MT_ERR = xrc.XRCCTRL(self, "MT_ERR")
         self.MT_LAGERR = xrc.XRCCTRL(self, "MT_LAGERR")
-        self.ENDO_CHECK = xrc.XRCCTRL(self, "ENDO_CHECK")
         self.ST_LM = xrc.XRCCTRL(self, "ST_LM")
         self.SEWhiteCheckBox = xrc.XRCCTRL(self, "SEWhiteCheckBox")
         self.SEHACCheckBox = xrc.XRCCTRL(self, "SEHACCheckBox")
@@ -575,17 +574,7 @@ def __init_resources():
                                       <flag>wxTOP</flag>
                                       <border>4</border>
                                     </object>
-                                    <object class="sizeritem">
-                                      <object class="wxCheckBox" name="ENDO_CHECK">
-                                        <label>Endogeneity</label>
-                                        <tooltip>Choose this option if you have additional endogenous variables within your set of explanatory variables. Drag your additional endogenous variables to the box labeled YE. Instruments for these variables should be defined in the box labeled H.</tooltip>
-                                        <XRCED>
-                                          <assign_var>1</assign_var>
-                                        </XRCED>
-                                      </object>
-                                      <flag>wxTOP</flag>
-                                      <border>12</border>
-                                    </object>
+                                  
                                   </object>
                                   <option>1</option>
                                   <flag>wxBOTTOM|wxLEFT|wxRIGHT|wxGROW</flag>
