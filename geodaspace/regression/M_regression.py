@@ -102,8 +102,9 @@ class guiRegModel(abstractmodel.AbstractModel):
                     objs.append('obj kw')
         return pths+objs
     def getModelMethod(self):
+        raise DeprecationWarning,'getModelMethod has been depracted'
         mType = self.data['modelType']['mType']
-        bEndo = self.data['modelType']['endogenous'] # Endo is not a checkbox in the GUI
+        #bEndo = self.data['modelType']['endogenous'] # Endo is not a checkbox in the GUI
         if mType == 0: #Standard
             space = None
             #allowed estimators.
@@ -285,8 +286,9 @@ class guiRegModel(abstractmodel.AbstractModel):
         except:
             raise TypeError,"The Supplied Model File Was Invalid."
     def verify(self):
-        if self.data['modelType']['endogenous'] == True: #endogenous == yes
-            lYE,lH = len(self.data['spec']['YE']),len(self.data['spec']['H'])
+        #if self.data['modelType']['endogenous'] == True: #endogenous == yes
+        lYE,lH = len(self.data['spec']['YE']),len(self.data['spec']['H'])
+        if lYE > 0 or lH >0:
             if lH < lYE:
                 return False,"There need to be at least as many instruments (H) as endogenous variables (YE)."
             if lYE == 0:
