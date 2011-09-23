@@ -88,6 +88,7 @@ class ListBoxDropTarget(wx.TextDropTarget):
             # Fire my custom event type
             evt = ListBoxUpdateEvent(myEVT_LIST_BOX_UPDATE, self.targetListBox.GetId())
             self.targetListBox.GetEventHandler().ProcessEvent(evt)
+            return default
         else:
             return False
     def OnEnter(self,x,y,default):
@@ -178,10 +179,15 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
 
         self.Y_TextCtrl.Bind(wx.EVT_TEXT, self.updateSpec)
         self.Y_TextCtrl.Bind(wx.EVT_LEFT_DCLICK,self.clearTextBox)
+        self.Y_TextCtrl.Bind(wx.EVT_CHAR, self.clearTextBox)
         self.YE_ListBox.Bind(EVT_LIST_BOX_UPDATE, self.updateSpec)
         self.YE_ListBox.Bind(wx.EVT_LISTBOX_DCLICK, self.removeSelected)
+        self.YE_ListBox.Bind(wx.EVT_CHAR, self.removeSelected)
+        self.YE_ListBox.Bind(wx.EVT_MOUSE_EVENTS, self._startDrag)
         self.H_ListBox.Bind(EVT_LIST_BOX_UPDATE, self.updateSpec)
         self.H_ListBox.Bind(wx.EVT_LISTBOX_DCLICK, self.removeSelected)
+        self.H_ListBox.Bind(wx.EVT_CHAR, self.removeSelected)
+        self.H_ListBox.Bind(wx.EVT_MOUSE_EVENTS, self._startDrag)
         #self.R_TextCtrl.Bind(wx.EVT_TEXT, self.updateSpec)
         #self.R_TextCtrl.Bind(wx.EVT_LEFT_DCLICK,self.clearTextBox)
         #self.S_TextCtrl.Bind(wx.EVT_TEXT, self.updateSpec)
@@ -190,6 +196,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         #self.T_TextCtrl.Bind(wx.EVT_LEFT_DCLICK,self.clearTextBox)
         self.X_ListBox.Bind(EVT_LIST_BOX_UPDATE, self.updateSpec)
         self.X_ListBox.Bind(wx.EVT_LISTBOX_DCLICK, self.removeSelected)
+        self.X_ListBox.Bind(wx.EVT_CHAR, self.removeSelected)
+        self.X_ListBox.Bind(wx.EVT_MOUSE_EVENTS, self._startDrag)
 
         # The next 2 lines are commented out to disable removing weights files.
         # TODO: the removal mechanism doesn't work with w objs, need to fix 
@@ -229,6 +237,25 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                             self.MT_LAGERR ]
         self.populate(None)
 
+    def _startDrag(self,evt):
+        if evt.Dragging():
+            to_drag = None
+            if type(evt.EventObject) == wx.ListBox:
+                if evt.EventObject.GetSelection() != wx.NOT_FOUND:
+                    to_drag = evt.EventObject.GetSelection()
+                print to_drag
+                if to_drag not in [wx.NOT_FOUND, None]:
+                    data = wx.PyTextDataObject()
+                    data.SetText(evt.EventObject.GetString(to_drag))
+                    dropSource = wx.DropSource(evt.EventObject)
+                    dropSource.SetData(data)
+                    res = dropSource.DoDragDrop(flags=wx.Drag_DefaultMove)
+                    print res
+                    if res == wx.DragMove:
+                        evt.EventObject.Delete(to_drag)
+                    
+                
+        evt.Skip()
     def close(self,evt=None):
         print "close"
         if self.textFrame.Close():
@@ -572,13 +599,25 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
 
     def clearTextBox(self,evt):
         " Clears a textbox, bind to double click "
-        target = evt.EventObject
-        target.Clear()
+        if type(evt) == wx.KeyEvent:
+            code = evt.GetKeyCode()
+            if code in [wx.WXK_BACK, wx.WXK_DELETE]:
+                evt.EventObject.Clear()
+        else:
+            target = evt.EventObject
+            target.Clear()
         self.updateSpec(evt)
     def removeSelected(self,evt):
-        " Removes a selected item from listbox, bind to double click "
-        target = evt.EventObject
-        target.Delete(evt.Selection)
+        " Removes a selected item from listbox, bind to double click and evt_char"
+        if type(evt) == wx.KeyEvent:
+            code = evt.GetKeyCode()
+            if code in [wx.WXK_BACK, wx.WXK_DELETE]:
+                selection = evt.EventObject.GetSelection()
+                if selection != wx.NOT_FOUND:
+                    evt.EventObject.Delete(selection)
+        else:
+            target = evt.EventObject
+            target.Delete(evt.Selection)
         self.updateSpec(evt)
 
     def CreateMWeightsButtonClick(self,evt):
