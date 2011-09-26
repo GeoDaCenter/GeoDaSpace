@@ -103,7 +103,8 @@ class BaseGM_Error_Hom(RegressionProps):
      [ -1.17200000e-01   1.56000000e-02  -2.90000000e-03   1.64980000e+00]]
     '''
 
-    def __init__(self, y, x, w, A1='hom', max_iter=1, epsilon=1e-5):
+    def __init__(self, y, x, w,\
+                 max_iter=1, epsilon=0.00001, A1='het'):
         if A1 == 'hom':
             w.A1 = get_A1_hom(w.sparse)
         elif A1 == 'hom_sc':
@@ -224,10 +225,9 @@ class GM_Error_Hom(BaseGM_Error_Hom, USER.DiagnosticBuilder):
 
 
     '''
-    def __init__(self, y, x, w, A1='hom', nonspat_diag=True,\
-                        max_iter=1, epsilon=1e-5, name_y=None, name_x=None,\
-                        name_ds=None, vm=False):                
-        #### we currently ignore nonspat_diag parameter ####
+    def __init__(self, y, x, w,\
+                 max_iter=1, epsilon=0.00001, A1='het',\
+                 vm=False, name_y=None, name_x=None, name_ds=None):
 
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
@@ -239,14 +239,11 @@ class GM_Error_Hom(BaseGM_Error_Hom, USER.DiagnosticBuilder):
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x)
         self.name_x.append('lambda')
-        #### we currently ignore nonspat_diag parameter ####
-        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm)
+        self._get_diagnostics(w=w, beta_diag=True, vm=vm)
 
-    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False):
+    def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
-                                            nonspat_diag=nonspat_diag,\
+                                            nonspat_diag=False,\
                                             vm=vm, instruments=False)
 
 
@@ -338,7 +335,7 @@ class BaseGM_Endog_Error_Hom(RegressionProps):
     >>> q = np.array(q).T
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
-    >>> reg = BaseGM_Endog_Error_Hom(y, X, w, yd, q, A1='hom_sc')
+    >>> reg = BaseGM_Endog_Error_Hom(y, X, yd, q, w, A1='hom_sc')
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[ 55.3658  23.496 ]
      [  0.4643   0.7382]
@@ -347,7 +344,8 @@ class BaseGM_Endog_Error_Hom(RegressionProps):
 
     
     '''
-    def __init__(self, y, x, w, yend, q, A1='hom', max_iter=1, epsilon=1e-5):
+    def __init__(self, y, x, yend, q, w,\
+                 max_iter=1, epsilon=0.00001, A1='het'):
 
         if A1 == 'hom':
             w.A1 = get_A1_hom(w.sparse)
@@ -494,7 +492,7 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom, USER.DiagnosticBuilder):
 
     Model commands
 
-    >>> reg = GM_Endog_Error_Hom(y, X, w, yd, q, A1='hom_sc', name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
+    >>> reg = GM_Endog_Error_Hom(y, X, yd, q, w, A1='hom_sc', name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'crime', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
@@ -503,13 +501,11 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom, USER.DiagnosticBuilder):
      [ -0.669    0.3943]
      [  0.4321   0.1927]]
 
-        '''
-    def __init__(self, y, x, w, yend, q, A1='hom',\
-                    max_iter=1, epsilon=1e-5,\
-                    nonspat_diag=True, name_y=None, name_x=None,\
-                    name_yend=None, name_q=None, name_ds=None,\
-                    vm=False):        
-        #### we currently ignore nonspat_diag parameter ####
+    '''
+    def __init__(self, y, x, yend, q, w,\
+                 max_iter=1, epsilon=0.00001, A1='het',\
+                 vm=False, name_y=None, name_x=None,\
+                 name_yend=None, name_q=None, name_ds=None):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
@@ -525,14 +521,11 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom, USER.DiagnosticBuilder):
         self.name_z.append('lambda')  #listing lambda last
         self.name_q = USER.set_name_q(name_q, q)
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        #### we currently ignore nonspat_diag parameter ####
-        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm)
+        self._get_diagnostics(w=w, beta_diag=True, vm=vm)
         
-    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False):
+    def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
-                                            nonspat_diag=nonspat_diag, lamb=True,\
+                                            nonspat_diag=False, lamb=True,\
                                             vm=vm, instruments=True)        
 
 
@@ -629,7 +622,7 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom, RegressionProps):
 
     Example only with spatial lag
 
-    >>> reg = BaseGM_Combo_Hom(y, X, w, A1='hom_sc')
+    >>> reg = BaseGM_Combo_Hom(y, X, w=w, A1='hom_sc')
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[ 10.1254  15.2869]
      [  1.5683   0.4407]
@@ -645,7 +638,7 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom, RegressionProps):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = BaseGM_Combo_Hom(y, X, w, yd, q, A1='hom_sc')
+    >>> reg = BaseGM_Combo_Hom(y, X, yd, q, w, A1='hom_sc')
     >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['W_hoval'],['lambda']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
     [['CONSTANT' '111.7705' '67.75192']
@@ -655,9 +648,10 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom, RegressionProps):
      ['lambda' '0.60116' '0.18605']]
 
     '''
-    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                 lag_q=True, A1='hom', max_iter=1, epsilon=1e-5):
-
+    def __init__(self, y, x, yend=None, q=None,\
+                 w=None, w_lags=1, lag_q=True,\
+                 max_iter=1, epsilon=0.00001, A1='het'):
+    
         yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
         BaseGM_Endog_Error_Hom.__init__(self, y=y, x=x, w=w, yend=yend2, q=q2, A1=A1,\
                                         max_iter=max_iter, epsilon=epsilon)
@@ -771,7 +765,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
 
     Example only with spatial lag
 
-    >>> reg = GM_Combo_Hom(y, X, w, A1='hom_sc', name_x=['inc'],\
+    >>> reg = GM_Combo_Hom(y, X, w=w, A1='hom_sc', name_x=['inc'],\
             name_y='hoval', name_yend=['crime'], name_q=['discbd'],\
             name_ds='columbus')
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
@@ -789,7 +783,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = GM_Combo_Hom(y, X, w, yd, q, A1='hom_sc', \
+    >>> reg = GM_Combo_Hom(y, X, yd, q, w, A1='hom_sc', \
             name_ds='columbus')
     >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['W_hoval'],['lambda']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
@@ -800,13 +794,12 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
      ['lambda' '0.60116' '0.18605']]
 
     '''
-    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    A1='hom', lag_q=True, max_iter=1, epsilon=1e-5,\
-                    name_y=None, name_x=None, name_yend=None,\
-                    name_q=None, name_ds=None, nonspat_diag=True,\
-                    vm=False):        
-        #### we currently ignore nonspat_diag parameter ####
-
+    def __init__(self, y, x, yend=None, q=None,\
+                 w=None, w_lags=1, lag_q=True,\
+                 max_iter=1, epsilon=0.00001, A1='het',\
+                 vm=False, name_y=None, name_x=None,\
+                 name_yend=None, name_q=None, name_ds=None):
+    
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
         USER.check_constant(x)
@@ -826,14 +819,11 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
         self.name_q = USER.set_name_q(name_q, q)
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags, self.name_q, lag_q))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        #### we currently ignore nonspat_diag parameter ####
-        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm)
+        self._get_diagnostics(w=w, beta_diag=True, vm=vm)
      
-    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False):
+    def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
-                                            nonspat_diag=nonspat_diag, lamb=True,\
+                                            nonspat_diag=False, lamb=True,\
                                             vm=vm, instruments=True)        
 
 
