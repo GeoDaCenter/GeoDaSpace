@@ -2,7 +2,7 @@ import numpy as np
 import numpy.linalg as la
 from pysal import lag_spatial
 
-def robust_vm(reg,wk=None):
+def robust_vm(reg, gwk=None):
     """
     Robust estimation of the variance-covariance matrix. Estimated by White (default) or HAC (if wk is provided). 
         
@@ -12,7 +12,7 @@ def robust_vm(reg,wk=None):
     reg             : Regression object (OLS or TSLS)
                       output instance from a regression model
 
-    wk              : PySAL weights object
+    gwk             : PySAL weights object
                       Optional. Spatial weights based on kernel functions
                       If provided, returns the HAC variance estimation
                       
@@ -57,7 +57,7 @@ def robust_vm(reg,wk=None):
 
     >>> wk = pysal.open("examples/kernel_knn15_epanechnikov_3085_random_points.gwt","r").read()
     >>> wk.transform = 'o'
-    >>> ols = BaseOLS(y,X, robust='hac', wk=wk)
+    >>> ols = BaseOLS(y,X, robust='hac', gwk=wk)
     >>> ols.vm
     array([[  2.60708153e-01,   6.34129614e-03,  -3.66436005e-02],
            [  5.73679940e-03,   1.69671523e-02,  -3.45021358e-05],
@@ -80,7 +80,7 @@ def robust_vm(reg,wk=None):
 
     Example with 2SLS and HAC
 
-    >>> tsls = BaseTSLS(y, X, yd, q=q, robust='hac', wk=wk)
+    >>> tsls = BaseTSLS(y, X, yd, q=q, robust='hac', gwk=wk)
     >>> tsls.vm
     array([[ 0.32274654,  0.03947159, -0.02786886, -0.01724549],
            [ 0.03894785,  0.03572799,  0.00504059, -0.00989053],
@@ -95,9 +95,9 @@ def robust_vm(reg,wk=None):
         tsls = False
         xu = reg.x * reg.u
         
-    if wk: #If wk do HAC. White otherwise.
-        wkxu = lag_spatial(wk,xu)
-        psi0 = np.dot(xu.T,wkxu)
+    if gwk: #If gwk do HAC. White otherwise.
+        gwkxu = lag_spatial(gwk,xu)
+        psi0 = np.dot(xu.T,gwkxu)
     else:
         psi0 = np.dot(xu.T,xu)
         

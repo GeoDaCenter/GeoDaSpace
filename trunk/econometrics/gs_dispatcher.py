@@ -127,6 +127,8 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
     >>> import pysal
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
+    >>> w2 = pysal.queen_from_shapefile("examples/columbus.shp")
+    >>> w2.transform = 'r'
     >>> wk = pysal.kernelW_from_shapefile("examples/columbus.shp",k=4,function='epanechnikov',idVariable=None,fixed=False)
     >>> db=pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
@@ -139,149 +141,149 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
     
     No non-spatial endogenous variables
     
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', ols_diag=True, spat_diag=True, moran=True,\
         vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[0].name_x
+    >>> print reg[1].name_x
     ['CONSTANT', 'inc', 'hoval']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', ols_diag=True, spat_diag=True, moran=False,\
         vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=True, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[0].name_x
+    >>> print reg[1].name_x
     ['CONSTANT', 'inc', 'hoval']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[wk], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[wk], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', ols_diag=True, spat_diag=False, moran=False,\
         vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=True, kp_het=False, inf_lambda=False)
-    >>> print reg[0].name_x
+    >>> print reg[1].name_x
     ['CONSTANT', 'inc', 'hoval']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=True, moran=False,\
         vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[0].name_z
+    >>> print reg[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=True, moran=False,\
         vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=True, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[0].name_z
+    >>> print reg[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=True, moran=False,\
         vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=True, kp_het=False, inf_lambda=False)
-    >>> print reg[0].name_z
+    >>> print reg[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', ols_diag=True, spat_diag=False, moran=False,\
         vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[0].name_x
+    >>> print reg[1].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', ols_diag=True, spat_diag=True, moran=False,\
         vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, inf_lambda=False)
-    >>> print reg[0].name_x
+    >>> print reg[1].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', ols_diag=True, spat_diag=False, moran=False,\
         vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=True)
-    >>> print reg[0].name_x
+    >>> print reg[1].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', ols_diag=True, spat_diag=False, moran=False,\
         vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, inf_lambda=True)
-    >>> print reg[0].name_x
+    >>> print reg[1].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', ols_diag=True, spat_diag=False, moran=False,\
         vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[0].name_z
+    >>> print reg[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', ols_diag=True, spat_diag=False, moran=False,\
         vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, inf_lambda=False)
-    >>> print reg[0].name_z
+    >>> print reg[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
     
     Add in non-spatial endogenous variables
@@ -292,125 +294,125 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
     >>> yd = np.reshape(yd, (49,1))
     >>> q = np.array(db.by_col("DISCBD"))
     >>> q = np.reshape(q, (49,1))
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', ols_diag=True, spat_diag=True, moran=False,\
         vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[0].name_z
+    >>> print reg[1].name_z
     ['CONSTANT', 'inc', 'hoval']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', ols_diag=True, spat_diag=False, moran=False,\
         vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=True, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[0].name_z
+    >>> print reg[1].name_z
     ['CONSTANT', 'inc', 'hoval']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[wk], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[wk], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', ols_diag=True, spat_diag=True, moran=False,\
         vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=True, kp_het=False, inf_lambda=False)
-    >>> print reg[0].name_z
+    >>> print reg[1].name_z
     ['CONSTANT', 'inc', 'hoval']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=False, moran=False,\
         vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[0].name_z
+    >>> print reg[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=False, moran=False,\
         vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=True, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[0].name_z
+    >>> print reg[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=False, moran=False,\
         vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=True, kp_het=False, inf_lambda=False)
-    >>> print reg[0].name_z
+    >>> print reg[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', ols_diag=True, spat_diag=True, moran=False,\
         vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[0].name_z
+    >>> print reg[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', ols_diag=True, spat_diag=True, moran=False,\
         vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, inf_lambda=False)
-    >>> print reg[0].name_z
+    >>> print reg[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', ols_diag=True, spat_diag=False, moran=False,\
         vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[0].name_z
+    >>> print reg[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', ols_diag=True, spat_diag=False, moran=False,\
         vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
-        comp_inverse='Power_exp', step1c=False,\
+        comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, inf_lambda=False)
-    >>> print reg[0].name_z
+    >>> print reg[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
 
     """
@@ -420,13 +422,16 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         pred_res.shape = (y.shape[0], 1)
         header_pr = name_y
 
-
+    if comp_inverse == 'Power Expansion':
+        comp_inverse = 'power_exp'
+    elif comp_inverse == 'True Inverse':
+        comp_inverse = 'regular'
 
     if model_type == 'Standard':
         if name_ye:
             # run 2SLS regression; with or without nonspatial diagnostics
             reg = TSLS(y=y, x=x, yend=ye, q=h,\
-                        nonspat_diag=ols_diag, spat_diag=False, vm=False,\
+                        spat_diag=False, vm=False,\
                         name_y=name_y, name_x=name_x, name_yend=name_ye,\
                         name_q=name_h, name_ds=name_ds, sig2n_k=sig2n_k_tsls)
         else:
@@ -456,9 +461,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
             # compute White std errors
             output.append(get_robust(reg, 'white'))
         if hac:
-            for wk in wk_list:
+            for gwk in wk_list:
                 # compute HAC std errors
-                output.append(get_robust(reg, 'hac', wk))
+                output.append(get_robust(reg, 'hac', gwk))
 
 
 
@@ -492,9 +497,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         hac_regs = []
         if hac:
             for reg in output:
-                for wk in wk_list:
+                for gwk in wk_list:
                     # compute HAC std errors
-                    hac_regs.append(get_robust(reg, 'hac', wk))
+                    hac_regs.append(get_robust(reg, 'hac', gwk))
         output.extend(white_regs)
         output.extend(hac_regs)
 
@@ -634,15 +639,15 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
     return output
     
 
-def get_robust(reg, robust, wk=None):
+def get_robust(reg, robust, gwk=None):
     """Creates a new regression object, computes the robust standard errors,
     resets the regression object's internal cache and recompute the non-spatial 
     diagnostics.
     """
-    USER.check_robust(robust, wk)    
+    USER.check_robust(robust, gwk)    
     reg_robust = COPY.copy(reg)
     reg_robust._cache = {}
-    reg_robust.vm = ROBUST.robust_vm(reg=reg_robust, wk=wk)
+    reg_robust.vm = ROBUST.robust_vm(reg=reg_robust, gwk=gwk)
     reg_robust._get_diagnostics()
     return reg_robust
 

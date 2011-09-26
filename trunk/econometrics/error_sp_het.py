@@ -213,7 +213,7 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
 
     def __init__(self, y, x, w, max_iter=1, step1c=False, epsilon=1e-5,\
                         nonspat_diag=True, name_y=None, name_x=None, name_ds=None,\
-                        vm=False, pred=False):        
+                        vm=False):        
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x)
@@ -228,13 +228,13 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
         self.name_x.append('lambda')
         #### we currently ignore nonspat_diag parameter ####
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm, pred=pred)
+                                    vm=vm)
 
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False, pred=False):
+                              vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=nonspat_diag,\
-                                            vm=vm, pred=pred, instruments=False)
+                                            vm=vm, instruments=False)
 
 
 class BaseGM_Endog_Error_Het(RegressionProps):
@@ -487,7 +487,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
     def __init__(self, y, x, w, yend, q, max_iter=1, step1c=False,\
                     epsilon=1e-5, nonspat_diag=True, name_y=None, name_x=None,\
                     name_yend=None, name_q=None, name_ds=None, inv_method="power_exp",\
-                    vm=False, pred=False):        
+                    vm=False):        
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x, yend, q)
@@ -506,13 +506,13 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         #### we currently ignore nonspat_diag parameter ####
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm, pred=pred)
+                                    vm=vm)
         
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False, pred=False):
+                              vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=nonspat_diag, lamb=True,\
-                                            vm=vm, pred=pred, instruments=True)        
+                                            vm=vm, instruments=True)        
 
 class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
     """
@@ -767,7 +767,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
                     max_iter=1, step1c=False, lag_q=True, epsilon=1e-5, inv_method="power_exp",\
                     nonspat_diag=True, name_y=None, name_x=None, name_yend=None,\
-                    name_q=None, name_ds=None, vm=False, pred=False):        
+                    name_q=None, name_ds=None, vm=False):        
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x, yend, q)
@@ -791,13 +791,13 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         #### we currently ignore nonspat_diag parameter ####
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm, pred=pred)
+                                    vm=vm)
      
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False, pred=False):
+                              vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=nonspat_diag, lamb=True,\
-                                            vm=vm, pred=pred, instruments=True)        
+                                            vm=vm, instruments=True)        
 
 
 def get_psi_sigma(w, u, lamb):

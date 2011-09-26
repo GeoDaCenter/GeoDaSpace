@@ -30,7 +30,7 @@ class BaseOLS(RegressionProps):
                generalized least squares is performed resulting in new
                coefficient estimates along with a new variance-covariance
                matrix.
-    wk       : spatial weights object
+    gwk       : spatial weights object
                pysal kernel weights object
     sig2n_k  : boolean
                Whether to use n-k (if True, default) or n (if False) to
@@ -93,7 +93,8 @@ class BaseOLS(RegressionProps):
            [ -6.52060364e+00,   2.87200008e-01,   6.80956787e-02],
            [ -2.15109867e+00,   6.80956787e-02,   3.33693910e-02]])
     """
-    def __init__(self, y, x, constant=True, robust=None, wk=None, sig2n_k=True):
+    def __init__(self, y, x, constant=True,\
+                 robust=None, gwk=None, sig2n_k=True):
 
         if constant:
             self.x = np.hstack((np.ones(y.shape), x))
@@ -111,7 +112,7 @@ class BaseOLS(RegressionProps):
         self.n, self.k = self.x.shape
 
         if robust:
-            self.vm = ROBUST.robust_vm(reg=self, wk=wk)
+            self.vm = ROBUST.robust_vm(reg=self, gwk=gwk)
 
         RegressionProps()
         self._cache = {}
@@ -327,7 +328,6 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
            crime      -0.4848885       0.1826729      -2.6544086       0.0108745
     ----------------------------------------------------------------------------
     <BLANKLINE>
-    <BLANKLINE>
     REGRESSION DIAGNOSTICS
     MULTICOLLINEARITY CONDITION NUMBER   12.537555
     TEST ON NORMALITY OF ERRORS
@@ -343,7 +343,6 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     SPECIFICATION ROBUST TEST
     TEST                  DF          VALUE            PROB
     White                  5           2.906067        0.7144648
-    <BLANKLINE>
     ========================= END OF REPORT ==============================
 
 
@@ -359,7 +358,7 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     0.009547.
 
     >>> w = pysal.weights.rook_from_shapefile("examples/columbus.shp")
-    >>> ols = OLS(y, X, w, spat_diag=True, name_y='home value', name_x=['income','crime'], name_ds='columbus')
+    >>> ols = OLS(y, X, w, spat_diag=True, moran=True, name_y='home value', name_x=['income','crime'], name_ds='columbus')
     >>> ols.betas
     array([[ 46.42818268],
            [  0.62898397],
@@ -372,31 +371,34 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     0.00954740031251
 
     """
-    def __init__(self, y, x, w=None, robust=None, wk=None,\
-                        sig2n_k = True, nonspat_diag=True, spat_diag=False,\
-                        name_y=None, name_x=None, name_ds=None,\
-                        vm=False, pred=False, moran=False):
+    def __init__(self, y, x,\
+                 w=None,\
+                 robust=None, gwk=None, sig2n_k=True,\
+                 nonspat_diag=True, spat_diag=False, moran=False,\
+                 vm=False, name_y=None, name_x=None,\
+                 name_ds=None):
+
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
-        USER.check_robust(robust, wk)
+        USER.check_robust(robust, gwk)
         USER.check_spat_diag(spat_diag, w)
         USER.check_constant(x)
         BaseOLS.__init__(self, y=y, x=x, robust=robust,\
-                         wk=wk, sig2n_k=sig2n_k) 
+                         gwk=gwk, sig2n_k=sig2n_k) 
         self.title = "ORDINARY LEAST SQUARES"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x)
         self.robust = USER.set_robust(robust)
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=nonspat_diag,\
-                                    spat_diag=spat_diag, vm=vm, pred=pred, moran=moran)
+                                    spat_diag=spat_diag, vm=vm, moran=moran)
 
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              spat_diag=False, vm=False, pred=False, moran=False):
+                              spat_diag=False, vm=False, moran=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=beta_diag,\
                                             nonspat_diag=nonspat_diag,\
                                             spat_diag=spat_diag, vm=vm,\
-                                            pred=pred, moran=moran)
+                                            moran=moran)
 
 def _test():
     import doctest
