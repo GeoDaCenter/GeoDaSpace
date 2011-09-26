@@ -115,7 +115,20 @@ class weightsDialog(xrcDIALOGWEIGHTS):
         if not self.HasW():
             return self.Warn("No weights object has been created yet.")
         try:
-            filter = "Weights File (*.gal)|*.gal|Weights File (*.gwt)|*.gwt"
+            w = self.GetW()
+            if hasattr(w,'meta'):
+                if w.meta['method'] == 'adaptive kernel':
+                    filter = "Kernel Weights File (*.kwt)|*.kwt"
+                    exts = {0:'.kwt'}
+                elif w.meta['method'] == 'contiguity':
+                    filter = "Weights File (*.gal)|*.gal"
+                    exts = {0:'.gal'}
+                else:
+                    filter = "Weights File (*.gwt)|*.gwt"
+                    exts = {0:'.gwt'}
+            else:
+                filter = "Weights File (*.gal)|*.gal|Weights File (*.gwt)|*.gwt"
+                exts = {0:'.gal',1:'.gwt'}
             pathHint,filename = os.path.split(self.model.inShps[self.model.inShp])
             filename = filename[:-4]
             
@@ -125,7 +138,7 @@ class weightsDialog(xrcDIALOGWEIGHTS):
             result = fileDialog.ShowModal()
             if result == wx.ID_OK:
                 path = fileDialog.GetPath()
-                ext = {0:'.gal',1:'.gwt'}[fileDialog.GetFilterIndex()]
+                ext = [fileDialog.GetFilterIndex()]
                 if not path.endswith(ext):
                     path = path+ext
                 o = pysal.open(path, 'w')
