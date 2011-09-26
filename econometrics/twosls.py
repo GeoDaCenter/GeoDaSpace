@@ -117,9 +117,9 @@ class BaseTSLS(RegressionProps):
     >>> reg = BaseTSLS(y, X, yd, q=q, robust="white")
     
     """
-    def __init__(self, y, x, yend, q=None, h=None, constant=True, sig2n_k=False,\
-                        robust=None, wk=None):
-        
+    def __init__(self, y, x, yend, q=None, h=None, constant=True,\
+                 robust=None, gwk=None, sig2n_k=False):
+
         if issubclass(type(q), np.ndarray) and issubclass(type(h), np.ndarray):  
             raise Exception, "Please do not provide 'q' and 'h' together"
         if q==None and h==None:
@@ -174,7 +174,7 @@ class BaseTSLS(RegressionProps):
         self.xptxpi = varb
       
         if robust:
-            self.vm = ROBUST.robust_vm(reg=self, wk=wk)
+            self.vm = ROBUST.robust_vm(reg=self, gwk=gwk)
 
         self._cache = {}
         RegressionProps()
@@ -294,20 +294,20 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
     
 
     """
-    def __init__(self, y, x, yend, q, w=None, sig2n_k=False,\
-                        robust=None, wk=None,\
-                        nonspat_diag=True, spat_diag=False,\
-                        name_y=None, name_x=None, name_yend=None, name_q=None,\
-                        name_ds=None, vm=False, pred=False):
-        #### we currently ignore nonspat_diag parameter ####
+    def __init__(self, y, x, yend, q,\
+                 w=None,\
+                 robust=None, gwk=None, sig2n_k=False,\
+                 spat_diag=False,\
+                 vm=False, name_y=None, name_x=None,\
+                 name_yend=None, name_q=None, name_ds=None):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
-        USER.check_robust(robust, wk)
+        USER.check_robust(robust, gwk)
         USER.check_spat_diag(spat_diag, w)
         USER.check_constant(x)
         BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q,\
-                              robust=robust, wk=wk, sig2n_k=sig2n_k)
+                              robust=robust, gwk=gwk, sig2n_k=sig2n_k)
         self.title = "TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
@@ -317,16 +317,15 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
         self.name_q = USER.set_name_q(name_q, q)
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         self.robust = USER.set_robust(robust)
-        #### we currently ignore nonspat_diag parameter ####
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    spat_diag=spat_diag, vm=vm, pred=pred)
+                                    spat_diag=spat_diag, vm=vm)
 
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              spat_diag=False, vm=False, pred=False, moran=False):
+                              spat_diag=False, vm=False, moran=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=beta_diag,\
                                             nonspat_diag=nonspat_diag,\
                                             spat_diag=spat_diag, vm=vm,\
-                                            pred=pred, instruments=True,
+                                            instruments=True,
                                             moran=False)
         
 

@@ -40,7 +40,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
                   generalized least squares is performed resulting in new
                   coefficient estimates along with a new variance-covariance
                   matrix. 
-    wk          : spatial weights object
+    gwk          : spatial weights object
                   pysal kernel weights object
 
     Attributes
@@ -105,7 +105,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("CRIME"))
     >>> X = np.array(X).T
-    >>> reg=BaseGM_Lag(y, X, w, w_lags=2)
+    >>> reg=BaseGM_Lag(y, X, w=w, w_lags=2)
     >>> reg.betas
     array([[  4.53017056e+01],
            [  6.20888617e-01],
@@ -113,7 +113,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
            [  2.83622122e-02]])
     >>> D.se_betas(reg)
     array([ 17.91278862,   0.52486082,   0.1822815 ,   0.31740089])
-    >>> reg=BaseGM_Lag(y, X, w, w_lags=2, robust='white')
+    >>> reg=BaseGM_Lag(y, X, w=w, w_lags=2, robust='white')
     >>> reg.betas
     array([[  4.53017056e+01],
            [  6.20888617e-01],
@@ -128,7 +128,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
     >>> yd = np.reshape(yd, (49,1))
     >>> q = np.array(db.by_col("DISCBD"))
     >>> q = np.reshape(q, (49,1))
-    >>> reg=BaseGM_Lag(y, X, w, yd, q, w_lags=2)
+    >>> reg=BaseGM_Lag(y, X, w=w, yend=yd, q=q, w_lags=2)
 
     References
     ----------
@@ -139,13 +139,15 @@ class BaseGM_Lag(TSLS.BaseTSLS):
     Econometrics, 18, 163-198.
     """
 
-    def __init__(self, y, x, w, yend=None, q=None, w_lags=1, lag_q=True,\
-                    robust=None, wk=None, sig2n_k=False):
+    def __init__(self, y, x, yend=None, q=None,\
+                 w=None, w_lags=1, lag_q=True,\
+                 robust=None, gwk=None, sig2n_k=False):
+
         yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
         TSLS.BaseTSLS.__init__(self, y, x, yend2, q=q2,\
                                sig2n_k=sig2n_k)        
         if robust:
-            self.vm = ROBUST.robust_vm(self, wk=wk)
+            self.vm = ROBUST.robust_vm(self, gwk=gwk)
 
 
 class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
@@ -251,7 +253,7 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("CRIME"))
     >>> X = np.array(X).T
-    >>> reg=GM_Lag(y, X, w, w_lags=2, name_x=['inc', 'crime'], name_y='hoval', name_ds='columbus')
+    >>> reg=GM_Lag(y, X, w=w, w_lags=2, name_x=['inc', 'crime'], name_y='hoval', name_ds='columbus')
     >>> reg.betas
     array([[  4.53017056e+01],
            [  6.20888617e-01],
@@ -259,7 +261,7 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
            [  2.83622122e-02]])
     >>> D.se_betas(reg)
     array([ 17.91278862,   0.52486082,   0.1822815 ,   0.31740089])
-    >>> reg=GM_Lag(y, X, w, w_lags=2, robust='white', name_x=['inc', 'crime'], name_y='hoval', name_ds='columbus')
+    >>> reg=GM_Lag(y, X, w=w, w_lags=2, robust='white', name_x=['inc', 'crime'], name_y='hoval', name_ds='columbus')
     >>> reg.betas
     array([[  4.53017056e+01],
            [  6.20888617e-01],
@@ -274,19 +276,20 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
     >>> yd = np.reshape(yd, (49,1))
     >>> q = np.array(db.by_col("DISCBD"))
     >>> q = np.reshape(q, (49,1))
-    >>> reg=GM_Lag(y, X, w, yd, q, w_lags=2, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
+    >>> reg=GM_Lag(y, X, w=w, yend=yd, q=q, w_lags=2, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
 
 
     """
-    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    robust=None, wk=None, nonspat_diag=True, spat_diag=False,\
-                    name_y=None, name_x=None, name_yend=None, name_q=None, name_ds=None,\
-                    vm=False, pred=False, lag_q=True, sig2n_k=False):
-        #### we currently ignore nonspat_diag parameter ####
+    def __init__(self, y, x, yend=None, q=None,\
+                 w=None, w_lags=1, lag_q=True,\
+                 robust=None, gwk=None, sig2n_k=False,\
+                 spat_diag=False,\
+                 vm=False, name_y=None, name_x=None,\
+                 name_yend=None, name_q=None, name_ds=None):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
-        USER.check_robust(robust, wk)
+        USER.check_robust(robust, gwk)
         USER.check_constant(x)
         BaseGM_Lag.__init__(self, y=y, x=x, w=w, yend=yend, q=q,\
                             w_lags=w_lags, robust=robust,\
@@ -305,14 +308,14 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         #### we currently ignore nonspat_diag parameter ####
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm, pred=pred, spat_diag=spat_diag)
+                                    vm=vm, spat_diag=spat_diag)
 
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              spat_diag=False, vm=False, pred=False):
+                              spat_diag=False, vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=beta_diag,\
                                             nonspat_diag=nonspat_diag,\
                                             spat_diag=spat_diag, vm=vm,\
-                                            pred=pred, instruments=True)
+                                            instruments=True)
 
 def _test():
     import doctest
@@ -333,10 +336,10 @@ if __name__ == '__main__':
     X.append(db.by_col("INC"))
     X.append(db.by_col("CRIME"))
     X = np.array(X).T
-    reg=BaseGM_Lag(y, X, w, w_lags=2)
+    reg=BaseGM_Lag(y, X, w=w, w_lags=2)
     print reg.betas
     print reg.vm
-    reg=BaseGM_Lag(y, X, w, w_lags=2, robust='white')
+    reg=BaseGM_Lag(y, X, w=w, w_lags=2, robust='white')
     print reg.betas
     print reg.vm
     from robust import robust_vm

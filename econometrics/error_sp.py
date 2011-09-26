@@ -173,7 +173,7 @@ class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
     """
     def __init__(self, y, x, w, nonspat_diag=True,\
                         name_y=None, name_x=None, name_ds=None,\
-                        vm=False, pred=False):                
+                        vm=False):                
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x)
@@ -187,13 +187,13 @@ class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
         self.name_x.append('lambda')
         #### we currently ignore nonspat_diag parameter ####
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm, pred=pred)
+                                    vm=vm)
 
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False, pred=False):
+                              vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=nonspat_diag, lamb=True,\
-                                            vm=vm, pred=pred, instruments=False)
+                                            vm=vm, instruments=False)
 
 class BaseGM_Endog_Error(RegressionProps):
     '''
@@ -331,7 +331,7 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
     def __init__(self, y, x, w, yend, q, nonspat_diag=True,\
                     name_y=None, name_x=None,\
                     name_yend=None, name_q=None, name_ds=None,\
-                    vm=False, pred=False):        
+                    vm=False):        
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x, yend, q)
@@ -349,13 +349,13 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         #### we currently ignore nonspat_diag parameter ####
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm, pred=pred)
+                                    vm=vm)
      
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False, pred=False):
+                              vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=nonspat_diag, lamb=True,\
-                                            vm=vm, pred=pred, instruments=True)        
+                                            vm=vm, instruments=True)        
 
 class BaseGM_Combo(BaseGM_Endog_Error, RegressionProps):
     """
@@ -530,7 +530,7 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
     def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
                     lag_q=True, nonspat_diag=True, name_y=None, name_x=None, \
                     name_yend=None, name_q=None, name_ds=None,\
-                    vm=False, pred=False):        
+                    vm=False):        
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x, yend, q)
@@ -553,13 +553,13 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         #### we currently ignore nonspat_diag parameter ####
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm, pred=pred)
+                                    vm=vm)
      
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False, pred=False):
+                              vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=nonspat_diag, lamb=True,\
-                                            vm=vm, pred=pred, instruments=True)        
+                                            vm=vm, instruments=True)        
 
 # Hom Models
 
@@ -762,7 +762,7 @@ class GM_Error_Hom(BaseGM_Error_Hom, USER.DiagnosticBuilder):
     '''
     def __init__(self, y, x, w, A1='hom', nonspat_diag=True,\
                         max_iter=1, epsilon=1e-5, name_y=None, name_x=None,\
-                        name_ds=None, vm=False, pred=False):                
+                        name_ds=None, vm=False):                
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x)
@@ -777,13 +777,13 @@ class GM_Error_Hom(BaseGM_Error_Hom, USER.DiagnosticBuilder):
         self.name_x.append('lambda')
         #### we currently ignore nonspat_diag parameter ####
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm, pred=pred)
+                                    vm=vm)
 
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False, pred=False):
+                              vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=nonspat_diag,\
-                                            vm=vm, pred=pred, instruments=False)
+                                            vm=vm, instruments=False)
 
 
 class BaseGM_Endog_Error_Hom(RegressionProps):
@@ -1044,7 +1044,7 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom, USER.DiagnosticBuilder):
                     max_iter=1, epsilon=1e-5,\
                     nonspat_diag=True, name_y=None, name_x=None,\
                     name_yend=None, name_q=None, name_ds=None,\
-                    vm=False, pred=False):        
+                    vm=False):        
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x, yend, q)
@@ -1063,13 +1063,13 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom, USER.DiagnosticBuilder):
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         #### we currently ignore nonspat_diag parameter ####
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm, pred=pred)
+                                    vm=vm)
         
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False, pred=False):
+                              vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=nonspat_diag, lamb=True,\
-                                            vm=vm, pred=pred, instruments=True)        
+                                            vm=vm, instruments=True)        
 
 
 class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom, RegressionProps):
@@ -1340,7 +1340,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
                     A1='hom', lag_q=True, max_iter=1, epsilon=1e-5,\
                     name_y=None, name_x=None, name_yend=None,\
                     name_q=None, name_ds=None, nonspat_diag=True,\
-                    vm=False, pred=False):        
+                    vm=False):        
         #### we currently ignore nonspat_diag parameter ####
 
         USER.check_arrays(y, x, yend, q)
@@ -1364,13 +1364,13 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         #### we currently ignore nonspat_diag parameter ####
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm, pred=pred)
+                                    vm=vm)
      
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False, pred=False):
+                              vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=nonspat_diag, lamb=True,\
-                                            vm=vm, pred=pred, instruments=True)        
+                                            vm=vm, instruments=True)        
 
 
 def moments_hom(w, u):

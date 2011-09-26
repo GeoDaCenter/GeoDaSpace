@@ -96,7 +96,7 @@ class DiagnosticBuilder:
                Including all the information in OLS class in nice format          
 
     """
-    def __init__(self, w, vm, pred, instruments=False, beta_diag=True,\
+    def __init__(self, w, vm, instruments=False, beta_diag=True,\
                         nonspat_diag=True, spat_diag=False, lamb=False,\
                         moran=False):
 
@@ -167,8 +167,6 @@ class DiagnosticBuilder:
             self.summary += summary_spat_diag(self, instruments, moran)
         if vm:
             self.summary += summary_vm(self, instruments)
-        if pred:
-            self.summary += summary_pred(self)
         self.summary += summary_close()
 
 def set_name_ds(name_ds):
