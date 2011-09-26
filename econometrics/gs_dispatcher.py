@@ -9,6 +9,8 @@ from error_sp_hom import GM_Endog_Error_Hom, GM_Error_Hom, GM_Combo_Hom
 import robust as ROBUST
 import user_output as USER
 
+INV_METHODS = ("Power Expansion", "True Inverse",)
+
 def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                 h, name_h, r, name_r, s, name_s, t, name_t,\
                 model_type,\
@@ -27,7 +29,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
     ----------
 
     name_ds     : string
-                  Name of dataset for use in output
+                  Name of dataset for use in output, for description only.
     w_list      : list
                   List of PySAL W objects
     wk_list     : list
