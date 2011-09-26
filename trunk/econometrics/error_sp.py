@@ -171,10 +171,8 @@ class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
     198.559595
 
     """
-    def __init__(self, y, x, w, nonspat_diag=True,\
-                        name_y=None, name_x=None, name_ds=None,\
-                        vm=False):                
-        #### we currently ignore nonspat_diag parameter ####
+    def __init__(self, y, x, w,\
+                 vm=False, name_y=None, name_x=None, name_ds=None):
 
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
@@ -185,14 +183,11 @@ class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x)
         self.name_x.append('lambda')
-        #### we currently ignore nonspat_diag parameter ####
-        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm)
+        self._get_diagnostics(w=w, beta_diag=True, vm=vm)
 
-    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False):
+    def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
-                                            nonspat_diag=nonspat_diag, lamb=True,\
+                                            nonspat_diag=False, lamb=True,\
                                             vm=vm, instruments=False)
 
 class BaseGM_Endog_Error(RegressionProps):
@@ -255,7 +250,7 @@ class BaseGM_Endog_Error(RegressionProps):
     >>> q = np.array([dbf.by_col('DISCBD')]).T
     >>> w = pysal.open('examples/columbus.gal', 'r').read() 
     >>> w.transform='r'
-    >>> model = BaseGM_Endog_Error(y, x, w, yend, q)
+    >>> model = BaseGM_Endog_Error(y, x, yend, q, w)
     >>> np.around(model.betas, decimals=6)
     array([[ 82.57298 ],
            [  0.580959],
@@ -267,7 +262,7 @@ class BaseGM_Endog_Error(RegressionProps):
            [  0.786205]])
 
     '''
-    def __init__(self, y, x, w, yend, q):
+    def __init__(self, y, x, yend, q, w):
 
         #1a. TSLS --> \tilde{betas}
         tsls = TSLS.BaseTSLS(y=y, x=x, yend=yend, q=q)
@@ -314,7 +309,7 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
     >>> q = np.array([dbf.by_col('DISCBD')]).T
     >>> w = pysal.open('examples/columbus.gal', 'r').read() 
     >>> w.transform='r'
-    >>> model = GM_Endog_Error(y, x, w, yend, q, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
+    >>> model = GM_Endog_Error(y, x, yend, q, w, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
     >>> print model.name_z
     ['CONSTANT', 'inc', 'hoval', 'lambda']
     >>> np.around(model.betas, decimals=6)
@@ -328,11 +323,9 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
            [  0.786205]])
     
     '''
-    def __init__(self, y, x, w, yend, q, nonspat_diag=True,\
-                    name_y=None, name_x=None,\
-                    name_yend=None, name_q=None, name_ds=None,\
-                    vm=False):        
-        #### we currently ignore nonspat_diag parameter ####
+    def __init__(self, y, x, yend, q, w,\
+                 vm=False, name_y=None, name_x=None,\
+                 name_yend=None, name_q=None, name_ds=None):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
@@ -347,14 +340,11 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
         self.name_z.append('lambda')
         self.name_q = USER.set_name_q(name_q, q)
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        #### we currently ignore nonspat_diag parameter ####
-        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm)
+        self._get_diagnostics(w=w, beta_diag=True, vm=vm)
      
-    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False):
+    def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
-                                            nonspat_diag=nonspat_diag, lamb=True,\
+                                            nonspat_diag=False, lamb=True,\
                                             vm=vm, instruments=True)        
 
 class BaseGM_Combo(BaseGM_Endog_Error, RegressionProps):
@@ -430,7 +420,7 @@ class BaseGM_Combo(BaseGM_Endog_Error, RegressionProps):
 
     Example only with spatial lag
 
-    >>> reg = BaseGM_Combo(y, X, w)
+    >>> reg = BaseGM_Combo(y, X, w=w)
 
     Print the betas
 
@@ -453,7 +443,7 @@ class BaseGM_Combo(BaseGM_Endog_Error, RegressionProps):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = BaseGM_Combo(y, X, w, yd, q)
+    >>> reg = BaseGM_Combo(y, X, yd, q, w)
     >>> betas = np.array([['CONSTANT'],['INC'],['HOVAL'],['W_CRIME']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas[:-1], np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)))
     [['CONSTANT' '50.0944' '14.3593']
@@ -462,8 +452,8 @@ class BaseGM_Combo(BaseGM_Endog_Error, RegressionProps):
      ['W_CRIME' '0.4375' '0.2314']]
 
         """
-    def __init__(self, y, x, w, yend=None, q=None,\
-                 w_lags=1, lag_q=True):
+    def __init__(self, y, x, yend=None, q=None,\
+                 w=None, w_lags=1, lag_q=True):
 
         yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
         BaseGM_Endog_Error.__init__(self, y=y, x=x, w=w, yend=yend2, q=q2)
@@ -488,7 +478,7 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
 
     Example only with spatial lag
 
-    >>> reg = GM_Combo(y, X, w, name_y='crime', name_x=['income'], name_ds='columbus')
+    >>> reg = GM_Combo(y, X, w=w, name_y='crime', name_x=['income'], name_ds='columbus')
 
     Print the betas
 
@@ -513,7 +503,7 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = GM_Combo(y, X, w, yd, q, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
+    >>> reg = GM_Combo(y, X, yd, q, w, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
     >>> names = np.array(reg.name_z).reshape(5,1)
@@ -526,12 +516,10 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
     >>> print 'lambda: ', np.around(reg.betas[-1], 3)
     lambda:  [ 0.254]
     """
-
-    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    lag_q=True, nonspat_diag=True, name_y=None, name_x=None, \
-                    name_yend=None, name_q=None, name_ds=None,\
-                    vm=False):        
-        #### we currently ignore nonspat_diag parameter ####
+    def __init__(self, y, x, yend=None, q=None,\
+                 w=None, w_lags=1, lag_q=True,\
+                 vm=False, name_y=None, name_x=None,\
+                 name_yend=None, name_q=None, name_ds=None):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
@@ -551,14 +539,11 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
         self.name_q = USER.set_name_q(name_q, q)
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags, self.name_q, lag_q))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        #### we currently ignore nonspat_diag parameter ####
-        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm)
+        self._get_diagnostics(w=w, beta_diag=True, vm=vm)
      
-    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False):
+    def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
-                                            nonspat_diag=nonspat_diag, lamb=True,\
+                                            nonspat_diag=False, lamb=True,\
                                             vm=vm, instruments=True)        
 
 # Hom Models
