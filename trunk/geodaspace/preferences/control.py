@@ -9,13 +9,15 @@ from model import preferencesModel
 import preferences_xrc
 from tooltips import tips
 
+from econometrics.gs_dispatcher import INV_METHODS
+#INV_METHODS = ('Power exp','True inv',)
+
 STD_DEV_PAGE = 0
 GMM_PAGE = 1
 INSTRUMENTS_PAGE = 2
 OUTPUT_PAGE = 3
 OTHER_PAGE = 4
 
-INV_METHODS = ('Power exp','True inv',)
 
 class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
     """
@@ -112,10 +114,13 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
     def reset_model(self):
         self.model.reset()
         if os.path.exists(self.config_file):
-            config_fp = open(self.config_file,'r')
-            self.model.load(config_fp)
-            config_fp.close()
-        self.update()
+            try:
+                config_fp = open(self.config_file,'r')
+                self.model.load(config_fp)
+                config_fp.close()
+                self.update()
+            except:
+                self.model.reset()
         
     def update(self,tag=False):
         if DEBUG: print "CONTROL... updating tag:",tag

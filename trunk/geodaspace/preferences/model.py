@@ -14,7 +14,7 @@ class preferencesModel(AbstractModel):
     """
     DEFAULTS = {
         'sig2n_k_other':False, 'sig2n_k_ols':True, 'sig2n_k_gmlag':False, 'sig2n_k_2sls':False,
-        'gmm_epsilon':1e-05, 'gmm_inferenceOnLambda':True, 'gmm_max_iter':1, 'gmm_step1c':False, 'gmm_inv_method':'Power exp',
+        'gmm_epsilon':1e-05, 'gmm_inferenceOnLambda':True, 'gmm_max_iter':1, 'gmm_step1c':False, 'gmm_inv_method':'Power Expansion',
         'instruments_lag_q':True, 'instruments_w_lags':1,
         'other_ols_diagnostics':True, 'other_numcores':1, 'other_residualMoran':False,
         'output_save_pred_residuals':False, 'output_vm_summary':False
