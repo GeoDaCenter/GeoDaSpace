@@ -7,6 +7,63 @@ import numpy as np
 from econometrics.gs_dispatcher import spmodel
 from geodaspace.preferences.model import preferencesModel
 
+class GeoDaSpace_W_Obj(object):
+    """ A wrapper around W objs to carry meta data like name, state, etc """
+    def __init__(self, obj = None):
+        self._enabled = True
+        if issubclass(type(obj),pysal.W):
+            self._w_obj = obj
+        else:
+            raise TypeError, "obj must be of type W."
+    def __eq__(self,other):
+        if not issubclass(type(other),GeoDaSpace_W_Obj):
+            return False
+        elif other.has_meta and self.has_meta:
+            return other.w.meta == self.w.meta
+        elif hasattr(self,'_path') and hasattr(other,'_path'):
+            return other._path == self._path
+        else:
+            return self.w == other.w
+    def __get_enabled(self):
+        return self._enabled
+    def __set_enabled(self,v):
+        self._enabled = bool(v)
+    enabled = property(__get_enabled, __set_enabled)
+    @property
+    def saved(self):
+        if hasattr(self,'_path'):
+            return True
+    @property
+    def w(self):
+        return self._w_obj
+    @classmethod
+    def from_path(cls,path):
+        """
+        Instantiates an instance of GeoDaSpace_W_Obj from a path
+        """
+        w = cls(pysal.open(path,'r').read())
+        w._path = path
+        return w
+    @property
+    def has_meta(self):
+        return hasattr(self.w,'meta')
+    @property
+    def name(self):
+        if self.has_meta:
+            if self.w.meta['shape file'] == 'unknown':
+                name = 'File'
+            else:
+                name = os.path.basename(self.w.meta['shape file'])
+            name+= ': '+self.w.meta['method']
+            if 'method options' in self.w.meta:
+                name+= ': '+', '.join(map(str,self.w.meta['method options']))
+            print name, self.w.meta
+        elif hasattr(self,'_path'):
+            name = os.path.basename(self._path)
+        else:
+            name = "weights object"
+        return name
+
 class guiRegModel(abstractmodel.AbstractModel):
     STATE_EMPTY = 0
     STATE_CHANGED = 1
@@ -36,23 +93,31 @@ class guiRegModel(abstractmodel.AbstractModel):
         self.data['modelType'] = setup
         self.update()
     def addMWeightsFile(self,path=None,obj=None):
-        if obj and obj not in self.data['mWeights']:
-            self.data['mWeights'].append(obj)
-            self.update()
-        elif path and path not in self.data['mWeights']:
-            self.data['mWeights'].append(path)
-            self.update()
+        if obj:
+            obj = GeoDaSpace_W_Obj(obj)
+            if obj not in self.data['mWeights']:
+                self.data['mWeights'].append(obj)
+                self.update()
+        elif path:
+            obj = GeoDaSpace_W_Obj.from_path(path)
+            if obj not in self.data['mWeights']:
+                self.data['mWeights'].append(obj)
+                self.update()
         else:
             pass
     def addKWeightsFile(self,path=None,obj=None):
-        if obj and obj not in self.data['kWeights']:
-            self.data['kWeights'].append(obj)
-            self.update()
-        elif path and path not in self.data['kWeights']:
-            self.data['kWeights'].append(path)
-            self.update()
+        if obj:
+            obj = GeoDaSpace_W_Obj(obj)
+            if obj not in self.data['kWeights']:
+                self.data['kWeights'].append(obj)
+                self.update()
+        elif path:
+            obj = GeoDaSpace_W_Obj.from_path(path)
+            if obj not in self.data['kWeights']:
+                self.data['kWeights'].append(obj)
+                self.update()
         else:
-            return True
+            pass
     def checkKW(self,obj):
         print "running checkKW() this function needs work."
         avgN = sum(obj.cardinalities.values())/float(obj.n)
@@ -77,30 +142,19 @@ class guiRegModel(abstractmodel.AbstractModel):
     def getModelType(self):
         return self.data['modelType']
     def getMWeightsFiles(self):
-        pths = [os.path.basename(p) for p in self.data['mWeights'] if type(p)==str]
-        #objs = ['obj mw' for p in self.data['mWeights'] if type(p)==pysal.W]
-        objs = []
-        for p in self.data['mWeights']:
-            if issubclass(type(p),pysal.W):
-                if hasattr(p,'meta'):
-                    name = os.path.basename(p.meta['shape file'])
-                    name+= ': '+p.meta['method']
-                    objs.append(name)
-                else:
-                    objs.append('obj mw')
-        return pths+objs
+        return self.data['mWeights']
+    def getMWeightsEnabled(self):
+        return [w for w in self.data['mWeights'] if w.enabled]
+    def removeMW(self,idx):
+        w = self.data['mWeights'].pop(idx)
+        self.update()
+        return w
+    def removeKW(self,idx):
+        w = self.data['kWeights'].pop(idx)
+        self.update()
+        return  w
     def getKWeightsFiles(self):
-        pths = [os.path.basename(p) for p in self.data['kWeights'] if type(p)==str]
-        objs = []
-        for p in self.data['kWeights']:
-            if issubclass(type(p),pysal.W):
-                if hasattr(p,'meta'):
-                    name = os.path.basename(p.meta['shape file'])
-                    name+= ': '+p.meta['method']
-                    objs.append(name)
-                else:
-                    objs.append('obj kw')
-        return pths+objs
+        return self.data['kWeights']
     def getModelMethod(self):
         raise DeprecationWarning,'getModelMethod has been depracted'
         mType = self.data['modelType']['mType']
@@ -297,7 +351,7 @@ class guiRegModel(abstractmodel.AbstractModel):
             pass
         else:
             return False,'Model Spec is incomplete.  Please populate both X and Y'
-        if self.data['modelType']['spatial_tests']['lm'] and not self.data['mWeights']:
+        if self.data['modelType']['spatial_tests']['lm'] and not self.getMWeightsEnabled():
             return False,'LM Test requires Model Weights, please add or create a weights file, or disable "LM".'
         return True,None
     def run(self,path=None, predy_resid=None):
@@ -310,8 +364,8 @@ class guiRegModel(abstractmodel.AbstractModel):
 
         # Build up args for dispatcher
         # weights
-        w_list = data['mWeights']
-        wk_list = data['kWeights']
+        w_list = [w.w for w in data['mWeights'] if w.enabled]
+        wk_list = [w.w for w in data['kWeights'] if w.enabled]
         db = pysal.open( data['fname'] ,'r')
         # y
         name_y = data['spec']['y']
@@ -353,7 +407,7 @@ class guiRegModel(abstractmodel.AbstractModel):
         sig2n_k_gmlag = False
         config = data['config']
 
-        print w_list
+        print w_list,wk_list
         results = spmodel(data['fname'], w_list, wk_list, y, name_y, x, x_names, ye, ye_names,
                  h, h_names, r, name_r, s, name_s, t, name_t,
                  model_type, #data['modelType']['endogenous'],

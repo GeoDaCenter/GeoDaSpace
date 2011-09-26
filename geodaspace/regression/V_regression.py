@@ -202,8 +202,12 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
 
         # The next 2 lines are commented out to disable removing weights files.
         # TODO: the removal mechanism doesn't work with w objs, need to fix 
-        #self.MWeights_ListBox.Bind(wx.EVT_LISTBOX_DCLICK, self.removeSelected)
-        #self.KWeights_ListBox.Bind(wx.EVT_LISTBOX_DCLICK, self.removeSelected)
+        self.MWeights_ListBox.Bind(wx.EVT_CHECKLISTBOX, self.updateWeights)
+        self.MWeights_ListBox.Bind(wx.EVT_LISTBOX_DCLICK, self.updateWeights)
+        self.MWeights_ListBox.Bind(wx.EVT_CHAR, self.updateWeights)
+        self.KWeights_ListBox.Bind(wx.EVT_CHECKLISTBOX, self.updateWeights)
+        self.KWeights_ListBox.Bind(wx.EVT_LISTBOX_DCLICK, self.updateWeights)
+        self.KWeights_ListBox.Bind(wx.EVT_CHAR, self.updateWeights)
 
         #self.Bind(wx.EVT_RADIOBUTTON,self.updateModelType)
         
@@ -540,6 +544,38 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         if not spec['X'] == self.X_ListBox.GetItems():
             self.X_ListBox.SetItems(spec['X'])
 
+    def updateWeights(self,evt):
+        if evt.GetEventType() == wx.EVT_CHECKLISTBOX.typeId:
+            if evt.EventObject == self.MWeights_ListBox:
+                names = self.MWeights_ListBox.GetCheckedStrings()
+                for w in self.model.getMWeightsFiles():
+                    if w.name in names:
+                        w.enabled = True
+                    else:
+                        w.enabled = False
+            if evt.EventObject == self.KWeights_ListBox:
+                names = self.KWeights_ListBox.GetCheckedStrings()
+                for w in self.model.getKWeightsFiles():
+                    if w.name in names:
+                        w.enabled = True
+                    else:
+                        w.enabled = False
+        elif evt.GetEventType() == wx.EVT_LISTBOX_DCLICK.typeId:
+            if evt.EventObject == self.MWeights_ListBox:
+                self.model.removeMW(evt.Selection)
+            if evt.EventObject == self.KWeights_ListBox:
+                self.model.removeKW(evt.Selection)
+        elif type(evt) == wx.KeyEvent:
+            code = evt.GetKeyCode()
+            if code in [wx.WXK_BACK, wx.WXK_DELETE]:
+                selection = evt.EventObject.GetSelection()
+            if evt.EventObject == self.MWeights_ListBox:
+                self.model.removeMW(selection)
+            if evt.EventObject == self.KWeights_ListBox:
+                self.model.removeKW(selection)
+        else:
+            print evt
+
     def openResultsWindow(self,evt=None):
         if self.textFrame.IsShown():
             self.textFrame.Hide()
@@ -721,10 +757,12 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.setModelType(m.getModelType())
         mw = m.getMWeightsFiles()
         #if mw:
-        self.MWeights_ListBox.SetItems(mw)
+        self.MWeights_ListBox.SetItems([w.name for w in mw])
+        self.MWeights_ListBox.SetCheckedStrings([w.name for w in mw if w.enabled])
         kw = m.getKWeightsFiles()
         #if kw:
-        self.KWeights_ListBox.SetItems(kw)
+        self.KWeights_ListBox.SetItems([w.name for w in kw])
+        self.KWeights_ListBox.SetCheckedStrings([w.name for w in kw if w.enabled])
         self.setSpec(m.getSpec())
         self.setTitle()
         self.able()
