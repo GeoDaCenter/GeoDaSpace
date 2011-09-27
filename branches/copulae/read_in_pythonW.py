@@ -1,6 +1,6 @@
 import pysal
 import numpy as np
-from madsen import negLogEL, p, dpdphi, dpdmu
+from madsenD import negLogEL, p, dpdphi, dpdmu
 from scipy.optimize import fmin_l_bfgs_b
 import scipy.optimize as op
 import scikits.statsmodels.api as sm
@@ -29,7 +29,7 @@ XX = a[:, 2:3]
 XX = np.hstack((np.ones((n, 1)), XX, XX**2, XX**3))
 alphaN0 = 0.5
 #alphaR0 = 0.1052
-alphaR0 = -np.log(.1 / alphaN0) / mH
+#alphaR0 = -np.log(.1 / alphaN0) / mH
 
 #beta0 = np.array([[-25.3640],[12.5260],[-1.9425],[0.0936]])
 beta0 = sm.GLM(a[:, 3], XX[:, :], family=sm.families.Poisson())
@@ -45,11 +45,14 @@ ratio = muY / (vy - muY)
 #phi0 = min(abs(ratio))
 #phi0 = np.mean(abs(ratio))
 #phi0 = max(abs(ratio))
+w = pysal.lat2W(2,71)
+w.transform='r'
+H = w.full()[0]
 
 theta0 = []
-theta0.append(np.log(alphaN0/(1-alphaN0)))
-theta0.append(np.log((alphaR0/B)/(1-alphaR0/B)))
-theta0.append(np.log((phi0/Bphi)/(1-phi0/Bphi)))
+theta0.append(alphaN0)
+#theta0.append(np.log((alphaR0/B)/(1-alphaR0/B)))
+theta0.append(phi0)
 for i in beta0:
     theta0.append(float(i))
 #theta0 = [np.log(alphaN0/(1-alphaN0)), np.log((alphaR0/B)/(1-alphaR0/B)), np.log((phi0/Bphi)/(1-phi0/Bphi)), beta0]
@@ -58,11 +61,11 @@ numu = 1000
 #U = np.random.uniform(0, 1, (n, numu))
 #np.savetxt('U1k.txt',U,delimiter=",")
 U = np.loadtxt('U.txt',delimiter=",")
-print np.array(theta0)
-bounds=[(0.,1.),(None,B),(None,Bphi),(None,None),(None,None),(None,None),(None,None)]
-#par_hat = negLogEL(np.array(theta0), y, U, XX, H, dimbeta, B, Bphi, want_derivatives=1)
-ll_func = lambda par: negLogEL(par, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=1)
-par_hat = fmin_l_bfgs_b(ll_func, np.array(theta0), iprint=1)
+print 'THETA',np.array(theta0)
+bounds=[(-0.8,0.8),(None,Bphi),(None,None),(None,None),(None,None),(None,None)]
+#par_hat = negLogEL(np.array(theta0), y, U, XX, H, dimbeta, Bphi, want_derivatives=1)
+ll_func = lambda par: negLogEL(par, y, U, XX, H, dimbeta, Bphi)
+par_hat = fmin_l_bfgs_b(ll_func, np.array(theta0), iprint=1, bounds=bounds)
 #par_hat = op.fmin(ll_func, np.array(theta0), retall=True)
 
 print '$$$$$$$$$$$$$$$$$$$$$$'

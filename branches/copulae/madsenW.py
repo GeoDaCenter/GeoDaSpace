@@ -7,7 +7,7 @@ from scipy.linalg import inv, det
 from scipy.stats import norm, nbinom
 from scipy.special import beta, psi
 
-def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
+def negLogEL(theta, y, U, XX, H, dimbeta, Bphi, want_derivatives=None):
     '''
     Porting of Negative Log Exponential Likelihood from Madsen's MATLAB
     '''
@@ -16,21 +16,18 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
     else:
         alphaN = np.exp(theta[0]) / (1 + np.exp(theta[0]))
     if np.isinf(np.exp(theta[1])):
-        alphaR = B
-    else:
-        alphaR = B * np.exp(theta[1]) / (1 + np.exp(theta[1]))
-    if np.isinf(np.exp(theta[2])):
         phi = Bphi
     else:
-        phi = Bphi * np.exp(theta[2]) / (1 + np.exp(theta[2]))
-    betanew = np.reshape(np.array(theta[3:]),(dimbeta,1))
-    Sigma = alphaN * np.exp(-H * alphaR)
-    for i, j in zip(np.nonzero(H==0)[0], np.nonzero(H==0)[1]):
-        Sigma[i, j] = 1.
-    SigmaInv = inv(Sigma)
-    logdetSigma = np.log(det(Sigma))
-    mu = np.exp(np.dot(XX, betanew))
+        phi = Bphi * np.exp(theta[1]) / (1 + np.exp(theta[1]))
+    betanew = np.reshape(np.array(theta[2:]),(dimbeta,1))
     n, m = U.shape
+    sig0 = np.eye(n) - alphaN*H
+    SigmaInv = np.dot(sig0.T,sig0)
+    #print SigmaInv.diagonal()
+    logdetSigma = np.log(1./det(SigmaInv))
+    print det(SigmaInv), logdetSigma
+    #print alphaN, phi, betanew.T
+    mu = np.exp(np.dot(XX, betanew))
     F = np.zeros((n, m))
     z = np.zeros((n, m))
     dFdphi = np.zeros((n,m))
@@ -115,7 +112,17 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
     return NLEL, np.array(eg)
 
 # p(y,phi,mu) is the negative binomial probability mass function with parameters phi and mu.
-def p0(y,phi,mu): #Madsen's code
+def p(y,phi,mu):
+    ps = np.zeros(y.shape)
+    if mu.shape[0]==1:
+        mu=mu*np.ones((y.shape))  
+    for i in range(y.shape[0]):
+        r = phi*mu[i]
+        bn = nbinom(r, (phi/(phi+1)))
+        ps[i] = bn.pmf(y[i])
+    return ps
+
+def p0(y,phi,mu):
     p=np.zeros((y.shape),float)
     if mu.shape[0]==1:
         mu=mu*np.ones((y.shape))
@@ -127,25 +134,6 @@ def p0(y,phi,mu): #Madsen's code
     if sum(p)==1:
         p[0]=0.9999
     return p
-
-def p(y,phi,mu):
-    ps = np.zeros(y.shape)
-    phi=phi**2.
-    if mu.shape[0]==1:
-        mu=mu*np.ones((y.shape))  
-    for i in range(y.shape[0]):
-        if y[i]==0:
-            ps[i]=(phi/(1+phi))**(phi*mu[i])
-        else:        
-            r = phi*mu[i]
-            bn = nbinom(r, (phi/(phi+1)))
-            ps[i] = bn.pmf(y[i])
-        if np.isnan(ps[i]):
-            print "phi",phi,"mu",mu[i],"y",y[i]
-    if sum(ps)==1:
-        ps[0]=0.9999
-    return ps
-
 
 # dpdphi(y,phi,mu) is the derivative of p(y,phi,mu) with respect to phi.
 def dpdphi(y,phi,mu):

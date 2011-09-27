@@ -7,36 +7,29 @@ from scipy.linalg import inv, det
 from scipy.stats import norm, nbinom
 from scipy.special import beta, psi
 
-def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
+def negLogEL(theta, y, U, XX, H, dimbeta, Bphi, want_derivatives=None):
     '''
     Porting of Negative Log Exponential Likelihood from Madsen's MATLAB
     '''
-    if np.isinf(np.exp(theta[0])):
-        alphaN = 1
-    else:
-        alphaN = np.exp(theta[0]) / (1 + np.exp(theta[0]))
-    if np.isinf(np.exp(theta[1])):
-        alphaR = B
-    else:
-        alphaR = B * np.exp(theta[1]) / (1 + np.exp(theta[1]))
-    if np.isinf(np.exp(theta[2])):
-        phi = Bphi
-    else:
-        phi = Bphi * np.exp(theta[2]) / (1 + np.exp(theta[2]))
-    betanew = np.reshape(np.array(theta[3:]),(dimbeta,1))
-    Sigma = alphaN * np.exp(-H * alphaR)
-    for i, j in zip(np.nonzero(H==0)[0], np.nonzero(H==0)[1]):
-        Sigma[i, j] = 1.
-    SigmaInv = inv(Sigma)
-    logdetSigma = np.log(det(Sigma))
-    mu = np.exp(np.dot(XX, betanew))
+    alphaN = theta[0]
+    phi = theta[1]
+    betanew = np.reshape(np.array(theta[2:]),(dimbeta,1))
     n, m = U.shape
+    sig0 = np.eye(n) - alphaN*H
+    SigmaInv = np.dot(sig0.T,sig0)
+    Sigma = inv(SigmaInv)
+    #print SigmaInv.diagonal()
+    logdetSigma = np.log(1./det(SigmaInv))
+    #print det(SigmaInv), logdetSigma
+    print alphaN, phi, betanew.T
+    mu = np.exp(np.dot(XX, betanew))
     F = np.zeros((n, m))
     z = np.zeros((n, m))
     dFdphi = np.zeros((n,m))
     dFdmu = np.zeros((n,m))
     dzdphi = np.zeros((n,m))
     dzdmu = np.zeros((n,m))
+
     for i in range(n):
         Ui = np.reshape(U[i, :],(1,m))
         F[i, :] = np.array([np.sum(p(np.array(range(int(round(y[i])))), phi, np.array(mu[i])))] * m) \
@@ -71,12 +64,8 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
     #if nargout > 1 % If derivatives are requested, calculate them
     eg = None
     if want_derivatives:
-        dSigmadalphaR = np.multiply(-alphaN * H, np.exp(-H * alphaR))
-        dSigmadalphaN = np.exp(-H * alphaR)
-        for i, j in zip(np.nonzero(H==0)[0], np.nonzero(H==0)[1]):
-            dSigmadalphaR[i,j] = 0.
-            dSigmadalphaN[i,j] = 0.
-        dTdalphaR = np.zeros((1, m))
+        dSigmadalphaN0 = H + H.T -2*alphaN*np.dot(H.T,H)
+        dSigmadalphaN = np.dot(np.dot(Sigma,dSigmadalphaN0),Sigma)
         dTdalphaN = np.zeros((1, m))
         dTdbeta = np.zeros((dimbeta, m))
         dTdphi = np.zeros((1, m))
@@ -85,16 +74,16 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
         for j in range(m):
             zj = np.reshape(z[:,j], (n, 1))            
             dTdalpha0 = np.dot(np.exp(np.dot(zj.T, np.dot(SigmaInv1, zj))/-2.), np.dot(zj.T, SigmaInv)) / 2.
-            dTdalphaR1 = np.dot(dSigmadalphaR, np.dot(SigmaInv, zj))
-            dTdalphaR[0, j] = np.dot(dTdalpha0,dTdalphaR1)
+            #dTdalphaR1 = np.dot(dSigmadalphaR, np.dot(SigmaInv, zj))
+            #dTdalphaR[0, j] = np.dot(dTdalpha0,dTdalphaR1)
             dTdalphaN1 = np.dot(dSigmadalphaN, np.dot(SigmaInv, zj))
             dTdalphaN[0, j] = np.dot(dTdalpha0,dTdalphaN1)
             dTdphi[0, j] = T[0, j]*np.dot(np.reshape(dzdphi[:, j], (1, n)), np.dot(SigmaInv1, zj))
             for i in range(dimbeta):
                 dTdbeta[i, j] = T[0, j]*np.dot(np.reshape(dzdbeta[:, j, i],(1,n)), \
                          np.dot(SigmaInv1, zj))
-        tr_dldalphaR = np.sum(np.diagonal(np.dot(SigmaInv, dSigmadalphaR)))
-        dldalphaR = tr_dldalphaR / 2. - 1./ meanT * np.mean(dTdalphaR)
+        #tr_dldalphaR = np.sum(np.diagonal(np.dot(SigmaInv, dSigmadalphaR)))
+        #dldalphaR = tr_dldalphaR / 2. - 1./ meanT * np.mean(dTdalphaR)
         tr_dldalphaN = np.sum(np.diagonal(np.dot(SigmaInv, dSigmadalphaN)))
         dldalphaN = tr_dldalphaN / 2. -1. / meanT * np.mean(dTdalphaN)
         dldphi = (np.mean(dTdphi) / meanT) - np.sum(dpdphi(y, phi, mu) / \
@@ -106,13 +95,13 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
         eg = []
         eg0 = np.dot(dldalphaN, (alphaN*(1-alphaN)))
         eg.append(eg0)
-        eg1 = np.dot(dldalphaR, (alphaR*(1-(alphaR / B))))
-        eg.append(eg1)
+        #eg1 = np.dot(dldalphaR, (alphaR*(1-(alphaR / B))))
+        #eg.append(eg1)
         eg2 = dldphi * phi * (1 - phi / Bphi)
         eg.append(eg2)
         for i in dldbeta.T:
             eg.append(float(i))
-    return NLEL, np.array(eg)
+    return type(NLEL), type(np.array(eg))
 
 # p(y,phi,mu) is the negative binomial probability mass function with parameters phi and mu.
 def p0(y,phi,mu): #Madsen's code
