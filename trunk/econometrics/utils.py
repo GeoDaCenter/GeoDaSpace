@@ -372,7 +372,7 @@ def inverse_prod(w, data, scalar, post_multiply=False, inv_method="power_exp", t
                       inverse of the spatial filter, if false then
                       pre-multiplies.
     inv_method      : string
-                      If "regular" uses the inverse of W (slow);
+                      If "true_inv" uses the true inverse of W (slow);
                       If "power_exp" uses the power expansion method (default)
 
     threshold       : float
@@ -396,13 +396,13 @@ def inverse_prod(w, data, scalar, post_multiply=False, inv_method="power_exp", t
     >>> data.shape = (w.n, 1)
     >>> rho = 0.4
     >>> inv_pow = inverse_prod(w, data, rho, inv_method="power_exp")
-    >>> # regular matrix inverse
-    >>> inv_reg = inverse_prod(w, data, rho, inv_method="regular")
+    >>> # true matrix inverse
+    >>> inv_reg = inverse_prod(w, data, rho, inv_method="true_inv")
     >>> np.allclose(inv_pow, inv_reg, atol=0.0001)
     True
     >>> # test the transpose version
     >>> inv_pow = power_expansion(w, data, rho, inv_method="power_exp", post_multiply=True)
-    >>> inv_reg = inverse_prod(w, data, rho, inv_method="regular", post_multiply=True)
+    >>> inv_reg = inverse_prod(w, data, rho, inv_method="true_inv", post_multiply=True)
     >>> np.allclose(inv_pow, inv_reg, atol=0.0001)
     True
 
@@ -410,7 +410,7 @@ def inverse_prod(w, data, scalar, post_multiply=False, inv_method="power_exp", t
     if inv_method=="power_exp":
         inv_prod = power_expansion(w, data, scalar, post_multiply=post_multiply,\
                 threshold=threshold, max_iterations=max_iterations)
-    elif inv_method=="regular":
+    elif inv_method=="true_inv":
         matrix = la.inv(np.eye(w.n) - (scalar * w.full()[0]))
         if post_multiply:
             inv_prod = np.dot(data.T, matrix)
