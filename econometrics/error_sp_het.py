@@ -83,8 +83,9 @@ class BaseGM_Error_Het(RegressionProps):
      [  0.4118   0.168 ]]
     """
 
-    def __init__(self,y,x,w,step1c=False,max_iter=1,epsilon=1e-5): 
-        
+    def __init__(self, y, x, w,\
+                 max_iter=1, epsilon=0.00001, step1c=False):
+
         #1a. OLS --> \tilde{betas}
         ols = OLS.BaseOLS(y=y, x=x)
         self.x, self.y, self.n, self.k = ols.x, ols.y, ols.n, ols.k
@@ -210,11 +211,9 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
      [  0.4118   0.168 ]]
 
     """
-
-    def __init__(self, y, x, w, max_iter=1, step1c=False, epsilon=1e-5,\
-                        nonspat_diag=True, name_y=None, name_x=None, name_ds=None,\
-                        vm=False):        
-        #### we currently ignore nonspat_diag parameter ####
+    def __init__(self, y, x, w,\
+                 max_iter=1, epsilon=0.00001, step1c=False,\
+                 vm=False, name_y=None, name_x=None, name_ds=None):
 
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
@@ -226,14 +225,11 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x)
         self.name_x.append('lambda')
-        #### we currently ignore nonspat_diag parameter ####
-        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm)
+        self._get_diagnostics(w=w, beta_diag=True, vm=vm)
 
-    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False):
+    def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
-                                            nonspat_diag=nonspat_diag,\
+                                            nonspat_diag=False,\
                                             vm=vm, instruments=False)
 
 
@@ -322,7 +318,7 @@ class BaseGM_Endog_Error_Het(RegressionProps):
     >>> q = np.array(q).T
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
-    >>> reg = BaseGM_Endog_Error_Het(y, X, w, yd, q, step1c=True)
+    >>> reg = BaseGM_Endog_Error_Het(y, X, yd, q, w, step1c=True)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[ 55.3971  28.8901]
      [  0.4656   0.7731]
@@ -330,7 +326,10 @@ class BaseGM_Endog_Error_Het(RegressionProps):
      [  0.4114   0.1777]]
     """
 
-    def __init__(self,y,x,w,yend,q,step1c=False,max_iter=1,epsilon=1e-5, inv_method="power_exp"): 
+    def __init__(self, y, x, yend, q, w,\
+                 max_iter=1, epsilon=0.00001,
+                 step1c=False, inv_method='power_exp'):
+    
         #1a. reg --> \tilde{betas} 
         tsls = TSLS.BaseTSLS(y=y, x=x, yend=yend, q=q)
         self.x, self.z, self.h, self.y = tsls.x, tsls.z, tsls.h, tsls.y
@@ -474,7 +473,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
     >>> q = np.array(q).T
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
-    >>> reg = GM_Endog_Error_Het(y, X, w, yd, q, step1c=True, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
+    >>> reg = GM_Endog_Error_Het(y, X, yd, q, w, step1c=True, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'crime', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
@@ -484,16 +483,16 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
      [  0.4114   0.1777]]
 
     """
-    def __init__(self, y, x, w, yend, q, max_iter=1, step1c=False,\
-                    epsilon=1e-5, nonspat_diag=True, name_y=None, name_x=None,\
-                    name_yend=None, name_q=None, name_ds=None, inv_method="power_exp",\
-                    vm=False):        
-        #### we currently ignore nonspat_diag parameter ####
-
+    def __init__(self, y, x, yend, q, w,\
+                 max_iter=1, epsilon=0.00001,
+                 step1c=False, inv_method='power_exp',\
+                 vm=False, name_y=None, name_x=None,\
+                 name_yend=None, name_q=None, name_ds=None):
+    
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
         USER.check_constant(x)
-        BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend, q, max_iter=max_iter,\
+        BaseGM_Endog_Error_Het.__init__(self, y=y, x=x, yend=yend, q=q, w=w, max_iter=max_iter,\
                                         step1c=step1c, epsilon=epsilon, inv_method=inv_method)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"
         self.name_ds = USER.set_name_ds(name_ds)
@@ -504,14 +503,11 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
         self.name_z.append('lambda')  #listing lambda last
         self.name_q = USER.set_name_q(name_q, q)
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        #### we currently ignore nonspat_diag parameter ####
-        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm)
+        self._get_diagnostics(w=w, beta_diag=True, vm=vm)
         
-    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False):
+    def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
-                                            nonspat_diag=nonspat_diag, lamb=True,\
+                                            nonspat_diag=False, lamb=True,\
                                             vm=vm, instruments=True)        
 
 class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
@@ -605,7 +601,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
 
     Example only with spatial lag
 
-    >>> reg = BaseGM_Combo_Het(y, X, w, step1c=True)
+    >>> reg = BaseGM_Combo_Het(y, X, w=w, step1c=True)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[  9.9753  14.1434]
      [  1.5742   0.374 ]
@@ -620,7 +616,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = BaseGM_Combo_Het(y, X, w, yd, q, step1c=True)
+    >>> reg = BaseGM_Combo_Het(y, X, yd, q, w, step1c=True)
     >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['lag_hoval'],['lambda']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
     [['CONSTANT' '113.91292' '64.38815']
@@ -630,11 +626,13 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
      ['lambda' '0.65608' '0.15719']]
     """
 
-    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-        max_iter=1, step1c=False, lag_q=True, epsilon=1e-5, inv_method="power_exp"):
+    def __init__(self, y, x, yend=None, q=None,\
+                 w=None, w_lags=1, lag_q=True,\
+                 max_iter=1, epsilon=0.00001,\
+                 step1c=False, inv_method='power_exp'):
 
         yend2, q2 = UTILS.set_endog(y, x, w, yend, q, w_lags, lag_q)
-        BaseGM_Endog_Error_Het.__init__(self, y, x, w, yend2, q2, max_iter=max_iter,\
+        BaseGM_Endog_Error_Het.__init__(self, y=y, x=x, w=w, yend=yend2, q=q2, max_iter=max_iter,\
                                         step1c=step1c, epsilon=epsilon, inv_method=inv_method)
 
 class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
@@ -735,7 +733,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
 
     Example only with spatial lag
 
-    >>> reg = GM_Combo_Het(y, X, w, step1c=True, name_y='hoval', name_x=['income'], name_ds='columbus')
+    >>> reg = GM_Combo_Het(y, X, w=w, step1c=True, name_y='hoval', name_x=['income'], name_ds='columbus')
     >>> print reg.name_z
     ['CONSTANT', 'income', 'W_hoval', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
@@ -752,7 +750,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = GM_Combo_Het(y, X, w, yd, q, step1c=True, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
+    >>> reg = GM_Combo_Het(y, X, yd, q, w=w, step1c=True, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'crime', 'W_hoval', 'lambda']
     >>> print np.round(reg.betas,4)
@@ -763,17 +761,17 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
      [   0.6561]]
     
     """
+    def __init__(self, y, x, yend=None, q=None,\
+                 w=None, w_lags=1, lag_q=True,\
+                 max_iter=1, epsilon=0.00001,\
+                 step1c=False, inv_method='power_exp',\
+                 vm=False, name_y=None, name_x=None,\
+                 name_yend=None, name_q=None, name_ds=None):
     
-    def __init__(self, y, x, w, yend=None, q=None, w_lags=1,\
-                    max_iter=1, step1c=False, lag_q=True, epsilon=1e-5, inv_method="power_exp",\
-                    nonspat_diag=True, name_y=None, name_x=None, name_yend=None,\
-                    name_q=None, name_ds=None, vm=False):        
-        #### we currently ignore nonspat_diag parameter ####
-
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
         USER.check_constant(x)
-        BaseGM_Combo_Het.__init__(self, y, x, w, yend=yend, q=q, w_lags=w_lags,\
+        BaseGM_Combo_Het.__init__(self, y=y, x=x, yend=yend, q=q, w=w, w_lags=w_lags,\
               max_iter=max_iter, step1c=step1c, lag_q=lag_q,\
               epsilon=epsilon, inv_method=inv_method)
         self.predy_sp, self.resid_sp = UTILS.sp_att(w,self.y,self.predy,\
@@ -789,14 +787,11 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
         self.name_q = USER.set_name_q(name_q, q)
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags, self.name_q, lag_q))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        #### we currently ignore nonspat_diag parameter ####
-        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm)
+        self._get_diagnostics(w=w, beta_diag=True, vm=vm)
      
-    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              vm=False):
+    def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
-                                            nonspat_diag=nonspat_diag, lamb=True,\
+                                            nonspat_diag=False, lamb=True,\
                                             vm=vm, instruments=True)        
 
 
@@ -1070,7 +1065,7 @@ if __name__ == '__main__':
     print "Lambda: %5.4f %5.4f" % (reg.betas[-1],np.sqrt(reg.vm.diagonal())[-1])
     print '$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'
     print "Spatial Lag:"
-    reg = GM_Combo_Het(y, X, w, yd, q)
+    reg = GM_Combo_Het(y, X, yd, q, w)
     print "Dependent variable: CRIME"
     print "Variable  Coef.  S.E."
     print "Constant %5.4f %5.4f" % (reg.betas[0],np.sqrt(reg.vm.diagonal())[0])
