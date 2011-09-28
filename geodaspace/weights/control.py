@@ -6,7 +6,7 @@ import wx
 import pysal
 #local
 from geodaspace import remapEvtsToDispatcher
-from view import xrcDIALOGWEIGHTS
+from view import xrcDIALOGWEIGHTS,xrcAddIDVar
 from model import weightsModel
 from geodaspace import DEBUG
 #CONSTANTS
@@ -15,9 +15,77 @@ ENABLE_DISTANCE_WEIGHTS = 2   # 0b00000010
 ENABLE_KERNEL_WEIGTHS = 4     # 0b00000100
 WEIGHTS_DEFAULT_STYLE = ENABLE_CONTIGUITY_WEIGHTS|ENABLE_DISTANCE_WEIGHTS|ENABLE_KERNEL_WEIGTHS
 
+class idVarDialog(xrcAddIDVar):
+    """
+    Add ID Variable Dialog -- Displays a Dialog for adding a unique id to a DBF File.
+
+    Display using ShowModal, which requires a DBF File Path and returns wx.ID_OK or wx.ID_CANCEL
+
+    Parameters
+    ----------
+    parent -- wxWindow -- A parent to the dialog, optional.
+    """
+    def __init__(self,parent):
+        xrcAddIDVar.__init__(self,parent)
+    def OnButton_save(self,evt):
+        self.EndModal(wx.ID_OK)
+    def OnButton_cancel(self,evt):
+        xrcAddIDVar.EndModal(self,wx.ID_CANCEL)
+    def ShowModal(self,dbf_path):
+        """
+        Display the Dialog and add the id var.
+        """
+        self.db = None
+        self.dbf_path = dbf_path
+        if os.path.exists(dbf_path):
+            self.db = pysal.open(dbf_path,'r')
+            self.existingVarsListBox.Clear()
+            self.existingVarsListBox.InsertItems(self.db.header,0)
+            self.idVarName.SetValue('POLY_ID')
+            return xrcAddIDVar.ShowModal(self)
+        else:
+            raise ValueError, "Invalid DBF File"
+    def verify_name(self,name):
+        try:
+            assert len(name) > 0
+            assert len(name) < 11
+            assert name[0].isalpha()
+            assert all([x.isalnum() or x == '_' for x in name])
+            return True
+        except AssertionError:
+            wx.MessageDialog(self,"Error: \"%s\" is an invalid field name.  A valid field name is between one and ten characters long.  The first character must be alphabetic, and the remaining characters can be either alphanumeric or underscores."%name,"Error",style=wx.ICON_HAND).ShowModal()
+            return False
+    def AddNewIDVar(self,name):
+        header = self.db.header
+        spec = self.db.field_spec
+        n = len(self.db)
+        header.insert(0,name)
+        spec.insert(0,('N',len(str(n)),0))
+        new_rows = [[i+1]+row for i,row in enumerate(self.db)]
+        self.db.close()
+        new_db = pysal.open(self.dbf_path,'w')
+        new_db.header = header
+        new_db.field_spec = spec
+        for row in new_rows:
+            new_db.write(row)
+        new_db.close()
+    def EndModal(self,ret_code):
+        name = self.idVarName.GetValue().upper().encode('ascii')
+        if not self.verify_name(name): return
+        if name in self.db.header:
+            wx.MessageDialog(self,"Error: Field name \"%s\" already exists in the DBF file.\nPlease choose a different name."%(name,),style=wx.ICON_HAND).ShowModal()
+            return
+        shpName = os.path.splitext(os.path.basename(self.dbf_path))[0]
+        dlg = wx.MessageDialog(self,"Are you sure you want to add the new id variable to the DBF file associated with the chosen input SHP file \"%s\""%(shpName,),"Add id variable to DBF file?",style=wx.ICON_HAND|wx.YES_NO)
+        if dlg.ShowModal() == wx.ID_YES:
+            self.AddNewIDVar(name)
+        else:
+            return
+        return xrcAddIDVar.EndModal(self,ret_code)
+        
 class weightsDialog(xrcDIALOGWEIGHTS):
     """
-    Weights Dialog -- Displaces a Dialog for creating weights
+    Weights Dialog -- Displays a Dialog for creating weights
 
     Display using ShowModal, which will return, wx.ID_OK or wx.ID_CANCEL
 
@@ -60,6 +128,7 @@ class weightsDialog(xrcDIALOGWEIGHTS):
         d['inShps'] = self.input
         d['IdvarChoice'] = self.idVar
         d['idVar'] = self.idVar
+        d['addIDVar'] = self.idVar
         d['CreateButton'] = self.run
         d['ThresholdSlider'] = self.threshold
         d['CutoffText'] = self.threshold
@@ -92,8 +161,15 @@ class weightsDialog(xrcDIALOGWEIGHTS):
         """ Enable/Disable GUI Elements based on the state of the model """
         if self.model.shapes == None:
             self.weightsNotebook.Disable()
+            self.IdvarChoice.Disable()
+            self.addIDVar.Disable()
         else:
+            self.IdvarChoice.Enable()
+            self.addIDVar.Enable()
+        if self.model.idVar != None:
             self.weightsNotebook.Enable()
+        else:
+            self.weightsNotebook.Disable()
     def update_style(self, flags):
         #clear the existing pages.
         for pid in xrange(self.weightsNotebook.GetPageCount()-1,-1,-1):
@@ -249,6 +325,11 @@ class weightsDialog(xrcDIALOGWEIGHTS):
     def idVar(self, evtName=None, evt=None, value=None):
         if evtName == "OnChoice":
             self.model.idVar = self.IdvarChoice.GetSelection()
+        elif evtName == "OnButton":
+            if idVarDialog(self).ShowModal(self.model.data_path) == wx.ID_OK:
+                #trigger update of idVars list
+                self.model.update('inShp')
+                self.model.idVar = 0
         elif value != None:
             self.IdvarChoice.SetSelection(value)
     def warn(self,msg):

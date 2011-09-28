@@ -43,6 +43,7 @@ class xrcDIALOGWEIGHTS(wx.Dialog):
         self.OutputText = xrc.XRCCTRL(self, "OutputText")
         self.OpenOutput = xrc.XRCCTRL(self, "OpenOutput")
         self.IdvarChoice = xrc.XRCCTRL(self, "IdvarChoice")
+        self.addIDVar = xrc.XRCCTRL(self, "addIDVar")
         self.weightsNotebook = xrc.XRCCTRL(self, "weightsNotebook")
         self.ContiguityPanel = xrc.XRCCTRL(self, "ContiguityPanel")
         self.RadioQueen = xrc.XRCCTRL(self, "RadioQueen")
@@ -68,6 +69,7 @@ class xrcDIALOGWEIGHTS(wx.Dialog):
         self.Bind(wx.EVT_TEXT, self.OnText_OutputText, self.OutputText)
         self.Bind(wx.EVT_BUTTON, self.OnButton_OpenOutput, self.OpenOutput)
         self.Bind(wx.EVT_CHOICE, self.OnChoice_IdvarChoice, self.IdvarChoice)
+        self.Bind(wx.EVT_BUTTON, self.OnButton_addIDVar, self.addIDVar)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_RadioQueen, self.RadioQueen)
         self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_ContiguityOrderSpin, self.ContiguityOrderSpin)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_RadioRook, self.RadioRook)
@@ -134,6 +136,12 @@ class xrcDIALOGWEIGHTS(wx.Dialog):
         # Replace with event handler code
         print "OnChoice_IdvarChoice()"
 #!XRCED:end-block:xrcDIALOGWEIGHTS.OnChoice_IdvarChoice        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnButton_addIDVar
+    def OnButton_addIDVar(self, evt):
+        # Replace with event handler code
+        print "OnButton_addIDVar()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnButton_addIDVar        
 
 #!XRCED:begin-block:xrcDIALOGWEIGHTS.OnRadiobutton_RadioQueen
     def OnRadiobutton_RadioQueen(self, evt):
@@ -399,6 +407,47 @@ class xrcmainGUI(wx.Frame):
 #!XRCED:end-block:xrcmainGUI.OnButton_Quit        
 
 
+class xrcAddIDVar(wx.Dialog):
+#!XRCED:begin-block:xrcAddIDVar.PreCreate
+    def PreCreate(self, pre):
+        """ This function is called during the class's initialization.
+        
+        Override it for custom setup before the window is created usually to
+        set additional window styles using SetWindowStyle() and SetExtraStyle().
+        """
+        pass
+        
+#!XRCED:end-block:xrcAddIDVar.PreCreate
+
+    def __init__(self, parent):
+        # Two stage creation (see http://wiki.wxpython.org/index.cgi/TwoStageCreation)
+        pre = wx.PreDialog()
+        self.PreCreate(pre)
+        get_resources().LoadOnDialog(pre, parent, "AddIDVar")
+        self.PostCreate(pre)
+
+        # Define variables for the controls, bind event handlers
+        self.idVarName = xrc.XRCCTRL(self, "idVarName")
+        self.existingVarsListBox = xrc.XRCCTRL(self, "existingVarsListBox")
+        self.save = xrc.XRCCTRL(self, "save")
+        self.cancel = xrc.XRCCTRL(self, "cancel")
+
+        self.Bind(wx.EVT_BUTTON, self.OnButton_save, self.save)
+        self.Bind(wx.EVT_BUTTON, self.OnButton_cancel, self.cancel)
+
+#!XRCED:begin-block:xrcAddIDVar.OnButton_save
+    def OnButton_save(self, evt):
+        # Replace with event handler code
+        print "OnButton_save()"
+#!XRCED:end-block:xrcAddIDVar.OnButton_save        
+
+#!XRCED:begin-block:xrcAddIDVar.OnButton_cancel
+    def OnButton_cancel(self, evt):
+        # Replace with event handler code
+        print "OnButton_cancel()"
+#!XRCED:end-block:xrcAddIDVar.OnButton_cancel        
+
+
 
 
 # ------------------------ Resource data ----------------------
@@ -450,6 +499,7 @@ def __init_resources():
                         </XRCED>
                       </object>
                       <flag>wxALL|wxALIGN_RIGHT</flag>
+                      <border>2</border>
                     </object>
                   </object>
                   <XRCED>
@@ -508,7 +558,7 @@ def __init_resources():
                 <object class="wxBoxSizer">
                   <object class="sizeritem">
                     <object class="wxStaticText">
-                      <label>Select an ID variable for the weights file</label>
+                      <label>Select an ID Variable for the weights file</label>
                     </object>
                     <flag>wxALL|wxALIGN_CENTRE_VERTICAL|wxADJUST_MINSIZE</flag>
                     <border>2</border>
@@ -529,6 +579,18 @@ def __init_resources():
                       </XRCED>
                     </object>
                     <option>1</option>
+                    <flag>wxALL|wxALIGN_CENTRE</flag>
+                    <border>2</border>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxBitmapButton" name="addIDVar">
+                      <bitmap>___regression_rc_list_add_png</bitmap>
+                      <tooltip>Add ID Variable...</tooltip>
+                      <XRCED>
+                        <events>EVT_BUTTON</events>
+                        <assign_var>1</assign_var>
+                      </XRCED>
+                    </object>
                     <flag>wxALL|wxALIGN_CENTRE</flag>
                     <border>2</border>
                   </object>
@@ -1121,8 +1183,96 @@ def __init_resources():
     </object>
     <title>GeoDa Weights -- Demo Application</title>
   </object>
+  <object class="wxDialog" name="AddIDVar">
+    <title>Add New ID Variable</title>
+    <centered>1</centered>
+    <style>wxDEFAULT_DIALOG_STYLE</style>
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxStaticText">
+          <label>Enter new ID variable name:</label>
+        </object>
+        <flag>wxALL|wxALIGN_CENTRE</flag>
+        <border>5</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxTextCtrl" name="idVarName">
+          <XRCED>
+            <assign_var>1</assign_var>
+          </XRCED>
+        </object>
+        <flag>wxALL|wxEXPAND</flag>
+        <border>5</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticText">
+          <label>Existing Variables</label>
+        </object>
+        <flag>wxALL|wxALIGN_CENTRE</flag>
+        <border>5</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxListBox" name="existingVarsListBox">
+          <size>-1,190</size>
+          <XRCED>
+            <assign_var>1</assign_var>
+          </XRCED>
+        </object>
+        <flag>wxALL|wxEXPAND</flag>
+        <border>5</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxButton" name="save">
+              <label>Save to DBF File</label>
+              <XRCED>
+                <events>EVT_BUTTON</events>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE</flag>
+            <border>10</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="cancel">
+              <label>Cancel</label>
+              <XRCED>
+                <events>EVT_BUTTON</events>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE</flag>
+            <border>10</border>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <flag>wxBOTTOM</flag>
+        <border>5</border>
+      </object>
+    </object>
+  </object>
 </resource>'''
 
+    ___regression_rc_list_add_png = '''\
+\x89PNG\x0d
+\x1a
+\x00\x00\x00\x0dIHDR\x00\x00\x00\x10\x00\x00\x00\x10\x08\x06\x00\x00\x00\
+\x1f\xf3\xffa\x00\x00\x00\x06bKGD\x00\x00\x00\x00\x00\x00\xf9C\xbb\x00\
+\x00\x00\x09pHYs\x00\x00\x0d\xd7\x00\x00\x0d\xd7\x01B(\x9bx\x00\x00\x00\
+\x07tIME\x07\xd6\x01\x0b\x10\x00\x11\x94Dx\xa1\x00\x00\x00\xd0IDAT8\xcb\
+\xcd\x91\xbd\x0e\xc1`\x14\x86\x1f\xd2\xc5`\xb7r\x07\xd2\xba\x81\xc6`6[;\
+tq\x07D\xd2\xc4d\x17\xb1Z\x0d&\x83\x84\x1b\xe8g7Z,Vi\xe2\xa7\xdf1\x10\x8a\
+\xfa\x8b\x04\xefv\xf2\x9d\xbc\xf9\x9e\xe7\xc0\xaf\x93\xb8\xf7`9=\x1f0\x8f\
+\xa3\xf2\xbb\x15+n/\xf9\xa0\xdc\xf4\\\x1b\xcf\xb5\x89\x14\xbdU\xf0R>.0\xee\
+0\xc79\x91\xc8xrbD\x99[\xd5"[-$\x80mx\xde\xf7\\\x1b\x11\x109X\xafw\xc6\xe6\
+\xcd\x0f\x00V\xeb\x90\xf92@\x04\xb4\x16\xb4@\xb0\x11\xc2P\xd8iAk\xc8eR\xf1\
+\x08\x80jt&\x17\x08\xe5R\x01\x80\xc1\xc8\xbf&RO\xe5XNO\x86\xd3\x854\xfb\
+3\xb9\xe2\xff\xf2\x19\xf3\xd9\xf4kg\x8c\x89\xaa\xb5O\xb6\x15\x9b=TrK\x0b\
+\x8b\xb2w\x8e\x00\x00\x00\x00IEND\xaeB`\x82'''
+
     wx.MemoryFSHandler.AddFile('XRC/weights_view/weights_view_xrc', weights_view_xrc)
+    wx.MemoryFSHandler.AddFile('XRC/weights_view/___regression_rc_list_add_png', ___regression_rc_list_add_png)
     __res.Load('memory:XRC/weights_view/weights_view_xrc')
 
