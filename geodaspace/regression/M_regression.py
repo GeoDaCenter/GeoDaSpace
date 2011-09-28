@@ -61,7 +61,6 @@ class GeoDaSpace_W_Obj(object):
                     name+= ': '+', '.join(map(str,self.w.meta['method options']))
                 else:
                     name+= ': '+opts
-            print name, self.w.meta
         elif hasattr(self,'_path'):
             name = os.path.basename(self._path)
         else:
@@ -368,8 +367,14 @@ class guiRegModel(abstractmodel.AbstractModel):
 
         # Build up args for dispatcher
         # weights
+        w_names = [w.name for w in data['mWeights'] if w.enabled]
         w_list = [w.w for w in data['mWeights'] if w.enabled]
+        for w,name in zip(w_list,w_names):
+            w.name = name
+        wk_names = [w.name for w in data['kWeights'] if w.enabled]
         wk_list = [w.w for w in data['kWeights'] if w.enabled]
+        for w,name in zip(wk_list,wk_names):
+            w.name = name
         db = pysal.open( data['fname'] ,'r')
         # y
         name_y = data['spec']['y']
@@ -412,7 +417,8 @@ class guiRegModel(abstractmodel.AbstractModel):
         config = data['config']
 
         print w_list,wk_list
-        results = spmodel(data['fname'], w_list, wk_list, y, name_y, x, x_names, ye, ye_names,
+        fname = os.path.basename(data['fname'])
+        results = spmodel(fname, w_list, wk_list, y, name_y, x, x_names, ye, ye_names,
                  h, h_names, r, name_r, s, name_s, t, name_t,
                  model_type, #data['modelType']['endogenous'],
                  data['modelType']['spatial_tests']['lm'],
