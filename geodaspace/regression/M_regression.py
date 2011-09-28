@@ -203,7 +203,7 @@ class guiRegModel(abstractmodel.AbstractModel):
         self.data['kWeights'] = []
         self.data['modelType'] = {'mType':0,'endogenous':False,'method':0}
         self.data['modelType']['error'] = {'classic':True,'white':False,'hac':False,'het':False}
-        self.data['modelType']['spatial_tests'] = {'lm':False}
+        self.data['modelType']['spatial_tests'] = {'lm':True}
         config = {}
         config.update(preferencesModel.DEFAULTS)
         self.data['config'] = config
