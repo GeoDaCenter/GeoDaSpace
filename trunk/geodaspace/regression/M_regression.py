@@ -56,7 +56,11 @@ class GeoDaSpace_W_Obj(object):
                 name = os.path.basename(self.w.meta['shape file'])
             name+= ': '+self.w.meta['method']
             if 'method options' in self.w.meta:
-                name+= ': '+', '.join(map(str,self.w.meta['method options']))
+                opts = self.w.meta['method options']
+                if type(opts) == list:
+                    name+= ': '+', '.join(map(str,self.w.meta['method options']))
+                else:
+                    name+= ': '+opts
             print name, self.w.meta
         elif hasattr(self,'_path'):
             name = os.path.basename(self._path)

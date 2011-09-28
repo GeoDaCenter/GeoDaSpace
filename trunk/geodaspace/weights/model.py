@@ -45,6 +45,12 @@ class weightsModel(AbstractModel):
         except:
             return []
     @property
+    def data_path(self):
+        try:
+            return self.inShps[self.inShp][:-4]+'.dbf'
+        except:
+            return None
+    @property
     def data(self):
         try:
             return pysal.open(self.inShps[self.inShp][:-4]+'.dbf','r')

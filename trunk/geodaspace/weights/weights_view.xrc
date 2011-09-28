@@ -39,6 +39,7 @@
                         </XRCED>
                       </object>
                       <flag>wxALL|wxALIGN_RIGHT</flag>
+                      <border>2</border>
                     </object>
                   </object>
                   <XRCED>
@@ -97,7 +98,7 @@
                 <object class="wxBoxSizer">
                   <object class="sizeritem">
                     <object class="wxStaticText">
-                      <label>Select an ID variable for the weights file</label>
+                      <label>Select an ID Variable for the weights file</label>
                     </object>
                     <flag>wxALL|wxALIGN_CENTRE_VERTICAL|wxADJUST_MINSIZE</flag>
                     <border>2</border>
@@ -118,6 +119,18 @@
                       </XRCED>
                     </object>
                     <option>1</option>
+                    <flag>wxALL|wxALIGN_CENTRE</flag>
+                    <border>2</border>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxBitmapButton" name="addIDVar">
+                      <bitmap>../regression/rc/list-add.png</bitmap>
+                      <tooltip>Add ID Variable...</tooltip>
+                      <XRCED>
+                        <events>EVT_BUTTON</events>
+                        <assign_var>1</assign_var>
+                      </XRCED>
+                    </object>
                     <flag>wxALL|wxALIGN_CENTRE</flag>
                     <border>2</border>
                   </object>
@@ -709,5 +722,75 @@
       </object>
     </object>
     <title>GeoDa Weights -- Demo Application</title>
+  </object>
+  <object class="wxDialog" name="AddIDVar">
+    <title>Add New ID Variable</title>
+    <centered>1</centered>
+    <style>wxDEFAULT_DIALOG_STYLE</style>
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxStaticText">
+          <label>Enter new ID variable name:</label>
+        </object>
+        <flag>wxALL|wxALIGN_CENTRE</flag>
+        <border>5</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxTextCtrl" name="idVarName">
+          <XRCED>
+            <assign_var>1</assign_var>
+          </XRCED>
+        </object>
+        <flag>wxALL|wxEXPAND</flag>
+        <border>5</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticText">
+          <label>Existing Variables</label>
+        </object>
+        <flag>wxALL|wxALIGN_CENTRE</flag>
+        <border>5</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxListBox" name="existingVarsListBox">
+          <size>-1,190</size>
+          <XRCED>
+            <assign_var>1</assign_var>
+          </XRCED>
+        </object>
+        <flag>wxALL|wxEXPAND</flag>
+        <border>5</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxButton" name="save">
+              <label>Save to DBF File</label>
+              <XRCED>
+                <events>EVT_BUTTON</events>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE</flag>
+            <border>10</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="cancel">
+              <label>Cancel</label>
+              <XRCED>
+                <events>EVT_BUTTON</events>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE</flag>
+            <border>10</border>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <flag>wxBOTTOM</flag>
+        <border>5</border>
+      </object>
+    </object>
   </object>
 </resource>
