@@ -50,12 +50,12 @@ w.transform='r'
 H = w.full()[0]
 
 theta0 = []
+#theta0.append(np.log(alphaN0/(1-alphaN0)))
+#theta0.append(np.log((phi0/Bphi)/(1-phi0/Bphi)))
 theta0.append(alphaN0)
-#theta0.append(np.log((alphaR0/B)/(1-alphaR0/B)))
 theta0.append(phi0)
 for i in beta0:
     theta0.append(float(i))
-#theta0 = [np.log(alphaN0/(1-alphaN0)), np.log((alphaR0/B)/(1-alphaR0/B)), np.log((phi0/Bphi)/(1-phi0/Bphi)), beta0]
 dimbeta = beta0.shape[0]
 numu = 1000
 #U = np.random.uniform(0, 1, (n, numu))
@@ -63,9 +63,10 @@ numu = 1000
 U = np.loadtxt('U.txt',delimiter=",")
 print 'THETA',np.array(theta0)
 bounds=[(-0.8,0.8),(None,Bphi),(None,None),(None,None),(None,None),(None,None)]
-#par_hat = negLogEL(np.array(theta0), y, U, XX, H, dimbeta, Bphi, want_derivatives=1)
-ll_func = lambda par: negLogEL(par, y, U, XX, H, dimbeta, Bphi)
+print 'par_hat', negLogEL(np.array(theta0), y, U, XX, H, dimbeta, Bphi, want_derivatives=1)
+ll_func = lambda par: negLogEL(par, y, U, XX, H, dimbeta, Bphi, want_derivatives=1)
 par_hat = fmin_l_bfgs_b(ll_func, np.array(theta0), iprint=1, bounds=bounds)
+#par_hat = fmin_l_bfgs_b(ll_func, np.array(theta0), iprint=1)
 #par_hat = op.fmin(ll_func, np.array(theta0), retall=True)
 
 print '$$$$$$$$$$$$$$$$$$$$$$'

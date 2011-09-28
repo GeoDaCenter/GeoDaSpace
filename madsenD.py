@@ -11,7 +11,16 @@ def negLogEL(theta, y, U, XX, H, dimbeta, Bphi, want_derivatives=None):
     '''
     Porting of Negative Log Exponential Likelihood from Madsen's MATLAB
     '''
-    alphaN = theta[0]
+    if np.isinf(np.exp(theta[0])):
+        alphaN = 0.9
+    else:
+        alphaN = np.exp(theta[0]) / (1 + np.exp(theta[0]))    
+    alphaN = theta[0]   
+    lambd = alphaN
+    if np.isinf(np.exp(theta[1])):
+        phi = Bphi
+    else:
+        phi = Bphi * np.exp(theta[1]) / (1 + np.exp(theta[1]))    
     phi = theta[1]
     betanew = np.reshape(np.array(theta[2:]),(dimbeta,1))
     n, m = U.shape
@@ -32,8 +41,12 @@ def negLogEL(theta, y, U, XX, H, dimbeta, Bphi, want_derivatives=None):
 
     for i in range(n):
         Ui = np.reshape(U[i, :],(1,m))
-        F[i, :] = np.array([np.sum(p(np.array(range(int(round(y[i])))), phi, np.array(mu[i])))] * m) \
+        #F[i, :] = np.array([np.sum(p(np.array(range(int(round(y[i])))), phi, np.array(mu[i])))] * m) \
+        #         + Ui * p(np.array([y[i]]), phi, np.array(mu[i]))
+        aaaa = np.array([np.sum(p(np.array(range(int(round(y[i])))), phi, np.array(mu[i])))] * m) \
                  + Ui * p(np.array([y[i]]), phi, np.array(mu[i]))
+        aaaa[aaaa>0.99999999] = 0.99999999 
+        F[i, :] = aaaa
         #print '$$$', np.sum(p(np.array(range(int(round(y[i])))), phi, np.array(mu[i]))),p(np.array([y[i]]), phi, np.array(mu[i])),Ui,y[i],phi,mu[i]
         #print F[i, :]
         z[i, :] = np.array([norm.ppf(j, 0) for j in F[i, :]])
@@ -57,6 +70,8 @@ def negLogEL(theta, y, U, XX, H, dimbeta, Bphi, want_derivatives=None):
     # Calculate the negative log expected likelihood.
     NLEL=1./2.*logdetSigma-sum(np.log(p(y,phi,mu)))-np.log(meanT)
     print "logdetSigma:",logdetSigma,"p(y,phi,mu):",sum(np.log(p(y,phi,mu))),"np.log(meanT)",np.log(meanT)
+    if np.isnan(np.log(meanT)):
+        print z, F
     print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
     print NLEL
     print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
@@ -64,28 +79,22 @@ def negLogEL(theta, y, U, XX, H, dimbeta, Bphi, want_derivatives=None):
     #if nargout > 1 % If derivatives are requested, calculate them
     eg = None
     if want_derivatives:
-        dSigmadalphaN0 = H + H.T -2*alphaN*np.dot(H.T,H)
-        dSigmadalphaN = np.dot(np.dot(Sigma,dSigmadalphaN0),Sigma)
-        dTdalphaN = np.zeros((1, m))
+        dSdlambda = -H -H.T + 2*alphaN*np.dot(H.T,H)
+        dTdlambda = np.zeros((1, m))
         dTdbeta = np.zeros((dimbeta, m))
         dTdphi = np.zeros((1, m))
         dldbeta = np.zeros((1,dimbeta))
         SigmaInv1 = SigmaInv - np.eye(n)
         for j in range(m):
             zj = np.reshape(z[:,j], (n, 1))            
-            dTdalpha0 = np.dot(np.exp(np.dot(zj.T, np.dot(SigmaInv1, zj))/-2.), np.dot(zj.T, SigmaInv)) / 2.
-            #dTdalphaR1 = np.dot(dSigmadalphaR, np.dot(SigmaInv, zj))
-            #dTdalphaR[0, j] = np.dot(dTdalpha0,dTdalphaR1)
-            dTdalphaN1 = np.dot(dSigmadalphaN, np.dot(SigmaInv, zj))
-            dTdalphaN[0, j] = np.dot(dTdalpha0,dTdalphaN1)
+            exp_a = np.exp(np.dot(np.dot(zj.T,SigmaInv1), zj)/-2.)
+            dTdlambda = exp_a - (np.dot(np.dot(zj.T,dSdlambda),zj)/-2.)
             dTdphi[0, j] = T[0, j]*np.dot(np.reshape(dzdphi[:, j], (1, n)), np.dot(SigmaInv1, zj))
             for i in range(dimbeta):
                 dTdbeta[i, j] = T[0, j]*np.dot(np.reshape(dzdbeta[:, j, i],(1,n)), \
                          np.dot(SigmaInv1, zj))
-        #tr_dldalphaR = np.sum(np.diagonal(np.dot(SigmaInv, dSigmadalphaR)))
-        #dldalphaR = tr_dldalphaR / 2. - 1./ meanT * np.mean(dTdalphaR)
-        tr_dldalphaN = np.sum(np.diagonal(np.dot(SigmaInv, dSigmadalphaN)))
-        dldalphaN = tr_dldalphaN / 2. -1. / meanT * np.mean(dTdalphaN)
+        tr_dldlambda = np.sum(np.diagonal(np.dot(dSdlambda, Sigma)))
+        dldlambda = tr_dldlambda/2. + np.mean(dTdlambda)/meanT
         dldphi = (np.mean(dTdphi) / meanT) - np.sum(dpdphi(y, phi, mu) / \
                 p(y, phi, mu))
         for i in range(dimbeta):
@@ -93,18 +102,16 @@ def negLogEL(theta, y, U, XX, H, dimbeta, Bphi, want_derivatives=None):
             dldbeta[0, i] = (np.mean(dTdbeta[i, :].T) / meanT) - \
                     np.sum(np.multiply(pdpdmumu, np.reshape(XX[:, i],(n,1))))
         eg = []
-        eg0 = np.dot(dldalphaN, (alphaN*(1-alphaN)))
+        eg0 = -dldlambda * lambd*(1-lambd)
         eg.append(eg0)
-        #eg1 = np.dot(dldalphaR, (alphaR*(1-(alphaR / B))))
-        #eg.append(eg1)
         eg2 = dldphi * phi * (1 - phi / Bphi)
         eg.append(eg2)
         for i in dldbeta.T:
             eg.append(float(i))
-    return type(NLEL), type(np.array(eg))
+    return NLEL, np.array(eg)
 
 # p(y,phi,mu) is the negative binomial probability mass function with parameters phi and mu.
-def p0(y,phi,mu): #Madsen's code
+def p(y,phi,mu): #Madsen's code
     p=np.zeros((y.shape),float)
     if mu.shape[0]==1:
         mu=mu*np.ones((y.shape))
@@ -113,11 +120,11 @@ def p0(y,phi,mu): #Madsen's code
             p[i]=(phi**2./(1+phi**2))**(phi**2.*mu[i])
         else:
             p[i]=1./(y[i]*beta(y[i],phi**2.*mu[i]))*(phi**2/(1+phi**2))**(phi**2.*mu[i])*(1./(1+phi**2)**y[i])
-    if sum(p)==1:
+    if sum(p)>0.9999:
         p[0]=0.9999
     return p
 
-def p(y,phi,mu):
+def p0(y,phi,mu):
     ps = np.zeros(y.shape)
     phi=phi**2.
     if mu.shape[0]==1:
