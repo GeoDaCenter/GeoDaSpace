@@ -61,16 +61,22 @@ numu = 1000
 #U = np.random.uniform(0, 1, (n, numu))
 #np.savetxt('U1k.txt',U,delimiter=",")
 U = np.loadtxt('U.txt',delimiter=",")
-print 'THETA',np.array(theta0)
-bounds=[(-0.8,0.8),(None,Bphi),(None,None),(None,None),(None,None),(None,None)]
+bounds=[(-0.99999,0.99999),(None,Bphi),(None,None),(None,None),(None,None),(None,None)]
+bounds=[(-1.,1.),(None,Bphi),(None,None),(None,None),(None,None),(None,None)]
 print 'par_hat', negLogEL(np.array(theta0), y, U, XX, H, dimbeta, Bphi, want_derivatives=1)
 ll_func = lambda par: negLogEL(par, y, U, XX, H, dimbeta, Bphi, want_derivatives=1)
 par_hat = fmin_l_bfgs_b(ll_func, np.array(theta0), iprint=1, bounds=bounds)
 #par_hat = fmin_l_bfgs_b(ll_func, np.array(theta0), iprint=1)
 #par_hat = op.fmin(ll_func, np.array(theta0), retall=True)
 
-print '$$$$$$$$$$$$$$$$$$$$$$'
-print par_hat
+print '##################################################################'
+print 'Initial estimates:\n',np.array(theta0)
+print 'Estimates:\n', par_hat[0]
+print '\n'
+print 'NLEL:\t', par_hat[1]
+print '\n'
+for i in par_hat[2]:
+    print i, ':\t', par_hat[2][i]
 """
 print '\n'
 print '### Coefs ###'

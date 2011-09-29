@@ -12,11 +12,10 @@ def negLogEL(theta, y, U, XX, H, dimbeta, Bphi, want_derivatives=None):
     Porting of Negative Log Exponential Likelihood from Madsen's MATLAB
     '''
     if np.isinf(np.exp(theta[0])):
-        alphaN = 0.9
+        lambd = 0.99999
     else:
-        alphaN = np.exp(theta[0]) / (1 + np.exp(theta[0]))    
-    alphaN = theta[0]   
-    lambd = alphaN
+        lambd = np.exp(theta[0]) / (1 + np.exp(theta[0]))    
+    lambd = theta[0]   
     if np.isinf(np.exp(theta[1])):
         phi = Bphi
     else:
@@ -24,13 +23,10 @@ def negLogEL(theta, y, U, XX, H, dimbeta, Bphi, want_derivatives=None):
     phi = theta[1]
     betanew = np.reshape(np.array(theta[2:]),(dimbeta,1))
     n, m = U.shape
-    sig0 = np.eye(n) - alphaN*H
-    SigmaInv = np.dot(sig0.T,sig0)
+    IlW = np.eye(n) - lambd*H
+    SigmaInv = np.dot(IlW.T, IlW)
     Sigma = inv(SigmaInv)
-    #print SigmaInv.diagonal()
-    logdetSigma = np.log(1./det(SigmaInv))
-    #print det(SigmaInv), logdetSigma
-    print alphaN, phi, betanew.T
+    logdetSigma = np.log(1./det(SigmaInv)) #Tested as equal to np.log(det(Sigma))
     mu = np.exp(np.dot(XX, betanew))
     F = np.zeros((n, m))
     z = np.zeros((n, m))
@@ -43,12 +39,10 @@ def negLogEL(theta, y, U, XX, H, dimbeta, Bphi, want_derivatives=None):
         Ui = np.reshape(U[i, :],(1,m))
         #F[i, :] = np.array([np.sum(p(np.array(range(int(round(y[i])))), phi, np.array(mu[i])))] * m) \
         #         + Ui * p(np.array([y[i]]), phi, np.array(mu[i]))
-        aaaa = np.array([np.sum(p(np.array(range(int(round(y[i])))), phi, np.array(mu[i])))] * m) \
+        Fi = np.array([np.sum(p(np.array(range(int(round(y[i])))), phi, np.array(mu[i])))] * m) \
                  + Ui * p(np.array([y[i]]), phi, np.array(mu[i]))
-        aaaa[aaaa>0.99999999] = 0.99999999 
-        F[i, :] = aaaa
-        #print '$$$', np.sum(p(np.array(range(int(round(y[i])))), phi, np.array(mu[i]))),p(np.array([y[i]]), phi, np.array(mu[i])),Ui,y[i],phi,mu[i]
-        #print F[i, :]
+        Fi[Fi>0.9999999999999999] = 0.9999999999999999
+        F[i, :] = Fi
         z[i, :] = np.array([norm.ppf(j, 0) for j in F[i, :]])
         dFdphi[i, :] = np.array([np.sum(dpdphi(np.array(range(int(round(y[i])))), phi, np.array(mu[i])))] * m) \
                 + Ui * dpdphi(np.array([y[i]]), phi, np.array(mu[i]))
@@ -66,20 +60,21 @@ def negLogEL(theta, y, U, XX, H, dimbeta, Bphi, want_derivatives=None):
         zj = np.reshape(z[:,j], (n, 1))
         T[0, j]=np.exp(-0.5*np.dot(zj.T,np.dot((SigmaInv-np.eye(n)),zj)))
     meanT=np.mean(T)
-    #print zj.T
     # Calculate the negative log expected likelihood.
-    NLEL=1./2.*logdetSigma-sum(np.log(p(y,phi,mu)))-np.log(meanT)
-    print "logdetSigma:",logdetSigma,"p(y,phi,mu):",sum(np.log(p(y,phi,mu))),"np.log(meanT)",np.log(meanT)
+    LEL=-1./2.*logdetSigma+sum(np.log(p(y,phi,mu)))+np.log(meanT)
+    NLEL = -LEL #Optimize through minimization
+    #print "logdetSigma:",logdetSigma,"p(y,phi,mu):",sum(np.log(p(y,phi,mu))),"np.log(meanT)",np.log(meanT)
     if np.isnan(np.log(meanT)):
-        print z, F
-    print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+        print z
+        print F
+    print "$$$$$ NLEL $$$$$"
     print NLEL
-    print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+    print "$$$$$$$$$$$$$$$$"
+    print '\n'
 
-    #if nargout > 1 % If derivatives are requested, calculate them
     eg = None
     if want_derivatives:
-        dSdlambda = -H -H.T + 2*alphaN*np.dot(H.T,H)
+        dSdlambda = -H -H.T + 2*lambd*np.dot(H.T,H)
         dTdlambda = np.zeros((1, m))
         dTdbeta = np.zeros((dimbeta, m))
         dTdphi = np.zeros((1, m))
@@ -87,14 +82,14 @@ def negLogEL(theta, y, U, XX, H, dimbeta, Bphi, want_derivatives=None):
         SigmaInv1 = SigmaInv - np.eye(n)
         for j in range(m):
             zj = np.reshape(z[:,j], (n, 1))            
-            exp_a = np.exp(np.dot(np.dot(zj.T,SigmaInv1), zj)/-2.)
-            dTdlambda = exp_a - (np.dot(np.dot(zj.T,dSdlambda),zj)/-2.)
+            dTdlambda[0, j] = T[0, j] * (-0.5 * np.dot(np.dot(zj.T,dSdlambda),zj))
             dTdphi[0, j] = T[0, j]*np.dot(np.reshape(dzdphi[:, j], (1, n)), np.dot(SigmaInv1, zj))
             for i in range(dimbeta):
                 dTdbeta[i, j] = T[0, j]*np.dot(np.reshape(dzdbeta[:, j, i],(1,n)), \
                          np.dot(SigmaInv1, zj))
+        dTdlambda = np.mean(dTdlambda) / meanT
         tr_dldlambda = np.sum(np.diagonal(np.dot(dSdlambda, Sigma)))
-        dldlambda = tr_dldlambda/2. + np.mean(dTdlambda)/meanT
+        dldlambda = dTdlambda + 0.5 * tr_dldlambda 
         dldphi = (np.mean(dTdphi) / meanT) - np.sum(dpdphi(y, phi, mu) / \
                 p(y, phi, mu))
         for i in range(dimbeta):
