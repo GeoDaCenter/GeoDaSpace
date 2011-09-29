@@ -103,7 +103,9 @@ def negLogEL(theta, y, U, XX, H, dimbeta, Bphi, want_derivatives=None):
         eg.append(eg2)
         for i in dldbeta.T:
             eg.append(float(i))
-    return NLEL, np.array(eg)
+        return NLEL, np.array(eg)
+    else:
+        return NLEL
 
 # p(y,phi,mu) is the negative binomial probability mass function with parameters phi and mu.
 def p(y,phi,mu): #Madsen's code

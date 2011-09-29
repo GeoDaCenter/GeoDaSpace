@@ -45,7 +45,11 @@ ratio = muY / (vy - muY)
 #phi0 = min(abs(ratio))
 #phi0 = np.mean(abs(ratio))
 #phi0 = max(abs(ratio))
-w = pysal.lat2W(2,71)
+
+# Create (real) W
+#w = pysal.lat2W(2,71)
+#w = pysal.knnW(xy, k=40)
+w = pysal.threshold_continuousW_from_array(xy, 1000)
 w.transform='r'
 H = w.full()[0]
 
@@ -57,15 +61,22 @@ theta0.append(phi0)
 for i in beta0:
     theta0.append(float(i))
 dimbeta = beta0.shape[0]
-numu = 1000
+numu = 5
 #U = np.random.uniform(0, 1, (n, numu))
 #np.savetxt('U1k.txt',U,delimiter=",")
 U = np.loadtxt('U.txt',delimiter=",")
 bounds=[(-0.99999,0.99999),(None,Bphi),(None,None),(None,None),(None,None),(None,None)]
 bounds=[(-1.,1.),(None,Bphi),(None,None),(None,None),(None,None),(None,None)]
-print 'par_hat', negLogEL(np.array(theta0), y, U, XX, H, dimbeta, Bphi, want_derivatives=1)
-ll_func = lambda par: negLogEL(par, y, U, XX, H, dimbeta, Bphi, want_derivatives=1)
-par_hat = fmin_l_bfgs_b(ll_func, np.array(theta0), iprint=1, bounds=bounds)
+#print 'par_hat', negLogEL(np.array(theta0), y, U, XX, H, dimbeta, Bphi, want_derivatives=1)
+use_derivatives = 0
+if use_derivatives:
+    ll_func = lambda par: negLogEL(par, y, U, XX, H, dimbeta, Bphi, want_derivatives=1)
+    par_hat = fmin_l_bfgs_b(ll_func, np.array(theta0), iprint=1, bounds=bounds, approx_grad=0)
+else:
+    ll_func = lambda par: negLogEL(par, y, U, XX, H, dimbeta, Bphi, want_derivatives=0)
+    par_hat = fmin_l_bfgs_b(ll_func, np.array(theta0), iprint=1, bounds=bounds, approx_grad=1)
+
+
 #par_hat = fmin_l_bfgs_b(ll_func, np.array(theta0), iprint=1)
 #par_hat = op.fmin(ll_func, np.array(theta0), retall=True)
 
