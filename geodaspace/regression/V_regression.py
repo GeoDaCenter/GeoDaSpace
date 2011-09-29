@@ -779,6 +779,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         #    path = fileDialog.GetPath()
         #    if not '.' in path:
         #        path += '.txt'
+        self.model.data['config'] = self.config.GetPrefs()
         if self.config.model.output_save_pred_residuals:
             fname = self.model.data['fname']
             suggestion = os.path.split(fname)[1].split('.')[0]+'_predY_resid.csv'
