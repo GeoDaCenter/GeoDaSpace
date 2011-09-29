@@ -677,7 +677,7 @@ def summary_coefs(reg, instruments, lamb):
     strSummary += "----------------------------------------------------------------------------\n"
     if instruments:
         insts = "Instruments: "
-        for name in reg.name_h:
+        for name in reg.name_q:
             insts += name + ", "
         text_wrapper = TW.TextWrapper(width=76, subsequent_indent="             ")
         insts = text_wrapper.fill(insts[:-2])
