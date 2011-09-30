@@ -67,15 +67,4 @@ par_hat = fmin_l_bfgs_b(ll_func, np.array(theta0), iprint=1)
 
 print '$$$$$$$$$$$$$$$$$$$$$$'
 print par_hat
-"""
-print '\n'
-print '### Coefs ###'
-coefs = ['theta_1', 'theta_2 ', 'Phi     ', 'Beta_0 ', 'Beta_1 ', 'Beta_2 ', 'Beta_3 ']
-for i in range(len(coefs)):
-    line = '%s:\t%f'%(coefs[i], par_hat[0][i])
-    print line
-'''
-print(dpdmu(np.array([0]), np.array([11.1004]), np.array([.6576])))
-print(dpdmu(np.array([4]), np.array([11.1004]), np.array([1.3605])))
-'''
-"""
+

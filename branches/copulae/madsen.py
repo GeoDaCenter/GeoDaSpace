@@ -63,7 +63,7 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
     #print zj.T
     # Calculate the negative log expected likelihood.
     NLEL=1./2.*logdetSigma-sum(np.log(p(y,phi,mu)))-np.log(meanT)
-    print "logdetSigma:",logdetSigma,"p(y,phi,mu):",sum(np.log(p(y,phi,mu))),"np.log(meanT)",np.log(meanT)
+    #print "logdetSigma:",logdetSigma,"p(y,phi,mu):",sum(np.log(p(y,phi,mu))),"np.log(meanT)",np.log(meanT)
     print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
     print NLEL
     print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
@@ -115,7 +115,7 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
     return NLEL, np.array(eg)
 
 # p(y,phi,mu) is the negative binomial probability mass function with parameters phi and mu.
-def p0(y,phi,mu): #Madsen's code
+def p(y,phi,mu): #Madsen's code
     p=np.zeros((y.shape),float)
     if mu.shape[0]==1:
         mu=mu*np.ones((y.shape))
@@ -128,7 +128,7 @@ def p0(y,phi,mu): #Madsen's code
         p[0]=0.9999
     return p
 
-def p(y,phi,mu):
+def p0(y,phi,mu):
     ps = np.zeros(y.shape)
     phi=phi**2.
     if mu.shape[0]==1:
