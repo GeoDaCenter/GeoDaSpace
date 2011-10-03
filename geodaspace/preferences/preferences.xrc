@@ -301,7 +301,7 @@
                   <object class="wxFlexGridSizer">
                     <object class="sizeritem">
                       <object class="wxStaticText" name="NumSpatialLagsLabel">
-                        <label>Number of Spatial\nLags of Instruments</label>
+                        <label>Order of Spatial\nLags for Instruments</label>
                         <XRCED>
                           <assign_var>1</assign_var>
                         </XRCED>
