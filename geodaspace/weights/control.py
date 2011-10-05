@@ -7,7 +7,7 @@ import pysal
 #local
 from geodaspace import remapEvtsToDispatcher
 from view import xrcDIALOGWEIGHTS,xrcAddIDVar
-from model import weightsModel
+from model import weightsModel,DISTANCE_METRICS
 from geodaspace import DEBUG
 #CONSTANTS
 ENABLE_CONTIGUITY_WEIGHTS = 1 # 0b00000001
@@ -121,6 +121,9 @@ class weightsDialog(xrcDIALOGWEIGHTS):
         self.model = weightsModel()
         self.model.addListener(self.update)
 
+        self.DdistMethodChoice.SetItems(DISTANCE_METRICS)
+        self.KdistMethodChoice.SetItems(DISTANCE_METRICS)
+
         self.dispatch = d = {}
         d['OpenShape'] = self.input
         d['InputShapeChoice'] = self.input
@@ -134,6 +137,9 @@ class weightsDialog(xrcDIALOGWEIGHTS):
         d['CutoffText'] = self.threshold
         d['OnClose'] = self.closeEvt
         d['CloseButton'] = self.closeEvt
+        d['DdistMethodChoice'] = self.distMeth
+        d['KdistMethodChoice'] = self.distMeth
+        d['distMethod'] = self.distMeth
         self._W = None
         self.update_style(style)
         self.update()
@@ -444,7 +450,9 @@ class weightsDialog(xrcDIALOGWEIGHTS):
         self.close(ret_val=wx.ID_CANCEL)
     def closeEvt(self, evtName=None, evt=None, value=None):
         self.close(ret_val=wx.ID_CANCEL)
-    def closeEvt(self, evtName=None, evt=None, value=None):
-        self.close(ret_val=wx.ID_CANCEL)
-    def closeEvt(self, evtName=None, evt=None, value=None):
-        self.close(ret_val=wx.ID_CANCEL)
+    def distMeth(self, evtName=None, evt=None, value=None):
+        if value!=None:
+            self.DdistMethodChoice.SetSelection(value)
+            self.KdistMethodChoice.SetSelection(value)
+        else:
+            self.model.distMethod = evt.EventObject.GetSelection()

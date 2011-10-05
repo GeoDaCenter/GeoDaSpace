@@ -51,6 +51,7 @@ class xrcDIALOGWEIGHTS(wx.Dialog):
         self.RadioRook = xrc.XRCCTRL(self, "RadioRook")
         self.ContiguityIncludeLowerCheck = xrc.XRCCTRL(self, "ContiguityIncludeLowerCheck")
         self.DistancePanel = xrc.XRCCTRL(self, "DistancePanel")
+        self.DdistMethodChoice = xrc.XRCCTRL(self, "DdistMethodChoice")
         self.ThresholdRadio = xrc.XRCCTRL(self, "ThresholdRadio")
         self.ThresholdSlider = xrc.XRCCTRL(self, "ThresholdSlider")
         self.CutoffText = xrc.XRCCTRL(self, "CutoffText")
@@ -59,6 +60,7 @@ class xrcDIALOGWEIGHTS(wx.Dialog):
         self.InverseRadio = xrc.XRCCTRL(self, "InverseRadio")
         self.PowerSpin = xrc.XRCCTRL(self, "PowerSpin")
         self.KernelPanel = xrc.XRCCTRL(self, "KernelPanel")
+        self.KdistMethodChoice = xrc.XRCCTRL(self, "KdistMethodChoice")
         self.KFuncChoice = xrc.XRCCTRL(self, "KFuncChoice")
         self.KNumNeighSpin = xrc.XRCCTRL(self, "KNumNeighSpin")
         self.CreateButton = xrc.XRCCTRL(self, "CreateButton")
@@ -74,6 +76,7 @@ class xrcDIALOGWEIGHTS(wx.Dialog):
         self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_ContiguityOrderSpin, self.ContiguityOrderSpin)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_RadioRook, self.RadioRook)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_ContiguityIncludeLowerCheck, self.ContiguityIncludeLowerCheck)
+        self.Bind(wx.EVT_CHOICE, self.OnChoice_DdistMethodChoice, self.DdistMethodChoice)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_ThresholdRadio, self.ThresholdRadio)
         self.Bind(wx.EVT_SCROLL, self.OnScroll_ThresholdSlider, self.ThresholdSlider)
         self.Bind(wx.EVT_SCROLL_TOP, self.OnScroll_top_ThresholdSlider, self.ThresholdSlider)
@@ -100,6 +103,7 @@ class xrcDIALOGWEIGHTS(wx.Dialog):
         self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_NumNeighSpin, self.NumNeighSpin)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_InverseRadio, self.InverseRadio)
         self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_PowerSpin, self.PowerSpin)
+        self.Bind(wx.EVT_CHOICE, self.OnChoice_KdistMethodChoice, self.KdistMethodChoice)
         self.Bind(wx.EVT_CHOICE, self.OnChoice_KFuncChoice, self.KFuncChoice)
         self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_KNumNeighSpin, self.KNumNeighSpin)
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnNotebook_page_changed_weightsNotebook, self.weightsNotebook)
@@ -166,6 +170,12 @@ class xrcDIALOGWEIGHTS(wx.Dialog):
         # Replace with event handler code
         print "OnCheckbox_ContiguityIncludeLowerCheck()"
 #!XRCED:end-block:xrcDIALOGWEIGHTS.OnCheckbox_ContiguityIncludeLowerCheck        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnChoice_DdistMethodChoice
+    def OnChoice_DdistMethodChoice(self, evt):
+        # Replace with event handler code
+        print "OnChoice_DdistMethodChoice()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnChoice_DdistMethodChoice        
 
 #!XRCED:begin-block:xrcDIALOGWEIGHTS.OnRadiobutton_ThresholdRadio
     def OnRadiobutton_ThresholdRadio(self, evt):
@@ -322,6 +332,12 @@ class xrcDIALOGWEIGHTS(wx.Dialog):
         # Replace with event handler code
         print "OnSpinctrl_PowerSpin()"
 #!XRCED:end-block:xrcDIALOGWEIGHTS.OnSpinctrl_PowerSpin        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnChoice_KdistMethodChoice
+    def OnChoice_KdistMethodChoice(self, evt):
+        # Replace with event handler code
+        print "OnChoice_KdistMethodChoice()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnChoice_KdistMethodChoice        
 
 #!XRCED:begin-block:xrcDIALOGWEIGHTS.OnChoice_KFuncChoice
     def OnChoice_KFuncChoice(self, evt):
@@ -740,6 +756,32 @@ def __init_resources():
                                 <object class="sizeritem">
                                   <object class="wxBoxSizer">
                                     <object class="sizeritem">
+                                      <object class="wxStaticText">
+                                        <label>Select distance metric</label>
+                                      </object>
+                                      <flag>wxLEFT|wxRIGHT|wxALIGN_CENTRE</flag>
+                                      <border>6</border>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxChoice" name="DdistMethodChoice">
+                                        <XRCED>
+                                          <events>EVT_CHOICE</events>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <option>1</option>
+                                      <flag>wxLEFT|wxRIGHT|wxALIGN_CENTRE</flag>
+                                      <border>10</border>
+                                    </object>
+                                    <orient>wxHORIZONTAL</orient>
+                                  </object>
+                                  <option>1</option>
+                                  <flag>wxBOTTOM|wxEXPAND</flag>
+                                  <border>10</border>
+                                </object>
+                                <object class="sizeritem">
+                                  <object class="wxBoxSizer">
+                                    <object class="sizeritem">
                                       <object class="wxRadioButton" name="ThresholdRadio">
                                         <label>Threshold Distance</label>
                                         <value>1</value>
@@ -957,6 +999,32 @@ def __init_resources():
                           <object class="wxBoxSizer">
                             <object class="sizeritem">
                               <object class="wxBoxSizer">
+                                <object class="sizeritem">
+                                  <object class="wxBoxSizer">
+                                    <object class="sizeritem">
+                                      <object class="wxStaticText">
+                                        <label>Select distance metric</label>
+                                      </object>
+                                      <flag>wxLEFT|wxRIGHT|wxALIGN_CENTRE</flag>
+                                      <border>2</border>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxChoice" name="KdistMethodChoice">
+                                        <XRCED>
+                                          <events>EVT_CHOICE</events>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <option>1</option>
+                                      <flag>wxLEFT|wxRIGHT|wxALIGN_CENTRE</flag>
+                                      <border>10</border>
+                                    </object>
+                                    <orient>wxHORIZONTAL</orient>
+                                  </object>
+                                  <option>1</option>
+                                  <flag>wxBOTTOM|wxEXPAND</flag>
+                                  <border>10</border>
+                                </object>
                                 <object class="sizeritem">
                                   <object class="wxBoxSizer">
                                     <object class="sizeritem">

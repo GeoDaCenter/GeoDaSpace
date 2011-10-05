@@ -8,6 +8,8 @@ import pysal
 from geodaspace import AbstractModel
 from geodaspace import DEBUG
 
+DISTANCE_METRICS = ['Euclidean Distance','Arc Distance (miles)', 'Arc Distance (kilometers)']
+
 class weightsModel(AbstractModel):
     def __init__(self):
         AbstractModel.__init__(self)
@@ -17,8 +19,10 @@ class weightsModel(AbstractModel):
         self._modelData['inShp'] = ''
         self._modelData['inShps'] = []
         self._modelData['idVar'] = None
+        self._modelData['distMethod'] = 0
     def prop_reset(self):
         self._propData = {}
+        self._modelData['idVar'] = None
     def __get_inShp(self):
         if DEBUG: print "getting inShp:",self._modelData.get('inShp','')
         return self._modelData.get('inShp','')
@@ -26,6 +30,8 @@ class weightsModel(AbstractModel):
         if DEBUG: print "setting inShp:",value
         if not value == None:
             if type(value) == int: # change in inShp from current list
+                if self._modelData['inShp'] == value:
+                    return
                 self._modelData['inShp'] = value
             else: #elif type(value) == str: #add to list # or it could be unicode
                 if value in self.inShps:
@@ -38,6 +44,7 @@ class weightsModel(AbstractModel):
     inShp = property(fget=__get_inShp,fset=__set_inShp)
     inShps = AbstractModel.abstractProp('inShps', list)
     idVar = AbstractModel.abstractProp('idVar', int)
+    distMethod = AbstractModel.abstractProp('distMethod', int)
     @property
     def vars(self):
         try:
