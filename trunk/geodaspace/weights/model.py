@@ -22,7 +22,6 @@ class weightsModel(AbstractModel):
         self._modelData['distMethod'] = 0
     def prop_reset(self):
         self._propData = {}
-        self._modelData['idVar'] = None
     def __get_inShp(self):
         if DEBUG: print "getting inShp:",self._modelData.get('inShp','')
         return self._modelData.get('inShp','')
@@ -40,11 +39,19 @@ class weightsModel(AbstractModel):
                     self.inShps = self.inShps+[value]
                     self._modelData['inShp'] = self.inShps.index(value)
             self.prop_reset()
+            self._modelData['idVar'] = None
             self.update('inShp')
     inShp = property(fget=__get_inShp,fset=__set_inShp)
     inShps = AbstractModel.abstractProp('inShps', list)
     idVar = AbstractModel.abstractProp('idVar', int)
-    distMethod = AbstractModel.abstractProp('distMethod', int)
+    def __get_distMethod(self):
+        return self._modelData['distMethod']
+    def __set_distMethod(self,val):
+        if type(val) == int:
+            self._modelData['distMethod'] = val
+            self.prop_reset()
+            self.update('distMethod')
+    distMethod = property(fget=__get_distMethod, fset=__set_distMethod)
     @property
     def vars(self):
         try:
@@ -75,9 +82,18 @@ class weightsModel(AbstractModel):
         if 'bbox_diag' in self._propData:
             return self._propData['bbox_diag']
         if self.shapes:
-            x,y,X,Y = self.shapes.bbox
-            self._propData['bbox_diag'] = ((X-x)**2+(Y-y)**2)**(0.5)
-            return self._propData['bbox_diag']
+            if self.distMethod == 0: #'Euclidean Distance'
+                x,y,X,Y = self.shapes.bbox
+                self._propData['bbox_diag'] = ((X-x)**2+(Y-y)**2)**(0.5)
+                return self._propData['bbox_diag']
+            elif self.distMethod == 1: #'Arc Distance (miles)'
+                x,y,X,Y = self.shapes.bbox
+                self._propData['bbox_diag'] = pysal.cg.arcdist((y,x),(Y,X),radius=pysal.cg.RADIUS_EARTH_MILES)
+                return self._propData['bbox_diag']
+            elif self.distMethod == 2: #'Arc Distance (kilometers)'
+                x,y,X,Y = self.shapes.bbox
+                self._propData['bbox_diag'] = pysal.cg.arcdist((y,x),(Y,X),radius=pysal.cg.RADIUS_EARTH_KM)
+                return self._propData['bbox_diag']
         return 0.0
     @property
     def knn1_dist(self):
@@ -94,7 +110,12 @@ class weightsModel(AbstractModel):
                 leaf_size = len(set(map(tuple,pts.tolist())))
                 kd = KDTree(pts,leaf_size)
             dists,ids = kd.query(pts,2)
-            self._propData['knn1_dist'] = dists[:,1].max()
+            max_k1d = dists[:,1].max()
+            if self.distMethod == 1: #'Arc Distance (miles)'
+                max_k1d = pysal.cg.linear2arcdist(max_k1d, radius = pysal.cg.RADIUS_EARTH_MILES)
+            elif self.distMethod == 2: #'Arc Distance (kilometers)'
+                max_k1d = pysal.cg.linear2arcdist(max_k1d, radius = pysal.cg.RADIUS_EARTH_KM)
+            self._propData['knn1_dist'] = max_k1d
             return self._propData['knn1_dist']
         else:
             return 0.0
@@ -107,11 +128,14 @@ class weightsModel(AbstractModel):
             return None
         shps = self.shapes
         if shps.type == pysal.cg.Polygon:
-            return numpy.array([poly.centroid for poly in shps])
+            pts = [poly.centroid for poly in shps]
         elif shps.type == pysal.cg.Point:
-            return numpy.array([pt for pt in shps])
+            pts = [pt for pt in shps]
         else:
             return None
+        if self.distMethod != 0: # not Euclidean Distance
+            pts = map(pysal.cg.toXYZ,pts)
+        return numpy.array(pts)
     
 if __name__ == '__main__':
     m = weightsModel()
