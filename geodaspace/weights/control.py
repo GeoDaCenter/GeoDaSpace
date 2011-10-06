@@ -274,12 +274,7 @@ class weightsDialog(xrcDIALOGWEIGHTS):
                     self.InputShapeChoice.SetSelection(self.model.inShp)
             self.IdvarChoice.Clear()
             self.IdvarChoice.AppendItems(self.model.vars)
-            # Set Slider Values...            
-            if self.model.bbox_diag > 0:
-                max_dist = self.model.bbox_diag
-                rec_dist = self.model.knn1_dist
-                self.ThresholdSlider.SetValue(int(math.ceil((rec_dist/max_dist) * self.ThresholdSlider.GetMax())))
-                self.threshold()
+            self.distance_hints()
             if self.model.shapes:
                 n = len(self.model.shapes)
                 # Min k for Kernel weights is the cube root of the number of observations.
@@ -293,6 +288,13 @@ class weightsDialog(xrcDIALOGWEIGHTS):
                 elif self.model.shapes.type == pysal.cg.Polygon:
                     if ENABLE_CONTIGUITY_WEIGHTS&self.orig_style:
                         self.update_style(self.cur_style|ENABLE_CONTIGUITY_WEIGHTS)
+    def distance_hints(self,evtName=None, evt=None, value=None):
+            # Set Slider Values...            
+            if self.model.bbox_diag > 0:
+                max_dist = self.model.bbox_diag
+                rec_dist = self.model.knn1_dist
+                self.ThresholdSlider.SetValue(int(math.ceil((rec_dist/max_dist) * self.ThresholdSlider.GetMax())))
+                self.threshold()
 
     def isdigit(self,evt):
         """easy validator for textCtrl
@@ -454,5 +456,6 @@ class weightsDialog(xrcDIALOGWEIGHTS):
         if value!=None:
             self.DdistMethodChoice.SetSelection(value)
             self.KdistMethodChoice.SetSelection(value)
+            self.distance_hints()
         else:
             self.model.distMethod = evt.EventObject.GetSelection()
