@@ -51,10 +51,6 @@ def negLogEL(theta, gobacks, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=Non
     dzdmu = np.zeros((n,m))
     for i in range(n):
         Ui = np.reshape(U[i, :],(1,m))
-        #F[i, :] = np.array([np.sum(p(np.array(range(int(round(y[i])))), phi, np.array(mu[i])))] * m) \
-                 #+ Ui * p(np.array([y[i]]), phi, np.array(mu[i]))
-        #print '$$$', np.sum(p(np.array(range(int(round(y[i])))), phi, np.array(mu[i]))),p(np.array([y[i]]), phi, np.array(mu[i])),Ui,y[i],phi,mu[i]
-        #print F[i, :]
         Fi = np.array([np.sum(p(np.array(range(int(round(y[i])))), phi, np.array(mu[i])))] * m) \
                  + Ui * p(np.array([y[i]]), phi, np.array(mu[i]))
         Fi[Fi>0.9999999] = 0.9999999 #Matlab seems to do the same
@@ -72,23 +68,15 @@ def negLogEL(theta, gobacks, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=Non
     for i in range(dimbeta):
         dmudbeta[:, i] = np.reshape(np.multiply(mu, np.reshape(XX[:, i], (n, 1))),(n,))
         dzdbeta[:,:,i] = dzdmu * np.array([dmudbeta[:,i]] * m).T
+    # Simulated part
     T=np.zeros((1,m),float) 
     for j in range(m):
         zj = np.reshape(z[:,j], (n, 1))
         T[0, j]=np.exp(-0.5*np.dot(zj.T,np.dot((SigmaInv-np.eye(n)),zj)))
     meanT=np.mean(T)
-    #print zj.T
-    # Calculate the negative log expected likelihood.
-    NLEL=1./2.*logdetSigma-sum(np.log(p(y,phi,mu)))-np.log(meanT)
-    for c,i in enumerate(np.log(p(y,phi,mu))):
-        if np.isnan(i):
-            print '================================>>>' 
-            #print p(np.array([y[c]]), phi, np.array(mu[c]))
-            #print np.array([y[c]]), phi, np.array(mu[c])
-            print p(y[c],phi,mu[c])
-            print y[c],phi,mu[c]
-            print '<<<================================'
-
+    # Log expected likelihood.
+    LEL = -1./2.*logdetSigma + sum(np.log(p(y,phi,mu))) + np.log(meanT)
+    NLEL = -LEL #Optimization through minimization
     print "logdetSigma:",logdetSigma," Sum-Log p(y,phi,mu):",sum(np.log(p(y,phi,mu))),"meanT",meanT
     print "###### NLEL ######"
     print NLEL
@@ -138,10 +126,15 @@ def negLogEL(theta, gobacks, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=Non
         eg.append(eg2)
         for i in dldbeta.T:
             eg.append(float(i))
-    return NLEL, np.array(eg)
+        return NLEL, np.array(eg)
+    else:
+        return NLEL
 
-# p(y,phi,mu) is the negative binomial probability mass function with parameters phi and mu.
-def p0(y,phi,mu): #Madsen's code
+### Negative binomial especification ###
+def p(y,phi,mu): #Madsen's code
+    '''
+    Negative binomial as coded by Madsen
+    '''
     p=np.zeros((y.shape),float)
     if mu.shape[0]==1:
         mu=mu*np.ones((y.shape))
@@ -159,36 +152,40 @@ def p0(y,phi,mu): #Madsen's code
                 #p_d = 1e-9
             p_ = p_a * (p_b)**p_c * p_d
             if np.isnan(p_):
-                p_ = 1.
+                #p_ = 1.
+                pass
             #p[i]=1./(y[i]*beta(y[i],phi**2.*mu[i]))*(phi**2/(1+phi**2))**(phi**2.*mu[i])*(1./(1+phi**2)**y[i])
             p[i] = p_
-    if sum(p)>0.9999:
-        p[0]=0.9999
     if sum(p)<0.00001:
         p=0.00001
     return p
 
-def p(y,phi,mu):
+def p0(y,phi,mu):
+    '''
+    Negative binomial as coded by Pedro and Dani and suggested in Madsen's
+    paper
+    '''
     ps = np.zeros(y.shape)
-    phi=phi**2.
+    #phi=phi**2.
     if mu.shape[0]==1:
         mu=mu*np.ones((y.shape))  
     for i in range(y.shape[0]):
+        '''
         if y[i]==0:
             ps[i]=(phi/(1+phi))**(phi*mu[i])
         else:        
-            r = phi*mu[i]
-            bn = nbinom(r, (phi/(phi+1)))
-            ps[i] = bn.pmf(y[i])
+        '''
+        r = phi*mu[i]
+        bn = nbinom(r, (phi/(phi+1)))
+        ps[i] = bn.pmf(y[i])
         if np.isnan(ps[i]):
             #print "phi",phi,"mu",mu[i],"y",y[i]
-            ps[i] = 0.9999
-            #pass
-    if sum(ps)>0.9999:
-        ps[0]=0.9999
+            #ps[i] = 0.9999
+            pass
     return ps
 
 
+### Long derivatives ###
 # dpdphi(y,phi,mu) is the derivative of p(y,phi,mu) with respect to phi.
 def dpdphi(y,phi,mu):
     dpdphi=np.zeros((y.shape),float)
