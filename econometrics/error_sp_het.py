@@ -328,12 +328,12 @@ class BaseGM_Endog_Error_Het(RegressionProps):
      [  0.4114   0.1777]]
     """
 
-    def __init__(self, y, x, yend, q, w,\
+    def __init__(self, y, x, yend, q, w, constant=True,\
                  max_iter=1, epsilon=0.00001,
                  step1c=False, inv_method='power_exp'):
     
         #1a. reg --> \tilde{betas} 
-        tsls = TSLS.BaseTSLS(y=y, x=x, yend=yend, q=q)
+        tsls = TSLS.BaseTSLS(y=y, x=x, yend=yend, q=q, constant=constant)
         self.x, self.z, self.h, self.y = tsls.x, tsls.z, tsls.h, tsls.y
         self.yend, self.q, self.n, self.k = tsls.yend, tsls.q, tsls.n, tsls.k
         w.A1 = UTILS.get_A1_het(w.sparse)
