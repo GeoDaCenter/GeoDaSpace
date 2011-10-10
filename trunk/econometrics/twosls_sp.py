@@ -285,7 +285,8 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
                  robust=None, gwk=None, sig2n_k=False,\
                  spat_diag=False,\
                  vm=False, name_y=None, name_x=None,\
-                 name_yend=None, name_q=None, name_ds=None):
+                 name_yend=None, name_q=None,\
+                 name_w=None, name_kwt=None, name_ds=None):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
@@ -306,16 +307,17 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
         self.name_q = USER.set_name_q(name_q, q)
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags, self.name_q, lag_q))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        #### we currently ignore nonspat_diag parameter ####
+        self.robust = USER.set_robust(robust)
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm, spat_diag=spat_diag)
+                                    vm=vm, spat_diag=spat_diag,
+                                    std_err=self.robust)
 
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              spat_diag=False, vm=False):
+                              spat_diag=False, vm=False, std_err=None):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=beta_diag,\
                                             nonspat_diag=nonspat_diag,\
                                             spat_diag=spat_diag, vm=vm,\
-                                            instruments=True)
+                                            instruments=True, std_err=std_err)
 
 def _test():
     import doctest

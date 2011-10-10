@@ -213,7 +213,8 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
     """
     def __init__(self, y, x, w,\
                  max_iter=1, epsilon=0.00001, step1c=False,\
-                 vm=False, name_y=None, name_x=None, name_ds=None):
+                 vm=False, name_y=None, name_x=None,\
+                 name_w=None, name_ds=None):
 
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
@@ -225,12 +226,13 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x)
         self.name_x.append('lambda')
-        self._get_diagnostics(w=w, beta_diag=True, vm=vm)
+        self._get_diagnostics(w=w, beta_diag=True, vm=vm, std_err='het')
 
-    def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
+    def _get_diagnostics(self, beta_diag=True, w=None, vm=False, std_err=None):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=False,\
-                                            vm=vm, instruments=False)
+                                            vm=vm, instruments=False,
+                                            std_err=std_err)
 
 
 class BaseGM_Endog_Error_Het(RegressionProps):
@@ -487,7 +489,8 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
                  max_iter=1, epsilon=0.00001,
                  step1c=False, inv_method='power_exp',\
                  vm=False, name_y=None, name_x=None,\
-                 name_yend=None, name_q=None, name_ds=None):
+                 name_yend=None, name_q=None,\
+                 name_w=None, name_ds=None):
     
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
@@ -503,12 +506,13 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
         self.name_z.append('lambda')  #listing lambda last
         self.name_q = USER.set_name_q(name_q, q)
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        self._get_diagnostics(w=w, beta_diag=True, vm=vm)
+        self._get_diagnostics(w=w, beta_diag=True, vm=vm, std_err='het')
         
-    def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
+    def _get_diagnostics(self, beta_diag=True, w=None, vm=False, std_err=None):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=False, lamb=True,\
-                                            vm=vm, instruments=True)        
+                                            vm=vm, instruments=True,
+                                            std_err=std_err)        
 
 class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
     """
@@ -766,7 +770,8 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
                  max_iter=1, epsilon=0.00001,\
                  step1c=False, inv_method='power_exp',\
                  vm=False, name_y=None, name_x=None,\
-                 name_yend=None, name_q=None, name_ds=None):
+                 name_yend=None, name_q=None,\
+                 name_w=None, name_ds=None):
     
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
@@ -787,12 +792,13 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
         self.name_q = USER.set_name_q(name_q, q)
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags, self.name_q, lag_q))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        self._get_diagnostics(w=w, beta_diag=True, vm=vm)
+        self._get_diagnostics(w=w, beta_diag=True, vm=vm, std_err='het')
      
-    def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
+    def _get_diagnostics(self, beta_diag=True, w=None, vm=False, std_err=None):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=False, lamb=True,\
-                                            vm=vm, instruments=True)        
+                                            vm=vm, instruments=True,
+                                            std_err=std_err)        
 
 
 def get_psi_sigma(w, u, lamb):
