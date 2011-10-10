@@ -98,7 +98,7 @@ class DiagnosticBuilder:
     """
     def __init__(self, w, vm, instruments=False, beta_diag=True,\
                         nonspat_diag=True, spat_diag=False, lamb=False,\
-                        moran=False):
+                        moran=False, std_err=None):
 
         #Coefficient, Std.Error, t-Statistic, Probability 
         if beta_diag:
@@ -159,7 +159,7 @@ class DiagnosticBuilder:
             if not instruments:  # quicky hack until we figure out the global nonspatial diag rules
                 self.summary += summary_nonspat_diag_1(self)
         if beta_diag:
-            self.summary += summary_coefs(self, instruments, lamb)
+            self.summary += summary_coefs(self, instruments, lamb, std_err)
         if nonspat_diag:
             if not instruments:  # quicky hack until we figure out the global nonspatial diag rules
                 self.summary += summary_nonspat_diag_2(self)
@@ -373,7 +373,7 @@ def set_robust(robust):
                   
     """
     if not robust:
-        robust = 'unadjusted'
+        return 'unadjusted'
     return robust
 
 
@@ -528,9 +528,11 @@ def check_robust(robust, wk):
             diag = wk.sparse.diagonal()
             # check to make sure all entries equal 1
             if diag.min() < 1.0:
-                raise Exception, "All entries on diagonal must equal 1."
+                print diag.min()
+                raise Exception, "All entries on diagonal of kernel weights matrix must equal 1."
             if diag.max() > 1.0:
-                raise Exception, "All entries on diagonal must equal 1."
+                print diag.max()
+                raise Exception, "All entries on diagonal of kernel weights matrix must equal 1."
             # ensure off-diagonal entries are in the set of real numbers [0,1)
             wegt = wk.weights
             for i in wk.id_order:
@@ -638,8 +640,17 @@ def summary_intro(reg):
     strSummary += '\n'
     return strSummary
 
-def summary_coefs(reg, instruments, lamb):
+def summary_coefs(reg, instruments, lamb, std_err):
     strSummary = "\n"
+    if std_err:
+        if std_err.lower() == 'white':
+            strSummary += "White Standard Errors\n"
+        elif std_err.lower() == 'hac':
+            strSummary += "Kelejian-Prucha (2007) HAC Standard Errors\n"
+        elif std_err.lower() == 'het':
+            strSummary += "Kelejian-Prucha (2010) Heteroskedastic Standard Errors\n"
+        elif std_err.lower() == 'hom':
+            strSummary += "Drukker et al. (2010) Homoskedastic Standard Errors\n"
     strSummary += "----------------------------------------------------------------------------\n"
     if instruments:
         strSummary += "    Variable     Coefficient       Std.Error     z-Statistic     Probability\n"

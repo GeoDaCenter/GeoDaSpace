@@ -227,7 +227,8 @@ class GM_Error_Hom(BaseGM_Error_Hom, USER.DiagnosticBuilder):
     '''
     def __init__(self, y, x, w,\
                  max_iter=1, epsilon=0.00001, A1='het',\
-                 vm=False, name_y=None, name_x=None, name_ds=None):
+                 vm=False, name_y=None, name_x=None,\
+                 name_w=None, name_ds=None):
 
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
@@ -505,7 +506,8 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom, USER.DiagnosticBuilder):
     def __init__(self, y, x, yend, q, w,\
                  max_iter=1, epsilon=0.00001, A1='het',\
                  vm=False, name_y=None, name_x=None,\
-                 name_yend=None, name_q=None, name_ds=None):
+                 name_yend=None, name_q=None,\
+                 name_w=None, name_ds=None):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
@@ -798,7 +800,8 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
                  w=None, w_lags=1, lag_q=True,\
                  max_iter=1, epsilon=0.00001, A1='het',\
                  vm=False, name_y=None, name_x=None,\
-                 name_yend=None, name_q=None, name_ds=None):
+                 name_yend=None, name_q=None,\
+                 name_w=None, name_ds=None):
     
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)

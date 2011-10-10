@@ -172,7 +172,8 @@ class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
 
     """
     def __init__(self, y, x, w,\
-                 vm=False, name_y=None, name_x=None, name_ds=None):
+                 vm=False, name_y=None, name_x=None,\
+                 name_w=None, name_ds=None):
 
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
@@ -325,7 +326,8 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
     '''
     def __init__(self, y, x, yend, q, w,\
                  vm=False, name_y=None, name_x=None,\
-                 name_yend=None, name_q=None, name_ds=None):
+                 name_yend=None, name_q=None,\
+                 name_w=None, name_ds=None):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
@@ -519,7 +521,8 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
     def __init__(self, y, x, yend=None, q=None,\
                  w=None, w_lags=1, lag_q=True,\
                  vm=False, name_y=None, name_x=None,\
-                 name_yend=None, name_q=None, name_ds=None):
+                 name_yend=None, name_q=None,\
+                 name_w=None, name_ds=None):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)

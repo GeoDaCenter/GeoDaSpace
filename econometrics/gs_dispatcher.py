@@ -647,8 +647,10 @@ def get_robust(reg, robust, gwk=None):
     USER.check_robust(robust, gwk)    
     reg_robust = COPY.copy(reg)
     reg_robust._cache = {}
+    reg_robust.robust = robust
+    delattr(reg_robust, 'summary')
     reg_robust.vm = ROBUST.robust_vm(reg=reg_robust, gwk=gwk)
-    reg_robust._get_diagnostics()
+    reg_robust._get_diagnostics(std_err=robust)
     return reg_robust
 
 
