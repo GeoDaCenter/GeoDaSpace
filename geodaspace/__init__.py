@@ -1,6 +1,10 @@
 import types
 import inspect
+import pysal
 DEBUG = False
+
+#enable 'kwt' extension
+pysal.core.FileIO.FileIO._register(pysal.core.IOHandlers.gwt.GwtIO,['kwt'],['w','r'])
 
 class AbstractModel(object):
     """ From wxPIA/Chapter-05 """

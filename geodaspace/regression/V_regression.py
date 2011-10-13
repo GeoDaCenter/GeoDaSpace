@@ -6,6 +6,7 @@ import sys,traceback
 #Custom
 import wx
 #Local
+import geodaspace
 from geodaspace import textwindow
 from geodaspace.icons import icons
 from geodaspace.regression.rc import OGRegression_xrc
@@ -700,7 +701,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             print "canceled"
     def OpenKWeightsButtonClick(self,evt):
         pathHint = os.path.split(self.model.data['fname'])[0]
-        filter = "Weights File (*.gwt)|*.gwt" #"|*.gal|GWT file|*.gwt|XML Weights|*.xml"
+        filter = "Kernel Weights File (*.kwt)|*.kwt" #"|*.gal|GWT file|*.gwt|XML Weights|*.xml"
         fileDialog = wx.FileDialog(self,defaultDir=pathHint,message="Choose Weights File",wildcard=filter)
         result = fileDialog.ShowModal()
         if result == wx.ID_OK:
