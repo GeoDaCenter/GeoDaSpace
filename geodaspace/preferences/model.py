@@ -17,7 +17,7 @@ class preferencesModel(AbstractModel):
         'gmm_epsilon':1e-05, 'gmm_inferenceOnLambda':True, 'gmm_max_iter':1, 'gmm_step1c':False, 'gmm_inv_method':'Power Expansion',
         'instruments_lag_q':True, 'instruments_w_lags':1,
         'other_ols_diagnostics':True, 'other_numcores':1, 'other_residualMoran':False,
-        'output_save_pred_residuals':False, 'output_vm_summary':False
+        'output_save_pred_residuals':False, 'output_vm_summary':False, 'output_show_detailed_spec':False
     }
     sig2n_k_other = AbstractModel.abstractProp('sig2n_k_other',bool)
     sig2n_k_ols = AbstractModel.abstractProp('sig2n_k_ols',bool)
@@ -39,6 +39,7 @@ class preferencesModel(AbstractModel):
 
     output_save_pred_residuals = AbstractModel.abstractProp('output_save_pred_residuals',bool)
     output_vm_summary = AbstractModel.abstractProp('output_vm_summary',bool)
+    output_show_detailed_spec = AbstractModel.abstractProp('output_show_detailed_spec',bool)
 
     def __init__(self):
         AbstractModel.__init__(self)

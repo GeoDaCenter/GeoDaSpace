@@ -393,8 +393,25 @@
                       </object>
                       <flag>wxALIGN_CENTRE</flag>
                     </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="showDetailedModelSpecLabel">
+                        <label>Show Detailed Model\nSpecification</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="showDetailedModelSpec">
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
+                    </object>
                     <cols>2</cols>
-                    <rows>2</rows>
+                    <rows>3</rows>
                     <vgap>20</vgap>
                     <hgap>10</hgap>
                   </object>

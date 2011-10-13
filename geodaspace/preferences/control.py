@@ -99,6 +99,8 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         d['ShowVarCovarMatrix'] = self.output_vm_summary
         d['output_save_pred_residuals'] = self.output_save_pred_residuals
         d['saveValuesResiduals'] = self.output_save_pred_residuals
+        d['showDetailedModelSpec'] = self.output_show_detailed_spec
+        d['output_show_detailed_spec'] = self.output_show_detailed_spec
         d['other_ols_diagnostics'] = self.other_ols_diagnostics
         d['OLSdiagnostics'] = self.other_ols_diagnostics
         d['other_numcores'] = self.other_numcores
@@ -280,6 +282,11 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
             self.model.output_save_pred_residuals = self.saveValuesResiduals.GetValue()
         elif value != None:
             self.saveValuesResiduals.SetValue(self.model.output_save_pred_residuals)
+    def output_show_detailed_spec(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.output_show_detailed_spec = self.showDetailedModelSpec.GetValue()
+        elif value != None:
+            self.showDetailedModelSpec.SetValue(self.model.output_show_detailed_spec)
     def other_ols_diagnostics(self, evtName=None, evt=None, value=None):
         if evt:
             self.model.other_ols_diagnostics = self.OLSdiagnostics.GetValue()
