@@ -259,6 +259,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     #print res
                     if res == wx.DragMove:
                         evt.EventObject.Delete(to_drag)
+                        self.updateSpec(None)
                     
                 
         evt.Skip()
@@ -496,12 +497,12 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         #print "updateSpec, evt... ",evt
         spec = {}
         spec['y'] = self.Y_TextCtrl.GetValue()
-        spec['YE'] = self.YE_ListBox.GetItems()
-        spec['H'] = self.H_ListBox.GetItems()
+        spec['YE'] = list(set(self.YE_ListBox.GetItems()))
+        spec['H'] = list(set(self.H_ListBox.GetItems()))
         #spec['R'] = self.R_TextCtrl.GetValue()
         #spec['S'] = self.S_TextCtrl.GetValue()
         #spec['T'] = self.T_TextCtrl.GetValue()
-        spec['X'] = self.X_ListBox.GetItems()
+        spec['X'] = list(set(self.X_ListBox.GetItems()))
         #print "Setting Model Spec as... ",spec
         #print "form X_ListBox contains, ",self.X_ListBox.GetItems()
         #print "form X_ListBox contains Strings, ",self.X_ListBox.GetStrings()
