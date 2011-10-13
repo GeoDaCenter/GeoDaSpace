@@ -5,19 +5,17 @@ import math
 import wx
 import pysal
 #local
+import geodaspace
 from geodaspace import remapEvtsToDispatcher
+from geodaspace import DEBUG
 from view import xrcDIALOGWEIGHTS,xrcAddIDVar
 from model import weightsModel,DISTANCE_METRICS
-from geodaspace import DEBUG
-DEBUG = True
 #CONSTANTS
 ENABLE_CONTIGUITY_WEIGHTS = 1 # 0b00000001
 ENABLE_DISTANCE_WEIGHTS = 2   # 0b00000010
 ENABLE_KERNEL_WEIGTHS = 4     # 0b00000100
 WEIGHTS_DEFAULT_STYLE = ENABLE_CONTIGUITY_WEIGHTS|ENABLE_DISTANCE_WEIGHTS|ENABLE_KERNEL_WEIGTHS
 
-#enable 'kwt' extension
-pysal.core.FileIO.FileIO._register(pysal.core.IOHandlers.gwt.GwtIO,['kwt'],['w','r'])
 
 class idVarDialog(xrcAddIDVar):
     """
@@ -228,7 +226,7 @@ class weightsDialog(xrcDIALOGWEIGHTS):
                 if not path.endswith(ext):
                     path = path+ext
                 o = pysal.open(path, 'w')
-                if ext == '.gwt':
+                if ext in ['.gwt','.kwt']:
                     try:
                         o.shpName = filename+'.shp'
                         o.varName = self.model.vars[self.model.idVar]

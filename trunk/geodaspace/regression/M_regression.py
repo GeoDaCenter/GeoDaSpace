@@ -1,5 +1,5 @@
 import os.path
-import csv
+import math
 
 from geodaspace import abstractmodel
 import pysal
@@ -123,8 +123,8 @@ class guiRegModel(abstractmodel.AbstractModel):
             pass
     def checkKW(self,obj):
         print "running checkKW() this function needs work."
-        avgN = sum(obj.cardinalities.values())/float(obj.n)
-        if avgN < 10.0:
+        minK = int(math.ceil(obj.n**(1/3.0)))
+        if min(obj.cardinalities.values()) < minK:
             return False
         return True
 
