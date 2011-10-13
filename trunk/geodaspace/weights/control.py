@@ -9,11 +9,15 @@ from geodaspace import remapEvtsToDispatcher
 from view import xrcDIALOGWEIGHTS,xrcAddIDVar
 from model import weightsModel,DISTANCE_METRICS
 from geodaspace import DEBUG
+DEBUG = True
 #CONSTANTS
 ENABLE_CONTIGUITY_WEIGHTS = 1 # 0b00000001
 ENABLE_DISTANCE_WEIGHTS = 2   # 0b00000010
 ENABLE_KERNEL_WEIGTHS = 4     # 0b00000100
 WEIGHTS_DEFAULT_STYLE = ENABLE_CONTIGUITY_WEIGHTS|ENABLE_DISTANCE_WEIGHTS|ENABLE_KERNEL_WEIGTHS
+
+#enable 'kwt' extension
+pysal.core.FileIO.FileIO._register(pysal.core.IOHandlers.gwt.GwtIO,['kwt'],['w','r'])
 
 class idVarDialog(xrcAddIDVar):
     """
@@ -220,7 +224,7 @@ class weightsDialog(xrcDIALOGWEIGHTS):
             result = fileDialog.ShowModal()
             if result == wx.ID_OK:
                 path = fileDialog.GetPath()
-                ext = [fileDialog.GetFilterIndex()]
+                ext = exts[fileDialog.GetFilterIndex()]
                 if not path.endswith(ext):
                     path = path+ext
                 o = pysal.open(path, 'w')
@@ -383,31 +387,41 @@ class weightsDialog(xrcDIALOGWEIGHTS):
             return self.warn("The selected shapefile does not contain points and contiguity weights can only be computed on points.")
         try: cutoff = float(self.CutoffText.GetValue())
         except: return self.warn("The cut-off point is not valid.")
+        if self.model.distMethod == 0:
+            radius=None
+        elif self.model.distMethod == 1: #'Arc Distance (miles)'
+            radius=pysal.cg.RADIUS_EARTH_MILES
+        elif self.model.distMethod == 2: #'Arc Distance (kilometers)'
+            radius=pysal.cg.RADIUS_EARTH_KM
+
         if self.ThresholdRadio.GetValue():
             print "Threshold on %s, ids=%r, cutoff=%f"%(sfile,var,cutoff)
-            W = pysal.threshold_binaryW_from_shapefile(sfile, cutoff, idVariable=var)
+            W = pysal.threshold_binaryW_from_shapefile(sfile, cutoff, idVariable=var, radius=radius)
             W.meta = {'shape file':sfile,
                       'id variable':var,
                       'method':'distance',
                       'method options':['Threshold',cutoff]}
+            if radius: W.meta['Sphere Radius'] = radius
             self.SetW(W)
         elif self.KnnRadio.GetValue():
             k = int(self.NumNeighSpin.GetValue())
             print "Knn on %s, ids=%r, k=%d"%(sfile,var,k)
-            W = pysal.knnW_from_shapefile(sfile, k=k, idVariable=var)
+            W = pysal.knnW_from_shapefile(sfile, k=k, idVariable=var, radius=radius)
             W.meta = {'shape file':sfile,
                       'id variable':var,
                       'method':'distance',
                       'method options':['KNN',k]}
+            if radius: W.meta['Sphere Radius'] = radius
             self.SetW(W)
         elif self.InverseRadio.GetValue():
             power = int(self.PowerSpin.GetValue())
             print "Inverse on %s, ids=%r, cutoff=%f, power=%d"%(sfile,var,cutoff,power)
-            W = pysal.threshold_continuousW_from_shapefile(sfile, cutoff, alpha=-1*power, idVariable=var)
+            W = pysal.threshold_continuousW_from_shapefile(sfile, cutoff, alpha=-1*power, idVariable=var, radius=radius)
             W.meta = {'shape file':sfile,
                       'id variable':var,
                       'method':'distance',
                       'method options':['Inverse',cutoff,power]}
+            if radius: W.meta['Sphere Radius'] = radius
             self.SetW(W)
     def run_adaptive_kernel(self,sfile,var):
         """ Invoked by main run method. """
@@ -418,12 +432,19 @@ class weightsDialog(xrcDIALOGWEIGHTS):
             return self.warn("The selected shapefile does not contain points and kernel weights can only be computed on points.")
         kern = ['uniform','triangular','quadratic','quartic','gaussian'][self.KFuncChoice.GetSelection()]
         k = int(self.KNumNeighSpin.GetValue())
+        if self.model.distMethod == 0:
+            radius=None
+        elif self.model.distMethod == 1: #'Arc Distance (miles)'
+            radius=pysal.cg.RADIUS_EARTH_MILES
+        elif self.model.distMethod == 2: #'Arc Distance (kilometers)'
+            radius=pysal.cg.RADIUS_EARTH_KM
         print "Kernel on %s, k=%d, ids=%r, kernel=%s"%(sfile, k, var, kern)
-        W = pysal.adaptive_kernelW_from_shapefile(sfile, k=k, function=kern, idVariable=var)
+        W = pysal.adaptive_kernelW_from_shapefile(sfile, k=k, function=kern, idVariable=var, radius=radius)
         W.meta = {'shape file':sfile,
                   'id variable':var,
                   'method':'adaptive kernel',
                   'method options':[kern,k]}
+        if radius: W.meta['Sphere Radius'] = radius
         self.SetW(W)
     def run(self, evtName=None, evt=None, value=None):
         if self.model.shapes != None:
