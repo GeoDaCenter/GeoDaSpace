@@ -66,6 +66,8 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.ShowVarCovarMatrix = xrc.XRCCTRL(self, "ShowVarCovarMatrix")
         self.saveValuesResidualsLabel = xrc.XRCCTRL(self, "saveValuesResidualsLabel")
         self.saveValuesResiduals = xrc.XRCCTRL(self, "saveValuesResiduals")
+        self.showDetailedModelSpecLabel = xrc.XRCCTRL(self, "showDetailedModelSpecLabel")
+        self.showDetailedModelSpec = xrc.XRCCTRL(self, "showDetailedModelSpec")
         self.other = xrc.XRCCTRL(self, "other")
         self.OLSdiagnosticsLabel = xrc.XRCCTRL(self, "OLSdiagnosticsLabel")
         self.OLSdiagnostics = xrc.XRCCTRL(self, "OLSdiagnostics")
@@ -92,6 +94,7 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_IncludeLagsofUserInst, self.IncludeLagsofUserInst)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_ShowVarCovarMatrix, self.ShowVarCovarMatrix)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_saveValuesResiduals, self.saveValuesResiduals)
+        self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_showDetailedModelSpec, self.showDetailedModelSpec)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_OLSdiagnostics, self.OLSdiagnostics)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_residualMoran, self.residualMoran)
         self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_numcores, self.numcores)
@@ -189,6 +192,12 @@ class xrcgsPrefsDialog(wx.Dialog):
         # Replace with event handler code
         print "OnCheckbox_saveValuesResiduals()"
 #!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_saveValuesResiduals        
+
+#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_showDetailedModelSpec
+    def OnCheckbox_showDetailedModelSpec(self, evt):
+        # Replace with event handler code
+        print "OnCheckbox_showDetailedModelSpec()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_showDetailedModelSpec        
 
 #!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_OLSdiagnostics
     def OnCheckbox_OLSdiagnostics(self, evt):
@@ -668,8 +677,25 @@ def __init_resources():
                       </object>
                       <flag>wxALIGN_CENTRE</flag>
                     </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="showDetailedModelSpecLabel">
+                        <label>Show Detailed Model\nSpecification</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="showDetailedModelSpec">
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
+                    </object>
                     <cols>2</cols>
-                    <rows>2</rows>
+                    <rows>3</rows>
                     <vgap>20</vgap>
                     <hgap>10</hgap>
                   </object>
