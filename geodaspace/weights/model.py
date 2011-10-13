@@ -1,7 +1,7 @@
 #System
 import os
 #3rd Party
-from scipy.spatial import KDTree
+from pysal.common import KDTree
 import numpy
 import pysal
 #Local
@@ -102,23 +102,28 @@ class weightsModel(AbstractModel):
         """
         if 'knn1_dist' in self._propData:
             return self._propData['knn1_dist']
-        pts = self.points
-        if pts != None:
-            try:
-                kd = KDTree(pts)
-            except:
-                leaf_size = len(set(map(tuple,pts.tolist())))
-                kd = KDTree(pts,leaf_size)
-            dists,ids = kd.query(pts,2)
-            max_k1d = dists[:,1].max()
-            if self.distMethod == 1: #'Arc Distance (miles)'
-                max_k1d = pysal.cg.linear2arcdist(max_k1d, radius = pysal.cg.RADIUS_EARTH_MILES)
-            elif self.distMethod == 2: #'Arc Distance (kilometers)'
-                max_k1d = pysal.cg.linear2arcdist(max_k1d, radius = pysal.cg.RADIUS_EARTH_KM)
+        if self.kdtree:
+            max_k1d = pysal.weights.util.min_threshold_distance(self.kdtree)
             self._propData['knn1_dist'] = max_k1d
             return self._propData['knn1_dist']
         else:
             return 0.0
+    @property
+    def kdtree(self):
+        if 'kd' in self._propData:
+            return self._propData['kd']
+        else:
+            pts = self.points
+            if pts != None:
+                if self.distMethod == 0: # not Euclidean Distance
+                    kd = KDTree(pts)
+                elif self.distMethod == 1: #'Arc Distance (miles)'
+                    kd = KDTree(pts, distance_metric="Arc",radius = pysal.cg.RADIUS_EARTH_MILES)
+                elif self.distMethod == 2: #'Arc Distance (kilometers)'
+                    kd = KDTree(pts, distance_metric="Arc",radius = pysal.cg.RADIUS_EARTH_KM)
+                self._propData['kd'] = kd
+                return kd
+        return None
     @property
     def points(self):
         """ Attempts to return an array of points
@@ -133,8 +138,8 @@ class weightsModel(AbstractModel):
             pts = [pt for pt in shps]
         else:
             return None
-        if self.distMethod != 0: # not Euclidean Distance
-            pts = map(pysal.cg.toXYZ,pts)
+        #if self.distMethod != 0: # not Euclidean Distance
+        #    pts = map(pysal.cg.toXYZ,pts)
         return numpy.array(pts)
     
 if __name__ == '__main__':
