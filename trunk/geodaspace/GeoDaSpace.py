@@ -1,7 +1,7 @@
 import wx
-from regression import variableTools
-from regression import M_regression
-from regression import V_regression
+from geodaspace.regression import variableTools
+from geodaspace.regression import M_regression
+from geodaspace.regression import V_regression
 import sys
 
 if sys.platform == 'darwin': DOCK_SIZE = 40

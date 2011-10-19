@@ -29,15 +29,15 @@ if sys.platform == 'darwin':
          )
 elif sys.platform == 'win32':
     import py2exe
-    origIsSystemDLL = py2exe.build_exe.isSystemDLL
-    def isSystemDLL(pathname):
-        if os.path.basename(pathname).lower() in ('msvcp71.dll'):
-            return 0
-        return origIsSystemDLL(pathname)
-    py2exe.build_exe.isSystemDLL = isSystemDLL
+    from glob import glob
+    sys.path.append(r".\Microsoft.VC90.CRT")
     setup( zipfile=None,
            windows=[ {"script": "geodaspace/GeoDaSpace.py", 
                       "icon_resources": [(1, "geodaspace/icons/geodaspace.ico")]}],
-           packages=pkgs
+           data_files=[('Microsoft.VC90.CRT',glob('Microsoft.VC90.CRT/*.*'))],
+           options = {'py2exe': { 
+                        'includes': ['scipy.io.matlab.streams']
+                        } },
+           packages= pkgs
          )
 
