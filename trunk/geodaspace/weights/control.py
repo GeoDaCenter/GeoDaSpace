@@ -16,6 +16,9 @@ ENABLE_DISTANCE_WEIGHTS = 2   # 0b00000010
 ENABLE_KERNEL_WEIGTHS = 4     # 0b00000100
 WEIGHTS_DEFAULT_STYLE = ENABLE_CONTIGUITY_WEIGHTS|ENABLE_DISTANCE_WEIGHTS|ENABLE_KERNEL_WEIGTHS
 
+WEIGHT_TYPES_FILTER = "ArcGIS DBF files (.dbf)|*.dbf|ArcGIS SWM files (*.swm)|*.swm|ArcGIS Text files (*.txt)|*.txt|DAT files (*.dat)|*.dat|GAL files (*.gal)|*.gal|GeoBUGS Text files (*.)|*.|GWT files (*.gwt)|*.gwt|KWT files (*.kwt)|*.kwt|MatLab files (*.mat)|*.mat|MatrixMarket files (*.mtx)|*.mtx|STATA Text files (*.txt)|*.txt"
+WEIGHT_FILTER_TO_HANDLER = {0:'arcgis_dbf', 1:None, 2:'arcgis_text', 3:None, 4:None, 5:'geobugs_text', 6:None, 7:None, 8:None, 9:None, 10:'stata_text', 11:None}
+
 
 class idVarDialog(xrcAddIDVar):
     """
@@ -200,32 +203,40 @@ class weightsDialog(xrcDIALOGWEIGHTS):
             return self.Warn("No weights object has been created yet.")
         try:
             w = self.GetW()
+            exts = WEIGHT_TYPES_FILTER.split('|')
+            exts = [exts[i+1] for i in range(0,len(exts),2)]
             if hasattr(w,'meta'):
                 if w.meta['method'] == 'adaptive kernel':
-                    filter = "Kernel Weights File (*.kwt)|*.kwt"
-                    exts = {0:'.kwt'}
+                    #filter = "Kernel Weights File (*.kwt)|*.kwt"
+                    #exts = {0:'.kwt'}
+                    suggested = exts.index('*.kwt')
                 elif w.meta['method'] == 'contiguity':
-                    filter = "Weights File (*.gal)|*.gal"
-                    exts = {0:'.gal'}
+                    #filter = "Weights File (*.gal)|*.gal"
+                    #exts = {0:'.gal'}
+                    suggested = exts.index('*.gal')
                 else:
-                    filter = "Weights File (*.gwt)|*.gwt"
-                    exts = {0:'.gwt'}
+                    #filter = "Weights File (*.gwt)|*.gwt"
+                    #exts = {0:'.gwt'}
+                    suggested = exts.index('*.gwt')
             else:
-                filter = "Weights File (*.gal)|*.gal|Weights File (*.gwt)|*.gwt"
-                exts = {0:'.gal',1:'.gwt'}
+                #filter = "Weights File (*.gal)|*.gal|Weights File (*.gwt)|*.gwt"
+                #exts = {0:'.gal',1:'.gwt'}
+                suggested = exts.index('*.gal')
             pathHint,filename = os.path.split(self.model.inShps[self.model.inShp])
             filename = filename[:-4]
             
             fileDialog = wx.FileDialog(self,defaultDir=pathHint,defaultFile=filename,
-                                        message="Choose File",wildcard=filter,
+                                        message="Choose File",wildcard=WEIGHT_TYPES_FILTER,
                                         style=wx.SAVE+wx.OVERWRITE_PROMPT)
+            fileDialog.SetFilterIndex(suggested)
             result = fileDialog.ShowModal()
             if result == wx.ID_OK:
                 path = fileDialog.GetPath()
-                ext = exts[fileDialog.GetFilterIndex()]
+                ext = '.'+exts[fileDialog.GetFilterIndex()].split('.')[1]
+                handler = WEIGHT_FILTER_TO_HANDLER[fileDialog.GetFilterIndex()]
                 if not path.endswith(ext):
                     path = path+ext
-                o = pysal.open(path, 'w')
+                o = pysal.open(path, 'w', handler)
                 if ext in ['.gwt','.kwt']:
                     try:
                         o.shpName = filename+'.shp'
