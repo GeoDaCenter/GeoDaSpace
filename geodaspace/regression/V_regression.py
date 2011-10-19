@@ -38,9 +38,8 @@ HET_TOOL_TIP = "Kelejian, H. and Prucha, I. (2010), Journal of Econometrics" #HE
 myEVT_LIST_BOX_UPDATE = wx.NewEventType()
 EVT_LIST_BOX_UPDATE = wx.PyEventBinder(myEVT_LIST_BOX_UPDATE, 1)
 
-WEIGHT_TYPES_FILTER = "ArcGIS DBF files (.dbf)|*.dbf|ArcGIS SWM files (*.swm)|*.swm|ArcGIS Text files (*.txt)|*.txt|DAT files (*.dat)|*.dat|GAL files (*.gal)|*.gal|GeoBUGS Text files (*.)|*.|GWT files (*.gwt)|*.gwt|MatLab files (*.mat)|*.mat|MatrixMarket files (*.mtx)|*.mtx|STATA Text files (*.txt)|*.txt"
-WEIGHT_FILTER_TO_HANDLER = {0:'arcgis_dbf', 1:None, 2:'arcgis_text', 3:None, 4:None, 5:'geobugs_text', 6:None, 7:None, 8:None, 9:'stata_text', 10:None}
-
+WEIGHT_TYPES_FILTER = "ArcGIS DBF files (.dbf)|*.dbf|ArcGIS SWM files (*.swm)|*.swm|ArcGIS Text files (*.txt)|*.txt|DAT files (*.dat)|*.dat|GAL files (*.gal)|*.gal|GeoBUGS Text files (*.)|*.|GWT files (*.gwt)|*.gwt|KWT files (*.kwt)|*.kwt|MatLab files (*.mat)|*.mat|MatrixMarket files (*.mtx)|*.mtx|STATA Text files (*.txt)|*.txt"
+WEIGHT_FILTER_TO_HANDLER = {0:'arcgis_dbf', 1:None, 2:'arcgis_text', 3:None, 4:None, 5:'geobugs_text', 6:None, 7:None, 8:None, 9:None, 10:'stata_text', 11:None}
 
 class MyStringIO(StringIO.StringIO):
     def close(self):
@@ -143,8 +142,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         # Setup the Weights Dialog for future use, remember to clear the queue after use.
         self.wQueue = []
         #self.weightsFrame = weights.control.mxWeightsControl(self,results=self.wQueue)
-        self.modelWeightsDialog = weights.control.weightsDialog(self,requireSave = False, style = ENABLE_CONTIGUITY_WEIGHTS|ENABLE_DISTANCE_WEIGHTS)
-        self.kernelWeightsDialog = weights.control.weightsDialog(self,requireSave = False, style = ENABLE_KERNEL_WEIGTHS)
+        self.modelWeightsDialog = weights.control.weightsDialog(self,requireSave = True, style = ENABLE_CONTIGUITY_WEIGHTS|ENABLE_DISTANCE_WEIGHTS)
+        self.kernelWeightsDialog = weights.control.weightsDialog(self,requireSave = True, style = ENABLE_KERNEL_WEIGTHS)
         #self.resultText = MyStringIO()
         self.textFrame = textwindow.TextWindow(self)
         #self.textFrame = myTextFrame(self)
@@ -172,8 +171,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         #self.model.addListener(self.verbose)
         # The Bindings
         self.Bind(wx.EVT_BUTTON,self.DataOpenButtonClick,self.DATA_INPUTFILE)
-        self.Bind(wx.EVT_BUTTON,self.OpenMWeightsButtonClick,self.OpenMWeightsButton)
-        self.Bind(wx.EVT_BUTTON,self.OpenKWeightsButtonClick,self.OpenKWeightsButton)
+        self.Bind(wx.EVT_BUTTON,self.OpenWeightsButtonClick,self.OpenMWeightsButton)
+        self.Bind(wx.EVT_BUTTON,self.OpenWeightsButtonClick,self.OpenKWeightsButton)
         self.Bind(wx.EVT_BUTTON,self.CreateMWeightsButtonClick,self.CreateMWeightsButton)
         self.Bind(wx.EVT_BUTTON,self.CreateKWeightsButtonClick,self.CreateKWeightsButton)
         self.Bind(wx.EVT_BUTTON,self.run,self.RunButton)
@@ -687,47 +686,56 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         #    print "added"
         #else:
         #    print "failed"
-    def OpenMWeightsButtonClick(self,evt):
+    def OpenWeightsButtonClick(self,evt):
+        if evt.EventObject==self.OpenMWeightsButton:
+            target = 'model_w'
+        elif evt.EventObject==self.OpenKWeightsButton:
+            target = 'kernel_w'
+        else:
+            raise RuntimeError, "Unexpected evt object"
         pathHint = os.path.split(self.model.data['fname'])[0]
         #filter = "Weights File (*.gal; *.gwt)|*.gal;*.gwt" #"|*.gal|GWT file|*.gwt|XML Weights|*.xml"
         fileDialog = wx.FileDialog(self,defaultDir=pathHint,message="Choose Weights File",wildcard=WEIGHT_TYPES_FILTER)
-        fileDialog.SetFilterIndex(4) #default to gal
+        if target == 'model_w':
+            fileDialog.SetFilterIndex(4) #default to gal
+        elif target == 'kernel_w':
+            fileDialog.SetFilterIndex(7) #default to kwt
         result = fileDialog.ShowModal()
         if result == wx.ID_OK:
             path = fileDialog.GetPath()
             try:
                 handler = WEIGHT_FILTER_TO_HANDLER[fileDialog.GetFilterIndex()]
-                #if handler:
                 W = pysal.open(path,'r',handler).read()
-                #else:
-                #    W = pysal.open(path,'r').read()
                 W.meta = {'shape file':'unknown','method':os.path.basename(path)}
                 assert type(W) == pysal.W
-                self.model.addMWeightsFile(obj=W)
+                if target == 'model_w':
+                    self.model.addMWeightsFile(obj=W)
+                elif target == 'kernel_w':
+                    self.model.addKWeightsFile(obj=W)
             except:
                 dialog = wx.MessageDialog(self,"An error occurred while trying to read your weights object, please check the file: %s"%path,"Could not extract weights object:",wx.OK|wx.ICON_ERROR)
                 dialog.ShowModal()
                 raise
         else:
             print "canceled"
-    def OpenKWeightsButtonClick(self,evt):
-        pathHint = os.path.split(self.model.data['fname'])[0]
-        filter = "Kernel Weights File (*.kwt)|*.kwt" #"|*.gal|GWT file|*.gwt|XML Weights|*.xml"
-        fileDialog = wx.FileDialog(self,defaultDir=pathHint,message="Choose Weights File",wildcard=filter)
-        result = fileDialog.ShowModal()
-        if result == wx.ID_OK:
-            path = fileDialog.GetPath()
-            try:
-                W = pysal.open(path,'r').read()
-                W.meta = {'shape file':'unknown','method':os.path.basename(path)}
-                assert type(W) == pysal.W
-                self.KernelWeightsWarning(W)
-                self.model.addKWeightsFile(obj=W)
-            except:
-                dialog = wx.MessageDialog(self,"An error occurred while trying to read your weights object, please check the file: %s"%path,"Could not extract weights object:",wx.OK|wx.ICON_ERROR)
-                dialog.ShowModal()
-        else:
-            print "canceled"
+    #def OpenKWeightsButtonClick(self,evt):
+    #    pathHint = os.path.split(self.model.data['fname'])[0]
+    #    filter = "Kernel Weights File (*.kwt)|*.kwt" #"|*.gal|GWT file|*.gwt|XML Weights|*.xml"
+    #    fileDialog = wx.FileDialog(self,defaultDir=pathHint,message="Choose Weights File",wildcard=filter)
+    #    result = fileDialog.ShowModal()
+    #    if result == wx.ID_OK:
+    #        path = fileDialog.GetPath()
+    #        try:
+    #            W = pysal.open(path,'r').read()
+    #            W.meta = {'shape file':'unknown','method':os.path.basename(path)}
+    #            assert type(W) == pysal.W
+    #            self.KernelWeightsWarning(W)
+    #            self.model.addKWeightsFile(obj=W)
+    #        except:
+    #            dialog = wx.MessageDialog(self,"An error occurred while trying to read your weights object, please check the file: %s"%path,"Could not extract weights object:",wx.OK|wx.ICON_ERROR)
+    #            dialog.ShowModal()
+    #    else:
+    #        print "canceled"
     def KernelWeightsWarning(self,obj):
         if self.model.checkKW(obj):
             pass
