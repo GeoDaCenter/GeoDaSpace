@@ -402,7 +402,8 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=beta_diag,\
                                             nonspat_diag=nonspat_diag,\
                                             spat_diag=spat_diag, vm=vm,\
-                                            moran=moran, std_err=std_err)
+                                            moran=moran, std_err=std_err,\
+                                            ols=True)
 
 def _test():
     import doctest

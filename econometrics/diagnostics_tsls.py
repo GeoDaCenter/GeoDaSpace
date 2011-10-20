@@ -7,9 +7,8 @@ import pysal
 from pysal.common import *
 from scipy.stats import pearsonr
 from math import sqrt
-from twosls import BaseTSLS as TSLS
-from twosls_sp import GM_Lag
-from pysal.spreg.ols import BaseOLS as OLS
+# moved OLS import into functions to prevent circular import via user_output.py
+#from pysal.spreg.ols import BaseOLS as OLS
 
 
 
@@ -64,6 +63,7 @@ def f_stat_tsls(reg):
     predy = reg.predy    # (array) vector of predicted values (n x 1)
     mean_y = reg.mean_y  # (scalar) mean of dependent observations
     Q = utu
+    from pysal.spreg.ols import BaseOLS as OLS
     ssr_intercept = OLS(reg.y, np.ones(reg.y.shape), constant=False).utu
     u_2nd_stage = reg.y - np.dot(reg.xp, reg.betas)
     ssr_2nd_stage = np.sum(u_2nd_stage**2)
@@ -169,6 +169,7 @@ def pr2_aspatial(tslsreg):
 
     >>> import numpy as np
     >>> import pysal
+    >>> from twosls import BaseTSLS as TSLS
     >>> db=pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -220,6 +221,7 @@ def pr2_spatial(tslsreg):
     >>> import numpy as np
     >>> import pysal
     >>> import pysal.spreg.diagnostics as D
+    >>> from twosls_sp import GM_Lag
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
     >>> w.transform = 'r'
     >>> db=pysal.open("examples/columbus.dbf","r")
@@ -280,6 +282,7 @@ def wuhausman(tslsreg):
 
     Examples
     --------
+    >>> from twosls import BaseTSLS as TSLS
     >>> db = pysal.open("examples/greene5_1.csv","r")
     >>> y = []
     >>> y.append(db.by_col('ct'))
@@ -313,6 +316,7 @@ def wuhausman(tslsreg):
     # NOTE - not currently sure how to handle multiple endogenous and
     # instruments, this needs to be discussed
     full = x
+    from pysal.spreg.ols import BaseOLS as OLS
     for i in range(kstar):
         part1 = OLS(yd[:,i],z,constant=False)
         ydhat = np.reshape(part1.predy,(n,1))

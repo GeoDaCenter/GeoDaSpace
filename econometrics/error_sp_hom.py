@@ -830,7 +830,8 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
     def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=False, lamb=True,\
-                                            vm=vm, instruments=True)        
+                                            vm=vm, instruments=True,\
+                                            spatial_lag=True)        
 
 
 def moments_hom(w, u):

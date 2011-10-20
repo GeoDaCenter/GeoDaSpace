@@ -550,7 +550,8 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
     def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=False, lamb=True,\
-                                            vm=vm, instruments=True)        
+                                            vm=vm, instruments=True,\
+                                            spatial_lag=True)        
 
    
 
