@@ -286,7 +286,7 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
                  spat_diag=False,\
                  vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None,\
-                 name_w=None, name_kwt=None, name_ds=None):
+                 name_w=None, name_gwk=None, name_ds=None):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
@@ -308,6 +308,8 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags, self.name_q, lag_q))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         self.robust = USER.set_robust(robust)
+        self.name_w = USER.set_name_w(name_w, w)
+        self.name_gwk = USER.set_name_w(name_gwk, gwk)
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
                                     vm=vm, spat_diag=spat_diag,
                                     std_err=self.robust)

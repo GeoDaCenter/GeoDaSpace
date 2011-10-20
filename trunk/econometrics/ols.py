@@ -376,7 +376,7 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
                  robust=None, gwk=None, sig2n_k=True,\
                  nonspat_diag=True, spat_diag=False, moran=False,\
                  vm=False, name_y=None, name_x=None,\
-                 name_w=None, name_kwt=None, name_ds=None):
+                 name_w=None, name_gwk=None, name_ds=None):
 
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
@@ -390,6 +390,8 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x)
         self.robust = USER.set_robust(robust)
+        self.name_w = USER.set_name_w(name_w, w)
+        self.name_gwk = USER.set_name_w(name_gwk, gwk)
         self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=nonspat_diag,\
                                     spat_diag=spat_diag, vm=vm, moran=moran,
                                     std_err=self.robust)
