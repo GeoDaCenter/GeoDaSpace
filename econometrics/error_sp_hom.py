@@ -240,6 +240,7 @@ class GM_Error_Hom(BaseGM_Error_Hom, USER.DiagnosticBuilder):
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x)
         self.name_x.append('lambda')
+        self.name_w = USER.set_name_w(name_w, w)
         self._get_diagnostics(w=w, beta_diag=True, vm=vm)
 
     def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
@@ -523,6 +524,7 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom, USER.DiagnosticBuilder):
         self.name_z.append('lambda')  #listing lambda last
         self.name_q = USER.set_name_q(name_q, q)
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
+        self.name_w = USER.set_name_w(name_w, w)
         self._get_diagnostics(w=w, beta_diag=True, vm=vm)
         
     def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
@@ -822,6 +824,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
         self.name_q = USER.set_name_q(name_q, q)
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags, self.name_q, lag_q))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
+        self.name_w = USER.set_name_w(name_w, w)
         self._get_diagnostics(w=w, beta_diag=True, vm=vm)
      
     def _get_diagnostics(self, beta_diag=True, w=None, vm=False):

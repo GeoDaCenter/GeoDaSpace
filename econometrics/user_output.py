@@ -155,6 +155,9 @@ class DiagnosticBuilder:
             self.summary = summary
         else:
             self.summary = summary_unclose(self.summary)
+            weights_text = "%-20s:%12s\n" % ('Weights matrix',self.name_w)
+            break_point = self.summary.find('Dependent Variable')
+            self.summary = self.summary[:break_point] + weights_text + self.summary[break_point:]
         if nonspat_diag:
             if not instruments:  # quicky hack until we figure out the global nonspatial diag rules
                 self.summary += summary_nonspat_diag_1(self)
@@ -375,6 +378,32 @@ def set_robust(robust):
     if not robust:
         return 'unadjusted'
     return robust
+
+def set_name_w(name_w, w):
+    """Return generic name if user passes None to the robust parameter in a
+    regression. Note: already verified that the name is valid in
+    check_robust() if the user passed anything besides None to robust.
+
+    Parameters
+    ----------
+
+    name_w      : string
+                  Name passed in by user. Default is None.
+    w           : W object
+                  pysal W object passed in by user
+
+    Returns
+    -------
+    
+    name_w      : string
+                  
+    """
+    if w != None:
+        if name_w != None:
+            return name_w
+        else:
+            return 'unknown'
+    return None
 
 
 def check_arrays(*arrays):
@@ -634,6 +663,8 @@ def summary_intro(reg):
     strSummary += title
     strSummary += "-" * (len(title)-1) + "\n"
     strSummary += "%-20s:%12s\n" % ('Data set',reg.name_ds)
+    if reg.name_w:
+        strSummary += "%-20s:%12s\n" % ('Weights matrix',reg.name_w)
     strSummary += "%-20s:%12s  %-22s:%12d\n" % ('Dependent Variable',reg.name_y,'Number of Observations',reg.n)
     strSummary += "%-20s:%12.4f  %-22s:%12d\n" % ('Mean dependent var',reg.mean_y,'Number of Variables',reg.k)
     strSummary += "%-20s:%12.4f  %-22s:%12d\n" % ('S.D. dependent var',reg.std_y,'Degrees of Freedom',reg.n-reg.k)
@@ -646,11 +677,9 @@ def summary_coefs(reg, instruments, lamb, std_err):
         if std_err.lower() == 'white':
             strSummary += "White Standard Errors\n"
         elif std_err.lower() == 'hac':
-            strSummary += "Kelejian-Prucha (2007) HAC Standard Errors\n"
+            strSummary += "HAC Standard Errors; Kernel Weights: " + reg.name_gwk +"\n"
         elif std_err.lower() == 'het':
-            strSummary += "Kelejian-Prucha (2010) Heteroskedastic Standard Errors\n"
-        elif std_err.lower() == 'hom':
-            strSummary += "Drukker et al. (2010) Homoskedastic Standard Errors\n"
+            strSummary += "Heteroskedastic Corrected Standard Errors\n"
     strSummary += "----------------------------------------------------------------------------\n"
     if instruments:
         strSummary += "    Variable     Coefficient       Std.Error     z-Statistic     Probability\n"

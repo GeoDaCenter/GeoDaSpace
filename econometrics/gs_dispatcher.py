@@ -126,10 +126,13 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
     >>> import numpy as np
     >>> import pysal
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w.name = 'Rook columbus weights'
     >>> w.transform = 'r'
     >>> w2 = pysal.queen_from_shapefile("examples/columbus.shp")
+    >>> w2.name = 'Queen columbus weights'
     >>> w2.transform = 'r'
     >>> wk = pysal.kernelW_from_shapefile("examples/columbus.shp",k=4,function='epanechnikov',idVariable=None,fixed=False)
+    >>> wk.name = 'Kernel columbus weights'
     >>> db=pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -210,7 +213,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        white=False, hac=True, kp_het=False, inf_lambda=False)
+        white=False, hac=False, kp_het=False, inf_lambda=False)
     >>> print reg[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
     >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
@@ -363,7 +366,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        white=False, hac=True, kp_het=False, inf_lambda=False)
+        white=False, hac=False, kp_het=False, inf_lambda=False)
     >>> print reg[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
     >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
@@ -447,6 +450,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
             for w in w_list:
                 # add spatial diagnostics for each W
                 reg_spat = COPY.copy(reg)
+                reg_spat.name_w = w.name
                 reg_spat._get_diagnostics(w=w, beta_diag=False, moran=moran,\
                                           nonspat_diag=False, spat_diag=True,
                                           vm=vc_matrix)
@@ -461,6 +465,8 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
             # compute White std errors
             output.append(get_robust(reg, 'white'))
         if hac:
+            if len(wk_list) == 0:
+                raise Exception, "must provide kernel weights matrix to use HAC"
             for gwk in wk_list:
                 # compute HAC std errors
                 output.append(get_robust(reg, 'hac', gwk))
@@ -476,13 +482,13 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                       w_lags=instrument_lags, lag_q=lag_user_inst,\
                       name_y=name_y, name_x=name_x, name_yend=name_ye,\
                       name_q=name_h, name_ds=name_ds, sig2n_k=sig2n_k_gmlag,\
-                      spat_diag=spat_diag)
+                      spat_diag=spat_diag, name_w=w.name)
             else:
                #GM Spatial lag
                 reg = GM_Lag(y=y, x=x, w=w, vm=vc_matrix,\
                       w_lags=instrument_lags, lag_q=lag_user_inst,\
                       name_y=name_y, name_x=name_x, name_ds=name_ds,\
-                      sig2n_k=sig2n_k_gmlag, spat_diag=spat_diag)
+                      sig2n_k=sig2n_k_gmlag, spat_diag=spat_diag, name_w=w.name)
             if predy_resid:  # write out predicted values and residuals
                 pred_res, header_pr, counter = collect_predy_resid(\
                                        pred_res, header_pr, reg, '',\
@@ -496,6 +502,8 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                 white_regs.append(get_robust(reg, 'white'))
         hac_regs = []
         if hac:
+            if len(wk_list) == 0:
+                raise Exception, "must provide kernel weights matrix to use HAC"
             for reg in output:
                 for gwk in wk_list:
                     # compute HAC std errors
@@ -514,12 +522,12 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                     reg = GM_Endog_Error_Hom(y=y, x=x, w=w, yend=ye, q=h, vm=vc_matrix,\
                           max_iter=max_iter, epsilon=stop_crit,\
                           name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                          name_q=name_h, name_ds=name_ds)
+                          name_q=name_h, name_ds=name_ds, name_w=w.name)
                 else:
                     #GM Spatial error (hom) 
                     reg = GM_Error_Hom(y=y, x=x, w=w, vm=vc_matrix,\
                           max_iter=max_iter, epsilon=stop_crit,\
-                          name_y=name_y, name_x=name_x, name_ds=name_ds)
+                          name_y=name_y, name_x=name_x, name_ds=name_ds, name_w=w.name)
                 if predy_resid:  # write out predicted values and residuals
                     pred_res, header_pr, counter = collect_predy_resid(\
                                            pred_res, header_pr, reg, '',\
@@ -531,11 +539,11 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                     #GM Spatial error with non-spatial endogenous variable (KP 98-99)
                     reg = GM_Endog_Error(y=y, x=x, w=w, yend=ye, q=h, vm=vc_matrix,\
                           name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                          name_q=name_h, name_ds=name_ds)
+                          name_q=name_h, name_ds=name_ds, name_w=w.name)
                 else:
                     #GM Spatial error (KP 98-99)
                     reg = GM_Error(y=y, x=x, w=w, vm=vc_matrix,\
-                          name_y=name_y, name_x=name_x, name_ds=name_ds)
+                          name_y=name_y, name_x=name_x, name_ds=name_ds, name_w=w.name)
                 if predy_resid:  # write out predicted values and residuals
                     pred_res, header_pr, counter = collect_predy_resid(\
                                            pred_res, header_pr, reg, '',\
@@ -551,13 +559,13 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                           max_iter=max_iter, epsilon=stop_crit,\
                           step1c=step1c, inv_method=comp_inverse,\
                           name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                          name_q=name_h, name_ds=name_ds)
+                          name_q=name_h, name_ds=name_ds, name_w=w.name)
                 else:
                     #GM Spatial error with het
                     reg = GM_Error_Het(y=y, x=x, w=w, vm=vc_matrix,\
                           max_iter=max_iter, epsilon=stop_crit,\
                           step1c=step1c,\
-                          name_y=name_y, name_x=name_x, name_ds=name_ds)
+                          name_y=name_y, name_x=name_x, name_ds=name_ds, name_w=w.name)
                 if predy_resid:  # write out predicted values and residuals
                     pred_res, header_pr, counter = collect_predy_resid(\
                                            pred_res, header_pr, reg, 'het_',\
@@ -576,13 +584,13 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                           w_lags=instrument_lags, lag_q=lag_user_inst,\
                           max_iter=max_iter, epsilon=stop_crit,\
                           name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                          name_q=name_h, name_ds=name_ds)
+                          name_q=name_h, name_ds=name_ds, name_w=w.name)
                 else:
                     #GM Spatial combo (hom)
                     reg = GM_Combo_Hom(y=y, x=x, w=w, vm=vc_matrix,\
                           w_lags=instrument_lags, lag_q=lag_user_inst,\
                           max_iter=max_iter, epsilon=stop_crit,\
-                          name_y=name_y, name_x=name_x, name_ds=name_ds)
+                          name_y=name_y, name_x=name_x, name_ds=name_ds, name_w=w.name)
                 if predy_resid:  # write out predicted values and residuals
                     pred_res, header_pr, counter = collect_predy_resid(\
                                            pred_res, header_pr, reg, '',\
@@ -595,12 +603,12 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                     reg = GM_Combo(y=y, x=x, w=w, yend=ye, q=h, vm=vc_matrix,\
                           w_lags=instrument_lags, lag_q=lag_user_inst,\
                           name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                          name_q=name_h, name_ds=name_ds)
+                          name_q=name_h, name_ds=name_ds, name_w=w.name)
                 else:
                     #GM Spatial combo (KP 98-99)
                     reg = GM_Combo(y=y, x=x, w=w, vm=vc_matrix,\
                           w_lags=instrument_lags, lag_q=lag_user_inst,\
-                          name_y=name_y, name_x=name_x, name_ds=name_ds)
+                          name_y=name_y, name_x=name_x, name_ds=name_ds, name_w=w.name)
                 if predy_resid:  # write out predicted values and residuals
                     pred_res, header_pr, counter = collect_predy_resid(\
                                            pred_res, header_pr, reg, '',\
@@ -617,14 +625,14 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                           max_iter=max_iter, epsilon=stop_crit,\
                           step1c=step1c, inv_method=comp_inverse,\
                           name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                          name_q=name_h, name_ds=name_ds)
+                          name_q=name_h, name_ds=name_ds, name_w=w.name)
                 else:
                     #GM Spatial combo with het
                     reg = GM_Combo_Het(y=y, x=x, w=w_list[0], vm=vc_matrix,\
                           w_lags=instrument_lags, lag_q=lag_user_inst,\
                           max_iter=max_iter, epsilon=stop_crit,\
                           step1c=step1c, inv_method=comp_inverse,\
-                          name_y=name_y, name_x=name_x, name_ds=name_ds)
+                          name_y=name_y, name_x=name_x, name_ds=name_ds, name_w=w.name)
                 if predy_resid:  # write out predicted values and residuals
                     pred_res, header_pr, counter = collect_predy_resid(\
                                            pred_res, header_pr, reg, 'het',\
@@ -648,6 +656,8 @@ def get_robust(reg, robust, gwk=None):
     reg_robust = COPY.copy(reg)
     reg_robust._cache = {}
     reg_robust.robust = robust
+    if gwk != None:
+        reg_robust.name_gwk = gwk.name
     delattr(reg_robust, 'summary')
     reg_robust.vm = ROBUST.robust_vm(reg=reg_robust, gwk=gwk)
     reg_robust._get_diagnostics(std_err=robust)
