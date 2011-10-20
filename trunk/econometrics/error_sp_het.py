@@ -801,7 +801,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=False, lamb=True,\
                                             vm=vm, instruments=True,
-                                            std_err=std_err)        
+                                            std_err=std_err, spatial_lag=True)        
 
 
 def get_psi_sigma(w, u, lamb):

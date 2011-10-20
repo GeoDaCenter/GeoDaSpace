@@ -319,7 +319,8 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=beta_diag,\
                                             nonspat_diag=nonspat_diag,\
                                             spat_diag=spat_diag, vm=vm,\
-                                            instruments=True, std_err=std_err)
+                                            instruments=True, std_err=std_err,\
+                                            spatial_lag=True)
 
 def _test():
     import doctest

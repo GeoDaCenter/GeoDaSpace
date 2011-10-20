@@ -5,6 +5,7 @@ import textwrap as TW
 import numpy as np
 import copy as COPY
 import pysal.spreg.diagnostics as diagnostics
+import diagnostics_tsls as diagnostics_tsls
 import pysal.spreg.diagnostics_sp as diagnostics_sp
 import ak as AK
 
@@ -98,19 +99,20 @@ class DiagnosticBuilder:
     """
     def __init__(self, w, vm, instruments=False, beta_diag=True,\
                         nonspat_diag=True, spat_diag=False, lamb=False,\
-                        moran=False, std_err=None):
+                        moran=False, std_err=None, ols=False, spatial_lag=False):
 
         #Coefficient, Std.Error, t-Statistic, Probability 
         if beta_diag:
             self.std_err = diagnostics.se_betas(self)
-            if instruments:
-                self.z_stat = diagnostics.t_stat(self, z_stat=True)
-                self.r2 = -.9999    
-                self.ar2 =  -.9999   
-            else:
+            if ols:
                 self.t_stat = diagnostics.t_stat(self)
                 self.r2 = diagnostics.r2(self)    
                 self.ar2 = diagnostics.ar2(self)   
+            else:
+                self.z_stat = diagnostics.t_stat(self, z_stat=True)
+                self.pr2 = diagnostics_tsls.pr2_aspatial(self)
+                if spatial_lag:
+                    self.pr2_sp = diagnostics_tsls.pr2_spatial(self)
 
         if nonspat_diag:
             if not instruments:  # quicky hack until we figure out the global nonspatial diag rules
@@ -151,7 +153,7 @@ class DiagnosticBuilder:
         #part 5: summary output
         if not hasattr(self, 'summary'):
             summary = summary_intro(self)
-            summary += summary_r2(self)
+            summary += summary_r2(self, ols, spatial_lag)
             self.summary = summary
         else:
             self.summary = summary_unclose(self.summary)
@@ -159,12 +161,12 @@ class DiagnosticBuilder:
             break_point = self.summary.find('Dependent Variable')
             self.summary = self.summary[:break_point] + weights_text + self.summary[break_point:]
         if nonspat_diag:
-            if not instruments:  # quicky hack until we figure out the global nonspatial diag rules
+            if ols:
                 self.summary += summary_nonspat_diag_1(self)
         if beta_diag:
-            self.summary += summary_coefs(self, instruments, lamb, std_err)
+            self.summary += summary_coefs(self, instruments, lamb, std_err, ols)
         if nonspat_diag:
-            if not instruments:  # quicky hack until we figure out the global nonspatial diag rules
+            if ols:
                 self.summary += summary_nonspat_diag_2(self)
         if spat_diag:
             self.summary += summary_spat_diag(self, instruments, moran)
@@ -662,16 +664,16 @@ def summary_intro(reg):
     title = "SUMMARY OF OUTPUT: " + reg.title + " ESTIMATION\n"
     strSummary += title
     strSummary += "-" * (len(title)-1) + "\n"
-    strSummary += "%-20s:%12s\n" % ('Data set',reg.name_ds)
+    strSummary += "%-20s: %12s\n" % ('Data set',reg.name_ds)
     if reg.name_w:
-        strSummary += "%-20s:%12s\n" % ('Weights matrix',reg.name_w)
+        strSummary += "%-20s: %12s\n" % ('Weights matrix',reg.name_w)
     strSummary += "%-20s:%12s  %-22s:%12d\n" % ('Dependent Variable',reg.name_y,'Number of Observations',reg.n)
     strSummary += "%-20s:%12.4f  %-22s:%12d\n" % ('Mean dependent var',reg.mean_y,'Number of Variables',reg.k)
     strSummary += "%-20s:%12.4f  %-22s:%12d\n" % ('S.D. dependent var',reg.std_y,'Degrees of Freedom',reg.n-reg.k)
     strSummary += '\n'
     return strSummary
 
-def summary_coefs(reg, instruments, lamb, std_err):
+def summary_coefs(reg, instruments, lamb, std_err ,ols):
     strSummary = "\n"
     if std_err:
         if std_err.lower() == 'white':
@@ -681,38 +683,42 @@ def summary_coefs(reg, instruments, lamb, std_err):
         elif std_err.lower() == 'het':
             strSummary += "Heteroskedastic Corrected Standard Errors\n"
     strSummary += "----------------------------------------------------------------------------\n"
-    if instruments:
-        strSummary += "    Variable     Coefficient       Std.Error     z-Statistic     Probability\n"
-    else:
+    if ols:
         strSummary += "    Variable     Coefficient       Std.Error     t-Statistic     Probability\n"
+    else:
+        strSummary += "    Variable     Coefficient       Std.Error     z-Statistic     Probability\n"
     strSummary += "----------------------------------------------------------------------------\n"
+    if ols:
+        zt_stat = reg.t_stat
+    else:
+        zt_stat = reg.z_stat
     i = 0
     if instruments:
         for name in reg.name_x:        
-            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.z_stat[i][0],reg.z_stat[i][1])
+            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],zt_stat[i][0],zt_stat[i][1])
             i += 1
         for name in reg.name_yend:        
-            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.z_stat[i][0],reg.z_stat[i][1])
+            strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],zt_stat[i][0],zt_stat[i][1])
             i += 1
         if lamb:
-            if len(reg.betas) == len(reg.z_stat):
-                strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % ('lambda',reg.betas[-1][0],reg.std_err[-1],reg.z_stat[-1][0],reg.z_stat[-1][1])
+            if len(reg.betas) == len(zt_stat):
+                strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % ('lambda',reg.betas[-1][0],reg.std_err[-1],zt_stat[-1][0],zt_stat[-1][1])
             else:
                 strSummary += "%12s    %12.7f    \n" % ('lambda',reg.betas[-1][0])
             i += 1
     else:
         if lamb:
             for name in reg.name_x[0:-1]:        
-                strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.t_stat[i][0],reg.t_stat[i][1])
+                strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],zt_stat[i][0],zt_stat[i][1])
                 i += 1
-            if len(reg.betas) == len(reg.t_stat):
-                strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % ('lambda',reg.betas[-1][0],reg.std_err[-1],reg.t_stat[-1][0],reg.t_stat[-1][1])
+            if len(reg.betas) == len(zt_stat):
+                strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % ('lambda',reg.betas[-1][0],reg.std_err[-1],zt_stat[-1][0],zt_stat[-1][1])
             else:
                 strSummary += "%12s    %12.7f    \n" % ('lambda',reg.betas[-1][0])
             i += 1
         else:
             for name in reg.name_x:        
-                strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],reg.t_stat[i][0],reg.t_stat[i][1])
+                strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n" % (name,reg.betas[i][0],reg.std_err[i],zt_stat[i][0],zt_stat[i][1])
                 i += 1
     strSummary += "----------------------------------------------------------------------------\n"
     if instruments:
@@ -724,8 +730,13 @@ def summary_coefs(reg, instruments, lamb, std_err):
         strSummary += insts + "\n"
     return strSummary
 
-def summary_r2(reg):
-    strSummary = "%-20s:%12.6f\n%-20s:%12.4f\n" % ('R-squared',reg.r2,'Adjusted R-squared',reg.ar2)
+def summary_r2(reg, ols, spatial_lag):
+    if ols:
+        strSummary = "%-20s:%12.6f\n%-20s:%12.4f\n" % ('R-squared',reg.r2,'Adjusted R-squared',reg.ar2)
+    else:
+        strSummary = "%-20s:%12.6f\n" % ('Pseudo R-squared',reg.pr2)
+        if spatial_lag:
+            strSummary += "%-20s:%12.6f\n" % ('Spatial Pseudo R-squared',reg.pr2_sp)
     return strSummary
 
 
