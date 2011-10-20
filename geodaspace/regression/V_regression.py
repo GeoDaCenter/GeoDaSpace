@@ -256,12 +256,17 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                 if to_drag not in [wx.NOT_FOUND, None]:
                     data = wx.PyTextDataObject()
                     data.SetText(evt.EventObject.GetString(to_drag))
+                    var2del = evt.EventObject.GetString(to_drag)
+                    #print "startDrag:",to_drag,var2del
                     dropSource = wx.DropSource(evt.EventObject)
                     dropSource.SetData(data)
                     res = dropSource.DoDragDrop(flags=wx.Drag_DefaultMove)
                     #print res
                     if res == wx.DragMove:
-                        evt.EventObject.Delete(to_drag)
+                        #print "endDrag, item may have moved, find new index."
+                        to_del = evt.EventObject.FindString(var2del)
+                        evt.EventObject.Delete(to_del)
+                        #print to_del,"removed. going to update spec"
                         self.updateSpec(None)
                     
                 
@@ -506,6 +511,9 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         #spec['S'] = self.S_TextCtrl.GetValue()
         #spec['T'] = self.T_TextCtrl.GetValue()
         spec['X'] = list(set(self.X_ListBox.GetItems()))
+        spec['YE'].sort()
+        spec['H'].sort()
+        spec['X'].sort()
         #print "Setting Model Spec as... ",spec
         #print "form X_ListBox contains, ",self.X_ListBox.GetItems()
         #print "form X_ListBox contains Strings, ",self.X_ListBox.GetStrings()
