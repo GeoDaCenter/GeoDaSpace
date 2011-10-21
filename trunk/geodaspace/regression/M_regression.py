@@ -1,5 +1,6 @@
 import os.path
 import math
+import copy
 
 from geodaspace import abstractmodel
 import pysal
@@ -15,6 +16,9 @@ class GeoDaSpace_W_Obj(object):
             self._w_obj = obj
         else:
             raise TypeError, "obj must be of type W."
+        if self.has_meta:
+            if 'savedAs' in self.w.meta:
+                self._path = self.w.meta['savedAs']
     def __eq__(self,other):
         if not issubclass(type(other),GeoDaSpace_W_Obj):
             return False
@@ -30,9 +34,23 @@ class GeoDaSpace_W_Obj(object):
         self._enabled = bool(v)
     enabled = property(__get_enabled, __set_enabled)
     @property
+    def path(self):
+        if hasattr(self,'_path'):
+            return self._path
+        if self.has_meta:
+            if 'savedAs' in self.w.meta:
+                self._path = self.w.meta['savedAs']
+                return self._path
+        return ''
+    @property
     def saved(self):
         if hasattr(self,'_path'):
             return True
+        if self.has_meta:
+            if 'savedAs' in self.w.meta:
+                self._path = self.w.meta['savedAs']
+                return True
+        return False
     @property
     def w(self):
         return self._w_obj
@@ -242,100 +260,24 @@ class guiRegModel(abstractmodel.AbstractModel):
                 return False
         else:
             return None
-    
-#    def prepWeights(self, db=None):
-#        """Prepares the weight file dictionaries"""
-#        if not db:
-#            db = self.db()
-#        data = self.data
-#
-#        mweights = []
-#        for fname in data['mWeights']:
-#            f = open(fname,'r')
-#            dat = f.read()
-#            header = dat.splitlines()[0]
-#            f.close()
-#            if dat.count(',') > 5:
-#                sep = ','
-#                headline = 1
-#            else:
-#                sep = ' '
-#                headline = 1
-#            if len(header.split(sep))== 4:
-#                print "Reading idVar from file..."
-#                flag,n,file,idVar = header.split(sep)
-#                n = int(n)
-#                varIndex = db.varnames.index(idVar)
-#                idlist = db.records[varIndex]
-#                idlist = map(int,idlist)
-#                assert n == len(idlist)
-#            else:
-#                print "not reading from file, using record order..."
-#                idlist = db.idlist
-#            mw = weights.spweight(
-#                idlist,
-#                fname,
-#                wtType ='binary',
-#                headline = headline,
-#                sep = sep,
-#                rowstand = 1,
-#                power = 1,
-#                dmax = 0 )
-#            mweights.append(mw)
-#
-#        wtTypes=['epanech','triangle']
-#        kweights = []
-#        fname = None
-#        for fname in data['kWeights']:
-#            f = open(fname,'r')
-#            dat = f.read()
-#            header = dat.splitlines()[0]
-#            f.close()
-#            if dat.count(',') > 5:
-#                sep = ','
-#                headline = 1
-#            else:
-#                sep = None #white space
-#                headline = 1
-#            if len(header.split(sep))== 4:
-#                print "Reading idVar from file..."
-#                print header
-#                flag,n,file,idVar = header.split(sep)
-#                n = int(n)
-#                varIndex = db.varnames.index(idVar)
-#                idlist = db.records[varIndex]
-#                idlist = map(int,idlist)
-#                assert n == len(idlist)
-#            else:
-#                print "not reading from file, using record order..."
-#                idlist = db.idlist
-#            for wt in wtTypes:
-#                kw = weights.spweight(
-#                    idlist,
-#                    fname,
-#                    wtType = wt,
-#                    headline = headline,
-#                    sep = sep,
-#                    rowstand = 0,
-#                    power = 1,
-#                    dmax = 0 )
-#                kweights.append(kw)
-#
-#        if not mweights: mweights.append([])
-#        if not kweights: kweights.append([])
-#        return (mweights,kweights)
-        
+
     def save(self,fileObj):
         """ Returns the contents of the model """
         self.state = self.STATE_SAVED
-        fileObj.write(str(self.data))
+        data = copy.copy(self.data)
+        data['mWeights'] = [w.path for w in self.data['mWeights']]
+        data['kWeights'] = [w.path for w in self.data['kWeights']]
+        fileObj.write(str(data))
         fileObj.flush()
         self.fileObj = fileObj
     def open(self,s):
         """ Loads the contents of the model from s """
         try:
             self.reset()
-            self.data = eval(s)
+            data = eval(s)
+            data['mWeights'] = [GeoDaSpace_W_Obj.from_path(w) for w in data['mWeights']]
+            data['kWeights'] = [GeoDaSpace_W_Obj.from_path(w) for w in data['kWeights']]
+            self.data = data
             if not os.path.exists(self.data['fname']):
                 return False
             self.loadFieldNames()
@@ -343,7 +285,8 @@ class guiRegModel(abstractmodel.AbstractModel):
             self.state = self.STATE_SAVED
             return True
         except:
-            raise TypeError,"The Supplied Model File Was Invalid."
+            raise
+            #raise TypeError,"The Supplied Model File Was Invalid."
     def verify(self):
         #if self.data['modelType']['endogenous'] == True: #endogenous == yes
         lYE,lH = len(self.data['spec']['YE']),len(self.data['spec']['H'])

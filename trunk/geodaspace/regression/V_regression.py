@@ -358,7 +358,20 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.setTitle()
         self.DataOpenButtonClick(evt)
         
+    def saveWeights(self):
+        for w in self.model.data['mWeights']+self.model.data['kWeights']:
+            if not w.saved:
+                dialog = wx.MessageDialog(self,"Would you like to save the weights file now?",'Weights object (%s) must be saved to disk or removed to continue saving model.'%(w.name),style=wx.YES_NO|wx.CENTRE)
+                result = dialog.ShowModal()
+                if result == wx.ID_YES:
+                    self.modelWeightsDialog.SetW(w.w)
+                    if not self.modelWeightsDialog.save():
+                        return False
+                else:
+                    return False
+        return True
     def saveModelAs(self,evt):
+        if not self.saveWeights(): return False
         fname = self.model.data['fname']
         suggestion = os.path.split(fname)[1].split('.')[0]+'.mdl'
         fileDialog = wx.FileDialog(self,defaultFile=suggestion,message="Save Model As...",wildcard="*.mdl",style=wx.SAVE+wx.OVERWRITE_PROMPT)
@@ -378,6 +391,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             pass
     def saveModel(self,evt):
         if self.modelFileName:
+            if not self.saveWeights(): return False
             f = open(self.modelFileName,'w')
             self.model.save(f)
             f.close()
@@ -460,7 +474,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             result = confirmDialog.ShowModal()
             self.model.reset()
             self.populate(self.model)
-            #raise
+            raise
 
     def updateModelType(self,evt):
         modelSetup = {}
@@ -714,7 +728,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             try:
                 handler = WEIGHT_FILTER_TO_HANDLER[fileDialog.GetFilterIndex()]
                 W = pysal.open(path,'r',handler).read()
-                W.meta = {'shape file':'unknown','method':os.path.basename(path)}
+                W.meta = {'shape file':'unknown','method':os.path.basename(path),'savedAs':path}
                 assert type(W) == pysal.W
                 if target == 'model_w':
                     self.model.addMWeightsFile(obj=W)
