@@ -158,6 +158,8 @@ class guiRegModel(abstractmodel.AbstractModel):
         return  w
     def getKWeightsFiles(self):
         return self.data['kWeights']
+    def getKWeightsEnabled(self):
+        return [w for w in self.data['kWeights'] if w.enabled]
     def getModelMethod(self):
         raise DeprecationWarning,'getModelMethod has been depracted'
         mType = self.data['modelType']['mType']
@@ -354,6 +356,11 @@ class guiRegModel(abstractmodel.AbstractModel):
             pass
         else:
             return False,'Model Spec is incomplete.  Please populate both X and Y'
+        model_type = self.data['modelType']['mType']
+        if model_type > 0 and not self.getMWeightsEnabled():
+            return False,'This model specification requires a spatial weights matrix'
+        if model_type < 2 and self.data['modelType']['error']['hac'] and not self.getKWeightsEnabled():
+            return False,'The HAC requires a kernel spatial weights matrix'
         #LM Test is now automatic.
         #if self.data['modelType']['spatial_tests']['lm'] and not self.getMWeightsEnabled():
         #    return False,'LM Test requires Model Weights, please add or create a weights file, or disable "LM".'
