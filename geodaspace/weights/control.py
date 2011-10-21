@@ -244,8 +244,9 @@ class weightsDialog(xrcDIALOGWEIGHTS):
                     except:
                         self.warn("Could not set meta data of the GWT file. Will continue without it.")
                         if DEBUG: raise
-                o.write(self.GetW())
+                o.write(w)
                 o.close()
+                w.meta['savedAs']=path
                 return True
             else:
                 res = wx.MessageDialog(self, "Are you sure you don't want to save your weights object to a file?\nUnsaved weights object may be lost.", "Warning", style=wx.YES_NO|wx.NO_DEFAULT).ShowModal()
