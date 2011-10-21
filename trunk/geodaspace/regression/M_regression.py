@@ -354,8 +354,9 @@ class guiRegModel(abstractmodel.AbstractModel):
             pass
         else:
             return False,'Model Spec is incomplete.  Please populate both X and Y'
-        if self.data['modelType']['spatial_tests']['lm'] and not self.getMWeightsEnabled():
-            return False,'LM Test requires Model Weights, please add or create a weights file, or disable "LM".'
+        #LM Test is now automatic.
+        #if self.data['modelType']['spatial_tests']['lm'] and not self.getMWeightsEnabled():
+        #    return False,'LM Test requires Model Weights, please add or create a weights file, or disable "LM".'
         return True,None
     def run(self,path=None, predy_resid=None):
         """ Runs the Model """
@@ -416,12 +417,18 @@ class guiRegModel(abstractmodel.AbstractModel):
         sig2n_k_gmlag = False
         config = data['config']
 
+        if self.getMWeightsEnabled() and model_type in ['Standard','Spatial Lag']:
+            LM_TEST = True
+        else:
+            LM_TEST = False
+
         print w_list,wk_list
         fname = os.path.basename(data['fname'])
         results = spmodel(fname, w_list, wk_list, y, name_y, x, x_names, ye, ye_names,
                  h, h_names, r, name_r, s, name_s, t, name_t,
                  model_type, #data['modelType']['endogenous'],
-                 data['modelType']['spatial_tests']['lm'],
+                 #data['modelType']['spatial_tests']['lm'],
+                 LM_TEST,
                  data['modelType']['error']['white'], data['modelType']['error']['hac'], data['modelType']['error']['het'],
                  #config.....
                  config['sig2n_k_ols'], config['sig2n_k_2sls'], config['sig2n_k_gmlag'],

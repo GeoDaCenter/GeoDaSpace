@@ -587,21 +587,22 @@ def __init_resources():
                               <object class="wxBoxSizer">
                                 <orient>wxVERTICAL</orient>
                                 <object class="sizeritem">
-                                  <object class="wxStaticBoxSizer">
-                                    <label>Spatial Tests</label>
-                                    <orient>wxVERTICAL</orient>
-                                    <object class="sizeritem">
-                                      <object class="wxCheckBox" name="ST_LM">
-                                        <label>LM</label>
-                                        <tooltip>Lagrange Multiplier Tests -Anselin, L. et al. (1996), Regional Science and Urban Economics or Anselin, L. and Kelejian, H. (1997), International Regional Science Review</tooltip>
-                                        <XRCED>
-                                          <assign_var>1</assign_var>
-                                        </XRCED>
+                                  <object class="wxPanel" name="other">
+                                    <object class="wxStaticBoxSizer">
+                                      <object class="sizeritem">
+                                        <object class="wxCheckBox" name="ST_LM">
+                                          <label>LM</label>
+                                          <tooltip>Lagrange Multiplier Tests -Anselin, L. et al. (1996), Regional Science and Urban Economics or Anselin, L. and Kelejian, H. (1997), International Regional Science Review</tooltip>
+                                          <XRCED>
+                                            <assign_var>1</assign_var>
+                                          </XRCED>
+                                        </object>
                                       </object>
+                                      <label>Spatial Tests</label>
+                                      <orient>wxVERTICAL</orient>
                                     </object>
+                                    <hidden>1</hidden>
                                   </object>
-                                  <flag>wxLEFT|wxRIGHT|wxEXPAND</flag>
-                                  <border>3</border>
                                 </object>
                                 <object class="sizeritem">
                                   <object class="wxStaticBoxSizer">
@@ -911,6 +912,7 @@ def __init_resources():
       <radio>1</radio>
     </object>
   </object>
+
 </resource>'''
 
     gear_png = '''\
