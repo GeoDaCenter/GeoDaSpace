@@ -10,7 +10,7 @@ from workbench import get_sar_vector_random
 class Scatter_plot:
     def __init__(self, w, rho=None, y=None, standardize=True):
         self.y, self.wy = scatter_pts(w, rho=rho, y=None) 
-        self.scatter = scatter_plot(self.y, self.wy, standardize=False, rho=rho)
+        self.scatter = scatter_plot(self.y, w, standardize=False, rho=rho)
 
 def scatter_pts(w, rho=None, y=None, standardize=True):
     '''
@@ -47,7 +47,7 @@ def scatter_pts(w, rho=None, y=None, standardize=True):
     wy = ps.lag_spatial(w, y)
     return y, wy
 
-def scatter_plot(y, wy, show=False, standardize=True, rho=None):
+def scatter_plot(y, w, show=False, standardize=True, rho=None):
     '''
     Builds scatter plot graph with option to plot it
     ...
@@ -56,8 +56,8 @@ def scatter_plot(y, wy, show=False, standardize=True, rho=None):
     ----------
     y               : array
                       nx1 vector with variable of interest
-    wy              : array
-                      nx1 vector with spatial lag of variable of interest
+    w               : W
+                      Spatial weights
     show            : boolean
                       If True triggers 'plt.show()' to display the graph
     standardize     : boolean
@@ -72,7 +72,8 @@ def scatter_plot(y, wy, show=False, standardize=True, rho=None):
     p               : plot
                       Matplotlibt object of graph
     '''
-    mi = ps.esda.moran.Moran(y, w)
+    mi = ps.esda.moran.Moran(y, w, permutations=9999)
+    wy = ps.lag_spatial(w, y)
     if standardize:
         y = (y - np.mean(y)) / np.std(y)
         wy = (wy - np.mean(wy)) / np.std(wy)
@@ -83,14 +84,24 @@ def scatter_plot(y, wy, show=False, standardize=True, rho=None):
     hbar = sub.axhline(0, color='black')
     if rho:
         title = plt.suptitle("Population $\\rho$: %.2f"%rho)
-    subtitle = plt.title("Moran's I: %.4f"%mi.I)
+    subtitle = plt.title("Moran's I: %.4f%s"%(mi.I, stars(mi.p_sim)))
 
-    b, a = np.polyfit(y, wy, 1)
+    b, a = np.polyfit(y.flatten(1), wy, 1)
     x = np.linspace(np.min(y), np.max(y), 2)
     fit_line = sub.plot(x, a + b*x, color='red')
     if show:
         plt.show()
     return scat
+
+def stars(p):
+    if p < 0.01:
+        return '***'
+    if 0.01 <= p < 0.05:
+        return '**'
+    if 0.05 <= p < 0.1:
+        return '*'
+    if p > 0.1:
+        return ''
 
 if __name__ == '__main__':
 
