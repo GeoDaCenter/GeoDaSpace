@@ -11,8 +11,8 @@ from pysal.spreg.ols import OLS
 from pysal.spreg.ols import BaseOLS
 #from opt_diagnostics_sp import LMtests, MoranRes
 from pysal.spreg.diagnostics_sp import LMtests, MoranRes
-from econometrics.spError import BaseGM_Error, GM_Error
-from econometrics.spHetErr import BaseGM_Error_Het, BaseGM_Combo_Het, GM_Error_Het, GM_Combo_Het
+from econometrics.error_sp import BaseGM_Error, GM_Error
+from econometrics.error_sp_het import BaseGM_Error_Het, BaseGM_Combo_Het, GM_Error_Het, GM_Combo_Het
 from econometrics.twosls_sp import BaseGM_Lag, GM_Lag
 #from econometrics.testing_utils import Test_Data as Data
 from workbench import Model_Inputs
@@ -248,7 +248,7 @@ def test_large_STSLS(s, k, log=None, base=False, sw=False, a=True):
     n = 'n: %i\n'%s**2
     if a:
         log.write(n)
-    model = 'Model: STSLS'
+    model = 'Model: STSLS (GM_Lag)'
     if a:
         log.write(model)
     print n
@@ -272,8 +272,8 @@ def test_large_STSLS(s, k, log=None, base=False, sw=False, a=True):
     t0 = time.time()
     if sw:
         w = ps.weights.lat2SW(s, s, criterion='queen')
-        w.n = s**2
         w.sparse = w
+        w.n = s**2
         w.s0 = np.sum(w.data)
 
         t = w.T + w
@@ -292,10 +292,10 @@ def test_large_STSLS(s, k, log=None, base=False, sw=False, a=True):
     t0 = time.time()
     if base:
         print 'Running barebone version of STSLS'
-        stsls = BaseSTSLS(y, x, w)
+        stsls = BaseGM_Lag(y, x, w=w)
     else:
         print 'Running full end-user version of STSLS'
-        stsls = STSLS(y, x, w)
+        stsls = GM_Lag(y, x, w=w)
     t1 = time.time()
     tf = t1 - t0
     runStsls = 'Regression:\t\t\t%.5f seconds\n'%tf
@@ -787,18 +787,18 @@ sizes = [150, 300, 450, 600, 750, 800, 850, 900, 1000]
 #sizes = [500, 750, 1000, 1150, 1300, 1450, 1600]
 #sizes = [1750, 1900, 2000, 2050, 2100]
 #sizes = [1750]
-sizes = [30, 50, 70, 100]
-sizes = [100]
+#sizes = [30, 50, 70, 100]
+#sizes = [100]
 
 for side in sizes:
    #ols_models = test_large_olsSPd(side, 10, log='/Users/dani/Dropbox/aagLogs/ols_py.log', a=True, base=True, sw=False)
    #gmswls = test_large_GMSWLS(side, 10, log='/Users/dani/Dropbox/aagLogs/gmswls_py.log', a=True, base=True, sw=False)
-   #stsls = test_large_STSLS(side, 10, log='/Users/dani/Dropbox/aagLogs/stsls_py.log', a=True, base=True, sw=False)
+    stsls = test_large_STSLS(side, 10, log='/Users/dani/Dropbox/aagLogs/stsls_py.log', a=False, base=True, sw=True)
    #sp_models = test_large_spHet_error_models(side, 10,
    #        log='/Users/dani/Dropbox/aagLogs/spHet_error_py.log', a=True, base=True, sw=False)
    #sp_models = test_large_spHet_sarar_models(side, 10,
    #        log='/Users/dani/Dropbox/aagLogs/spHet_sarar_py.log', a=True, base=True, sw=False)
    #smAll = test_small_all(side, 10, base=True)
-    smAll = test_large_spHet_error_models(side, 10, base=True, sw=True)
+   #smAll = test_large_spHet_error_models(side, 10, base=True, sw=True)
 
 
