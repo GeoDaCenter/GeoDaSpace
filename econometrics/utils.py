@@ -505,10 +505,13 @@ def iter_msg(iteration,max_iter):
     return iter_stop
 
 def sp_att(w,y,predy,w_y,rho):
-    xb = predy - rho*w_y
-    predy_sp = inverse_prod(w, xb, rho) 
-    resid_sp = y - predy_sp
-    return predy_sp, resid_sp
+    if rho<1:
+        xb = predy - rho*w_y
+        predy_sp = inverse_prod(w, xb, rho) 
+        resid_sp = y - predy_sp
+        return predy_sp, resid_sp
+    else:
+        return None, None
 
 def _test():
     import doctest

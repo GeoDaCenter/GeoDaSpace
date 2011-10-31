@@ -8,6 +8,7 @@ import pysal.spreg.diagnostics as diagnostics
 import diagnostics_tsls as diagnostics_tsls
 import pysal.spreg.diagnostics_sp as diagnostics_sp
 import ak as AK
+import pysal
 
 __all__ = []
 
@@ -112,7 +113,10 @@ class DiagnosticBuilder:
                 self.z_stat = diagnostics.t_stat(self, z_stat=True)
                 self.pr2 = diagnostics_tsls.pr2_aspatial(self)
                 if spatial_lag:
-                    self.pr2_sp = diagnostics_tsls.pr2_spatial(self)
+                    if self.predy_sp != None:
+                        self.pr2_sp = diagnostics_tsls.pr2_spatial(self)
+                    else:
+                        self.pr2_sp = None
 
         if nonspat_diag:
             if not instruments:  # quicky hack until we figure out the global nonspatial diag rules
@@ -501,8 +505,8 @@ def check_weights(w, y):
     >>> # should not raise an exception
 
     """
-    if w:
-        if type(w).__name__ != 'W':
+    if w != None:
+        if not isinstance(w, pysal.W):
             raise Exception, "w must be a pysal.W object"
         if w.n != y.shape[0]:
             raise Exception, "y must be nx1, and w must be an nxn PySAL W object"
@@ -736,7 +740,8 @@ def summary_r2(reg, ols, spatial_lag):
     else:
         strSummary = "%-20s:%12.6f\n" % ('Pseudo R-squared',reg.pr2)
         if spatial_lag:
-            strSummary += "%-20s:%12.6f\n" % ('Spatial Pseudo R-squared',reg.pr2_sp)
+            if reg.pr2_sp != None: 
+                strSummary += "%-20s:%12.6f\n" % ('Spatial Pseudo R-squared',reg.pr2_sp)
     return strSummary
 
 
