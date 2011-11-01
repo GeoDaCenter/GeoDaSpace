@@ -11,7 +11,7 @@ from geodaspace import textwindow
 from geodaspace.icons import icons
 from geodaspace.regression.rc import OGRegression_xrc
 from geodaspace import weights
-from geodaspace.weights.control import ENABLE_CONTIGUITY_WEIGHTS, ENABLE_DISTANCE_WEIGHTS, ENABLE_KERNEL_WEIGTHS
+from geodaspace.weights.control import ENABLE_CONTIGUITY_WEIGHTS, ENABLE_DISTANCE_WEIGHTS, ENABLE_KERNEL_WEIGTHS, WEIGHT_TYPES_FILTER, WEIGHT_FILTER_TO_HANDLER
 from geodaspace import spatialLag
 from geodaspace.preferences import preferencesDialog
 import variableTools
@@ -38,8 +38,6 @@ HET_TOOL_TIP = "Kelejian, H. and Prucha, I. (2010), Journal of Econometrics" #HE
 myEVT_LIST_BOX_UPDATE = wx.NewEventType()
 EVT_LIST_BOX_UPDATE = wx.PyEventBinder(myEVT_LIST_BOX_UPDATE, 1)
 
-WEIGHT_TYPES_FILTER = "ArcGIS DBF files (.dbf)|*.dbf|ArcGIS SWM files (*.swm)|*.swm|ArcGIS Text files (*.txt)|*.txt|DAT files (*.dat)|*.dat|GAL files (*.gal)|*.gal|GeoBUGS Text files (*.)|*.|GWT files (*.gwt)|*.gwt|KWT files (*.kwt)|*.kwt|MatLab files (*.mat)|*.mat|MatrixMarket files (*.mtx)|*.mtx|STATA Text files (*.txt)|*.txt"
-WEIGHT_FILTER_TO_HANDLER = {0:'arcgis_dbf', 1:None, 2:'arcgis_text', 3:None, 4:None, 5:'geobugs_text', 6:None, 7:None, 8:None, 9:None, 10:'stata_text', 11:None}
 
 class MyStringIO(StringIO.StringIO):
     def close(self):
@@ -738,16 +736,22 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             raise RuntimeError, "Unexpected evt object"
         pathHint = os.path.split(self.model.data['fname'])[0]
         #filter = "Weights File (*.gal; *.gwt)|*.gal;*.gwt" #"|*.gal|GWT file|*.gwt|XML Weights|*.xml"
-        fileDialog = wx.FileDialog(self,defaultDir=pathHint,message="Choose Weights File",wildcard=WEIGHT_TYPES_FILTER)
+        filter = "Common Weights Types|"
+        filter+= ';'.join([x for i,x in enumerate(WEIGHT_TYPES_FILTER.split('|')[1::2]) if WEIGHT_FILTER_TO_HANDLER[i]==None])
+        fileDialog = wx.FileDialog(self,defaultDir=pathHint,message="Choose Weights File",wildcard=filter+'|'+WEIGHT_TYPES_FILTER)
         if target == 'model_w':
-            fileDialog.SetFilterIndex(4) #default to gal
+            fileDialog.SetFilterIndex(0) #default to gal
         elif target == 'kernel_w':
-            fileDialog.SetFilterIndex(7) #default to kwt
+            fileDialog.SetFilterIndex(7+1) #default to kwt
         result = fileDialog.ShowModal()
         if result == wx.ID_OK:
             path = fileDialog.GetPath()
             try:
-                handler = WEIGHT_FILTER_TO_HANDLER[fileDialog.GetFilterIndex()]
+                idx = fileDialog.GetFilterIndex()-1
+                if idx == -1:
+                    handler = None
+                else:
+                    handler = WEIGHT_FILTER_TO_HANDLER[fileDialog.GetFilterIndex()-1]
                 W = pysal.open(path,'r',handler).read()
                 W.meta = {'shape file':'unknown','method':os.path.basename(path),'savedAs':path}
                 assert type(W) == pysal.W
