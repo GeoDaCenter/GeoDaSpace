@@ -144,6 +144,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         #self.weightsFrame = weights.control.mxWeightsControl(self,results=self.wQueue)
         self.modelWeightsDialog = weights.control.weightsDialog(self,requireSave = True, style = ENABLE_CONTIGUITY_WEIGHTS|ENABLE_DISTANCE_WEIGHTS)
         self.kernelWeightsDialog = weights.control.weightsDialog(self,requireSave = True, style = ENABLE_KERNEL_WEIGTHS)
+        self.weightsPropDlg = weights.control.weightsPropertiesDialog(self)
         #self.resultText = MyStringIO()
         self.textFrame = textwindow.TextWindow(self)
         #self.textFrame = myTextFrame(self)
@@ -209,9 +210,11 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.MWeights_ListBox.Bind(wx.EVT_CHECKLISTBOX, self.updateWeights)
         self.MWeights_ListBox.Bind(wx.EVT_LISTBOX_DCLICK, self.updateWeights)
         self.MWeights_ListBox.Bind(wx.EVT_CHAR, self.updateWeights)
+        self.Bind(wx.EVT_BUTTON,self.updateWeights,self.PropMWeightsButton)
         self.KWeights_ListBox.Bind(wx.EVT_CHECKLISTBOX, self.updateWeights)
         self.KWeights_ListBox.Bind(wx.EVT_LISTBOX_DCLICK, self.updateWeights)
         self.KWeights_ListBox.Bind(wx.EVT_CHAR, self.updateWeights)
+        self.Bind(wx.EVT_BUTTON,self.updateWeights,self.PropKWeightsButton)
 
         #self.Bind(wx.EVT_RADIOBUTTON,self.updateModelType)
         
@@ -600,6 +603,24 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                 self.model.removeMW(selection)
             if evt.EventObject == self.KWeights_ListBox:
                 self.model.removeKW(selection)
+        elif evt.GetEventType() == wx.EVT_BUTTON.typeId:
+            if evt.EventObject == self.PropMWeightsButton:
+                w_objs = self.model.getMWeightsFiles()
+                sel = self.MWeights_ListBox.GetSelection()
+                count = self.MWeights_ListBox.GetCount()
+            elif evt.EventObject == self.PropKWeightsButton:
+                w_objs = self.model.getKWeightsFiles()
+                sel = self.KWeights_ListBox.GetSelection()
+                count = self.KWeights_ListBox.GetCount()
+            else:
+                print "We shouldn't be here"
+                return
+            if count == 0:
+                dialog = wx.MessageDialog(self,"Please open or create a weights object first.","Weights Properties...",wx.OK|wx.ICON_ERROR)
+                dialog.ShowModal()
+                return
+            else:
+                self.weightsPropDlg.ShowModal(w_objs,sel)
         else:
             print evt
 

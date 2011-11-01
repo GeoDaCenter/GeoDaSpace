@@ -398,10 +398,12 @@ class xrcmainGUI(wx.Frame):
         # Define variables for the controls, bind event handlers
         self.ModelWeigths = xrc.XRCCTRL(self, "ModelWeigths")
         self.KernelWeights = xrc.XRCCTRL(self, "KernelWeights")
+        self.WeightsProps = xrc.XRCCTRL(self, "WeightsProps")
         self.Quit = xrc.XRCCTRL(self, "Quit")
 
         self.Bind(wx.EVT_BUTTON, self.OnButton_ModelWeigths, self.ModelWeigths)
         self.Bind(wx.EVT_BUTTON, self.OnButton_KernelWeights, self.KernelWeights)
+        self.Bind(wx.EVT_BUTTON, self.OnButton_WeightsProps, self.WeightsProps)
         self.Bind(wx.EVT_BUTTON, self.OnButton_Quit, self.Quit)
 
 #!XRCED:begin-block:xrcmainGUI.OnButton_ModelWeigths
@@ -415,6 +417,12 @@ class xrcmainGUI(wx.Frame):
         # Replace with event handler code
         print "OnButton_KernelWeights()"
 #!XRCED:end-block:xrcmainGUI.OnButton_KernelWeights        
+
+#!XRCED:begin-block:xrcmainGUI.OnButton_WeightsProps
+    def OnButton_WeightsProps(self, evt):
+        # Replace with event handler code
+        print "OnButton_WeightsProps()"
+#!XRCED:end-block:xrcmainGUI.OnButton_WeightsProps        
 
 #!XRCED:begin-block:xrcmainGUI.OnButton_Quit
     def OnButton_Quit(self, evt):
@@ -462,6 +470,75 @@ class xrcAddIDVar(wx.Dialog):
         # Replace with event handler code
         print "OnButton_cancel()"
 #!XRCED:end-block:xrcAddIDVar.OnButton_cancel        
+
+
+class xrcweightsProperties(wx.Dialog):
+#!XRCED:begin-block:xrcweightsProperties.PreCreate
+    def PreCreate(self, pre):
+        """ This function is called during the class's initialization.
+        
+        Override it for custom setup before the window is created usually to
+        set additional window styles using SetWindowStyle() and SetExtraStyle().
+        """
+        pass
+        
+#!XRCED:end-block:xrcweightsProperties.PreCreate
+
+    def __init__(self, parent):
+        # Two stage creation (see http://wiki.wxpython.org/index.cgi/TwoStageCreation)
+        pre = wx.PreDialog()
+        self.PreCreate(pre)
+        get_resources().LoadOnDialog(pre, parent, "weightsProperties")
+        self.PostCreate(pre)
+
+        # Define variables for the controls, bind event handlers
+        self.selectWChoice = xrc.XRCCTRL(self, "selectWChoice")
+        self.nameTC = xrc.XRCCTRL(self, "nameTC")
+        self.transformChoice = xrc.XRCCTRL(self, "transformChoice")
+        self.islandsTC = xrc.XRCCTRL(self, "islandsTC")
+        self.idListChoice = xrc.XRCCTRL(self, "idListChoice")
+        self.weightsTC = xrc.XRCCTRL(self, "weightsTC")
+        self.cardinalitiesTC = xrc.XRCCTRL(self, "cardinalitiesTC")
+        self.idsTC = xrc.XRCCTRL(self, "idsTC")
+        self.histogramTC = xrc.XRCCTRL(self, "histogramTC")
+        self.viewerButton = xrc.XRCCTRL(self, "viewerButton")
+        self.closeButton = xrc.XRCCTRL(self, "closeButton")
+
+        self.Bind(wx.EVT_CHOICE, self.OnChoice_selectWChoice, self.selectWChoice)
+        self.Bind(wx.EVT_CHOICE, self.OnChoice_transformChoice, self.transformChoice)
+        self.Bind(wx.EVT_CHOICE, self.OnChoice_idListChoice, self.idListChoice)
+        self.Bind(wx.EVT_BUTTON, self.OnButton_viewerButton, self.viewerButton)
+        self.Bind(wx.EVT_BUTTON, self.OnButton_closeButton, self.closeButton)
+
+#!XRCED:begin-block:xrcweightsProperties.OnChoice_selectWChoice
+    def OnChoice_selectWChoice(self, evt):
+        # Replace with event handler code
+        print "OnChoice_selectWChoice()"
+#!XRCED:end-block:xrcweightsProperties.OnChoice_selectWChoice        
+
+#!XRCED:begin-block:xrcweightsProperties.OnChoice_transformChoice
+    def OnChoice_transformChoice(self, evt):
+        # Replace with event handler code
+        print "OnChoice_transformChoice()"
+#!XRCED:end-block:xrcweightsProperties.OnChoice_transformChoice        
+
+#!XRCED:begin-block:xrcweightsProperties.OnChoice_idListChoice
+    def OnChoice_idListChoice(self, evt):
+        # Replace with event handler code
+        print "OnChoice_idListChoice()"
+#!XRCED:end-block:xrcweightsProperties.OnChoice_idListChoice        
+
+#!XRCED:begin-block:xrcweightsProperties.OnButton_viewerButton
+    def OnButton_viewerButton(self, evt):
+        # Replace with event handler code
+        print "OnButton_viewerButton()"
+#!XRCED:end-block:xrcweightsProperties.OnButton_viewerButton        
+
+#!XRCED:begin-block:xrcweightsProperties.OnButton_closeButton
+    def OnButton_closeButton(self, evt):
+        # Replace with event handler code
+        print "OnButton_closeButton()"
+#!XRCED:end-block:xrcweightsProperties.OnButton_closeButton        
 
 
 
@@ -1229,6 +1306,25 @@ def __init_resources():
         <border>10</border>
       </object>
       <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <label>Weights Props</label>
+          <orient>wxVERTICAL</orient>
+          <object class="sizeritem">
+            <object class="wxButton" name="WeightsProps">
+              <label>Open Weights Properties...</label>
+              <XRCED>
+                <events>EVT_BUTTON</events>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE</flag>
+            <border>35</border>
+          </object>
+        </object>
+        <flag>wxALL|wxEXPAND</flag>
+        <border>10</border>
+      </object>
+      <object class="sizeritem">
         <object class="wxBoxSizer">
           <object class="sizeritem">
             <object class="wxButton" name="Quit">
@@ -1241,12 +1337,13 @@ def __init_resources():
             <flag>wxALL|wxALIGN_RIGHT</flag>
             <border>20</border>
           </object>
-          <orient>wxVERTICAL</orient>
           <object class="spacer">
             <size>350,0</size>
           </object>
+          <orient>wxVERTICAL</orient>
         </object>
         <flag>wxALL|wxALIGN_RIGHT</flag>
+        <border>2</border>
       </object>
     </object>
     <title>GeoDa Weights -- Demo Application</title>
@@ -1320,6 +1417,247 @@ def __init_resources():
         <border>5</border>
       </object>
     </object>
+  </object>
+  <object class="wxDialog" name="weightsProperties">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Select W:</label>
+            </object>
+            <flag>wxRIGHT</flag>
+            <border>10</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxChoice" name="selectWChoice">
+              <size>350,-1</size>
+              <XRCED>
+                <events>EVT_CHOICE</events>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <option>1</option>
+            <flag>wxEXPAND</flag>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+        <border>10</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <object class="sizeritem">
+            <object class="wxFlexGridSizer">
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Name:</label>
+                </object>
+                <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="nameTC">
+                  <style>wxTE_READONLY</style>
+                  <XRCED>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Transform:</label>
+                </object>
+                <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxChoice" name="transformChoice">
+                  <XRCED>
+                    <events>EVT_CHOICE</events>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxEXPAND|wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Islands:</label>
+                </object>
+                <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="islandsTC">
+                  <style>wxTE_READONLY</style>
+                  <XRCED>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxEXPAND|wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxBoxSizer">
+                  <object class="sizeritem">
+                    <object class="wxStaticText">
+                      <label>Neighbors of:</label>
+                    </object>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxChoice" name="idListChoice">
+                      <size>80,-1</size>
+                      <XRCED>
+                        <events>EVT_CHOICE</events>
+                        <assign_var>1</assign_var>
+                      </XRCED>
+                    </object>
+                  </object>
+                  <orient>wxVERTICAL</orient>
+                </object>
+                <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="weightsTC">
+                  <size>-1,50</size>
+                  <style>wxTE_MULTILINE|wxTE_READONLY</style>
+                  <XRCED>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxEXPAND</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Cardinalities:</label>
+                </object>
+                <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="cardinalitiesTC">
+                  <size>-1,50</size>
+                  <style>wxTE_MULTILINE|wxTE_READONLY</style>
+                  <XRCED>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxEXPAND</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Ids:</label>
+                </object>
+                <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="idsTC">
+                  <size>-1,50</size>
+                  <style>wxTE_MULTILINE|wxTE_READONLY</style>
+                  <XRCED>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxEXPAND</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Histogram:</label>
+                </object>
+                <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="histogramTC">
+                  <size>-1,50</size>
+                  <tooltip>[(NumNeighbors, Count), ....]</tooltip>
+                  <style>wxTE_MULTILINE|wxTE_READONLY</style>
+                  <XRCED>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxEXPAND</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Viewer:</label>
+                </object>
+                <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxBoxSizer">
+                  <object class="sizeritem">
+                    <object class="wxButton" name="viewerButton">
+                      <label>Launch...</label>
+                      <font>
+                        <size>13</size>
+                        <style>normal</style>
+                        <weight>normal</weight>
+                        <underlined>0</underlined>
+                        <family>default</family>
+                        <face>Lucida Grande</face>
+                        <encoding/>
+                      </font>
+                      <XRCED>
+                        <events>EVT_BUTTON</events>
+                        <assign_var>1</assign_var>
+                      </XRCED>
+                    </object>
+                    <flag>wxALIGN_CENTRE</flag>
+                  </object>
+                  <orient>wxHORIZONTAL</orient>
+                  <object class="sizeritem">
+                    <object class="wxStaticText">
+                      <label>*Experimental</label>
+                      <font>
+                        <size>10</size>
+                        <style>normal</style>
+                        <weight>normal</weight>
+                        <underlined>0</underlined>
+                        <family>default</family>
+                        <face>applicationfont</face>
+                        <encoding/>
+                      </font>
+                    </object>
+                    <flag>wxLEFT|wxALIGN_BOTTOM</flag>
+                    <border>5</border>
+                  </object>
+                </object>
+              </object>
+              <cols>2</cols>
+              <rows>8</rows>
+              <vgap>8</vgap>
+              <hgap>5</hgap>
+              <growablecols>1</growablecols>
+              <growablerows>3,4,5,6</growablerows>
+            </object>
+            <option>1</option>
+            <flag>wxALL|wxEXPAND</flag>
+            <border>5</border>
+          </object>
+          <label>Properties</label>
+          <orient>wxVERTICAL</orient>
+        </object>
+        <option>1</option>
+        <flag>wxALL|wxEXPAND</flag>
+        <border>5</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxButton" name="closeButton">
+              <label>Close</label>
+              <XRCED>
+                <events>EVT_BUTTON</events>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <flag>wxALL</flag>
+            <border>10</border>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <flag>wxALIGN_CENTRE</flag>
+      </object>
+    </object>
+    <title>Weights Properties Editor</title>
+    <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
   </object>
 </resource>'''
 

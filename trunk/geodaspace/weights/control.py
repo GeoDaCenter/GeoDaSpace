@@ -4,11 +4,12 @@ import math
 #3rd Party
 import wx
 import pysal
+import pysal.contrib.weights_viewer.weights_viewer as weights_viewer
 #local
 import geodaspace
 from geodaspace import remapEvtsToDispatcher
 from geodaspace import DEBUG
-from view import xrcDIALOGWEIGHTS,xrcAddIDVar
+from view import xrcDIALOGWEIGHTS,xrcAddIDVar,xrcweightsProperties
 from model import weightsModel,DISTANCE_METRICS
 #CONSTANTS
 ENABLE_CONTIGUITY_WEIGHTS = 1 # 0b00000001
@@ -19,6 +20,90 @@ WEIGHTS_DEFAULT_STYLE = ENABLE_CONTIGUITY_WEIGHTS|ENABLE_DISTANCE_WEIGHTS|ENABLE
 WEIGHT_TYPES_FILTER = "ArcGIS DBF files (.dbf)|*.dbf|ArcGIS SWM files (*.swm)|*.swm|ArcGIS Text files (*.txt)|*.txt|DAT files (*.dat)|*.dat|GAL files (*.gal)|*.gal|GeoBUGS Text files (*.)|*.|GWT files (*.gwt)|*.gwt|KWT files (*.kwt)|*.kwt|MatLab files (*.mat)|*.mat|MatrixMarket files (*.mtx)|*.mtx|STATA Text files (*.txt)|*.txt"
 WEIGHT_FILTER_TO_HANDLER = {0:'arcgis_dbf', 1:None, 2:'arcgis_text', 3:None, 4:None, 5:'geobugs_text', 6:None, 7:None, 8:None, 9:None, 10:'stata_text', 11:None}
 
+VALID_TRANSFORMS = ["B: Binary", "R: Row-standardization (global sum=n)", "D: Double-standardization (global sum=1)", "V: Variance stabilizing", "O: Restore original transformation (from instantiation)"]
+TRANSFORM_LOOKUP = dict([(x.split(':')[0],i) for i,x in enumerate(VALID_TRANSFORMS)])
+
+class weightsPropertiesDialog(xrcweightsProperties):
+    """
+    Weights Properties Dialog -- Displays a Dialog viewing and editor properties of a W obj.
+
+    Display using ShowModal, which requires a list of W objects and an optional selection, returns wx.ID_CLOSE
+
+    Parameters
+    ----------
+    parent -- wxWindow -- A parent to the dialog, optional.
+    """
+    def __init__(self,parent = None):
+        xrcweightsProperties.__init__(self,parent)
+        self.transformChoice.AppendItems(VALID_TRANSFORMS)
+    def ShowModal(self,w_objs,selection=-1):
+        """
+        Display the Dialog and add the id var.
+        """
+        self.w_objs = w_objs
+        self.selectWChoice.Clear()
+        self.selectWChoice.AppendItems([w.name for w in w_objs])
+        selection = 0 if selection < 0 else selection
+        self.selectWChoice.SetSelection(selection)
+        self.OnChoice_selectWChoice(None)
+        #names = []
+        #if os.path.exists(dbf_path):
+        #    self.db = pysal.open(dbf_path,'r')
+        #    self.existingVarsListBox.Clear()
+        #    self.existingVarsListBox.InsertItems(self.db.header,0)
+        #    self.idVarName.SetValue('POLY_ID')
+        #    return xrcAddIDVar.ShowModal(self)
+        #else:
+        #    raise ValueError, "Invalid DBF File"
+        return xrcweightsProperties.ShowModal(self)
+    def OnChoice_selectWChoice(self,evt):
+        w = self.w_objs[self.selectWChoice.GetSelection()]
+        self.idListChoice.Clear()
+        self.idListChoice.AppendItems(map(str,w.w.id_order))
+        self.idListChoice.SetSelection(0)
+        self.update()
+    def OnChoice_idListChoice(self,evt):
+        w = self.w_objs[self.selectWChoice.GetSelection()]
+        id = w.w.id_order[self.idListChoice.GetSelection()]
+        self.weightsTC.SetValue(str(w.w[id]))
+    def OnChoice_transformChoice(self,evt):
+        w = self.w_objs[self.selectWChoice.GetSelection()]
+        sel = self.transformChoice.GetSelection()
+        T = VALID_TRANSFORMS[sel].split(':')[0]
+        w.w.transform = T
+        self.update()
+    def OnButton_viewerButton(self,evt):
+        w = self.w_objs[self.selectWChoice.GetSelection()]
+        print w.shapefile_hint
+        if os.path.exists(w.shapefile_hint):
+            geo = w.shapefile_hint
+        else:
+            fileDialog = wx.FileDialog(self,message="Please locate: %s"%w.shapefile_hint,wildcard="Shape File (*.shp)|*.shp")
+            result = fileDialog.ShowModal()
+            if result == wx.ID_OK:
+                geo = fileDialog.GetPath()
+            else:
+                return
+        wm = weights_viewer.WeightsMapFrame(self,geo=geo,w=w.w,style=wx.DEFAULT_FRAME_STYLE|wx.FRAME_FLOAT_ON_PARENT)
+        wm.Show(True)
+        #wm.MakeModal(True)
+    def OnButton_closeButton(self,evt):
+        self.EndModal(wx.ID_CLOSE)
+    def update(self):
+        w = self.w_objs[self.selectWChoice.GetSelection()]
+        self.nameTC.SetValue(w.name)
+        self.transformChoice.SetSelection(TRANSFORM_LOOKUP[w.w.transform])
+        islands = w.w.islands
+        if not islands:
+            self.islandsTC.SetValue("No Islands")
+        else:
+            self.islandsTC.SetValue(str(islands))
+        id = w.w.id_order[self.idListChoice.GetSelection()]
+        self.weightsTC.SetValue(str(w.w[id]))
+        self.cardinalitiesTC.SetValue(str(w.w.cardinalities))
+        self.idsTC.SetValue(str(w.w.id_order))
+        self.histogramTC.SetValue(str(w.w.histogram))
+        
 
 class idVarDialog(xrcAddIDVar):
     """
@@ -30,7 +115,7 @@ class idVarDialog(xrcAddIDVar):
     ----------
     parent -- wxWindow -- A parent to the dialog, optional.
     """
-    def __init__(self,parent):
+    def __init__(self,parent = None):
         xrcAddIDVar.__init__(self,parent)
     def OnButton_save(self,evt):
         self.EndModal(wx.ID_OK)
