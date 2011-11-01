@@ -10,6 +10,95 @@ from geodaspace import DEBUG
 
 DISTANCE_METRICS = ['Euclidean Distance','Arc Distance (miles)', 'Arc Distance (kilometers)']
 
+class GeoDaSpace_W_Obj(object):
+    """ A wrapper around W objs to carry meta data like name, state, etc """
+    def __init__(self, obj = None):
+        self._enabled = True
+        if issubclass(type(obj),pysal.W):
+            self._w_obj = obj
+        else:
+            raise TypeError, "obj must be of type W."
+        if self.has_meta:
+            if 'savedAs' in self.w.meta:
+                self._path = self.w.meta['savedAs']
+    def __eq__(self,other):
+        if not issubclass(type(other),GeoDaSpace_W_Obj):
+            return False
+        elif other.has_meta and self.has_meta:
+            return other.w.meta == self.w.meta
+        elif hasattr(self,'_path') and hasattr(other,'_path'):
+            return other._path == self._path
+        else:
+            return self.w == other.w
+    def __get_enabled(self):
+        return self._enabled
+    def __set_enabled(self,v):
+        self._enabled = bool(v)
+    enabled = property(__get_enabled, __set_enabled)
+    @property
+    def path(self):
+        if hasattr(self,'_path'):
+            return self._path
+        if self.has_meta:
+            if 'savedAs' in self.w.meta:
+                self._path = self.w.meta['savedAs']
+                return self._path
+        return ''
+    @property
+    def saved(self):
+        if hasattr(self,'_path'):
+            return True
+        if self.has_meta:
+            if 'savedAs' in self.w.meta:
+                self._path = self.w.meta['savedAs']
+                return True
+        return False
+    @property
+    def w(self):
+        return self._w_obj
+    @classmethod
+    def from_path(cls,path,handler=None):
+        """
+        Instantiates an instance of GeoDaSpace_W_Obj from a path
+        """
+        w = cls(pysal.open(path,'r',handler).read())
+        w._path = path
+        return w
+    @property
+    def has_meta(self):
+        return hasattr(self.w,'meta')
+    @property
+    def shapefile_hint(self):
+        """
+        Returns a suggested path to the associated shapefile. Path is only a hint and should be verified.
+        """
+        if self.has_meta:
+            if self.w.meta['shape file'] != 'unknown':
+                return self.w.meta['shape file']
+        elif hasattr(self.w,'_shpName'):
+            pth = os.path.split(self.path)[0]
+            return os.path.join(pth,self.w._shpName)
+        return ''
+    @property
+    def name(self):
+        if self.has_meta:
+            if self.w.meta['shape file'] == 'unknown':
+                name = 'File'
+            else:
+                name = os.path.basename(self.w.meta['shape file'])
+            name+= ': '+self.w.meta['method']
+            if 'method options' in self.w.meta:
+                opts = self.w.meta['method options']
+                if type(opts) == list:
+                    name+= ': '+', '.join(map(str,self.w.meta['method options']))
+                else:
+                    name+= ': '+opts
+        elif hasattr(self,'_path'):
+            name = os.path.basename(self._path)
+        else:
+            name = "weights object"
+        return name
+
 class weightsModel(AbstractModel):
     def __init__(self):
         AbstractModel.__init__(self)

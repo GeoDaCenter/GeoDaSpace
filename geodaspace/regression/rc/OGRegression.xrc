@@ -97,7 +97,6 @@
                                 <orient>wxVERTICAL</orient>
                                 <object class="sizeritem">
                                   <object class="wxBoxSizer">
-                                    <orient>wxHORIZONTAL</orient>
                                     <object class="sizeritem">
                                       <object class="wxBitmapButton" name="CreateMWeightsButton">
                                         <size>15,13d</size>
@@ -122,7 +121,26 @@
                                       </object>
                                       <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL</flag>
                                     </object>
+                                    <object class="spacer">
+                                      <size>15,15</size>
+                                      <option>1</option>
+                                      <flag>wxALL|wxEXPAND</flag>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxBitmapButton" name="PropMWeightsButton">
+                                        <size>15,13d</size>
+                                        <bitmap>gear.png</bitmap>
+                                        <tooltip>Properties for Selected Weights...</tooltip>
+                                        <style>wxBU_AUTODRAW|wxBU_EXACTFIT</style>
+                                        <XRCED>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL</flag>
+                                    </object>
+                                    <orient>wxHORIZONTAL</orient>
                                   </object>
+                                  <flag>wxEXPAND</flag>
                                 </object>
                                 <object class="sizeritem">
                                   <object class="wxCheckListBox" name="MWeights_ListBox">
@@ -145,7 +163,6 @@
                                 <orient>wxVERTICAL</orient>
                                 <object class="sizeritem">
                                   <object class="wxBoxSizer">
-                                    <orient>wxHORIZONTAL</orient>
                                     <object class="sizeritem">
                                       <object class="wxBitmapButton" name="CreateKWeightsButton">
                                         <size>15,13d</size>
@@ -170,7 +187,26 @@
                                       </object>
                                       <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL</flag>
                                     </object>
+                                    <orient>wxHORIZONTAL</orient>
+                                    <object class="spacer">
+                                      <size>15,15</size>
+                                      <option>1</option>
+                                      <flag>wxALL|wxEXPAND</flag>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxBitmapButton" name="PropKWeightsButton">
+                                        <size>15,13d</size>
+                                        <bitmap>gear.png</bitmap>
+                                        <tooltip>Properties for Selected Weights...</tooltip>
+                                        <style>wxBU_AUTODRAW|wxBU_EXACTFIT</style>
+                                        <XRCED>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL</flag>
+                                    </object>
                                   </object>
+                                  <flag>wxEXPAND</flag>
                                 </object>
                                 <object class="sizeritem">
                                   <object class="wxCheckListBox" name="KWeights_ListBox">
@@ -762,5 +798,4 @@
       <radio>1</radio>
     </object>
   </object>
-
 </resource>

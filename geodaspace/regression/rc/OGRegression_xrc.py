@@ -44,9 +44,11 @@ class xrcGMM_REGRESSION(wx.Frame):
         self.Panel_Weights = xrc.XRCCTRL(self, "Panel_Weights")
         self.CreateMWeightsButton = xrc.XRCCTRL(self, "CreateMWeightsButton")
         self.OpenMWeightsButton = xrc.XRCCTRL(self, "OpenMWeightsButton")
+        self.PropMWeightsButton = xrc.XRCCTRL(self, "PropMWeightsButton")
         self.MWeights_ListBox = xrc.XRCCTRL(self, "MWeights_ListBox")
         self.CreateKWeightsButton = xrc.XRCCTRL(self, "CreateKWeightsButton")
         self.OpenKWeightsButton = xrc.XRCCTRL(self, "OpenKWeightsButton")
+        self.PropKWeightsButton = xrc.XRCCTRL(self, "PropKWeightsButton")
         self.KWeights_ListBox = xrc.XRCCTRL(self, "KWeights_ListBox")
         self.Panel_Spec = xrc.XRCCTRL(self, "Panel_Spec")
         self.Y_TextCtrl = xrc.XRCCTRL(self, "Y_TextCtrl")
@@ -247,7 +249,6 @@ def __init_resources():
                                 <orient>wxVERTICAL</orient>
                                 <object class="sizeritem">
                                   <object class="wxBoxSizer">
-                                    <orient>wxHORIZONTAL</orient>
                                     <object class="sizeritem">
                                       <object class="wxBitmapButton" name="CreateMWeightsButton">
                                         <size>15,13d</size>
@@ -272,7 +273,26 @@ def __init_resources():
                                       </object>
                                       <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL</flag>
                                     </object>
+                                    <object class="spacer">
+                                      <size>15,15</size>
+                                      <option>1</option>
+                                      <flag>wxALL|wxEXPAND</flag>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxBitmapButton" name="PropMWeightsButton">
+                                        <size>15,13d</size>
+                                        <bitmap>gear_png</bitmap>
+                                        <tooltip>Properties for Selected Weights...</tooltip>
+                                        <style>wxBU_AUTODRAW|wxBU_EXACTFIT</style>
+                                        <XRCED>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL</flag>
+                                    </object>
+                                    <orient>wxHORIZONTAL</orient>
                                   </object>
+                                  <flag>wxEXPAND</flag>
                                 </object>
                                 <object class="sizeritem">
                                   <object class="wxCheckListBox" name="MWeights_ListBox">
@@ -295,7 +315,6 @@ def __init_resources():
                                 <orient>wxVERTICAL</orient>
                                 <object class="sizeritem">
                                   <object class="wxBoxSizer">
-                                    <orient>wxHORIZONTAL</orient>
                                     <object class="sizeritem">
                                       <object class="wxBitmapButton" name="CreateKWeightsButton">
                                         <size>15,13d</size>
@@ -320,7 +339,26 @@ def __init_resources():
                                       </object>
                                       <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL</flag>
                                     </object>
+                                    <orient>wxHORIZONTAL</orient>
+                                    <object class="spacer">
+                                      <size>15,15</size>
+                                      <option>1</option>
+                                      <flag>wxALL|wxEXPAND</flag>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxBitmapButton" name="PropKWeightsButton">
+                                        <size>15,13d</size>
+                                        <bitmap>gear_png</bitmap>
+                                        <tooltip>Properties for Selected Weights...</tooltip>
+                                        <style>wxBU_AUTODRAW|wxBU_EXACTFIT</style>
+                                        <XRCED>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL</flag>
+                                    </object>
                                   </object>
+                                  <flag>wxEXPAND</flag>
                                 </object>
                                 <object class="sizeritem">
                                   <object class="wxCheckListBox" name="KWeights_ListBox">
@@ -912,7 +950,6 @@ def __init_resources():
       <radio>1</radio>
     </object>
   </object>
-
 </resource>'''
 
     gear_png = '''\
