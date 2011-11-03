@@ -505,7 +505,7 @@ def iter_msg(iteration,max_iter):
     return iter_stop
 
 def sp_att(w,y,predy,w_y,rho):
-    if rho<1:
+    if np.abs(rho)<1:
         xb = predy - rho*w_y
         predy_sp = inverse_prod(w, xb, rho) 
         resid_sp = y - predy_sp
