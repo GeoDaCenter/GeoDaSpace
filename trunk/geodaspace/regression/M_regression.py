@@ -40,11 +40,13 @@ class guiRegModel(abstractmodel.AbstractModel):
     def addMWeightsFile(self,path=None,obj=None):
         if obj:
             obj = GeoDaSpace_W_Obj(obj)
+            obj.w.transform = 'r'
             if obj not in self.data['mWeights']:
                 self.data['mWeights'].append(obj)
                 self.update()
         elif path:
             obj = GeoDaSpace_W_Obj.from_path(path)
+            obj.w.transform = 'r'
             if obj not in self.data['mWeights']:
                 self.data['mWeights'].append(obj)
                 self.update()
@@ -90,6 +92,13 @@ class guiRegModel(abstractmodel.AbstractModel):
         return self.data['mWeights']
     def getMWeightsEnabled(self):
         return [w for w in self.data['mWeights'] if w.enabled]
+    def setMWeightsTransform(self,t='R'):
+        c = 0
+        for w in self.data['mWeights']:
+            if w.w.transform.upper() != t.upper():
+                w.w.transform = t
+                c+=1
+        return c
     def removeMW(self,idx):
         w = self.data['mWeights'].pop(idx)
         self.update()
