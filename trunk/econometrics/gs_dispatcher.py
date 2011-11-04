@@ -131,7 +131,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
     >>> w2 = pysal.queen_from_shapefile("examples/columbus.shp")
     >>> w2.name = 'Queen columbus weights'
     >>> w2.transform = 'r'
-    >>> wk = pysal.kernelW_from_shapefile("examples/columbus.shp",k=4,function='epanechnikov',idVariable=None,fixed=False)
+    >>> wk = pysal.kernelW_from_shapefile("examples/columbus.shp",k=4,function='triangular',idVariable=None,fixed=False)
     >>> wk.name = 'Kernel columbus weights'
     >>> db=pysal.open("examples/columbus.dbf","r")
     >>> y = np.array(db.by_col("CRIME"))

@@ -448,7 +448,10 @@ def power_expansion(w, data, scalar, post_multiply=False, threshold=0.0000000001
     while test > threshold and count <= max_iterations:
         increment = lag(w, scalar*increment)
         running_total += increment
+        test_old = test
         test = la.norm(increment)
+        if test > test_old:
+            raise Exception, "power expansion will not converge, check model specification and that weight are less than 1"
         count += 1
     return running_total
 
