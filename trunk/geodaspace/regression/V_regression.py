@@ -465,6 +465,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                 f.close()
                 self.modelFileName = path
                 self.setTitle()
+                self.newVarSelector()
                 if changed:
                     self.model.update() #sets modified flag
                 #print "openModel, path... ",path
@@ -648,11 +649,10 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         if self.createSpatialLag:
             self.createSpatialLag.Hide()
             self.createSpatialLag.Destroy()
-        print "here"
-        print self.varSelector.getSelected()
+        #print self.varSelector.getSelected()
         weights = set(self.model.data['mWeights'])
         weights = weights.union(set(self.model.data['kWeights']))
-        print weights
+        #print weights
         vars = self.model.getVariables()
         self.spLagQueue = []
         self.createSpatialLag = spatialLag.C_CreateSpatialLag(dataFile=self.model.data['fname'],wtFiles=weights,vars=vars,results=self.spLagQueue,dialogMode=True)
@@ -839,7 +839,6 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         print self.model.data
     def run(self,evt):
         num_fixed = self.model.setMWeightsTransform('R')
-        print 'num_fixed:',num_fixed
         if num_fixed > 0:
             dialog = wx.MessageDialog(self,"The tranform of %d model weights object(s) was set to \"R: Row-standardization (global sum=n)\""%num_fixed,"Model Weights Changed:",wx.OK|wx.ICON_INFORMATION).ShowModal()
         #fname = self.model.data['fname']
