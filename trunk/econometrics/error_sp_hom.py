@@ -1165,6 +1165,7 @@ def _get_a1a2_filt(w, reg, lambdapar, apat, wpwt, e, z_s):
 
 def __get_a1a2(w,reg,lambdapar):
     '''
+    [DEPRECATED]
     Method borrowed from spHetError. It computes a1, a2 as in section 4.3.2 of
     Luc's notes. It assumes residuals come from an original model.
     '''
