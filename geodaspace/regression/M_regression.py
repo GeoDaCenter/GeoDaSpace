@@ -209,6 +209,8 @@ class guiRegModel(abstractmodel.AbstractModel):
             self.reset()
             data = eval(s)
             data['mWeights'] = [GeoDaSpace_W_Obj.from_path(w) for w in data['mWeights']]
+            for w in data['mWeights']:
+                w.w.transform='R'
             data['kWeights'] = [GeoDaSpace_W_Obj.from_path(w) for w in data['kWeights']]
             self.data = data
             if not os.path.exists(self.data['fname']):
@@ -241,6 +243,12 @@ class guiRegModel(abstractmodel.AbstractModel):
         #if self.data['modelType']['spatial_tests']['lm'] and not self.getMWeightsEnabled():
         #    return False,'LM Test requires Model Weights, please add or create a weights file, or disable "LM".'
         return True,None
+    @staticmethod
+    def get_col(db,col_name,allowMissing=False):
+        col = db.by_col(col_name)
+        if pysal.MISSINGVALUE in col:
+            raise ValueError, "Data column \"%s\" contains missing values."%col_name
+        return col
     def run(self,path=None, predy_resid=None):
         """ Runs the Model """
         print self.verify()
@@ -262,27 +270,27 @@ class guiRegModel(abstractmodel.AbstractModel):
         db = pysal.open( data['fname'] ,'r')
         # y
         name_y = data['spec']['y']
-        y = np.array([db.by_col(name_y)]).T
+        y = np.array([self.get_col(db,name_y)]).T
 
         # x
         x = []
         x_names = data['spec']['X']
         for x_name in x_names:
-            x.append(db.by_col(x_name))
+            x.append(self.get_col(db,x_name))
         x = np.array(x).T
 
         # YE
         ye = []
         ye_names = data['spec']['YE']
         for ye_name in ye_names:
-            ye.append(db.by_col(ye_name))
+            ye.append(self.get_col(db,ye_name))
         ye = np.array(ye).T
        
         # H
         h = []
         h_names = data['spec']['H']
         for h_name in h_names:
-            h.append(db.by_col(h_name))
+            h.append(self.get_col(db,h_name))
         h = np.array(h).T
 
         mtypes = {0: 'Standard', 1: 'Spatial Lag', 2: 'Spatial Error', 3: 'Spatial Lag+Error'}
