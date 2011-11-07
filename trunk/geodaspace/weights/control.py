@@ -224,7 +224,9 @@ class weightsDialog(xrcDIALOGWEIGHTS):
         d['addIDVar'] = self.idVar
         d['CreateButton'] = self.run
         d['ThresholdSlider'] = self.threshold
+        d['ThresholdSlider2'] = self.threshold2
         d['CutoffText'] = self.threshold
+        d['CutoffText2'] = self.threshold2
         d['OnClose'] = self.closeEvt
         d['CloseButton'] = self.closeEvt
         d['DdistMethodChoice'] = self.distMeth
@@ -393,7 +395,9 @@ class weightsDialog(xrcDIALOGWEIGHTS):
                 max_dist = self.model.bbox_diag
                 rec_dist = self.model.knn1_dist
                 self.ThresholdSlider.SetValue(int(math.ceil((rec_dist/max_dist) * self.ThresholdSlider.GetMax())))
+                self.ThresholdSlider2.SetValue(int(math.ceil((rec_dist/max_dist) * self.ThresholdSlider2.GetMax())))
                 self.threshold()
+                self.threshold2()
 
     def isdigit(self,evt):
         """easy validator for textCtrl
@@ -429,6 +433,19 @@ class weightsDialog(xrcDIALOGWEIGHTS):
                 val = self.ThresholdSlider.GetValue()
                 pct = val / float(self.ThresholdSlider.GetMax())
                 self.CutoffText.ChangeValue(str(self.model.bbox_diag * pct))
+    def threshold2(self, evtName=None, evt=None, value=None):
+        if evtName == 'OnText':
+            #user is typing...
+            if self.CutoffText2.IsModified():
+                val = float(self.CutoffText2.GetValue())
+                x = int(math.ceil((val/self.model.bbox_diag) * self.ThresholdSlider2.GetMax()))
+                x = x if x < self.ThresholdSlider2.GetMax() else self.ThresholdSlider2.GetMax()
+                self.ThresholdSlider2.SetValue(x)
+        else:
+            if self.model.bbox_diag:
+                val = self.ThresholdSlider2.GetValue()
+                pct = val / float(self.ThresholdSlider2.GetMax())
+                self.CutoffText2.ChangeValue(str(self.model.bbox_diag * pct))
     def idVar(self, evtName=None, evt=None, value=None):
         if evtName == "OnChoice":
             self.model.idVar = self.IdvarChoice.GetSelection()
@@ -480,8 +497,6 @@ class weightsDialog(xrcDIALOGWEIGHTS):
                       "The centroids of the specified polygons will be used instead.")
         elif self.model.shapes.type != pysal.cg.Point:
             return self.warn("The selected shapefile does not contain points and contiguity weights can only be computed on points.")
-        try: cutoff = float(self.CutoffText.GetValue())
-        except: return self.warn("The cut-off point is not valid.")
         if self.model.distMethod == 0:
             radius=None
         elif self.model.distMethod == 1: #'Arc Distance (miles)'
@@ -490,6 +505,8 @@ class weightsDialog(xrcDIALOGWEIGHTS):
             radius=pysal.cg.RADIUS_EARTH_KM
 
         if self.ThresholdRadio.GetValue():
+            try: cutoff = float(self.CutoffText.GetValue())
+            except: return self.warn("The cut-off point is not valid.")
             print "Threshold on %s, ids=%r, cutoff=%f"%(sfile,var,cutoff)
             W = pysal.threshold_binaryW_from_shapefile(sfile, cutoff, idVariable=var, radius=radius)
             W.meta = {'shape file':sfile,
@@ -509,6 +526,8 @@ class weightsDialog(xrcDIALOGWEIGHTS):
             if radius: W.meta['Sphere Radius'] = radius
             self.SetW(W)
         elif self.InverseRadio.GetValue():
+            try: cutoff = float(self.CutoffText2.GetValue())
+            except: return self.warn("The cut-off point is not valid.")
             power = int(self.PowerSpin.GetValue())
             print "Inverse on %s, ids=%r, cutoff=%f, power=%d"%(sfile,var,cutoff,power)
             W = pysal.threshold_continuousW_from_shapefile(sfile, cutoff, alpha=-1*power, idVariable=var, radius=radius)

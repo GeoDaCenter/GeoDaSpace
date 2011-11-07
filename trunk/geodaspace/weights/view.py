@@ -52,13 +52,15 @@ class xrcDIALOGWEIGHTS(wx.Dialog):
         self.ContiguityIncludeLowerCheck = xrc.XRCCTRL(self, "ContiguityIncludeLowerCheck")
         self.DistancePanel = xrc.XRCCTRL(self, "DistancePanel")
         self.DdistMethodChoice = xrc.XRCCTRL(self, "DdistMethodChoice")
+        self.KnnRadio = xrc.XRCCTRL(self, "KnnRadio")
+        self.NumNeighSpin = xrc.XRCCTRL(self, "NumNeighSpin")
         self.ThresholdRadio = xrc.XRCCTRL(self, "ThresholdRadio")
         self.ThresholdSlider = xrc.XRCCTRL(self, "ThresholdSlider")
         self.CutoffText = xrc.XRCCTRL(self, "CutoffText")
-        self.KnnRadio = xrc.XRCCTRL(self, "KnnRadio")
-        self.NumNeighSpin = xrc.XRCCTRL(self, "NumNeighSpin")
         self.InverseRadio = xrc.XRCCTRL(self, "InverseRadio")
         self.PowerSpin = xrc.XRCCTRL(self, "PowerSpin")
+        self.ThresholdSlider2 = xrc.XRCCTRL(self, "ThresholdSlider2")
+        self.CutoffText2 = xrc.XRCCTRL(self, "CutoffText2")
         self.KernelPanel = xrc.XRCCTRL(self, "KernelPanel")
         self.KdistMethodChoice = xrc.XRCCTRL(self, "KdistMethodChoice")
         self.KFuncChoice = xrc.XRCCTRL(self, "KFuncChoice")
@@ -77,6 +79,8 @@ class xrcDIALOGWEIGHTS(wx.Dialog):
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_RadioRook, self.RadioRook)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_ContiguityIncludeLowerCheck, self.ContiguityIncludeLowerCheck)
         self.Bind(wx.EVT_CHOICE, self.OnChoice_DdistMethodChoice, self.DdistMethodChoice)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_KnnRadio, self.KnnRadio)
+        self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_NumNeighSpin, self.NumNeighSpin)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_ThresholdRadio, self.ThresholdRadio)
         self.Bind(wx.EVT_SCROLL, self.OnScroll_ThresholdSlider, self.ThresholdSlider)
         self.Bind(wx.EVT_SCROLL_TOP, self.OnScroll_top_ThresholdSlider, self.ThresholdSlider)
@@ -99,10 +103,29 @@ class xrcDIALOGWEIGHTS(wx.Dialog):
         self.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.OnScroll_thumbrelease_ThresholdSlider, self.ThresholdSlider)
         self.Bind(wx.EVT_SCROLL_CHANGED, self.OnScroll_changed_ThresholdSlider, self.ThresholdSlider)
         self.Bind(wx.EVT_TEXT, self.OnText_CutoffText, self.CutoffText)
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_KnnRadio, self.KnnRadio)
-        self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_NumNeighSpin, self.NumNeighSpin)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_InverseRadio, self.InverseRadio)
         self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_PowerSpin, self.PowerSpin)
+        self.Bind(wx.EVT_SCROLL, self.OnScroll_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL_TOP, self.OnScroll_top_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL_BOTTOM, self.OnScroll_bottom_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL_LINEUP, self.OnScroll_lineup_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL_LINEDOWN, self.OnScroll_linedown_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL_PAGEUP, self.OnScroll_pageup_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL_PAGEDOWN, self.OnScroll_pagedown_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL_THUMBTRACK, self.OnScroll_thumbtrack_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.OnScroll_thumbrelease_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL_CHANGED, self.OnScroll_changed_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL, self.OnScroll_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL_TOP, self.OnScroll_top_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL_BOTTOM, self.OnScroll_bottom_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL_LINEUP, self.OnScroll_lineup_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL_LINEDOWN, self.OnScroll_linedown_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL_PAGEUP, self.OnScroll_pageup_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL_PAGEDOWN, self.OnScroll_pagedown_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL_THUMBTRACK, self.OnScroll_thumbtrack_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL_THUMBRELEASE, self.OnScroll_thumbrelease_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_SCROLL_CHANGED, self.OnScroll_changed_ThresholdSlider2, self.ThresholdSlider2)
+        self.Bind(wx.EVT_TEXT, self.OnText_CutoffText2, self.CutoffText2)
         self.Bind(wx.EVT_CHOICE, self.OnChoice_KdistMethodChoice, self.KdistMethodChoice)
         self.Bind(wx.EVT_CHOICE, self.OnChoice_KFuncChoice, self.KFuncChoice)
         self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_KNumNeighSpin, self.KNumNeighSpin)
@@ -176,6 +199,18 @@ class xrcDIALOGWEIGHTS(wx.Dialog):
         # Replace with event handler code
         print "OnChoice_DdistMethodChoice()"
 #!XRCED:end-block:xrcDIALOGWEIGHTS.OnChoice_DdistMethodChoice        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnRadiobutton_KnnRadio
+    def OnRadiobutton_KnnRadio(self, evt):
+        # Replace with event handler code
+        print "OnRadiobutton_KnnRadio()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnRadiobutton_KnnRadio        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnSpinctrl_NumNeighSpin
+    def OnSpinctrl_NumNeighSpin(self, evt):
+        # Replace with event handler code
+        print "OnSpinctrl_NumNeighSpin()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnSpinctrl_NumNeighSpin        
 
 #!XRCED:begin-block:xrcDIALOGWEIGHTS.OnRadiobutton_ThresholdRadio
     def OnRadiobutton_ThresholdRadio(self, evt):
@@ -309,18 +344,6 @@ class xrcDIALOGWEIGHTS(wx.Dialog):
         print "OnText_CutoffText()"
 #!XRCED:end-block:xrcDIALOGWEIGHTS.OnText_CutoffText        
 
-#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnRadiobutton_KnnRadio
-    def OnRadiobutton_KnnRadio(self, evt):
-        # Replace with event handler code
-        print "OnRadiobutton_KnnRadio()"
-#!XRCED:end-block:xrcDIALOGWEIGHTS.OnRadiobutton_KnnRadio        
-
-#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnSpinctrl_NumNeighSpin
-    def OnSpinctrl_NumNeighSpin(self, evt):
-        # Replace with event handler code
-        print "OnSpinctrl_NumNeighSpin()"
-#!XRCED:end-block:xrcDIALOGWEIGHTS.OnSpinctrl_NumNeighSpin        
-
 #!XRCED:begin-block:xrcDIALOGWEIGHTS.OnRadiobutton_InverseRadio
     def OnRadiobutton_InverseRadio(self, evt):
         # Replace with event handler code
@@ -332,6 +355,132 @@ class xrcDIALOGWEIGHTS(wx.Dialog):
         # Replace with event handler code
         print "OnSpinctrl_PowerSpin()"
 #!XRCED:end-block:xrcDIALOGWEIGHTS.OnSpinctrl_PowerSpin        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_ThresholdSlider2
+    def OnScroll_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_top_ThresholdSlider2
+    def OnScroll_top_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_top_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_top_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_bottom_ThresholdSlider2
+    def OnScroll_bottom_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_bottom_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_bottom_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_lineup_ThresholdSlider2
+    def OnScroll_lineup_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_lineup_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_lineup_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_linedown_ThresholdSlider2
+    def OnScroll_linedown_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_linedown_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_linedown_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_pageup_ThresholdSlider2
+    def OnScroll_pageup_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_pageup_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_pageup_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_pagedown_ThresholdSlider2
+    def OnScroll_pagedown_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_pagedown_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_pagedown_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_thumbtrack_ThresholdSlider2
+    def OnScroll_thumbtrack_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_thumbtrack_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_thumbtrack_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_thumbrelease_ThresholdSlider2
+    def OnScroll_thumbrelease_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_thumbrelease_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_thumbrelease_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_changed_ThresholdSlider2
+    def OnScroll_changed_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_changed_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_changed_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_ThresholdSlider2
+    def OnScroll_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_top_ThresholdSlider2
+    def OnScroll_top_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_top_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_top_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_bottom_ThresholdSlider2
+    def OnScroll_bottom_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_bottom_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_bottom_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_lineup_ThresholdSlider2
+    def OnScroll_lineup_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_lineup_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_lineup_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_linedown_ThresholdSlider2
+    def OnScroll_linedown_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_linedown_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_linedown_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_pageup_ThresholdSlider2
+    def OnScroll_pageup_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_pageup_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_pageup_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_pagedown_ThresholdSlider2
+    def OnScroll_pagedown_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_pagedown_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_pagedown_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_thumbtrack_ThresholdSlider2
+    def OnScroll_thumbtrack_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_thumbtrack_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_thumbtrack_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_thumbrelease_ThresholdSlider2
+    def OnScroll_thumbrelease_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_thumbrelease_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_thumbrelease_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnScroll_changed_ThresholdSlider2
+    def OnScroll_changed_ThresholdSlider2(self, evt):
+        # Replace with event handler code
+        print "OnScroll_changed_ThresholdSlider2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnScroll_changed_ThresholdSlider2        
+
+#!XRCED:begin-block:xrcDIALOGWEIGHTS.OnText_CutoffText2
+    def OnText_CutoffText2(self, evt):
+        # Replace with event handler code
+        print "OnText_CutoffText2()"
+#!XRCED:end-block:xrcDIALOGWEIGHTS.OnText_CutoffText2        
 
 #!XRCED:begin-block:xrcDIALOGWEIGHTS.OnChoice_KdistMethodChoice
     def OnChoice_KdistMethodChoice(self, evt):
@@ -859,92 +1008,6 @@ def __init_resources():
                                 <object class="sizeritem">
                                   <object class="wxBoxSizer">
                                     <object class="sizeritem">
-                                      <object class="wxRadioButton" name="ThresholdRadio">
-                                        <label>Threshold Distance</label>
-                                        <value>1</value>
-                                        <XRCED>
-                                          <events>EVT_RADIOBUTTON</events>
-                                          <assign_var>1</assign_var>
-                                        </XRCED>
-                                      </object>
-                                      <flag>wxLEFT|wxALL|wxALIGN_CENTRE_VERTICAL</flag>
-                                      <border>2</border>
-                                    </object>
-                                    <object class="sizeritem">
-                                      <object class="wxBoxSizer">
-                                        <orient>wxHORIZONTAL</orient>
-                                        <XRCED>
-                                          <assign_var>1</assign_var>
-                                        </XRCED>
-                                        <object class="spacer">
-                                          <size>25,5d</size>
-                                          <flag>wxLEFT|wxALL</flag>
-                                          <XRCED>
-                                            <assign_var>1</assign_var>
-                                          </XRCED>
-                                        </object>
-                                        <object class="sizeritem">
-                                          <object class="wxSlider" name="ThresholdSlider">
-                                            <size>150,-1d</size>
-                                            <value>0</value>
-                                            <min>0</min>
-                                            <max>100000</max>
-                                            <style>wxSL_HORIZONTAL</style>
-                                            <XRCED>
-                                              <events>EVT_SCROLL|EVT_SCROLL_TOP|EVT_SCROLL_BOTTOM|EVT_SCROLL_LINEUP|EVT_SCROLL_LINEDOWN|EVT_SCROLL_PAGEUP|EVT_SCROLL_PAGEDOWN|EVT_SCROLL_THUMBTRACK|EVT_SCROLL_THUMBRELEASE|EVT_SCROLL_CHANGED|EVT_SCROLL|EVT_SCROLL_TOP|EVT_SCROLL_BOTTOM|EVT_SCROLL_LINEUP|EVT_SCROLL_LINEDOWN|EVT_SCROLL_PAGEUP|EVT_SCROLL_PAGEDOWN|EVT_SCROLL_THUMBTRACK|EVT_SCROLL_THUMBRELEASE|EVT_SCROLL_CHANGED</events>
-                                              <assign_var>1</assign_var>
-                                            </XRCED>
-                                          </object>
-                                          <flag>wxALL|wxALIGN_CENTRE_HORIZONTAL</flag>
-                                          <border>2</border>
-                                        </object>
-                                      </object>
-                                      <flag>wxLEFT|wxALL</flag>
-                                      <border>2</border>
-                                    </object>
-                                    <object class="sizeritem">
-                                      <object class="wxBoxSizer">
-                                        <orient>wxHORIZONTAL</orient>
-                                        <object class="spacer">
-                                          <size>25,5d</size>
-                                        </object>
-                                        <object class="sizeritem">
-                                          <object class="wxStaticText">
-                                            <label>Cut-off point</label>
-                                          </object>
-                                          <flag>wxLEFT|wxALL|wxADJUST_MINSIZE</flag>
-                                          <border>2</border>
-                                        </object>
-                                        <object class="sizeritem">
-                                          <object class="wxTextCtrl" name="CutoffText">
-                                            <style>wxTE_RIGHT</style>
-                                            <XRCED>
-                                              <events>EVT_TEXT</events>
-                                              <assign_var>1</assign_var>
-                                            </XRCED>
-                                          </object>
-                                          <flag>wxLEFT|wxRIGHT</flag>
-                                          <border>5</border>
-                                        </object>
-                                      </object>
-                                    </object>
-                                    <orient>wxVERTICAL</orient>
-                                    <XRCED>
-                                      <assign_var>1</assign_var>
-                                    </XRCED>
-                                  </object>
-                                  <flag>wxLEFT|wxALL</flag>
-                                  <border>2</border>
-                                </object>
-                                <object class="spacer">
-                                  <size>3,3d</size>
-                                  <XRCED>
-                                    <assign_var>1</assign_var>
-                                  </XRCED>
-                                </object>
-                                <object class="sizeritem">
-                                  <object class="wxBoxSizer">
-                                    <object class="sizeritem">
                                       <object class="wxRadioButton" name="KnnRadio">
                                         <size>80,-1d</size>
                                         <label>k-Nearest Neighbors</label>
@@ -1002,6 +1065,79 @@ def __init_resources():
                                 <object class="sizeritem">
                                   <object class="wxBoxSizer">
                                     <object class="sizeritem">
+                                      <object class="wxRadioButton" name="ThresholdRadio">
+                                        <label>Binary Distance Band</label>
+                                        <value>1</value>
+                                        <XRCED>
+                                          <events>EVT_RADIOBUTTON</events>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxLEFT|wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                      <border>2</border>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxBoxSizer">
+                                        <object class="sizeritem">
+                                          <object class="wxBoxSizer">
+                                            <object class="sizeritem">
+                                              <object class="wxStaticText">
+                                                <label>Cut-off point</label>
+                                              </object>
+                                              <flag>wxALL|wxALIGN_CENTRE</flag>
+                                              <border>2</border>
+                                            </object>
+                                            <object class="sizeritem">
+                                              <object class="wxSlider" name="ThresholdSlider">
+                                                <value>0</value>
+                                                <min>0</min>
+                                                <max>100000</max>
+                                                <style>wxSL_HORIZONTAL</style>
+                                                <XRCED>
+                                                  <events>EVT_SCROLL|EVT_SCROLL_TOP|EVT_SCROLL_BOTTOM|EVT_SCROLL_LINEUP|EVT_SCROLL_LINEDOWN|EVT_SCROLL_PAGEUP|EVT_SCROLL_PAGEDOWN|EVT_SCROLL_THUMBTRACK|EVT_SCROLL_THUMBRELEASE|EVT_SCROLL_CHANGED|EVT_SCROLL|EVT_SCROLL_TOP|EVT_SCROLL_BOTTOM|EVT_SCROLL_LINEUP|EVT_SCROLL_LINEDOWN|EVT_SCROLL_PAGEUP|EVT_SCROLL_PAGEDOWN|EVT_SCROLL_THUMBTRACK|EVT_SCROLL_THUMBRELEASE|EVT_SCROLL_CHANGED</events>
+                                                  <assign_var>1</assign_var>
+                                                </XRCED>
+                                              </object>
+                                              <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+                                              <border>2</border>
+                                            </object>
+                                            <orient>wxVERTICAL</orient>
+                                          </object>
+                                          <option>3</option>
+                                          <flag>wxLEFT</flag>
+                                          <border>20</border>
+                                        </object>
+                                        <object class="sizeritem">
+                                          <object class="wxTextCtrl" name="CutoffText">
+                                            <style>wxTE_RIGHT</style>
+                                            <XRCED>
+                                              <events>EVT_TEXT</events>
+                                              <assign_var>1</assign_var>
+                                            </XRCED>
+                                          </object>
+                                          <option>2</option>
+                                          <flag>wxLEFT|wxALIGN_CENTRE</flag>
+                                          <border>15</border>
+                                        </object>
+                                        <orient>wxHORIZONTAL</orient>
+                                        <XRCED>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+                                      <border>2</border>
+                                    </object>
+                                    <orient>wxVERTICAL</orient>
+                                    <XRCED>
+                                      <assign_var>1</assign_var>
+                                    </XRCED>
+                                  </object>
+                                  <flag>wxLEFT|wxALL|wxEXPAND</flag>
+                                  <border>2</border>
+                                </object>
+                                <object class="sizeritem">
+                                  <object class="wxBoxSizer">
+                                    <object class="sizeritem">
                                       <object class="wxRadioButton" name="InverseRadio">
                                         <size>80,-1d</size>
                                         <label>Inverse Distance</label>
@@ -1045,23 +1181,72 @@ def __init_resources():
                                           </object>
                                         </object>
                                       </object>
-                                      <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
-                                      <border>2</border>
                                     </object>
                                     <orient>wxHORIZONTAL</orient>
                                     <XRCED>
                                       <assign_var>1</assign_var>
                                     </XRCED>
                                   </object>
-                                  <flag>wxALL|wxEXPAND</flag>
+                                  <flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND</flag>
                                   <border>2</border>
                                 </object>
                                 <orient>wxVERTICAL</orient>
                                 <XRCED>
                                   <assign_var>1</assign_var>
                                 </XRCED>
+                                <object class="sizeritem">
+                                  <object class="wxBoxSizer">
+                                    <object class="sizeritem">
+                                      <object class="wxBoxSizer">
+                                        <object class="sizeritem">
+                                          <object class="wxStaticText">
+                                            <label>Cut-off point</label>
+                                          </object>
+                                          <flag>wxALL|wxALIGN_CENTRE</flag>
+                                          <border>2</border>
+                                        </object>
+                                        <object class="sizeritem">
+                                          <object class="wxSlider" name="ThresholdSlider2">
+                                            <value>0</value>
+                                            <min>0</min>
+                                            <max>100000</max>
+                                            <style>wxSL_HORIZONTAL</style>
+                                            <XRCED>
+                                              <events>EVT_SCROLL|EVT_SCROLL_TOP|EVT_SCROLL_BOTTOM|EVT_SCROLL_LINEUP|EVT_SCROLL_LINEDOWN|EVT_SCROLL_PAGEUP|EVT_SCROLL_PAGEDOWN|EVT_SCROLL_THUMBTRACK|EVT_SCROLL_THUMBRELEASE|EVT_SCROLL_CHANGED|EVT_SCROLL|EVT_SCROLL_TOP|EVT_SCROLL_BOTTOM|EVT_SCROLL_LINEUP|EVT_SCROLL_LINEDOWN|EVT_SCROLL_PAGEUP|EVT_SCROLL_PAGEDOWN|EVT_SCROLL_THUMBTRACK|EVT_SCROLL_THUMBRELEASE|EVT_SCROLL_CHANGED</events>
+                                              <assign_var>1</assign_var>
+                                            </XRCED>
+                                          </object>
+                                          <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+                                          <border>2</border>
+                                        </object>
+                                        <orient>wxVERTICAL</orient>
+                                      </object>
+                                      <option>3</option>
+                                      <flag>wxLEFT</flag>
+                                      <border>20</border>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxTextCtrl" name="CutoffText2">
+                                        <style>wxTE_RIGHT</style>
+                                        <XRCED>
+                                          <events>EVT_TEXT</events>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <option>2</option>
+                                      <flag>wxLEFT|wxALIGN_CENTRE</flag>
+                                      <border>15</border>
+                                    </object>
+                                    <orient>wxHORIZONTAL</orient>
+                                    <XRCED>
+                                      <assign_var>1</assign_var>
+                                    </XRCED>
+                                  </object>
+                                  <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+                                  <border>2</border>
+                                </object>
                               </object>
-                              <flag>wxALL|wxALIGN_CENTRE_HORIZONTAL</flag>
+                              <flag>wxALL|wxEXPAND|wxALIGN_CENTRE_HORIZONTAL</flag>
                               <border>2</border>
                             </object>
                           </object>
