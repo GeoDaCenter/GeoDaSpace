@@ -535,6 +535,7 @@ class weightsDialog(xrcDIALOGWEIGHTS):
             radius=pysal.cg.RADIUS_EARTH_KM
         print "Kernel on %s, k=%d, ids=%r, kernel=%s"%(sfile, k, var, kern)
         W = pysal.adaptive_kernelW_from_shapefile(sfile, k=k, function=kern, idVariable=var, radius=radius)
+        W = pysal.weights.insert_diagonal(W, wsp=False)
         W.meta = {'shape file':sfile,
                   'id variable':var,
                   'method':'adaptive kernel',
