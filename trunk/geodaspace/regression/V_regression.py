@@ -87,10 +87,16 @@ class ListBoxDropTarget(wx.TextDropTarget):
             self.GetData()
             text = self.text_obj.GetText()
             end_of_list = self.targetListBox.GetCount()
-            self.targetListBox.InsertItems(text.split(','),end_of_list)
+            itms = text.split(',')
+            n = len(itms)
+            itms = [x for x in itms if self.targetListBox.FindString(x)==wx.NOT_FOUND]
+            fn = len(itms)
+            self.targetListBox.InsertItems(itms,end_of_list)
             # Fire my custom event type
             evt = ListBoxUpdateEvent(myEVT_LIST_BOX_UPDATE, self.targetListBox.GetId())
             self.targetListBox.GetEventHandler().ProcessEvent(evt)
+            if fn<n:
+                return False
             return default
         else:
             return False
@@ -524,15 +530,32 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         #print "updateSpec, evt... ",evt
         spec = {}
         spec['y'] = self.Y_TextCtrl.GetValue()
-        spec['YE'] = list(set(self.YE_ListBox.GetItems()))
-        spec['H'] = list(set(self.H_ListBox.GetItems()))
+
+        ## YE
+        YE = []
+        for var in self.YE_ListBox.GetItems():
+            if var not in YE:
+                YE.append(var)
+        spec['YE'] = YE
+
+        ## H
+        H = []
+        for var in self.H_ListBox.GetItems():
+            if var not in H:
+                H.append(var)
+        spec['H'] = H
+
         #spec['R'] = self.R_TextCtrl.GetValue()
         #spec['S'] = self.S_TextCtrl.GetValue()
         #spec['T'] = self.T_TextCtrl.GetValue()
-        spec['X'] = list(set(self.X_ListBox.GetItems()))
-        spec['YE'].sort()
-        spec['H'].sort()
-        spec['X'].sort()
+
+        ## X
+        X = []
+        for var in self.X_ListBox.GetItems():
+            if var not in X:
+                X.append(var)
+        spec['X'] = X
+
         #print "Setting Model Spec as... ",spec
         #print "form X_ListBox contains, ",self.X_ListBox.GetItems()
         #print "form X_ListBox contains Strings, ",self.X_ListBox.GetStrings()
