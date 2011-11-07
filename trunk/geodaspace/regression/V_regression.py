@@ -425,42 +425,45 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             result = fileDialog.ShowModal()
             if result == wx.ID_OK:
                 path = fileDialog.GetPath()
+                location = os.path.dirname(path)
                 f = open(path,'r')
                 dat = f.read()
                 changed = False
                 dataDict = eval(dat)
-                dataFilePath = dataDict['fname']
-                if not os.path.exists(dataFilePath):
+                dataDict['fname'] = os.path.normpath(os.path.join(location,dataDict['fname']))
+                if not os.path.exists(dataDict['fname']):
                     print "no such file!"
                     newPath = self.locateMissingFile(dataFilePath)
                     if newPath:
                         dataDict['fname'] = newPath
-                        dat = str(dataDict)
                         changed = True
                     else:
                         return False
                 for i,mw in enumerate(dataDict['mWeights']):
+                    mw = os.path.normpath(os.path.join(location, mw))
+                    dataDict['mWeights'][i] = mw
                     if not os.path.exists(mw):
                         print "no such file!"
                         newPath = self.locateMissingFile(mw)
                         if newPath:
                             dataDict['mWeights'][i] = newPath
-                            dat = str(dataDict)
                             changed = True
                         else:
                             return False
                 for i,kw in enumerate(dataDict['kWeights']):
+                    kw = os.path.normpath(os.path.join(location, kw))
+                    dataDict['mWeights'][i] = kw
                     if not os.path.exists(kw):
                         print "no such file!"
                         newPath = self.locateMissingFile(kw)
                         if newPath:
                             dataDict['kWeights'][i] = newPath
-                            dat = str(dataDict)
                             changed = True
                         else:
                             return False
                     
                         
+                dat = str(dataDict)
                 self.model.open(dat)
                 f.close()
                 self.modelFileName = path

@@ -196,10 +196,13 @@ class guiRegModel(abstractmodel.AbstractModel):
 
     def save(self,fileObj):
         """ Returns the contents of the model """
+        location = os.path.dirname(fileObj.name)
         self.state = self.STATE_SAVED
         data = copy.copy(self.data)
-        data['mWeights'] = [w.path for w in self.data['mWeights']]
-        data['kWeights'] = [w.path for w in self.data['kWeights']]
+        data['mWeights'] = [os.path.relpath(w.path,location) for w in self.data['mWeights']]
+        data['kWeights'] = [os.path.relpath(w.path,location) for w in self.data['kWeights']]
+        data['fname'] = os.path.relpath(data['fname'],location)
+        print data
         fileObj.write(str(data))
         fileObj.flush()
         self.fileObj = fileObj
