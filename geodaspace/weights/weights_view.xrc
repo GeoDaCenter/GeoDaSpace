@@ -306,92 +306,6 @@
                                 <object class="sizeritem">
                                   <object class="wxBoxSizer">
                                     <object class="sizeritem">
-                                      <object class="wxRadioButton" name="ThresholdRadio">
-                                        <label>Threshold Distance</label>
-                                        <value>1</value>
-                                        <XRCED>
-                                          <events>EVT_RADIOBUTTON</events>
-                                          <assign_var>1</assign_var>
-                                        </XRCED>
-                                      </object>
-                                      <flag>wxLEFT|wxALL|wxALIGN_CENTRE_VERTICAL</flag>
-                                      <border>2</border>
-                                    </object>
-                                    <object class="sizeritem">
-                                      <object class="wxBoxSizer">
-                                        <orient>wxHORIZONTAL</orient>
-                                        <XRCED>
-                                          <assign_var>1</assign_var>
-                                        </XRCED>
-                                        <object class="spacer">
-                                          <size>25,5d</size>
-                                          <flag>wxLEFT|wxALL</flag>
-                                          <XRCED>
-                                            <assign_var>1</assign_var>
-                                          </XRCED>
-                                        </object>
-                                        <object class="sizeritem">
-                                          <object class="wxSlider" name="ThresholdSlider">
-                                            <size>150,-1d</size>
-                                            <value>0</value>
-                                            <min>0</min>
-                                            <max>100000</max>
-                                            <style>wxSL_HORIZONTAL</style>
-                                            <XRCED>
-                                              <events>EVT_SCROLL|EVT_SCROLL_TOP|EVT_SCROLL_BOTTOM|EVT_SCROLL_LINEUP|EVT_SCROLL_LINEDOWN|EVT_SCROLL_PAGEUP|EVT_SCROLL_PAGEDOWN|EVT_SCROLL_THUMBTRACK|EVT_SCROLL_THUMBRELEASE|EVT_SCROLL_CHANGED|EVT_SCROLL|EVT_SCROLL_TOP|EVT_SCROLL_BOTTOM|EVT_SCROLL_LINEUP|EVT_SCROLL_LINEDOWN|EVT_SCROLL_PAGEUP|EVT_SCROLL_PAGEDOWN|EVT_SCROLL_THUMBTRACK|EVT_SCROLL_THUMBRELEASE|EVT_SCROLL_CHANGED</events>
-                                              <assign_var>1</assign_var>
-                                            </XRCED>
-                                          </object>
-                                          <flag>wxALL|wxALIGN_CENTRE_HORIZONTAL</flag>
-                                          <border>2</border>
-                                        </object>
-                                      </object>
-                                      <flag>wxLEFT|wxALL</flag>
-                                      <border>2</border>
-                                    </object>
-                                    <object class="sizeritem">
-                                      <object class="wxBoxSizer">
-                                        <orient>wxHORIZONTAL</orient>
-                                        <object class="spacer">
-                                          <size>25,5d</size>
-                                        </object>
-                                        <object class="sizeritem">
-                                          <object class="wxStaticText">
-                                            <label>Cut-off point</label>
-                                          </object>
-                                          <flag>wxLEFT|wxALL|wxADJUST_MINSIZE</flag>
-                                          <border>2</border>
-                                        </object>
-                                        <object class="sizeritem">
-                                          <object class="wxTextCtrl" name="CutoffText">
-                                            <style>wxTE_RIGHT</style>
-                                            <XRCED>
-                                              <events>EVT_TEXT</events>
-                                              <assign_var>1</assign_var>
-                                            </XRCED>
-                                          </object>
-                                          <flag>wxLEFT|wxRIGHT</flag>
-                                          <border>5</border>
-                                        </object>
-                                      </object>
-                                    </object>
-                                    <orient>wxVERTICAL</orient>
-                                    <XRCED>
-                                      <assign_var>1</assign_var>
-                                    </XRCED>
-                                  </object>
-                                  <flag>wxLEFT|wxALL</flag>
-                                  <border>2</border>
-                                </object>
-                                <object class="spacer">
-                                  <size>3,3d</size>
-                                  <XRCED>
-                                    <assign_var>1</assign_var>
-                                  </XRCED>
-                                </object>
-                                <object class="sizeritem">
-                                  <object class="wxBoxSizer">
-                                    <object class="sizeritem">
                                       <object class="wxRadioButton" name="KnnRadio">
                                         <size>80,-1d</size>
                                         <label>k-Nearest Neighbors</label>
@@ -449,6 +363,79 @@
                                 <object class="sizeritem">
                                   <object class="wxBoxSizer">
                                     <object class="sizeritem">
+                                      <object class="wxRadioButton" name="ThresholdRadio">
+                                        <label>Binary Distance Band</label>
+                                        <value>1</value>
+                                        <XRCED>
+                                          <events>EVT_RADIOBUTTON</events>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxLEFT|wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                      <border>2</border>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxBoxSizer">
+                                        <object class="sizeritem">
+                                          <object class="wxBoxSizer">
+                                            <object class="sizeritem">
+                                              <object class="wxStaticText">
+                                                <label>Cut-off point</label>
+                                              </object>
+                                              <flag>wxALL|wxALIGN_CENTRE</flag>
+                                              <border>2</border>
+                                            </object>
+                                            <object class="sizeritem">
+                                              <object class="wxSlider" name="ThresholdSlider">
+                                                <value>0</value>
+                                                <min>0</min>
+                                                <max>100000</max>
+                                                <style>wxSL_HORIZONTAL</style>
+                                                <XRCED>
+                                                  <events>EVT_SCROLL|EVT_SCROLL_TOP|EVT_SCROLL_BOTTOM|EVT_SCROLL_LINEUP|EVT_SCROLL_LINEDOWN|EVT_SCROLL_PAGEUP|EVT_SCROLL_PAGEDOWN|EVT_SCROLL_THUMBTRACK|EVT_SCROLL_THUMBRELEASE|EVT_SCROLL_CHANGED|EVT_SCROLL|EVT_SCROLL_TOP|EVT_SCROLL_BOTTOM|EVT_SCROLL_LINEUP|EVT_SCROLL_LINEDOWN|EVT_SCROLL_PAGEUP|EVT_SCROLL_PAGEDOWN|EVT_SCROLL_THUMBTRACK|EVT_SCROLL_THUMBRELEASE|EVT_SCROLL_CHANGED</events>
+                                                  <assign_var>1</assign_var>
+                                                </XRCED>
+                                              </object>
+                                              <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+                                              <border>2</border>
+                                            </object>
+                                            <orient>wxVERTICAL</orient>
+                                          </object>
+                                          <option>3</option>
+                                          <flag>wxLEFT</flag>
+                                          <border>20</border>
+                                        </object>
+                                        <object class="sizeritem">
+                                          <object class="wxTextCtrl" name="CutoffText">
+                                            <style>wxTE_RIGHT</style>
+                                            <XRCED>
+                                              <events>EVT_TEXT</events>
+                                              <assign_var>1</assign_var>
+                                            </XRCED>
+                                          </object>
+                                          <option>2</option>
+                                          <flag>wxLEFT|wxALIGN_CENTRE</flag>
+                                          <border>15</border>
+                                        </object>
+                                        <orient>wxHORIZONTAL</orient>
+                                        <XRCED>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+                                      <border>2</border>
+                                    </object>
+                                    <orient>wxVERTICAL</orient>
+                                    <XRCED>
+                                      <assign_var>1</assign_var>
+                                    </XRCED>
+                                  </object>
+                                  <flag>wxLEFT|wxALL|wxEXPAND</flag>
+                                  <border>2</border>
+                                </object>
+                                <object class="sizeritem">
+                                  <object class="wxBoxSizer">
+                                    <object class="sizeritem">
                                       <object class="wxRadioButton" name="InverseRadio">
                                         <size>80,-1d</size>
                                         <label>Inverse Distance</label>
@@ -492,23 +479,72 @@
                                           </object>
                                         </object>
                                       </object>
-                                      <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
-                                      <border>2</border>
                                     </object>
                                     <orient>wxHORIZONTAL</orient>
                                     <XRCED>
                                       <assign_var>1</assign_var>
                                     </XRCED>
                                   </object>
-                                  <flag>wxALL|wxEXPAND</flag>
+                                  <flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND</flag>
                                   <border>2</border>
                                 </object>
                                 <orient>wxVERTICAL</orient>
                                 <XRCED>
                                   <assign_var>1</assign_var>
                                 </XRCED>
+                                <object class="sizeritem">
+                                  <object class="wxBoxSizer">
+                                    <object class="sizeritem">
+                                      <object class="wxBoxSizer">
+                                        <object class="sizeritem">
+                                          <object class="wxStaticText">
+                                            <label>Cut-off point</label>
+                                          </object>
+                                          <flag>wxALL|wxALIGN_CENTRE</flag>
+                                          <border>2</border>
+                                        </object>
+                                        <object class="sizeritem">
+                                          <object class="wxSlider" name="ThresholdSlider2">
+                                            <value>0</value>
+                                            <min>0</min>
+                                            <max>100000</max>
+                                            <style>wxSL_HORIZONTAL</style>
+                                            <XRCED>
+                                              <events>EVT_SCROLL|EVT_SCROLL_TOP|EVT_SCROLL_BOTTOM|EVT_SCROLL_LINEUP|EVT_SCROLL_LINEDOWN|EVT_SCROLL_PAGEUP|EVT_SCROLL_PAGEDOWN|EVT_SCROLL_THUMBTRACK|EVT_SCROLL_THUMBRELEASE|EVT_SCROLL_CHANGED|EVT_SCROLL|EVT_SCROLL_TOP|EVT_SCROLL_BOTTOM|EVT_SCROLL_LINEUP|EVT_SCROLL_LINEDOWN|EVT_SCROLL_PAGEUP|EVT_SCROLL_PAGEDOWN|EVT_SCROLL_THUMBTRACK|EVT_SCROLL_THUMBRELEASE|EVT_SCROLL_CHANGED</events>
+                                              <assign_var>1</assign_var>
+                                            </XRCED>
+                                          </object>
+                                          <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+                                          <border>2</border>
+                                        </object>
+                                        <orient>wxVERTICAL</orient>
+                                      </object>
+                                      <option>3</option>
+                                      <flag>wxLEFT</flag>
+                                      <border>20</border>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxTextCtrl" name="CutoffText2">
+                                        <style>wxTE_RIGHT</style>
+                                        <XRCED>
+                                          <events>EVT_TEXT</events>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <option>2</option>
+                                      <flag>wxLEFT|wxALIGN_CENTRE</flag>
+                                      <border>15</border>
+                                    </object>
+                                    <orient>wxHORIZONTAL</orient>
+                                    <XRCED>
+                                      <assign_var>1</assign_var>
+                                    </XRCED>
+                                  </object>
+                                  <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+                                  <border>2</border>
+                                </object>
                               </object>
-                              <flag>wxALL|wxALIGN_CENTRE_HORIZONTAL</flag>
+                              <flag>wxALL|wxEXPAND|wxALIGN_CENTRE_HORIZONTAL</flag>
                               <border>2</border>
                             </object>
                           </object>
