@@ -202,7 +202,6 @@ class guiRegModel(abstractmodel.AbstractModel):
         data['mWeights'] = [os.path.relpath(w.path,location) for w in self.data['mWeights']]
         data['kWeights'] = [os.path.relpath(w.path,location) for w in self.data['kWeights']]
         data['fname'] = os.path.relpath(data['fname'],location)
-        print data
         fileObj.write(str(data))
         fileObj.flush()
         self.fileObj = fileObj
@@ -231,8 +230,8 @@ class guiRegModel(abstractmodel.AbstractModel):
         if lYE > 0 or lH >0:
             if lH < lYE:
                 return False,"There need to be at least as many instruments (H) as endogenous variables (YE)."
-            if lYE == 0:
-                return False,'Please add endogenous variables (YE) or disable the "Endogeneity" option.'
+            #if lYE == 0:
+            #    return False,'Please add endogenous variables (YE) or disable the "Endogeneity" option.'
         if self.data['spec']['y'] and self.data['spec']['X']:
             pass
         else:
