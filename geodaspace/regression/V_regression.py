@@ -439,7 +439,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                 dataDict['fname'] = os.path.normpath(os.path.join(location,dataDict['fname']))
                 if not os.path.exists(dataDict['fname']):
                     print "no such file!"
-                    newPath = self.locateMissingFile(dataFilePath)
+                    newPath = self.locateMissingFile(dataDict['fname'])
                     if newPath:
                         dataDict['fname'] = newPath
                         changed = True
