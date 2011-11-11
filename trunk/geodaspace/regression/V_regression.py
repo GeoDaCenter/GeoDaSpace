@@ -891,6 +891,10 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             pos = self.textFrame.Text.GetLastPosition()
             try:
                 result = self.model.run(self.textFrame, predy_resid)
+            except MemoryError:
+                dialog = wx.MessageDialog(self,"Your dataset is too large to perform this computation on 32Bit. You can try running it using the PySAL spreg library and a 64Bit version of Python","Memory Error:",wx.OK|wx.ICON_ERROR)
+                res = dialog.ShowModal()
+                return False
             except Exception:
                 et,e,tb = sys.exc_info()
                 dialog = wx.MessageDialog(self,"\"%s\"\nDisplay detailed error message in results window?"%str(e),"Model Error:",wx.YES_NO|wx.ICON_ERROR)
