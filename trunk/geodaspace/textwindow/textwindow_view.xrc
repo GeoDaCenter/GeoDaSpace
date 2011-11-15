@@ -21,12 +21,12 @@
       </object>
       <object class="separator"/>
       <object class="tool" name="ToolFontSmaller">
-        <bitmap>../../icons/list-remove.png</bitmap>
+        <bitmap>../icons/list-remove.png</bitmap>
         <tooltip>Decrease Font Size</tooltip>
         <label>TOOL</label>
       </object>
       <object class="tool" name="ToolFontBigger">
-        <bitmap>../../icons/list-add.png</bitmap>
+        <bitmap>../icons/list-add.png</bitmap>
         <tooltip>Increase Font Size</tooltip>
         <label>TOOL</label>
       </object>
