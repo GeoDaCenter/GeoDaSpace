@@ -2,7 +2,7 @@
 <resource>
   <object class="wxFrame" name="TextWindow">
     <title>Results</title>
-    <object class="wxToolBar" name="ToolBar">
+    <object class="wxToolBar" name="TextWindowToolBar">
       <object class="tool" name="ToolNew">
         <bitmap stock_id="wxART_NEW"/>
         <tooltip>Create A New Results File...</tooltip>

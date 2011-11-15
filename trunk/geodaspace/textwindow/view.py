@@ -36,7 +36,7 @@ class xrcTextWindow(wx.Frame):
         self.PostCreate(pre)
 
         # Define variables for the controls, bind event handlers
-        self.ToolBar = xrc.XRCCTRL(self, "ToolBar")
+        self.TextWindowToolBar = xrc.XRCCTRL(self, "TextWindowToolBar")
         self.Panel = xrc.XRCCTRL(self, "Panel")
         self.Text = xrc.XRCCTRL(self, "Text")
 
@@ -56,7 +56,7 @@ def __init_resources():
 <?xml version="1.0" ?><resource>
   <object class="wxFrame" name="TextWindow">
     <title>Results</title>
-    <object class="wxToolBar" name="ToolBar">
+    <object class="wxToolBar" name="TextWindowToolBar">
       <object class="tool" name="ToolNew">
         <bitmap stock_id="wxART_NEW"/>
         <tooltip>Create A New Results File...</tooltip>
