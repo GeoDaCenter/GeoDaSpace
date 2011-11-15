@@ -75,12 +75,12 @@ def __init_resources():
       </object>
       <object class="separator"/>
       <object class="tool" name="ToolFontSmaller">
-        <bitmap>______icons_list_remove_png</bitmap>
+        <bitmap>___icons_list_remove_png</bitmap>
         <tooltip>Decrease Font Size</tooltip>
         <label>TOOL</label>
       </object>
       <object class="tool" name="ToolFontBigger">
-        <bitmap>______icons_list_add_png</bitmap>
+        <bitmap>___icons_list_add_png</bitmap>
         <tooltip>Increase Font Size</tooltip>
         <label>TOOL</label>
       </object>
@@ -126,7 +126,7 @@ def __init_resources():
   </object>
 </resource>'''
 
-    ______icons_list_remove_png = '''\
+    ___icons_list_remove_png = '''\
 \x89PNG\x0d
 \x1a
 \x00\x00\x00\x0dIHDR\x00\x00\x00\x10\x00\x00\x00\x10\x08\x06\x00\x00\x00\
@@ -141,7 +141,7 @@ def __init_resources():
 \x9aG^m>\xe1\xf8\xfe?\xf1\x03\xacS-\xdbF\xe4\x80\xd8\x00\x00\x00\x00IE\
 ND\xaeB`\x82'''
 
-    ______icons_list_add_png = '''\
+    ___icons_list_add_png = '''\
 \x89PNG\x0d
 \x1a
 \x00\x00\x00\x0dIHDR\x00\x00\x00\x10\x00\x00\x00\x10\x08\x06\x00\x00\x00\
@@ -159,7 +159,7 @@ tq\x07D\xd2\xc4d\x17\xb1Z\x0d&\x83\x84\x1b\xe8g7Z,Vi\xe2\xa7\xdf1\x10\x8a\
 \x8b\xb2w\x8e\x00\x00\x00\x00IEND\xaeB`\x82'''
 
     wx.MemoryFSHandler.AddFile('XRC/textwindow_view/textwindow_view_xrc', textwindow_view_xrc)
-    wx.MemoryFSHandler.AddFile('XRC/textwindow_view/______icons_list_remove_png', ______icons_list_remove_png)
-    wx.MemoryFSHandler.AddFile('XRC/textwindow_view/______icons_list_add_png', ______icons_list_add_png)
+    wx.MemoryFSHandler.AddFile('XRC/textwindow_view/___icons_list_remove_png', ___icons_list_remove_png)
+    wx.MemoryFSHandler.AddFile('XRC/textwindow_view/___icons_list_add_png', ___icons_list_add_png)
     __res.Load('memory:XRC/textwindow_view/textwindow_view_xrc')
 
