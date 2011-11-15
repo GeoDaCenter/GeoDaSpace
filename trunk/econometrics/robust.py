@@ -55,13 +55,13 @@ def robust_vm(reg, gwk=None):
     
     Example with OLS and HAC
 
-    >>> wk = pysal.open("examples/kernel_knn15_epanechnikov_3085_random_points.gwt","r").read()
+    >>> wk = pysal.kernelW_from_shapefile('examples/NAT.shp',k=15,function='triangular', fixed=False)
     >>> wk.transform = 'o'
     >>> ols = BaseOLS(y,X, robust='hac', gwk=wk)
     >>> ols.vm
-    array([[  2.60708153e-01,   6.34129614e-03,  -3.66436005e-02],
-           [  5.73679940e-03,   1.69671523e-02,  -3.45021358e-05],
-           [ -3.66452363e-02,  -1.17817485e-04,   5.34072367e-03]])
+    array([[ 0.29213585,  0.01670363, -0.0394821 ],
+           [ 0.01655547,  0.02295803, -0.00116872],
+           [-0.03941484, -0.00119075,  0.00568315]])
 
     Example with 2SLS and White
 
@@ -82,10 +82,10 @@ def robust_vm(reg, gwk=None):
 
     >>> tsls = BaseTSLS(y, X, yd, q=q, robust='hac', gwk=wk)
     >>> tsls.vm
-    array([[ 0.32274654,  0.03947159, -0.02786886, -0.01724549],
-           [ 0.03894785,  0.03572799,  0.00504059, -0.00989053],
-           [-0.02793197,  0.00495583,  0.00668599, -0.00268852],
-           [-0.01718763, -0.0098797 , -0.00269626,  0.00518021]])
+    array([[ 0.41985248,  0.06823097, -0.02883901, -0.02788095],
+           [ 0.06867058,  0.04887499,  0.00497445, -0.01367751],
+           [-0.02856442,  0.00501408,  0.00721951, -0.00321607],
+           [-0.02810132, -0.01364912, -0.00318198,  0.00713251]])
 
     """
     if hasattr(reg, 'h'): #If reg has H, do 2SLS estimator. OLS otherwise.
