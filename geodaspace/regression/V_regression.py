@@ -236,6 +236,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.SEHETCheckBox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
         self.ST_LM.Bind(wx.EVT_CHECKBOX, self.updateModelType)
         
+        if not self.RegressionToolBar: #Linux Fix.
+            self.RegressionToolBar = self.GetToolBar()
         self.RegressionToolBar.Bind(wx.EVT_MENU, self.newModel, id = wx.xrc.XRCID("ToolNewModel"))
         self.RegressionToolBar.Bind(wx.EVT_MENU, self.openModel, id = wx.xrc.XRCID("ToolOpenModel"))
         self.RegressionToolBar.Bind(wx.EVT_MENU, self.saveModel, id = wx.xrc.XRCID("ToolSaveModel"))
