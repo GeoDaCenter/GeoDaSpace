@@ -120,6 +120,16 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
     def __init__(self,parent=None,results=None):
         self.results = results
         OGRegression_xrc.xrcGMM_REGRESSION.__init__(self,parent)
+        # Linux Fix for Drag and Drop
+        # wxWidgets issue #2764
+        if sys.platform.startswith('linux'):
+            drop_target_parent = self.X_ListBox.GetParent()
+            box = drop_target_parent.FindWindowByLabel('Specification')
+            tmpParent = wx.Panel(drop_target_parent)
+            box.Reparent(tmpParent)
+            box.Reparent(drop_target_parent) #moves the box to the bottom of the stack
+            tmpParent.Destroy()
+        # end fix
         self.config = preferencesDialog(self)
         self.SetIcon(icons.getGeoDaIcon())
         self.modelFileName = None
