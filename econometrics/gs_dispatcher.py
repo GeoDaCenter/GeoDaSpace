@@ -428,7 +428,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
     if comp_inverse == 'Power Expansion':
         comp_inverse = 'power_exp'
     elif comp_inverse == 'True Inverse':
-        comp_inverse = 'regular'
+        comp_inverse = 'true_inv'
 
     if model_type == 'Standard':
         if name_ye:
