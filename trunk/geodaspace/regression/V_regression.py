@@ -534,7 +534,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         if not setup['error']['hac'] == self.SEHACCheckBox.GetValue():
             self.SEHACCheckBox.SetValue(setup['error']['hac'])
         if not setup['error']['het'] == self.SEHETCheckBox.GetValue():
-            self.SEHACCheckBox.SetValue(setup['error']['het'])
+            self.SEHETCheckBox.SetValue(setup['error']['het'])
         if not setup['spatial_tests']['lm'] == self.ST_LM.GetValue():
             self.ST_LM.SetValue(setup['spatial_tests']['lm'])
 
