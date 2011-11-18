@@ -78,6 +78,7 @@ def negLogEL(theta, gobacks, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=Non
     LEL = -1./2.*logdetSigma + sum(np.log(p(y,phi,mu))) + np.log(meanT)
     NLEL = -LEL #Optimization through minimization
     print "logdetSigma:",logdetSigma," Sum-Log p(y,phi,mu):",sum(np.log(p(y,phi,mu))),"meanT",meanT
+    print 'T!!!!!!!!!!!!! ', -0.5*np.dot(zj.T,np.dot((SigmaInv-np.eye(n)),zj))
     print "###### NLEL ######"
     print NLEL
     print "##################\n"
@@ -143,19 +144,21 @@ def p(y,phi,mu): #Madsen's code
             p[i]=(phi**2./(1+phi**2))**(phi**2.*mu[i])
         else:
             p_a =  1./(y[i]*beta(y[i],phi**2.*mu[i]))
-            #if np.isinf(p_a):
-                #p_a = 9e+30
+            if np.isinf(p_a):
+                p_a = 9e+30
             p_b = (phi**2/(1+phi**2))
             p_c = (phi**2.*mu[i])
             p_d = (1./(1+phi**2)**y[i])
-            #if p_d == 0.:
-                #p_d = 1e-9
+            if p_d == 0.:
+                p_d = 1e-9
             p_ = p_a * (p_b)**p_c * p_d
             if np.isnan(p_):
-                #p_ = 1.
-                pass
+                p_ = 1.
+                #pass
             #p[i]=1./(y[i]*beta(y[i],phi**2.*mu[i]))*(phi**2/(1+phi**2))**(phi**2.*mu[i])*(1./(1+phi**2)**y[i])
             p[i] = p_
+        if p[i] == 0.:
+            p[i] = 1e-9
     if sum(p)<0.00001:
         p=0.00001
     return p
