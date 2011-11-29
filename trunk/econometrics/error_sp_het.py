@@ -41,6 +41,8 @@ class BaseGM_Error_Het(RegressionProps):
                   nx1 array of dependent variable  
     x           : array
                   nxk array of independent variables (with constant)
+    xtx         : array
+                  X.T * X
     betas       : array
                   (k+1)x1 array with estimates for betas and lambda
     n           : int
@@ -88,7 +90,7 @@ class BaseGM_Error_Het(RegressionProps):
 
         #1a. OLS --> \tilde{betas}
         ols = OLS.BaseOLS(y=y, x=x)
-        self.x, self.y, self.n, self.k = ols.x, ols.y, ols.n, ols.k
+        self.x, self.y, self.n, self.k, self.xtx = ols.x, ols.y, ols.n, ols.k, ols.xtx
         w.A1 = UTILS.get_A1_het(w.sparse)
 
         #1b. GMM --> \tilde{\lambda1}
@@ -144,6 +146,8 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
                   nx1 array of dependent variable
     x           : array
                   nxj array of j independent variables (without a constant) 
+    xtx         : array
+                  X.T * X
     w           : W
                   PySAL weights instance aligned with y and with instances S
                   and A1 created
@@ -277,6 +281,8 @@ class BaseGM_Endog_Error_Het(RegressionProps):
                   nxk array of variables (combination of x and yend)
     h           : array
                   nxl array of instruments (combination of x and q)
+    hth         : array
+                  h.T * h
     yend        : array
                   endogenous variables
     q           : array
@@ -336,7 +342,7 @@ class BaseGM_Endog_Error_Het(RegressionProps):
         #1a. reg --> \tilde{betas} 
         tsls = TSLS.BaseTSLS(y=y, x=x, yend=yend, q=q, constant=constant)
         self.x, self.z, self.h, self.y = tsls.x, tsls.z, tsls.h, tsls.y
-        self.yend, self.q, self.n, self.k = tsls.yend, tsls.q, tsls.n, tsls.k
+        self.yend, self.q, self.n, self.k, self.hth = tsls.yend, tsls.q, tsls.n, tsls.k, tsls.hth
         w.A1 = UTILS.get_A1_het(w.sparse)
 
         #1b. GMM --> \tilde{\lambda1}
@@ -431,6 +437,8 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
                   nxk array of variables (combination of x and yend)
     h           : array
                   nxl array of instruments (combination of x and q)
+    hth         : array
+                  h.T * h
     yend        : array
                   endogenous variables
     q           : array
@@ -566,6 +574,8 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
                   nxk array of variables (combination of x and yend)
     h           : array
                   nxl array of instruments (combination of x and q)
+    hth         : array
+                  h.T * h
     yend        : array
                   endogenous variables
     q           : array
@@ -701,6 +711,8 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
                   nxk array of variables (combination of x and yend)
     h           : array
                   nxl array of instruments (combination of x and q)
+    hth         : array
+                  h.T * h
     yend        : array
                   endogenous variables
     q           : array

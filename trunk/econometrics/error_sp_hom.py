@@ -54,6 +54,8 @@ class BaseGM_Error_Hom(RegressionProps):
                   nx1 array of dependent variable
     x           : array
                   array of independent variables (with constant)
+    xtx         : array
+                  X.T * X
     betas       : array
                   (k+1)x1 array with estimates for betas and lambda
     u           : array
@@ -116,7 +118,7 @@ class BaseGM_Error_Hom(RegressionProps):
 
         # 1a. OLS --> \tilde{\delta}
         ols = OLS.BaseOLS(y=y, x=x)
-        self.x, self.y, self.n, self.k = ols.x, ols.y, ols.n, ols.k
+        self.x, self.y, self.n, self.k, self.xtx = ols.x, ols.y, ols.n, ols.k, ols.xtx
 
         # 1b. GM --> \tilde{\rho}
         moments = moments_hom(w, ols.u)
@@ -286,6 +288,8 @@ class BaseGM_Endog_Error_Hom(RegressionProps):
                   nxk array of variables (combination of x and yend)
     h           : array
                   nxl array of instruments (combination of x and q)
+    hth         : array
+                  h.T * h
     yend        : array
                   endogenous variables
     q           : array
@@ -360,7 +364,7 @@ class BaseGM_Endog_Error_Hom(RegressionProps):
 
         # 1a. S2SLS --> \tilde{\delta}
         tsls = TSLS.BaseTSLS(y=y, x=x, yend=yend, q=q)
-        self.x, self.z, self.h, self.y = tsls.x, tsls.z, tsls.h, tsls.y
+        self.x, self.z, self.h, self.y, self.hth = tsls.x, tsls.z, tsls.h, tsls.y, tsls.hth
         self.yend, self.q, self.n, self.k = tsls.yend, tsls.q, tsls.n, tsls.k
 
         # 1b. GM --> \tilde{\rho}
@@ -440,6 +444,8 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom, USER.DiagnosticBuilder):
                   nxk array of variables (combination of x and yend)
     h           : array
                   nxl array of instruments (combination of x and q)
+    hth         : array
+                  h.T * h
     yend        : array
                   endogenous variables
     q           : array
@@ -578,6 +584,8 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom, RegressionProps):
                   nxk array of variables (combination of x and yend)
     h           : array
                   nxl array of instruments (combination of x and q)
+    hth         : array
+                  h.T * h
     yend        : array
                   endogenous variables
     q           : array
@@ -716,6 +724,8 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
                   nxk array of variables (combination of x and yend)
     h           : array
                   nxl array of instruments (combination of x and q)
+    hth         : array
+                  h.T * h
     yend        : array
                   endogenous variables
     q           : array
