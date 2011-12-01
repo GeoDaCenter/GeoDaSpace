@@ -80,7 +80,7 @@ class ListBoxDropTarget(wx.TextDropTarget):
         wx.TextDropTarget.__init__(self)
         self.targetListBox = targetListBox
 
-        self.text_obj = wx.TextDataObject()
+        self.text_obj = wx.PyTextDataObject()
         self.SetDataObject(self.text_obj)
     def OnData(self,x,y,default): #Called on drop
         if self.targetListBox.IsEnabled():
@@ -89,8 +89,12 @@ class ListBoxDropTarget(wx.TextDropTarget):
             if hitidx == wx.NOT_FOUND:
                 hitidx = self.targetListBox.GetCount()
             #Get Drop Item(s)
-            self.GetData()
+            print self.GetData()
+            #print self.GetDataObject()
+            #print self.GetDataObject().GetDataSize(wx.DataFormat(wx.DF_UNICODETEXT))
+            #text = self.GetDataObject().GetDataHere(wx.DataFormat(wx.DF_UNICODETEXT))
             text = self.text_obj.GetText()
+            print "DROP TEXT: %r"%(text)
             itms = text.split(',')
             n = len(itms)
             #Remove duplicates items to make way to new items.
