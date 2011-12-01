@@ -75,6 +75,10 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.residualMoran = xrc.XRCCTRL(self, "residualMoran")
         self.numcoresLabel = xrc.XRCCTRL(self, "numcoresLabel")
         self.numcores = xrc.XRCCTRL(self, "numcores")
+        self.missingValueCheckLabel = xrc.XRCCTRL(self, "missingValueCheckLabel")
+        self.missingValueCheck = xrc.XRCCTRL(self, "missingValueCheck")
+        self.missingValueLabel = xrc.XRCCTRL(self, "missingValueLabel")
+        self.missingValue = xrc.XRCCTRL(self, "missingValue")
         self.restoreButton = xrc.XRCCTRL(self, "restoreButton")
         self.cancelButton = xrc.XRCCTRL(self, "cancelButton")
         self.saveButton = xrc.XRCCTRL(self, "saveButton")
@@ -98,6 +102,8 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_OLSdiagnostics, self.OLSdiagnostics)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_residualMoran, self.residualMoran)
         self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_numcores, self.numcores)
+        self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_missingValueCheck, self.missingValueCheck)
+        self.Bind(wx.EVT_TEXT, self.OnText_missingValue, self.missingValue)
         self.Bind(wx.EVT_BUTTON, self.OnButton_restoreButton, self.restoreButton)
         self.Bind(wx.EVT_BUTTON, self.OnButton_cancelButton, self.cancelButton)
         self.Bind(wx.EVT_BUTTON, self.OnButton_saveButton, self.saveButton)
@@ -216,6 +222,18 @@ class xrcgsPrefsDialog(wx.Dialog):
         # Replace with event handler code
         print "OnSpinctrl_numcores()"
 #!XRCED:end-block:xrcgsPrefsDialog.OnSpinctrl_numcores        
+
+#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_missingValueCheck
+    def OnCheckbox_missingValueCheck(self, evt):
+        # Replace with event handler code
+        print "OnCheckbox_missingValueCheck()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_missingValueCheck        
+
+#!XRCED:begin-block:xrcgsPrefsDialog.OnText_missingValue
+    def OnText_missingValue(self, evt):
+        # Replace with event handler code
+        print "OnText_missingValue()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnText_missingValue        
 
 #!XRCED:begin-block:xrcgsPrefsDialog.OnButton_restoreButton
     def OnButton_restoreButton(self, evt):
@@ -797,8 +815,53 @@ def __init_resources():
                       </object>
                       <flag>wxALIGN_CENTRE</flag>
                     </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText">
+                        <label>Data</label>
+                        <font>
+                          <weight>bold</weight>
+                        </font>
+                      </object>
+                    </object>
+                    <object class="spacer"/>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="missingValueCheckLabel">
+                        <label>Replace Missing Values</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxLEFT</flag>
+                      <border>10</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="missingValueCheck">
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="missingValueLabel">
+                        <label>Value:</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxLEFT</flag>
+                      <border>10</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxTextCtrl" name="missingValue">
+                        <XRCED>
+                          <events>EVT_TEXT</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                    </object>
                     <cols>2</cols>
-                    <rows>5</rows>
+                    <rows>8</rows>
                     <vgap>7</vgap>
                     <hgap>25</hgap>
                   </object>

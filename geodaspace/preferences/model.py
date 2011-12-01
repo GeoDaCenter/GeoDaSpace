@@ -6,8 +6,6 @@ import json
 from geodaspace import AbstractModel
 from geodaspace import DEBUG
 
-DEBUG = True
-
 class preferencesModel(AbstractModel):
     """
     Model for GeoDaSpace Prefernese with save/load support.
@@ -17,6 +15,7 @@ class preferencesModel(AbstractModel):
         'gmm_epsilon':1e-05, 'gmm_inferenceOnLambda':True, 'gmm_max_iter':1, 'gmm_step1c':False, 'gmm_inv_method':'Power Expansion',
         'instruments_lag_q':True, 'instruments_w_lags':1,
         'other_ols_diagnostics':True, 'other_numcores':1, 'other_residualMoran':False,
+        'other_missingValueCheck':False, 'other_missingValue':0.0,
         'output_save_pred_residuals':False, 'output_vm_summary':False, 'output_show_detailed_spec':False
     }
     sig2n_k_other = AbstractModel.abstractProp('sig2n_k_other',bool)
@@ -36,6 +35,8 @@ class preferencesModel(AbstractModel):
     other_ols_diagnostics = AbstractModel.abstractProp('other_ols_diagnostics',bool)
     other_numcores = AbstractModel.abstractProp('other_numcores',int)
     other_residualMoran = AbstractModel.abstractProp('other_residualMoran',bool)
+    other_missingValueCheck = AbstractModel.abstractProp('other_missingValueCheck',bool)
+    other_missingValue = AbstractModel.abstractProp('other_missingValue',float)
 
     output_save_pred_residuals = AbstractModel.abstractProp('output_save_pred_residuals',bool)
     output_vm_summary = AbstractModel.abstractProp('output_vm_summary',bool)

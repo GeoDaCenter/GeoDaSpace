@@ -164,6 +164,8 @@ class guiRegModel(abstractmodel.AbstractModel):
         """Sets the db with field names"""
         self.data['db'] = self.db(headerOnly=True)
     def db(self,headerOnly=False):
+        if self.data['config']['other_missingValueCheck']:
+            pysal.MISSINGVALUE = self.data['config']['other_missingValue']
         if 'fname' in self.data:
             fileType = self.data['fname'].rsplit('.')[-1].lower()
             self.fileType = fileType
@@ -210,6 +212,12 @@ class guiRegModel(abstractmodel.AbstractModel):
         try:
             self.reset()
             data = eval(s)
+            # load config from mdl, make sure all settings are included (i.e. support older mdls).
+            if 'config' in data:
+                cfg = {}
+                cfg.update(preferencesModel.DEFAULTS)
+                cfg.update(data['config'])
+                data['config'] = cfg
             data['mWeights'] = [GeoDaSpace_W_Obj.from_path(w) for w in data['mWeights']]
             for w in data['mWeights']:
                 w.w.transform='R'
@@ -248,7 +256,7 @@ class guiRegModel(abstractmodel.AbstractModel):
     @staticmethod
     def get_col(db,col_name,allowMissing=False):
         col = db.by_col(col_name)
-        if pysal.MISSINGVALUE in col:
+        if pysal.MISSINGVALUE== None and pysal.MISSINGVALUE in col:
             raise ValueError, "Data column \"%s\" contains missing values."%col_name
         return col
     def run(self,path=None, predy_resid=None):
@@ -258,6 +266,10 @@ class guiRegModel(abstractmodel.AbstractModel):
             return False
         data = self.data
         print data
+        if self.data['config']['other_missingValueCheck']:
+            pysal.MISSINGVALUE = self.data['config']['other_missingValue']
+        else:
+            pysal.MISSINGVALUE = None
 
         # Build up args for dispatcher
         # weights

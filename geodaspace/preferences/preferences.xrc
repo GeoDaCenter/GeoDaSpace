@@ -513,8 +513,53 @@
                       </object>
                       <flag>wxALIGN_CENTRE</flag>
                     </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText">
+                        <label>Data</label>
+                        <font>
+                          <weight>bold</weight>
+                        </font>
+                      </object>
+                    </object>
+                    <object class="spacer"/>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="missingValueCheckLabel">
+                        <label>Replace Missing Values</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxLEFT</flag>
+                      <border>10</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="missingValueCheck">
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="missingValueLabel">
+                        <label>Value:</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxLEFT</flag>
+                      <border>10</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxTextCtrl" name="missingValue">
+                        <XRCED>
+                          <events>EVT_TEXT</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                    </object>
                     <cols>2</cols>
-                    <rows>5</rows>
+                    <rows>8</rows>
                     <vgap>7</vgap>
                     <hgap>25</hgap>
                   </object>

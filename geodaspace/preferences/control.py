@@ -107,6 +107,10 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         d['numcores'] = self.other_numcores
         d['other_residualMoran'] = self.other_residualMoran
         d['residualMoran'] = self.other_residualMoran
+        d['missingValueCheck'] = self.other_missingValueCheck
+        d['other_missingValueCheck'] = self.other_missingValueCheck
+        d['missingValue'] = self.other_missingValue
+        d['other_missingValue'] = self.other_missingValue
 
         self.model = preferencesModel()
         self.reset_model()
@@ -302,7 +306,24 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
             self.model.other_residualMoran = self.residualMoran.GetValue()
         elif value != None:
             self.residualMoran.SetValue(self.model.other_residualMoran)
-
+    def other_missingValueCheck(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.other_missingValueCheck = self.missingValueCheck.GetValue()
+        elif value != None:
+            self.missingValueCheck.SetValue(self.model.other_missingValueCheck)
+    def other_missingValue(self, evtName=None, evt=None, value=None):
+        if evt:
+            try:
+                self.model.other_missingValue = float(self.missingValue.GetValue())
+            except:
+                pass
+        elif value != None:
+            try:
+                curval = float(self.missingValue.GetValue())
+            except:
+                curval = None
+            if self.model.other_missingValue != curval:
+                self.missingValue.SetValue(str(self.model.other_missingValue))
     def SetPrefs(self,prefs):
         for key in prefs:
             if hasattr(self.model,key):
