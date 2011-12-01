@@ -46,27 +46,24 @@ class TextCtrlDropTarget(wx.TextDropTarget):
     def __init__(self,target):
         wx.TextDropTarget.__init__(self)
         self.target = target
-        #self.target.SetEditable(True)
         self.target.SetEditable(False)
 
-        self.text_obj = wx.TextDataObject()
+        self.text_obj = wx.CustomDataObject('py_str')
         self.SetDataObject(self.text_obj)
     def OnData(self,x,y,default): #Called on drop
         self.GetData()
-        text = self.text_obj.GetText()
-
-        #self.target.SetEditable(True)
+        text = self.text_obj.GetData()
         self.target.Clear()
         self.target.SetValue(text.split(',')[0])
-        #self.target.SetEditable(False)
         if ',' in text:
             print "This field can only accept one value.  We'll take the first."
             print text
+        return default
 class NullDropTarget(wx.TextDropTarget):
     def __init__(self,targetListBox):
         wx.TextDropTarget.__init__(self)
         self.targetListBox = targetListBox
-        self.text_obj = wx.TextDataObject()
+        self.text_obj = wx.CustomDataObject('py_str')
         self.SetDataObject(self.text_obj)
     def OnData(self,x,y,default):
         return False
@@ -80,7 +77,7 @@ class ListBoxDropTarget(wx.TextDropTarget):
         wx.TextDropTarget.__init__(self)
         self.targetListBox = targetListBox
 
-        self.text_obj = wx.PyTextDataObject()
+        self.text_obj = wx.CustomDataObject('py_str')
         self.SetDataObject(self.text_obj)
     def OnData(self,x,y,default): #Called on drop
         if self.targetListBox.IsEnabled():
@@ -89,12 +86,8 @@ class ListBoxDropTarget(wx.TextDropTarget):
             if hitidx == wx.NOT_FOUND:
                 hitidx = self.targetListBox.GetCount()
             #Get Drop Item(s)
-            print self.GetData()
-            #print self.GetDataObject()
-            #print self.GetDataObject().GetDataSize(wx.DataFormat(wx.DF_UNICODETEXT))
-            #text = self.GetDataObject().GetDataHere(wx.DataFormat(wx.DF_UNICODETEXT))
-            text = self.text_obj.GetText()
-            print "DROP TEXT: %r"%(text)
+            self.GetData()
+            text = self.text_obj.GetData()
             itms = text.split(',')
             n = len(itms)
             #Remove duplicates items to make way to new items.
@@ -284,8 +277,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                 if evt.EventObject.GetSelection() != wx.NOT_FOUND:
                     to_drag = evt.EventObject.GetSelection()
                 if to_drag not in [wx.NOT_FOUND, None]:
-                    data = wx.PyTextDataObject()
-                    data.SetText(evt.EventObject.GetString(to_drag))
+                    data = wx.CustomDataObject('py_str')
+                    data.SetData(evt.EventObject.GetString(to_drag).encode('utf8'))
                     var2del = evt.EventObject.GetString(to_drag)
                     to_del = evt.EventObject.FindString(var2del)
                     evt.EventObject.Delete(to_del)

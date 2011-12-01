@@ -91,10 +91,10 @@ class vVariableSelector(wx.MiniFrame):
         #dt = ListDrop(self.leftclick)
 
     def _startDrag(self,e):
-        data = wx.PyTextDataObject()
+        data = wx.CustomDataObject('py_str')
         items = self.getSelected()
         items = ','.join(items)
-        data.SetText(items)
+        data.SetData(items.encode('utf8'))
 
         dropSource = wx.DropSource(self.sourcelist)
         dropSource.SetData(data)
