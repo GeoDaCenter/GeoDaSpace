@@ -84,19 +84,27 @@ class ListBoxDropTarget(wx.TextDropTarget):
         self.SetDataObject(self.text_obj)
     def OnData(self,x,y,default): #Called on drop
         if self.targetListBox.IsEnabled():
+            #Find index to insert Drop Item(s)
+            hitidx = self.targetListBox.HitTest((x,y))
+            if hitidx == wx.NOT_FOUND:
+                hitidx = self.targetListBox.GetCount()
+            #Get Drop Item(s)
             self.GetData()
             text = self.text_obj.GetText()
-            end_of_list = self.targetListBox.GetCount()
             itms = text.split(',')
             n = len(itms)
-            itms = [x for x in itms if self.targetListBox.FindString(x)==wx.NOT_FOUND]
-            fn = len(itms)
-            self.targetListBox.InsertItems(itms,end_of_list)
+            #Remove duplicates items to make way to new items.
+            for itm in itms:
+                idx = self.targetListBox.FindString(itm)
+                if idx != wx.NOT_FOUND:
+                    self.targetListBox.Delete(idx)
+                    if idx < hitidx:
+                        hitidx -= 1
+            #Insert Drop Item(s).
+            self.targetListBox.InsertItems(itms,hitidx)
             # Fire my custom event type
             evt = ListBoxUpdateEvent(myEVT_LIST_BOX_UPDATE, self.targetListBox.GetId())
             self.targetListBox.GetEventHandler().ProcessEvent(evt)
-            if fn<n:
-                return False
             return default
         else:
             return False
@@ -271,22 +279,19 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             if type(evt.EventObject) == wx.ListBox:
                 if evt.EventObject.GetSelection() != wx.NOT_FOUND:
                     to_drag = evt.EventObject.GetSelection()
-                #print to_drag
                 if to_drag not in [wx.NOT_FOUND, None]:
                     data = wx.PyTextDataObject()
                     data.SetText(evt.EventObject.GetString(to_drag))
                     var2del = evt.EventObject.GetString(to_drag)
-                    #print "startDrag:",to_drag,var2del
+                    to_del = evt.EventObject.FindString(var2del)
+                    evt.EventObject.Delete(to_del)
                     dropSource = wx.DropSource(evt.EventObject)
                     dropSource.SetData(data)
                     res = dropSource.DoDragDrop(flags=wx.Drag_DefaultMove)
-                    #print res
                     if res == wx.DragMove:
-                        #print "endDrag, item may have moved, find new index."
-                        to_del = evt.EventObject.FindString(var2del)
-                        evt.EventObject.Delete(to_del)
-                        #print to_del,"removed. going to update spec"
                         self.updateSpec(None)
+                    else:
+                        evt.EventObject.Insert(var2del, to_del)
                     
                 
         evt.Skip()
