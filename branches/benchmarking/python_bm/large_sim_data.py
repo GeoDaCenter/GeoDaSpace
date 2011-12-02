@@ -77,6 +77,7 @@ def test_large_olsSPd(s, k, log=None, base=False, sw=False, a=True):
 
     else:
         w = ps.lat2W(s, s, rook=False)
+        w.transform ='r'
     t1 = time.time()
     tf = t1 - t0
     creWe = 'Created Weights:\t\t%.5f seconds\n'%tf
@@ -180,6 +181,7 @@ def test_large_GMhom(s, k, log=None, base=False, sw=False, a=True):
     t0 = time.time()
     if sw:
         w = ps.weights.lat2SW(s, s, criterion='queen')
+        print type(w[0, 1])
         w.n = s**2
         w.sparse = w
         w.s0 = np.sum(w.data)
@@ -190,6 +192,7 @@ def test_large_GMhom(s, k, log=None, base=False, sw=False, a=True):
 
     else:
         w = ps.lat2W(s, s, rook=False)
+        w.transform ='r'
     t1 = time.time()
     tf = t1 - t0
     creWe = 'Created Weights:\t\t%.5f seconds\n'%tf
@@ -285,6 +288,7 @@ def test_large_GMhet(s, k, log=None, base=False, sw=False, a=True):
 
     else:
         w = ps.lat2W(s, s, rook=False)
+        w.transform ='r'
     t1 = time.time()
     tf = t1 - t0
     creWe = 'Created Weights:\t\t%.5f seconds\n'%tf
@@ -380,6 +384,7 @@ def test_large_STSLS(s, k, log=None, base=False, sw=False, a=True):
 
     else:
         w = ps.lat2W(s, s, rook=False)
+        w.transform ='r'
     t1 = time.time()
     tf = t1 - t0
     creWe = 'Created Weights:\t\t%.5f seconds\n'%tf
@@ -475,6 +480,7 @@ def test_large_sp_models(s, k, log=None, base=False, sw=False, a=True):
 
     else:
         w = ps.lat2W(s, s, rook=False)
+        w.transform ='r'
     t1 = time.time()
     tf = t1 - t0
     creWe = 'Created Weights:\t\t%.5f seconds\n'%tf
@@ -584,6 +590,7 @@ def test_large_spHet_error_models(s, k, log=None, base=False, sw=False, a=True):
 
     else:
         w = ps.lat2W(s, s, rook=False)
+        w.transform ='r'
     t1 = time.time()
     tf = t1 - t0
     creWe = 'Created Weights:\t\t%.5f seconds\n'%tf
@@ -679,6 +686,7 @@ def test_large_spHet_sarar_models(s, k, log=None, base=False, sw=False, a=True):
 
     else:
         w = ps.lat2W(s, s, rook=False)
+        w.transform ='r'
     t1 = time.time()
     tf = t1 - t0
     creWe = 'Created Weights:\t\t%.5f seconds\n'%tf
@@ -890,8 +898,8 @@ methods = {'ols': test_large_olsSPd,
         'error_hom': test_large_GMhom,
         'error_het': test_large_GMhet}
         
-logfile = '/Users/dani/Desktop/python_%s.log'%method
-model = methods[method](int(side), 100, log=logfile, a=True, base=True,
+logfile = '/Users/dani/Desktop/benchmarking/python_%s.log'%method
+model = methods[method](int(side), 10, log=logfile, a=True, base=True,
         sw=True)
 
 '''
