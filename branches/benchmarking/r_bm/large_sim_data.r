@@ -3,6 +3,7 @@
 
 library(spdep)
 library(sphet)
+source('/Users/dani/code/spdep/R/lm.moran_dani.R')
 
 test.large.olsSPd <- function(s, k){
     n <- s**2
@@ -42,6 +43,8 @@ test.large.olsSPd <- function(s, k){
 
     t0 <- proc.time()
     moran <- lm.morantest(ols, w)
+    print('MORAN')
+    print(moran)
     t1 <- proc.time()
     time <- t1 - t0
     print('Moran test:')
@@ -325,17 +328,17 @@ test.small.all  <- function(s, k){
 }
 
 k <- 10
-sizes <- cbind(150, 300, 450, 600, 750, 800, 900, 1000)
-sizes <- cbind(150)
+sizes <- cbind(150, 300, 450, 600, 750, 800, 850, 900, 1000, 1250, 1500, 1750, 2000, 2500)
 #sizes <- cbind(1150, 1300, 1450, 1600, 1750, 1900, 2000)
 #sizes <- cbind(15)
-sizes <- cbind(30, 50, 70, 100)
+#sizes <- cbind(30, 50, 70, 100)
+#sizes <- cbind(10)
 
-for(size in sizes){
-    mes <- paste('Evaluating size:', size**2)
-    print(mes)
+#for(size in sizes){
+   #mes <- paste('Evaluating size:', size**2)
+   #print(mes)
 
-   #sink('/Users/dani/Dropbox/aagLogs/ols_r.log', append=TRUE)
+   #sink('/Users/dani/Desktop/ols_r.log', append=TRUE)
    #test.large.olsSPd(size, k)
    #sink()
 
@@ -355,9 +358,9 @@ for(size in sizes){
    #test.large.spHet_sarar.models(size, k)
    #sink()
 
-    sink('/home/dani/Dropbox/aagLogs/smAll_r.log', append=TRUE)
-    test.large.spHet_sarar.models(size, k)
-    sink()
+   #sink('/home/dani/Dropbox/aagLogs/smAll_r.log', append=TRUE)
+   #test.large.spHet_sarar.models(size, k)
+   #sink()
 
 }
 
