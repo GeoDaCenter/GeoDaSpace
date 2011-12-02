@@ -1,6 +1,7 @@
 import pysal
 import numpy as np
-from madsen import negLogEL, p, dpdphi, dpdmu
+#from madsen import negLogEL, p, dpdphi, dpdmu
+from madsen_crime import negLogEL, p, dpdphi, dpdmu
 from scipy.optimize import fmin_l_bfgs_b
 import scipy.optimize as op
 import scikits.statsmodels.api as sm
@@ -54,17 +55,19 @@ for i in beta0:
     theta0.append(float(i))
 #theta0 = [np.log(alphaN0/(1-alphaN0)), np.log((alphaR0/B)/(1-alphaR0/B)), np.log((phi0/Bphi)/(1-phi0/Bphi)), beta0]
 dimbeta = beta0.shape[0]
-numu = 1000
+numu = 10
 #U = np.random.uniform(0, 1, (n, numu))
 #np.savetxt('U1k.txt',U,delimiter=",")
 U = np.loadtxt('U.txt',delimiter=",")
 print np.array(theta0)
 bounds=[(0.,1.),(None,B),(None,Bphi),(None,None),(None,None),(None,None),(None,None)]
 #par_hat = negLogEL(np.array(theta0), y, U, XX, H, dimbeta, B, Bphi, want_derivatives=1)
-ll_func = lambda par: negLogEL(par, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=1)
+#ll_func = lambda par: negLogEL(par, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=1)
+ll_func = lambda par: negLogEL(par, theta0, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=1)
 par_hat = fmin_l_bfgs_b(ll_func, np.array(theta0), iprint=1)
 #par_hat = op.fmin(ll_func, np.array(theta0), retall=True)
 
 print '$$$$$$$$$$$$$$$$$$$$$$'
-print par_hat
+for i in range(len(theta0)):
+    print theta0[i], par_hat[0][i], theta0[i] - par_hat[0][i]
 

@@ -63,7 +63,7 @@ def negLogEL(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
     #print zj.T
     # Calculate the negative log expected likelihood.
     NLEL=1./2.*logdetSigma-sum(np.log(p(y,phi,mu)))-np.log(meanT)
-    #print "logdetSigma:",logdetSigma,"p(y,phi,mu):",sum(np.log(p(y,phi,mu))),"np.log(meanT)",np.log(meanT)
+    print "logdetSigma:",logdetSigma,"p(y,phi,mu):",sum(np.log(p(y,phi,mu))),"np.log(meanT)",np.log(meanT)
     print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
     print NLEL
     print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
