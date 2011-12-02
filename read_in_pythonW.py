@@ -27,7 +27,7 @@ Bphi = 100
 
 XX = a[:, 2:3]
 XX = np.hstack((np.ones((n, 1)), XX, XX**2, XX**3))
-alphaN0 = 0.5
+alphaN0 = 0.2
 #alphaR0 = 0.1052
 #alphaR0 = -np.log(.1 / alphaN0) / mH
 
@@ -61,14 +61,14 @@ theta0.append(phi0)
 for i in beta0:
     theta0.append(float(i))
 dimbeta = beta0.shape[0]
-numu = 5
+numu = 10
 #U = np.random.uniform(0, 1, (n, numu))
 #np.savetxt('U1k.txt',U,delimiter=",")
 U = np.loadtxt('U.txt',delimiter=",")
 bounds=[(-0.99999,0.99999),(None,Bphi),(None,None),(None,None),(None,None),(None,None)]
 bounds=[(-1.,1.),(None,Bphi),(None,None),(None,None),(None,None),(None,None)]
 #print 'par_hat', negLogEL(np.array(theta0), y, U, XX, H, dimbeta, Bphi, want_derivatives=1)
-use_derivatives = 0
+use_derivatives = 1
 if use_derivatives:
     ll_func = lambda par: negLogEL(par, y, U, XX, H, dimbeta, Bphi, want_derivatives=1)
     par_hat = fmin_l_bfgs_b(ll_func, np.array(theta0), iprint=1, bounds=bounds, approx_grad=0)

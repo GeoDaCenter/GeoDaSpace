@@ -78,7 +78,7 @@ def negLogEL(theta, gobacks, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=Non
     LEL = -1./2.*logdetSigma + sum(np.log(p(y,phi,mu))) + np.log(meanT)
     NLEL = -LEL #Optimization through minimization
     print "logdetSigma:",logdetSigma," Sum-Log p(y,phi,mu):",sum(np.log(p(y,phi,mu))),"meanT",meanT
-    print 'T!!!!!!!!!!!!! ', -0.5*np.dot(zj.T,np.dot((SigmaInv-np.eye(n)),zj))
+    #print 'T!!!!!!!!!!!!! ', -0.5*np.dot(zj.T,np.dot((SigmaInv-np.eye(n)),zj))
     print "###### NLEL ######"
     print NLEL
     print "##################\n"
