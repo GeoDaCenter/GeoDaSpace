@@ -1071,7 +1071,7 @@ def get_omega_hom_ols(w, reg, lamb, G):
     psii = la.inv(psi)
 
     oDD = sig2 * la.inv(np.dot(x_s.T, x_s))
-    oLL = la.inv(np.dot(j.T, np.dot(psii, j)))
+    oLL = la.inv(np.dot(j.T, np.dot(psii, j))) / n
     #oDL = np.zeros((oDD.shape[0], oLL.shape[1]))
     mu3 = np.sum(u_s**3) / n
     psiDL = (mu3 * np.dot(reg.x.T, np.hstack((vecdA1, np.zeros((n, 1)))))) / n
