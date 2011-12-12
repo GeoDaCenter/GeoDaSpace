@@ -1,6 +1,5 @@
 '''
-Script to replicate steps in ../stata_bm/columbus.do
-Script to replicate steps in ../r_bm/stata_columbus.r
+Debug hom with Lee's data
 '''
 
 import pysal as ps
@@ -10,29 +9,30 @@ from econometrics.twosls_sp import BaseGM_Lag as GM_Lag
 #from econometrics.spError import BaseGM_Combo as GM_Combo
 from econometrics.error_sp_het import BaseGM_Error_Het as BaseGM_Error_Het
 from econometrics.error_sp_hom import BaseGM_Endog_Error_Hom as BaseGM_Endog_Error_Hom
-from econometrics.error_sp_hom import GM_Endog_Error_Hom, GM_Error_Hom, GM_Combo_Hom
+from econometrics.error_sp_hom import GM_Error_Hom, GM_Endog_Error_Hom
 from econometrics.error_sp_het import BaseGM_Endog_Error_Het as BaseGM_Endog_Error_Het
 from econometrics.error_sp_het import BaseGM_Combo_Het as BaseGM_Combo_Het
 from econometrics.error_sp_hom import BaseGM_Combo_Hom as BaseGM_Combo_Hom
 from econometrics.twosls import TSLS
 
-w = ps.open('../../../trunk/econometrics/examples/columbus.gal').read()
-#w = ps.open('C:/Users/Pedro/Documents/Academico/GeodaCenter/python/SVN/spreg/trunk/econometrics/examples/columbus.gal').read()
+w = ps.open('lee_data/crc.gal').read()
 w.transform = 'r'
-db = ps.open('../../../trunk/econometrics/examples/columbus.dbf')
-#db = ps.open('C:/Users/Pedro/Documents/Academico/GeodaCenter/python/SVN/spreg/trunk/econometrics/examples/columbus.dbf')
-
-crime = np.array([db.by_col('CRIME')]).T
-inc = np.array([db.by_col('INC')]).T
-hoval = np.array([db.by_col('HOVAL')]).T
-discbd = np.array([db.by_col('DISCBD')]).T
-nsa = np.array([db.by_col('NSA')]).T
-#w_crime = ps.lag_spatial(w, crime)
-
-x = np.hstack((inc, crime))
+db = ps.open('lee_data/crc.dbf')
+y = np.array(db.by_col('crc_scrn01'.upper())).reshape((w.n, 1))
+var_names = ['age7584', 'age85plus', 'dual_esrd', 'race_black',
+        'race_hispa', 'raceother', 'mover01_05', 'sig_col_di', 'cont_care',
+        'st_perpov', 
+        #'c_all_hmo', 
+        #'age65_exer'
+        ]
+yend = np.array(db.by_col['C_ALL_HMO']).reshape((w.n, 1))
+q = np.array(db.by_col['AGE65_EXER']).reshape((w.n, 1))
+vars = [db.by_col[i.upper()] for i in var_names]
+#x = np.array(zip(vars))
+x = np.array(vars).T
 
 # OLS (matches both)
-#model = ps.spreg.ols.OLS(crime, x)
+#model = ps.spreg.ols.OLS(y, x)
 
 
 # 2SLS Lag 
@@ -52,12 +52,13 @@ x = np.hstack((inc, crime))
 
 
 # GM Error Hom
-model = GM_Endog_Error_Hom(hoval, inc, w=w, yend=crime, q=discbd, A1='hom_sc')
-# GM Combo Hom
-#ones = np.ones(crime.shape)
-#model = GM_Endog_Error_Hom(crime, ones, yend=x, q=x, w=w)
-#model = GM_Error_Hom(hoval, x, w=w, A1='hom_sc')
+ones = np.ones(y.shape)
+#model = GM_Endog_Error_Hom(y, ones, x, x, w)
+model = GM_Endog_Error_Hom(y, x, w=w, yend=yend, q=q, name_x=var_names, A1='hom_sc')
+#model = GM_Error_Hom(y, x, w, name_x=var_names, A1='hom_sc')
 print model.summary
+# GM Combo Hom
+#model = BaseGM_Combo_Hom(hoval, x, w=w, w_lags=2)
 #model = BaseGM_Combo_Hom(hoval, x, w=w, w_lags=2)
 #model = BaseGM_Endog_Error_Hom(hoval, x, yend=crime, q=discbd, w=w,\
 #        A1='hom_sc')
@@ -67,16 +68,6 @@ print model.summary
 #model = BaseGM_Error_Het(crime, x, w) #to match Stata the following code is required:
 #ones = np.ones(crime.shape)
 #model = BaseGM_Endog_Error_Het(crime, ones, x, x, w, step1c=False, constant=False)
-'''
-self.x = reg.z
-self.y = reg.y
-self.n, self.k = reg.n, reg.k
-self.betas = reg.betas
-self.vm = reg.vm
-self.u = reg.u
-self.predy = reg.predy
-self._cache = {}
-'''
 # GM Error Het with user-defined endog
 #model = BaseGM_Endog_Error_Het(crime, inc, hoval, discbd, w, step1c=False)
 # GM Combo Het
