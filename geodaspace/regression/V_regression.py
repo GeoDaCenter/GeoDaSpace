@@ -285,7 +285,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     dropSource = wx.DropSource(evt.EventObject)
                     dropSource.SetData(data)
                     res = dropSource.DoDragDrop(flags=wx.Drag_DefaultMove)
-                    if res == wx.DragMove:
+                    if res == wx.DragMove or res == wx.DragCopy:
                         self.updateSpec(None)
                     else:
                         evt.EventObject.Insert(var2del, to_del)
