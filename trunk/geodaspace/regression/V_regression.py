@@ -125,6 +125,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
     def __init__(self,parent=None,results=None):
         self.results = results
         OGRegression_xrc.xrcGMM_REGRESSION.__init__(self,parent)
+	self.SendSizeEvent()
+
         # Linux Fix for Drag and Drop
         # wxWidgets issue #2764
         if sys.platform.startswith('linux'):
