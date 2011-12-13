@@ -351,7 +351,7 @@ class BaseGM_Endog_Error_Hom(RegressionProps):
     
     '''
     def __init__(self, y, x, yend, q, w,\
-                 max_iter=1, epsilon=0.00001, A1='het'):
+                 max_iter=1, epsilon=0.00001, A1='het', constant=True):
 
         if A1 == 'hom':
             w.A1 = get_A1_hom(w.sparse)
@@ -363,7 +363,7 @@ class BaseGM_Endog_Error_Hom(RegressionProps):
         w.A2 = get_A2_hom(w.sparse)
 
         # 1a. S2SLS --> \tilde{\delta}
-        tsls = TSLS.BaseTSLS(y=y, x=x, yend=yend, q=q)
+        tsls = TSLS.BaseTSLS(y=y, x=x, yend=yend, q=q, constant=constant)
         self.x, self.z, self.h, self.y, self.hth = tsls.x, tsls.z, tsls.h, tsls.y, tsls.hth
         self.yend, self.q, self.n, self.k = tsls.yend, tsls.q, tsls.n, tsls.k
 
@@ -514,13 +514,13 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom, USER.DiagnosticBuilder):
                  max_iter=1, epsilon=0.00001, A1='het',\
                  vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None,\
-                 name_w=None, name_ds=None):
+                 name_w=None, name_ds=None, constant=True):
 
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
         USER.check_constant(x)
         BaseGM_Endog_Error_Hom.__init__(self, y=y, x=x, w=w, yend=yend, q=q,\
-                A1=A1, max_iter=max_iter, epsilon=epsilon)
+                A1=A1, max_iter=max_iter, epsilon=epsilon, constant=constant)
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES (Hom)"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
