@@ -35,7 +35,11 @@ class weightsPropertiesDialog(xrcweightsProperties):
     """
     def __init__(self,parent = None):
         xrcweightsProperties.__init__(self,parent)
+        self.Bind(wx.EVT_CLOSE,self.onClose)
         self.transformChoice.AppendItems(VALID_TRANSFORMS)
+    def onClose(self,evt):
+        self.MakeModal(False)
+        self.Hide()
     def ShowModal(self,w_objs,selection=-1):
         """
         Display the Dialog and add the id var.
@@ -55,7 +59,8 @@ class weightsPropertiesDialog(xrcweightsProperties):
         #    return xrcAddIDVar.ShowModal(self)
         #else:
         #    raise ValueError, "Invalid DBF File"
-        return xrcweightsProperties.ShowModal(self)
+        xrcweightsProperties.Show(self)
+        xrcweightsProperties.MakeModal(self,True)
     def OnChoice_selectWChoice(self,evt):
         w = self.w_objs[self.selectWChoice.GetSelection()]
         self.idListChoice.Clear()
@@ -86,9 +91,9 @@ class weightsPropertiesDialog(xrcweightsProperties):
                 return
         wm = weights_viewer.WeightsMapFrame(self,geo=geo,w=w.w,style=wx.DEFAULT_FRAME_STYLE|wx.FRAME_FLOAT_ON_PARENT)
         wm.Show(True)
-        #wm.MakeModal(True)
     def OnButton_closeButton(self,evt):
-        self.EndModal(wx.ID_CLOSE)
+        xrcweightsProperties.MakeModal(self,False)
+        xrcweightsProperties.Hide(self)
     def update(self):
         w = self.w_objs[self.selectWChoice.GetSelection()]
         self.nameTC.SetValue(w.name)
