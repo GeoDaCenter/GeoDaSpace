@@ -262,7 +262,7 @@ def optim_moments(moments_in, vcX=np.array([0])):
         optim_par = lambda par: foptim_par(np.array([[float(par[0]),float(par[0])**2.,float(par[1])]]).T,moments)
         start = [0.0,0.0]
         bounds=[(-1.0,1.0),(0.0,None)]        
-    lambdaX = op.fmin_l_bfgs_b(optim_par,start,approx_grad=True,bounds=bounds,pgtol=1e-50,factr=10.0)
+    lambdaX = op.fmin_l_bfgs_b(optim_par,start,approx_grad=True,bounds=bounds,pgtol=1e-15,factr=10.0)
     return lambdaX[0][0]
 
 def foptim_par(par,moments):
