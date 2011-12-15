@@ -143,7 +143,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.BASE_TITLE = self.GetTitle()
         #print "BASE_TITLE: ",self.BASE_TITLE
         self.CreateStatusBar()
-        self.GetStatusBar().SetStatusText("Welcome to GeoDaSpace")
+        self.GetStatusBar().SetStatusText("GeoDaSpace "+geodaspace.version.get_long_version())
 
         #initialize the scrollbars, fix for issue #48
         w,h = self.Size

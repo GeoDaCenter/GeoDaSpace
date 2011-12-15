@@ -11,10 +11,22 @@ Usage:
         Notes for Windows: Do not try to build on a shared or otherwise network drive.
                            Make sure the the build location is on a local drive.
 """
+import time,datetime
+import geodaspace.version
 import sys,os
 if __name__=='__main__':
     if len(sys.argv) == 1:
         print "Going to Build Now!"
+        today = datetime.date(*time.localtime()[:3])
+        if geodaspace.version.version_date != today:
+            print 
+            print "Sorry, can not build now!"
+            print "Today is:",today.isoformat()
+            print "Version Release Date is:", geodaspace.version.version_date.isoformat()
+            print "Please update the version information before building!"
+            sys.exit(1)
+
+
         if sys.platform == 'darwin':
             sys.argv.extend(['py2app', '--iconfile', 'geodaspace/icons/geodaspace.icns'])
         elif sys.platform == 'win32':
@@ -25,8 +37,11 @@ pkgs = []
 if sys.platform == 'darwin':
     import py2app
     setup( app=['geodaspace/GeoDaSpace.py'], 
-           packages=pkgs
+           packages=pkgs,
+           name='GeoDaSpace',
+           version=geodaspace.version.version,
          )
+    os.rename('dist/GeoDaSpace.app','dist/GeoDaSpace_%s.app'%geodaspace.version.version)
 elif sys.platform == 'win32':
     import py2exe
     from glob import glob
@@ -38,6 +53,8 @@ elif sys.platform == 'win32':
            options = {'py2exe': { 
                         'includes': ['scipy.io.matlab.streams']
                         } },
-           packages= pkgs
+           packages= pkgs,
+           name='GeoDaSpace',
+           version=geodaspace.version.version,
          )
-
+    os.rename('dist/GeoDaSpace.exe','dist/GeoDaSpace_%s.exe'%geodaspace.version.version)
