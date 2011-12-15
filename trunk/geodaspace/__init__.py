@@ -1,6 +1,7 @@
 import types
 import inspect
 import pysal
+import version
 DEBUG = False
 
 #enable 'kwt' extension
