@@ -254,6 +254,8 @@ def optim_moments(moments_in, vcX=np.array([0])):
         Ec = np.transpose(la.cholesky(la.inv(vcX)))
         moments[0] = np.dot(Ec,moments_in[0])
         moments[1] = np.dot(Ec,moments_in[1])
+    scale = np.min([[np.min(moments[0]),np.min(moments[1])]])
+    moments[0],moments[1] = moments[0]/scale, moments[1]/scale
     if moments[0].shape[0] == 2:
         optim_par = lambda par: foptim_par(np.array([[float(par[0]),float(par[0])**2.]]).T,moments)
         start = [0.0]
@@ -262,7 +264,7 @@ def optim_moments(moments_in, vcX=np.array([0])):
         optim_par = lambda par: foptim_par(np.array([[float(par[0]),float(par[0])**2.,float(par[1])]]).T,moments)
         start = [0.0,0.0]
         bounds=[(-1.0,1.0),(0.0,None)]        
-    lambdaX = op.fmin_l_bfgs_b(optim_par,start,approx_grad=True,bounds=bounds,pgtol=1e-15,factr=10.0)
+    lambdaX = op.fmin_l_bfgs_b(optim_par,start,approx_grad=True,bounds=bounds)
     return lambdaX[0][0]
 
 def foptim_par(par,moments):
