@@ -619,7 +619,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
 
     >>> reg = BaseGM_Combo_Het(y, X, w=w, step1c=True)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[  9.9753  14.1434]
+    [[  9.9753  14.1435]
      [  1.5742   0.374 ]
      [  0.1535   0.3978]
      [  0.2103   0.3924]]
@@ -755,7 +755,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     >>> print reg.name_z
     ['CONSTANT', 'income', 'W_hoval', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[  9.9753  14.1434]
+    [[  9.9753  14.1435]
      [  1.5742   0.374 ]
      [  0.1535   0.3978]
      [  0.2103   0.3924]]

@@ -636,7 +636,7 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom, RegressionProps):
 
     >>> reg = BaseGM_Combo_Hom(y, X, w=w, A1='hom_sc')
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 10.1254  15.2869]
+    [[ 10.1254  15.2871]
      [  1.5683   0.4407]
      [  0.1513   0.4048]
      [  0.2103   0.4226]]
@@ -653,7 +653,7 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom, RegressionProps):
     >>> reg = BaseGM_Combo_Hom(y, X, yd, q, w, A1='hom_sc')
     >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['W_hoval'],['lambda']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
-    [['CONSTANT' '111.7705' '67.75192']
+    [['CONSTANT' '111.7705' '67.75191']
      ['inc' '-0.30974' '1.16656']
      ['crime' '-1.36043' '0.6841']
      ['W_hoval' '-0.52908' '0.84428']
@@ -783,7 +783,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
             name_y='hoval', name_yend=['crime'], name_q=['discbd'],\
             name_ds='columbus')
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
-    [[ 10.1254  15.2869]
+    [[ 10.1254  15.2871]
      [  1.5683   0.4407]
      [  0.1513   0.4048]
      [  0.2103   0.4226]]
@@ -801,7 +801,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
             name_ds='columbus')
     >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['W_hoval'],['lambda']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
-    [['CONSTANT' '111.7705' '67.75192']
+    [['CONSTANT' '111.7705' '67.75191']
      ['inc' '-0.30974' '1.16656']
      ['crime' '-1.36043' '0.6841']
      ['W_hoval' '-0.52908' '0.84428']
