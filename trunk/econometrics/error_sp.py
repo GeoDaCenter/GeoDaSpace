@@ -253,11 +253,11 @@ class BaseGM_Endog_Error(RegressionProps):
     >>> w = pysal.open('examples/columbus.gal', 'r').read() 
     >>> w.transform='r'
     >>> model = BaseGM_Endog_Error(y, x, yend, q, w)
-    >>> np.around(model.betas, decimals=6)
-    array([[ 82.572971],
-           [  0.580959],
-           [ -1.448077],
-           [  0.349917]])
+    >>> np.around(model.betas, decimals=5)
+    array([[ 82.57297],
+           [  0.58096],
+           [ -1.44808],
+           [  0.34992]])
     >>> np.around(model.se_betas, decimals=6)
     array([[ 16.138089],
            [  1.354476],
@@ -314,11 +314,11 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
     >>> model = GM_Endog_Error(y, x, yend, q, w, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
     >>> print model.name_z
     ['CONSTANT', 'inc', 'hoval', 'lambda']
-    >>> np.around(model.betas, decimals=6)
-    array([[ 82.572971],
-           [  0.580959],
-           [ -1.448077],
-           [  0.349917]])
+    >>> np.around(model.betas, decimals=5)
+    array([[ 82.57297],
+           [  0.58096],
+           [ -1.44808],
+           [  0.34992]])
     >>> np.around(model.se_betas, decimals=6)
     array([[ 16.138089],
            [  1.354476],
