@@ -80,24 +80,24 @@ class BaseGM_Error(RegressionProps):
     >>> w.transform='r'
     >>> model = BaseGM_Error(y, x, w)
     >>> np.around(model.betas, decimals=6)
-    array([[ 47.694634],
+    array([[ 47.694635],
            [  0.710453],
            [ -0.550527],
            [  0.32573 ]])
     >>> np.around(model.se_betas, decimals=6)
-    array([[ 12.412039],
+    array([[ 12.412038],
            [  0.504443],
            [  0.178496]])
     >>> np.around(model.z, decimals=6)
     array([[ 3.842611],
-           [ 1.408391],
+           [ 1.408392],
            [-3.084247]])
     >>> np.around(model.pvals, decimals=6)
     array([[  1.22000000e-04],
            [  1.59015000e-01],
            [  2.04100000e-03]])
     >>> np.around(model.sig2, decimals=6)
-    198.559595
+    198.55957900000001
 
     """
     def __init__(self, y, x, w):
@@ -151,24 +151,24 @@ class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
     >>> print model.name_x
     ['CONSTANT', 'income', 'crime', 'lambda']
     >>> np.around(model.betas, decimals=6)
-    array([[ 47.694634],
+    array([[ 47.694635],
            [  0.710453],
            [ -0.550527],
            [  0.32573 ]])
     >>> np.around(model.se_betas, decimals=6)
-    array([[ 12.412039],
+    array([[ 12.412038],
            [  0.504443],
            [  0.178496]])
     >>> np.around(model.z, decimals=6)
     array([[ 3.842611],
-           [ 1.408391],
+           [ 1.408392],
            [-3.084247]])
     >>> np.around(model.pvals, decimals=6)
     array([[  1.22000000e-04],
            [  1.59015000e-01],
            [  2.04100000e-03]])
     >>> np.around(model.sig2, decimals=6)
-    198.559595
+    198.55957900000001
 
     """
     def __init__(self, y, x, w,\
@@ -254,7 +254,7 @@ class BaseGM_Endog_Error(RegressionProps):
     >>> w.transform='r'
     >>> model = BaseGM_Endog_Error(y, x, yend, q, w)
     >>> np.around(model.betas, decimals=6)
-    array([[ 82.57298 ],
+    array([[ 82.572971],
            [  0.580959],
            [ -1.448077],
            [  0.349917]])
@@ -315,7 +315,7 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
     >>> print model.name_z
     ['CONSTANT', 'inc', 'hoval', 'lambda']
     >>> np.around(model.betas, decimals=6)
-    array([[ 82.57298 ],
+    array([[ 82.572971],
            [  0.580959],
            [ -1.448077],
            [  0.349917]])
@@ -429,7 +429,7 @@ class BaseGM_Combo(BaseGM_Endog_Error, RegressionProps):
     Print the betas
 
     >>> print np.around(np.hstack((reg.betas[:-1],np.sqrt(reg.vm.diagonal()).reshape(3,1))),3)
-    [[ 39.06   11.86 ]
+    [[ 39.059  11.86 ]
      [ -1.404   0.391]
      [  0.467   0.2  ]]
     
@@ -489,7 +489,7 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
     >>> print reg.name_z
     ['CONSTANT', 'income', 'W_crime', 'lambda']
     >>> print np.around(np.hstack((reg.betas[:-1],np.sqrt(reg.vm.diagonal()).reshape(3,1))),3)
-    [[ 39.06   11.86 ]
+    [[ 39.059  11.86 ]
      [ -1.404   0.391]
      [  0.467   0.2  ]]
     
