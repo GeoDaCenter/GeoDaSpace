@@ -41,7 +41,7 @@ if sys.platform == 'darwin':
            name='GeoDaSpace',
            version=geodaspace.version.version,
          )
-    os.rename('dist/GeoDaSpace.app','dist/GeoDaSpace_%s.app'%geodaspace.version.version)
+    os.rename('dist/GeoDaSpace.app','dist/GeoDaSpace OSX %s.app'%geodaspace.version.version)
 elif sys.platform == 'win32':
     import py2exe
     from glob import glob
@@ -57,4 +57,4 @@ elif sys.platform == 'win32':
            name='GeoDaSpace',
            version=geodaspace.version.version,
          )
-    os.rename('dist/GeoDaSpace.exe','dist/GeoDaSpace_%s.exe'%geodaspace.version.version)
+    os.rename('dist/GeoDaSpace.exe','dist/GeoDaSpace Windows %s.exe'%geodaspace.version.version)
