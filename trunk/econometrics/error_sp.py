@@ -12,13 +12,13 @@ from pysal.spreg.diagnostics import se_betas
 from pysal import lag_spatial
 from utils import power_expansion, set_endog, iter_msg, sp_att
 from utils import get_A1_hom, get_A2_hom, get_A1_het, optim_moments, get_spFilter, get_lags, _moments2eqs
-from utils import RegressionProps
+from utils import RegressionPropsY
 import twosls as TSLS
 import user_output as USER
 
 
 
-class BaseGM_Error(RegressionProps):
+class BaseGM_Error(RegressionPropsY):
     """
     Generalized Moments Spatially Weighted Least Squares (OLS + GMM) as in Kelejian and Prucha
     (1998) [1]_ and Kelejian and Prucha (1999) [2]_
@@ -192,7 +192,7 @@ class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
                                             nonspat_diag=False, lamb=True,\
                                             vm=vm, instruments=False)
 
-class BaseGM_Endog_Error(RegressionProps):
+class BaseGM_Endog_Error(RegressionPropsY):
     '''
     Generalized Spatial Two Stages Least Squares (TSLS + GMM) using spatial
     error from Kelejian and Prucha (1998) [1]_ and Kelejian and Prucha (1999) [2]_
@@ -351,7 +351,7 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
                                             nonspat_diag=False, lamb=True,\
                                             vm=vm, instruments=True)        
 
-class BaseGM_Combo(BaseGM_Endog_Error, RegressionProps):
+class BaseGM_Combo(BaseGM_Endog_Error):
     """
     Generalized Spatial Two Stages Least Squares (TSLS + GMM) with spatial lag using spatial
     error from Kelejian and Prucha (1998) [1]_ and Kelejian and Prucha (1999) [2]_
@@ -531,7 +531,7 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
         USER.check_constant(x)
         BaseGM_Combo.__init__(self, y=y, x=x, w=w, yend=yend, q=q, w_lags=w_lags,\
                               lag_q=lag_q)
-        self.predy_sp, self.resid_sp = sp_att(w,self.y,\
+        self.predy_e, self.resid_sp = sp_att(w,self.y,\
                    self.predy,self.z[:,-1].reshape(self.n,1),self.betas[-2])        
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)

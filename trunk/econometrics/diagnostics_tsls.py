@@ -6,72 +6,6 @@ Diagnostics for two stage least squares regression estimations.
 import pysal
 from pysal.common import *
 from scipy.stats import pearsonr
-from math import sqrt
-# moved OLS import into functions to prevent circular import via user_output.py
-#from pysal.spreg.ols import BaseOLS as OLS
-
-
-
-def f_stat_tsls(reg):
-    """
-    Calculates the f-statistic and associated p-value for a two stage least
-    squares regression. 
-    
-    Parameters
-    ----------
-    reg             : TSLS regression object
-                      output instance from a regression model
-
-    Returns
-    ----------
-    fs_result       : tuple
-                      includes value of F statistic and associated p-value
-
-    References
-    ----------
-    .. [1] J.M. Wooldridge. 1990. A note on the Lagrange multiplier and F-
-       statistics for two stage least squares regressions. Economics Letters
-       34, 151-155.  
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> import pysal
-    >>> import diagnostics_tsls as diagnostics
-    >>> from twosls import BaseTSLS as TSLS
-    >>> db = pysal.open("examples/columbus.dbf","r")
-    >>> y = np.array(db.by_col("CRIME"))
-    >>> y = np.reshape(y, (49,1))
-    >>> X = []
-    >>> X.append(db.by_col("INC"))
-    >>> X = np.array(X).T
-    >>> yd = []
-    >>> yd.append(db.by_col("HOVAL"))
-    >>> yd = np.array(yd).T
-    >>> q = []
-    >>> q.append(db.by_col("DISCBD"))
-    >>> q = np.array(q).T
-    >>> reg = TSLS(y, X, yd, q)
-    >>> testresult = diagnostics.f_stat_tsls(reg)
-    >>> print("%12.11f"%testresult[0],"%12.11f"%testresult[1])
-    ('7.40058418460', '0.00163476698')
-
-    """ 
-    k = reg.k            # (scalar) number of ind. vars (includes constant)
-    n = reg.n            # (scalar) number of observations
-    utu = reg.utu        # (scalar) residual sum of squares
-    predy = reg.predy    # (array) vector of predicted values (n x 1)
-    mean_y = reg.mean_y  # (scalar) mean of dependent observations
-    Q = utu
-    from pysal.spreg.ols import BaseOLS as OLS
-    ssr_intercept = OLS(reg.y, np.ones(reg.y.shape), constant=False).utu
-    u_2nd_stage = reg.y - np.dot(reg.xp, reg.betas)
-    ssr_2nd_stage = np.sum(u_2nd_stage**2)
-    U = ssr_intercept - ssr_2nd_stage
-    fStat = (U/(k-1))/(Q/(n-k))
-    pValue = stats.f.sf(fStat,k-1,n-k)
-    fs_result = (fStat, pValue)
-    return fs_result
 
 
 def t_stat(reg, z_stat=False):
@@ -241,8 +175,8 @@ def pr2_spatial(tslsreg):
     """
 
     y = tslsreg.y
-    predy_sp = tslsreg.predy_sp
-    pr = pearsonr(y,predy_sp)[0]
+    predy_e = tslsreg.predy_e
+    pr = pearsonr(y,predy_e)[0]
     pr2_result = float(pr**2)
     return pr2_result
 

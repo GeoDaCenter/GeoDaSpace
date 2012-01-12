@@ -3,9 +3,10 @@ import copy
 import numpy.linalg as la
 import robust as ROBUST
 import user_output as USER
-from utils import RegressionProps
+from utils import RegressionPropsY, RegressionPropsVM
 
-class BaseTSLS(RegressionProps):
+
+class BaseTSLS(RegressionPropsY, RegressionPropsVM):
     """
     2SLS class in one expression
 
@@ -166,19 +167,13 @@ class BaseTSLS(RegressionProps):
         self.u = u
         
         # attributes used in property 
-        self.zth = zth
-        self.hth = hth #Required for condition index
-        self.hthi =hthi
-        
-        xp = np.dot(h, self.zthhthi.T)    
-        self.xp = xp
-        self.xptxpi = varb
+        self.hth = hth     # Required for condition index
+        self.hthi =hthi    # Used in error models
       
         if robust:
             self.vm = ROBUST.robust_vm(reg=self, gwk=gwk)
 
         self._cache = {}
-        RegressionProps()
         if sig2n_k:
             self.sig2 = self.sig2n_k
         else:
@@ -187,13 +182,13 @@ class BaseTSLS(RegressionProps):
     @property
     def pfora1a2(self):
         if 'pfora1a2' not in self._cache:
-            self._cache['pfora1a2'] = self.n*np.dot(self.zthhthi.T,self.varb)  #LA
+            self._cache['pfora1a2'] = self.n*np.dot(self.zthhthi.T, self.varb) 
         return self._cache['pfora1a2']    
             
     @property
     def vm(self):
         if 'vm' not in self._cache:
-            self._cache['vm'] = np.dot(self.sig2, self.xptxpi)
+            self._cache['vm'] = np.dot(self.sig2, self.varb)
         return self._cache['vm']
 
 
