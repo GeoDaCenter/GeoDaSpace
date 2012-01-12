@@ -6,11 +6,11 @@ import copy as COPY
 import numpy.linalg as la
 import user_output as USER
 import robust as ROBUST
-from utils import RegressionProps
+from utils import RegressionPropsY, RegressionPropsVM
 
 __all__ = ["OLS"]
 
-class BaseOLS(RegressionProps):
+class BaseOLS(RegressionPropsY, RegressionPropsVM):
     """
     Compute ordinary least squares (note: no consistency checks or
     diagnostics)
@@ -114,7 +114,6 @@ class BaseOLS(RegressionProps):
         if robust:
             self.vm = ROBUST.robust_vm(reg=self, gwk=gwk)
 
-        RegressionProps()
         self._cache = {}
         if sig2n_k:
             self.sig2 = self.sig2n_k
@@ -307,7 +306,7 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     ----------
     SUMMARY OF OUTPUT: ORDINARY LEAST SQUARES ESTIMATION
     ----------------------------------------------------
-    Data set            :    columbus
+    Data set            :     columbus
     Dependent Variable  :  home value  Number of Observations:          49
     Mean dependent var  :     38.4362  Number of Variables   :           3
     S.D. dependent var  :     18.4661  Degrees of Freedom    :          46
@@ -344,7 +343,6 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     TEST                  DF          VALUE            PROB
     White                  5           2.906067        0.7144648
     ========================= END OF REPORT ==============================
-
 
     If the optional parameters w and spat_diag are passed to pysal.spreg.OLS,
     spatial diagnostics will also be computed for the regression.  These

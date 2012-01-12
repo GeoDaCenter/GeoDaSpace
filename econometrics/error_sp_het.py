@@ -4,11 +4,11 @@ import ols as OLS
 import user_output as USER
 import twosls as TSLS
 import utils as UTILS
-from utils import RegressionProps
+from utils import RegressionPropsY
 from scipy import sparse as SP
 from pysal import lag_spatial
 
-class BaseGM_Error_Het(RegressionProps):
+class BaseGM_Error_Het(RegressionPropsY):
     """
     GMM method for a spatial error model with heteroskedasticity (note: no
     consistency checks)
@@ -240,7 +240,7 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
                                             std_err=std_err)
 
 
-class BaseGM_Endog_Error_Het(RegressionProps):
+class BaseGM_Endog_Error_Het(RegressionPropsY):
     """
     GMM method for a spatial error model with heteroskedasticity and
     endogenous variables (note: no consistency checks)
@@ -524,7 +524,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
                                             vm=vm, instruments=True,
                                             std_err=std_err)        
 
-class BaseGM_Combo_Het(BaseGM_Endog_Error_Het, RegressionProps):
+class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     """
     GMM method for a spatial lag and error model with heteroskedasticity and
     endogenous variables  (note: no consistency checks) 
@@ -793,7 +793,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
         BaseGM_Combo_Het.__init__(self, y=y, x=x, yend=yend, q=q, w=w, w_lags=w_lags,\
               max_iter=max_iter, step1c=step1c, lag_q=lag_q,\
               epsilon=epsilon, inv_method=inv_method)
-        self.predy_sp, self.resid_sp = UTILS.sp_att(w,self.y,self.predy,\
+        self.predy_e, self.resid_sp = UTILS.sp_att(w,self.y,self.predy,\
                             self.z[:,-1].reshape(self.n,1),self.betas[-1])        
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)

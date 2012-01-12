@@ -113,7 +113,7 @@ class DiagnosticBuilder:
                 self.z_stat = diagnostics.t_stat(self, z_stat=True)
                 self.pr2 = diagnostics_tsls.pr2_aspatial(self)
                 if spatial_lag:
-                    if self.predy_sp != None:
+                    if self.predy_e != None:
                         self.pr2_sp = diagnostics_tsls.pr2_spatial(self)
                     else:
                         self.pr2_sp = None

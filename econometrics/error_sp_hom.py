@@ -22,12 +22,12 @@ from pysal.spreg.diagnostics import se_betas
 from pysal import lag_spatial
 from utils import power_expansion, set_endog, iter_msg, sp_att
 from utils import get_A1_hom, get_A2_hom, get_A1_het, optim_moments, get_spFilter, get_lags, _moments2eqs
-from utils import RegressionProps
+from utils import RegressionPropsY
 import twosls as TSLS
 import user_output as USER
 
 
-class BaseGM_Error_Hom(RegressionProps):
+class BaseGM_Error_Hom(RegressionPropsY):
     '''
     SWLS estimation of spatial error with homskedasticity. Based on 
     Anselin (2011) [1]_.
@@ -125,8 +125,8 @@ class BaseGM_Error_Hom(RegressionProps):
         lambda1 = optim_moments(moments)
         lambda_old = lambda1
 
-        iteration, eps = 0, 1
-        while iteration<max_iter and eps>epsilon:
+        self.iteration, eps = 0, 1
+        while self.iteration<max_iter and eps>epsilon:
             # 2a. SWLS --> \hat{\delta}
             x_s = get_spFilter(w,lambda_old,self.x)
             y_s = get_spFilter(w,lambda_old,self.y)
@@ -140,9 +140,9 @@ class BaseGM_Error_Hom(RegressionProps):
             lambda2 = optim_moments(moments, psi)
             eps = abs(lambda2 - lambda_old)
             lambda_old = lambda2
-            iteration+=1
+            self.iteration+=1
 
-        self.iter_stop = iter_msg(iteration,max_iter)
+        self.iter_stop = iter_msg(self.iteration,max_iter)
 
         # Output
         self.betas = np.vstack((ols_s.betas,lambda2))
@@ -251,7 +251,7 @@ class GM_Error_Hom(BaseGM_Error_Hom, USER.DiagnosticBuilder):
                                             vm=vm, instruments=False)
 
 
-class BaseGM_Endog_Error_Hom(RegressionProps):
+class BaseGM_Endog_Error_Hom(RegressionPropsY):
     '''
     Two step estimation of spatial error with endogenous regressors. Based on
     Drukker et al. (2010) [1]_ and Drukker et al. (2011) [2]_, following
@@ -372,8 +372,8 @@ class BaseGM_Endog_Error_Hom(RegressionProps):
         lambda1 = optim_moments(moments)
         lambda_old = lambda1
 
-        iteration, eps = 0, 1
-        while iteration<max_iter and eps>epsilon:
+        self.iteration, eps = 0, 1
+        while self.iteration<max_iter and eps>epsilon:
             # 2a. GS2SLS --> \hat{\delta}
             x_s = get_spFilter(w,lambda_old,self.x)
             y_s = get_spFilter(w,lambda_old,self.y)
@@ -388,9 +388,9 @@ class BaseGM_Endog_Error_Hom(RegressionProps):
             lambda2 = optim_moments(moments, psi)
             eps = abs(lambda2 - lambda_old)
             lambda_old = lambda2
-            iteration+=1
+            self.iteration+=1
 
-        self.iter_stop = iter_msg(iteration,max_iter)            
+        self.iter_stop = iter_msg(self.iteration,max_iter)            
 
         # Output
         self.betas = np.vstack((tsls_s.betas,lambda2))
@@ -539,7 +539,7 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom, USER.DiagnosticBuilder):
                                             vm=vm, instruments=True)        
 
 
-class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom, RegressionProps):
+class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom):
     '''
     Two step estimation of spatial lag and spatial error with endogenous
     regressors. Based on Drukker et al. (2010) [1]_ and Drukker et al. (2011) [2]_,
@@ -821,7 +821,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
         BaseGM_Combo_Hom.__init__(self, y=y, x=x, w=w, yend=yend, q=q,\
                     w_lags=w_lags, A1=A1, lag_q=lag_q,\
                     max_iter=max_iter, epsilon=epsilon)
-        self.predy_sp, self.resid_sp = sp_att(w,self.y,self.predy,\
+        self.predy_e, self.resid_sp = sp_att(w,self.y,self.predy,\
                              self.z[:,-1].reshape(self.n,1),self.betas[-2])        
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES (Hom)"        
         self.name_ds = USER.set_name_ds(name_ds)

@@ -10,7 +10,36 @@ from pysal import lag_spatial
 import copy
 
 
-class RegressionProps:
+class RegressionPropsY:
+    """
+    Helper class that adds common regression properties to any regression
+    class that inherits it.  It takes no parameters.  See BaseOLS for example
+    usage.
+
+    Parameters
+    ----------
+
+    Attributes
+    ----------
+    mean_y  : float
+              Mean of the dependent variable
+    std_y   : float
+              Standard deviation of the dependent variable
+              
+    """
+
+    @property
+    def mean_y(self):
+        if 'mean_y' not in self._cache:
+            self._cache['mean_y']=np.mean(self.y)
+        return self._cache['mean_y']
+    @property
+    def std_y(self):
+        if 'std_y' not in self._cache:
+            self._cache['std_y']=np.std(self.y, ddof=1)
+        return self._cache['std_y']
+    
+class RegressionPropsVM:
     """
     Helper class that adds common regression properties to any regression
     class that inherits it.  It takes no parameters.  See BaseOLS for example
@@ -29,10 +58,6 @@ class RegressionProps:
               Sigma squared with n-k in the denominator
     vm      : array
               Variance-covariance matrix (kxk)
-    mean_y  : float
-              Mean of the dependent variable
-    std_y   : float
-              Standard deviation of the dependent variable
               
     """
 
@@ -54,18 +79,8 @@ class RegressionProps:
     @property
     def vm(self):
         if 'vm' not in self._cache:
-            self._cache['vm'] = np.dot(self.sig2, self.xtxi)  #LA which sig2?
+            self._cache['vm'] = np.dot(self.sig2, self.xtxi) 
         return self._cache['vm']    
-    @property
-    def mean_y(self):
-        if 'mean_y' not in self._cache:
-            self._cache['mean_y']=np.mean(self.y)
-        return self._cache['mean_y']
-    @property
-    def std_y(self):
-        if 'std_y' not in self._cache:
-            self._cache['std_y']=np.std(self.y, ddof=1)
-        return self._cache['std_y']
     
 def get_A1_het(S):
     """

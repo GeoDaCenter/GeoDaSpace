@@ -295,7 +295,7 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
         BaseGM_Lag.__init__(self, y=y, x=x, w=w, yend=yend, q=q,\
                             w_lags=w_lags, robust=robust,\
                             lag_q=lag_q, sig2n_k=sig2n_k)
-        self.predy_sp, self.resid_sp = sp_att(w,self.y,self.predy,\
+        self.predy_e, self.e = sp_att(w,self.y,self.predy,\
                       self.z[:,-1].reshape(self.n,1),self.betas[-1])
         self.title = "SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
