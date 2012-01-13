@@ -165,7 +165,7 @@ class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
     Extract CRIME (crime) and INC (income) vectors from the DBF to be used as
     independent variables in the regression.  Note that PySAL requires this to
     be an nxj numpy array, where j is the number of independent variables (not
-    including a constant). By default pysal.spreg.OLS adds a vector of ones to the
+    including a constant). By default this class adds a vector of ones to the
     independent variables passed in, this can be overridden by passing
     constant=False.
 
@@ -399,7 +399,7 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
 
     Because we have endogenous variables, to obtain a correct estimate of the
     model, we need to instrument for HOVAL. We use DISCBD (distance to the
-    CBD) for this and hence put in the instruments parameter, 'q'.
+    CBD) for this and hence put it in the instruments parameter, 'q'.
 
     >>> q = np.array([dbf.by_col('DISCBD')]).T
 
@@ -423,7 +423,8 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
     >>> w.transform='r'
 
     We are all set with the preliminars, we are good to run the model. In this
-    case, we will need the variables and the weights matrix. If we want to
+    case, we will need the variables (exogenous and endogenous), the
+    instruments and the weights matrix. If we want to
     have the names of the variables printed in the output summary, we will
     have to pass them in as well, although this is optional.
 
@@ -640,7 +641,7 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
     Note that, in order to read the file, not only to open it, we need to
     append '.read()' at the end of the command.
 
-    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
 
     Unless there is a good reason not to do it, the weights have to be
     row-standardized so every row of the matrix sums to one. Among other
@@ -650,11 +651,10 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
 
     >>> w.transform = 'r'
 
-    Example only with spatial lag
     The Combo class runs an SARAR model, that is a spatial lag+error model.
     In this case we will run a simple version of that, where we have the
     spatial effects as well as exogenous variables. Since it is a spatial
-    model, we to pass in the weights matrix. If we want to
+    model, we have to pass in the weights matrix. If we want to
     have the names of the variables printed in the output summary, we will
     have to pass them in as well, although this is optional.
 

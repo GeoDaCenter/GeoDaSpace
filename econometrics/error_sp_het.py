@@ -251,20 +251,82 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
 
     Examples
     --------
+
+    We first need to import the needed modules, namely numpy to convert the
+    data we read into arrays that ``spreg`` understands and ``pysal`` to
+    perform all the analysis.
+
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("examples/columbus.dbf","r")
+
+    Open data on Columbus neighborhood crime (49 areas) using pysal.open().
+    This is the DBF associated with the Columbus shapefile.  Note that
+    pysal.open() also reads data in CSV format; since the actual OLS class
+    requires data to be passed in as numpy arrays, the user can read their
+    data in using any method.  
+
+    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
+    
+    Extract the HOVAL column (home values) from the DBF file and make it the
+    dependent variable for the regression. Note that PySAL requires this to be
+    an numpy array of shape (n, 1) as opposed to the also common shape of (n, )
+    that other packages accept.
+
     >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
+
+    Extract INC (income) and CRIME (crime) vectors from the DBF to be used as
+    independent variables in the regression.  Note that PySAL requires this to
+    be an nxj numpy array, where j is the number of independent variables (not
+    including a constant). By default this class adds a vector of ones to the
+    independent variables passed in, this can be overridden by passing
+    constant=False.
+
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("CRIME"))
     >>> X = np.array(X).T
-    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+
+    Since we want to run a spatial error model, we need to specify the spatial
+    weights matrix that includes the spatial configuration of the observations
+    into the error component of the model. To do that, we can open an already
+    existing gal file or create a new one. In this case, we will use
+    ``columbus.gal``, which contains contiguity relationships between the
+    observations in the Columbus dataset we are using throughout this example.
+    Note that, in order to read the file, not only to open it, we need to
+    append '.read()' at the end of the command.
+
+    >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
+    
+    Unless there is a good reason not to do it, the weights have to be
+    row-standardized so every row of the matrix sums to one. Among other
+    things, his allows to interpret the spatial lag of a variable as the
+    average value of the neighboring observations. In PySAL, this can be
+    easily performed in the following way:
+
     >>> w.transform = 'r'
+
+    We are all set with the preliminars, we are good to run the model. In this
+    case, we will need the variables and the weights matrix. If we want to
+    have the names of the variables printed in the output summary, we will
+    have to pass them in as well, although this is optional.
+
     >>> reg = GM_Error_Het(y, X, w, step1c=True, name_y='home value', name_x=['income', 'crime'], name_ds='columbus')
+   
+    Once we have run the model, we can explore a little bit the output. The
+    regression object we have created has many attributes so take your time to
+    discover them. This class offers an error model that explicitly accounts
+    for heteroskedasticity and that unlike the models from
+    ``pysal.spreg.error_sp``, it allows for inference on the spatial
+    parameter.
+   
     >>> print reg.name_x
     ['CONSTANT', 'income', 'crime', 'lambda']
+
+    Hence, we find the same number of betas as of standard errors,
+    which we calculate taking the square root of the diagonal of the
+    variance-covariance matrix:
+
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[ 47.9963  11.479 ]
      [  0.7105   0.3681]
@@ -470,7 +532,6 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
         self.betas = np.vstack((tsls_s.betas, lambda3))
         self._cache = {}
 
-
 class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
     """
     GMM method for a spatial error model with heteroskedasticity and
@@ -609,23 +670,93 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
 
     Examples
     --------
+
+    We first need to import the needed modules, namely numpy to convert the
+    data we read into arrays that ``spreg`` understands and ``pysal`` to
+    perform all the analysis.
+
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("examples/columbus.dbf","r")
+
+    Open data on Columbus neighborhood crime (49 areas) using pysal.open().
+    This is the DBF associated with the Columbus shapefile.  Note that
+    pysal.open() also reads data in CSV format; since the actual OLS class
+    requires data to be passed in as numpy arrays, the user can read their
+    data in using any method.  
+
+    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
+    
+    Extract the HOVAL column (home values) from the DBF file and make it the
+    dependent variable for the regression. Note that PySAL requires this to be
+    an numpy array of shape (n, 1) as opposed to the also common shape of (n, )
+    that other packages accept.
+
     >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
+
+    Extract INC (income) vector from the DBF to be used as
+    independent variables in the regression.  Note that PySAL requires this to
+    be an nxj numpy array, where j is the number of independent variables (not
+    including a constant). By default this class adds a vector of ones to the
+    independent variables passed in, this can be overridden by passing
+    constant=False.
+
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X = np.array(X).T
+
+    In this case we consider CRIME (crime rates) is an endogenous regressor.
+    We tell the model that this is so by passing it in a different parameter
+    from the exogenous variables (x).
+
     >>> yd = []
     >>> yd.append(db.by_col("CRIME"))
     >>> yd = np.array(yd).T
+
+    Because we have endogenous variables, to obtain a correct estimate of the
+    model, we need to instrument for CRIME. We use DISCBD (distance to the
+    CBD) for this and hence put it in the instruments parameter, 'q'.
+
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+
+    Since we want to run a spatial error model, we need to specify the spatial
+    weights matrix that includes the spatial configuration of the observations
+    into the error component of the model. To do that, we can open an already
+    existing gal file or create a new one. In this case, we will use
+    ``columbus.gal``, which contains contiguity relationships between the
+    observations in the Columbus dataset we are using throughout this example.
+    Note that, in order to read the file, not only to open it, we need to
+    append '.read()' at the end of the command.
+
+    >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
+    
+    Unless there is a good reason not to do it, the weights have to be
+    row-standardized so every row of the matrix sums to one. Among other
+    things, his allows to interpret the spatial lag of a variable as the
+    average value of the neighboring observations. In PySAL, this can be
+    easily performed in the following way:
+
     >>> w.transform = 'r'
+
+    We are all set with the preliminars, we are good to run the model. In this
+    case, we will need the variables (exogenous and endogenous), the
+    instruments and the weights matrix. If we want to
+    have the names of the variables printed in the output summary, we will
+    have to pass them in as well, although this is optional.
+
     >>> reg = GM_Endog_Error_Het(y, X, yd, q, w, step1c=True, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
+   
+    Once we have run the model, we can explore a little bit the output. The
+    regression object we have created has many attributes so take your time to
+    discover them. This class offers an error model that explicitly accounts
+    for heteroskedasticity and that unlike the models from
+    ``pysal.spreg.error_sp``, it allows for inference on the spatial
+    parameter. Hence, we find the same number of betas as of standard errors,
+    which we calculate taking the square root of the diagonal of the
+    variance-covariance matrix:
+
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'crime', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
@@ -664,6 +795,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
                                             nonspat_diag=False, lamb=True,\
                                             vm=vm, instruments=True,
                                             std_err=std_err)        
+
 
 class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     """
@@ -957,20 +1089,79 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
 
     Examples
     --------
+
+    We first need to import the needed modules, namely numpy to convert the
+    data we read into arrays that ``spreg`` understands and ``pysal`` to
+    perform all the analysis.
+
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("examples/columbus.dbf","r")
+
+    Open data on Columbus neighborhood crime (49 areas) using pysal.open().
+    This is the DBF associated with the Columbus shapefile.  Note that
+    pysal.open() also reads data in CSV format; since the actual OLS class
+    requires data to be passed in as numpy arrays, the user can read their
+    data in using any method.  
+
+    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
+    
+    Extract the HOVAL column (home values) from the DBF file and make it the
+    dependent variable for the regression. Note that PySAL requires this to be
+    an numpy array of shape (n, 1) as opposed to the also common shape of (n, )
+    that other packages accept.
+
     >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
+
+    Extract INC (income) vector from the DBF to be used as
+    independent variables in the regression.  Note that PySAL requires this to
+    be an nxj numpy array, where j is the number of independent variables (not
+    including a constant). By default this class adds a vector of ones to the
+    independent variables passed in, this can be overridden by passing
+    constant=False.
+
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X = np.array(X).T
-    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+
+    Since we want to run a spatial error model, we need to specify the spatial
+    weights matrix that includes the spatial configuration of the observations
+    into the error component of the model. To do that, we can open an already
+    existing gal file or create a new one. In this case, we will use
+    ``columbus.gal``, which contains contiguity relationships between the
+    observations in the Columbus dataset we are using throughout this example.
+    Note that, in order to read the file, not only to open it, we need to
+    append '.read()' at the end of the command.
+
+    >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
+    
+    Unless there is a good reason not to do it, the weights have to be
+    row-standardized so every row of the matrix sums to one. Among other
+    things, his allows to interpret the spatial lag of a variable as the
+    average value of the neighboring observations. In PySAL, this can be
+    easily performed in the following way:
+
     >>> w.transform = 'r'
 
-    Example only with spatial lag
+    The Combo class runs an SARAR model, that is a spatial lag+error model.
+    In this case we will run a simple version of that, where we have the
+    spatial effects as well as exogenous variables. Since it is a spatial
+    model, we have to pass in the weights matrix. If we want to
+    have the names of the variables printed in the output summary, we will
+    have to pass them in as well, although this is optional.
+
 
     >>> reg = GM_Combo_Het(y, X, w=w, step1c=True, name_y='hoval', name_x=['income'], name_ds='columbus')
+   
+    Once we have run the model, we can explore a little bit the output. The
+    regression object we have created has many attributes so take your time to
+    discover them. This class offers an error model that explicitly accounts
+    for heteroskedasticity and that unlike the models from
+    ``pysal.spreg.error_sp``, it allows for inference on the spatial
+    parameter. Hence, we find the same number of betas as of standard errors,
+    which we calculate taking the square root of the diagonal of the
+    variance-covariance matrix:
+
     >>> print reg.name_z
     ['CONSTANT', 'income', 'W_hoval', 'lambda']
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
@@ -980,6 +1171,14 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
      [  0.2103   0.3924]]
         
     Example with both spatial lag and other endogenous variables
+        
+    This class also allows the user to run a spatial lag+error model with the
+    extra feature of including non-spatial endogenous regressors. This means
+    that, in addition to the spatial lag and error, we consider some of the
+    variables on the right-hand side of the equation as endogenous and we
+    instrument for this. As an example, we will include CRIME (crime rates) as
+    endogenous and will instrument with DISCBD (distance to the CSB). We first
+    need to read in the variables:
 
     >>> yd = []
     >>> yd.append(db.by_col("CRIME"))
@@ -987,6 +1186,9 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
+
+    And then we can run and explore the model analogously to the previous combo:
+
     >>> reg = GM_Combo_Het(y, X, yd, q, w=w, step1c=True, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'crime', 'W_hoval', 'lambda']
@@ -1034,6 +1236,8 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
                                             vm=vm, instruments=True,
                                             std_err=std_err, spatial_lag=True)        
 
+
+# Functions
 
 def get_psi_sigma(w, u, lamb):
     """
@@ -1281,34 +1485,4 @@ def _test():
 
 if __name__ == '__main__':
     _test()
-    import numpy as np
-    import pysal
-    db=pysal.open("examples/columbus.dbf","r")
-    y = np.array(db.by_col("CRIME"))
-    y = np.reshape(y, (49,1))
-    X = []
-    X.append(db.by_col("INC"))
-    X = np.array(X).T
-    yd = np.array(db.by_col("HOVAL"))
-    yd = np.reshape(yd, (49,1))
-    q = np.array(db.by_col("DISCBD"))
-    q = np.reshape(q, (49,1))
-    w = pysal.rook_from_shapefile("examples/columbus.shp")
-    w.transform = 'r'
-    reg = GM_Error_Het(y, X, w)
-    print "Exogenous variables only:"
-    print "Dependent variable: CRIME"
-    print "Variable  Coef.  S.E."
-    print "Constant %5.4f %5.4f" % (reg.betas[0],np.sqrt(reg.vm.diagonal())[0])
-    for i in range(len(reg.betas)-2):
-        print "Var_%s %5.4f %5.4f" % (i+1,reg.betas[i+1],np.sqrt(reg.vm.diagonal())[i+1])
-    print "Lambda: %5.4f %5.4f" % (reg.betas[-1],np.sqrt(reg.vm.diagonal())[-1])
-    print '$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'
-    print "Spatial Lag:"
-    reg = GM_Combo_Het(y, X, yd, q, w)
-    print "Dependent variable: CRIME"
-    print "Variable  Coef.  S.E."
-    print "Constant %5.4f %5.4f" % (reg.betas[0],np.sqrt(reg.vm.diagonal())[0])
-    for i in range(len(reg.betas)-2):
-        print "Var_%s %5.4f %5.4f" % (i+1,reg.betas[i+1],np.sqrt(reg.vm.diagonal())[i+1])
-    print "Lambda: %5.4f %5.4f" % (reg.betas[-1],np.sqrt(reg.vm.diagonal())[-1])
+
