@@ -326,42 +326,113 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
     Examples
     --------
 
+    We first need to import the needed modules, namely numpy to convert the
+    data we read into arrays that ``spreg`` understands and ``pysal`` to
+    perform all the analysis. Since we will need some tests for our
+    model, we also import the diagnostics module.
+
     >>> import numpy as np
     >>> import pysal
     >>> import pysal.spreg.diagnostics as D
-    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
-    >>> w.transform = 'r'
-    >>> db=pysal.open("examples/columbus.dbf","r")
+
+    Open data on Columbus neighborhood crime (49 areas) using pysal.open().
+    This is the DBF associated with the Columbus shapefile.  Note that
+    pysal.open() also reads data in CSV format; since the actual class
+    requires data to be passed in as numpy arrays, the user can read their
+    data in using any method.  
+
+    >>> db = pysal.open(pysal.examples.get_path("columbus.dbf"),'r')
+    
+    Extract the HOVAL column (home value) from the DBF file and make it the
+    dependent variable for the regression. Note that PySAL requires this to be
+    an numpy array of shape (n, 1) as opposed to the also common shape of (n, )
+    that other packages accept.
+
     >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
-    >>> # no non-spatial endogenous variables
+
+    Extract INC (income) and CRIME (crime rates) vectors from the DBF to be used as
+    independent variables in the regression.  Note that PySAL requires this to
+    be an nxj numpy array, where j is the number of independent variables (not
+    including a constant). By default this model adds a vector of ones to the
+    independent variables passed in, but this can be overridden by passing
+    constant=False.
+
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("CRIME"))
     >>> X = np.array(X).T
+
+    Since we want to run a spatial error model, we need to specify the spatial
+    weights matrix that includes the spatial configuration of the observations
+    into the error component of the model. To do that, we can open an already
+    existing gal file or create a new one. In this case, we will use
+    ``columbus.gal``, which contains contiguity relationships between the
+    observations in the Columbus dataset we are using throughout this example.
+    Note that, in order to read the file, not only to open it, we need to
+    append '.read()' at the end of the command.
+
+    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+
+    Unless there is a good reason not to do it, the weights have to be
+    row-standardized so every row of the matrix sums to one. Among other
+    things, this allows to interpret the spatial lag of a variable as the
+    average value of the neighboring observations. In PySAL, this can be
+    easily performed in the following way:
+
+    >>> w.transform = 'r'
+    
+    This class runs a lag model, which means that includes the spatial lag of
+    the dependent variable on the right-hand side of the equation. If we want
+    to have the names of the variables printed in the
+    output summary, we will have to pass them in as well, although this is
+    optional. The default most basic model to be run would be: 
+
     >>> reg=GM_Lag(y, X, w=w, w_lags=2, name_x=['inc', 'crime'], name_y='hoval', name_ds='columbus')
     >>> reg.betas
     array([[  4.53017056e+01],
            [  6.20888617e-01],
            [ -4.80723451e-01],
            [  2.83622122e-02]])
+
+    Once the model is run, we can obtain the standard error of the coefficient
+    estimates by calling the diagnostics module:
+
     >>> D.se_betas(reg)
     array([ 17.91278862,   0.52486082,   0.1822815 ,   0.31740089])
+
+    But we can also run models that incorporates corrected standard errors
+    following the White procedure. For that, we will have to include the
+    optional parameter ``robust='white'``:
+
     >>> reg=GM_Lag(y, X, w=w, w_lags=2, robust='white', name_x=['inc', 'crime'], name_y='hoval', name_ds='columbus')
     >>> reg.betas
     array([[  4.53017056e+01],
            [  6.20888617e-01],
            [ -4.80723451e-01],
            [  2.83622122e-02]])
+
+    And we can access the standard errors from the model object:
+
     >>> reg.std_err
     array([ 20.47077481,   0.50613931,   0.20138425,   0.38028295])
-    >>> # instrument for HOVAL with DISCBD
+
+    The class is flexible enough to accomodate a spatial lag model that,
+    besides the spatial lag of the dependent variable, includes other
+    non-spatial endogenous regressors. As an example, we will assume that
+    CRIME is actually endogenous and we decide to instrument for it with
+    DISCBD (distance to the CBD). We reload the X including INC only and
+    define CRIME as endogenous and DISCBD as instrument:
+
     >>> X = np.array(db.by_col("INC"))
     >>> X = np.reshape(X, (49,1))
     >>> yd = np.array(db.by_col("CRIME"))
     >>> yd = np.reshape(yd, (49,1))
     >>> q = np.array(db.by_col("DISCBD"))
     >>> q = np.reshape(q, (49,1))
+
+    And we can run the model again:
+
     >>> reg=GM_Lag(y, X, w=w, yend=yd, q=q, w_lags=2, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
 
 
@@ -414,24 +485,4 @@ def _test():
 
 if __name__ == '__main__':
     _test()
-    import numpy as np
-    import pysal
-    import pysal.spreg.diagnostics as D
-    w = pysal.rook_from_shapefile("examples/columbus.shp")
-    w.transform = 'r'
-    db=pysal.open("examples/columbus.dbf","r")
-    y = np.array(db.by_col("HOVAL"))
-    y = np.reshape(y, (49,1))
-    # no non-spatial endogenous variables
-    X = []
-    X.append(db.by_col("INC"))
-    X.append(db.by_col("CRIME"))
-    X = np.array(X).T
-    reg=BaseGM_Lag(y, X, w=w, w_lags=2)
-    print reg.betas
-    print reg.vm
-    reg=BaseGM_Lag(y, X, w=w, w_lags=2, robust='white')
-    print reg.betas
-    print reg.vm
-    from robust import robust_vm
-    print robust_vm(reg)
+
