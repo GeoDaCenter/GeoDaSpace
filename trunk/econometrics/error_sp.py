@@ -140,14 +140,72 @@ class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
     Examples
     --------
 
+    We first need to import the needed modules, namely numpy to convert the
+    data we read into arrays that ``spreg`` understands and ``pysal`` to
+    perform all the analysis.
+
     >>> import pysal
     >>> import numpy as np
-    >>> dbf = pysal.open('examples/columbus.dbf','r')
+
+    Open data on Columbus neighborhood crime (49 areas) using pysal.open().
+    This is the DBF associated with the Columbus shapefile.  Note that
+    pysal.open() also reads data in CSV format; since the actual OLS class
+    requires data to be passed in as numpy arrays, the user can read their
+    data in using any method.  
+
+    >>> dbf = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
+    
+    Extract the HOVAL column (home values) from the DBF file and make it the
+    dependent variable for the regression. Note that PySAL requires this to be
+    an numpy array of shape (n, 1) as opposed to the also common shape of (n, )
+    that other packages accept.
+
     >>> y = np.array([dbf.by_col('HOVAL')]).T
-    >>> x = np.array([dbf.by_col('INC'), dbf.by_col('CRIME')]).T
-    >>> w = pysal.open('examples/columbus.gal', 'r').read() 
+
+    Extract CRIME (crime) and INC (income) vectors from the DBF to be used as
+    independent variables in the regression.  Note that PySAL requires this to
+    be an nxj numpy array, where j is the number of independent variables (not
+    including a constant). By default pysal.spreg.OLS adds a vector of ones to the
+    independent variables passed in, this can be overridden by passing
+    constant=False.
+
+    >>> names_to_extract = ['INC', 'CRIME']
+    >>> x = np.array([dbf.by_col(name) for name in names_to_extract]).T
+
+    Since we want to run a spatial error model, we need to specify the spatial
+    weights matrix that includes the spatial configuration of the observations
+    into the error component of the model. To do that, we can open an already
+    existing gal file or create a new one. In this case, we will use
+    ``columbus.gal``, which contains contiguity relationships between the
+    observations in the Columbus dataset we are using throughout this example.
+    Note that, in order to read the file, not only to open it, we need to
+    append '.read()' at the end of the command.
+
+    >>> w = pysal.open(pysal.examples.get_path("columbus.gal"), 'r').read() 
+    
+    Unless there is a good reason not to do it, the weights have to be
+    row-standardized so every row of the matrix sums to one. Among other
+    things, his allows to interpret the spatial lag of a variable as the
+    average value of the neighboring observations. In PySAL, this can be
+    easily performed in the following way:
+
     >>> w.transform='r'
+
+    We are all set with the preliminars, we are good to run the model. In this
+    case, we will need the variables and the weights matrix. If we want to
+    have the names of the variables printed in the output summary, we will
+    have to pass them in as well, although this is optional.
+
     >>> model = GM_Error(y, x, w, name_y='hoval', name_x=['income', 'crime'], name_ds='columbus')
+
+    Once we have run the model, we can explore a little bit the output. The
+    regression object we have created has many attributes so take your time to
+    descover them. Note that because we are running the classical GMM error
+    model from 1998, the spatial parameter is obtained as a point estimate, so
+    although you get a value for it (there are for coefficients under
+    model.betas), you do cannot perform inference on it (there are only three
+    values in model.se_betas).
+
     >>> print model.name_x
     ['CONSTANT', 'income', 'crime', 'lambda']
     >>> np.around(model.betas, decimals=6)
@@ -191,6 +249,7 @@ class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=False, lamb=True,\
                                             vm=vm, instruments=False)
+
 
 class BaseGM_Endog_Error(RegressionPropsY):
     '''
@@ -294,7 +353,6 @@ class BaseGM_Endog_Error(RegressionPropsY):
         self.pvals = norm.sf(abs(zs)) * 2.
         self._cache = {}
 
-
 class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
     '''
 
@@ -302,14 +360,67 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
     Examples
     --------
 
+    We first need to import the needed modules, namely numpy to convert the
+    data we read into arrays that ``spreg`` understands and ``pysal`` to
+    perform all the analysis.
+
     >>> import pysal
     >>> import numpy as np
-    >>> dbf = pysal.open('examples/columbus.dbf','r')
+
+    Open data on Columbus neighborhood crime (49 areas) using pysal.open().
+    This is the DBF associated with the Columbus shapefile.  Note that
+    pysal.open() also reads data in CSV format; since the actual OLS class
+    requires data to be passed in as numpy arrays, the user can read their
+    data in using any method.  
+
+    >>> dbf = pysal.open(pysal.examples.get_path("columbus.dbf"),'r')
+    
+    Extract the CRIME column (crime rates) from the DBF file and make it the
+    dependent variable for the regression. Note that PySAL requires this to be
+    an numpy array of shape (n, 1) as opposed to the also common shape of (n, )
+    that other packages accept.
+
     >>> y = np.array([dbf.by_col('CRIME')]).T
+
+    Extract INC (income) vector from the DBF to be used as
+    independent variables in the regression.  Note that PySAL requires this to
+    be an nxj numpy array, where j is the number of independent variables (not
+    including a constant). By default pysal.spreg.OLS adds a vector of ones to the
+    independent variables passed in, this can be overridden by passing
+    constant=False.
+
     >>> x = np.array([dbf.by_col('INC')]).T
+
+    In this case we consider HOVAL (home value) is an endogenous regressor.
+    We tell the model that this is so by passing it in a different parameter
+    from the exogenous variables (x).
+
     >>> yend = np.array([dbf.by_col('HOVAL')]).T
+
+    Because we have endogenous variables, to obtain a correct estimate of the
+    model, we need to instrument for HOVAL. We use DISCBD (distance to the
+    CBD) for this and hence put in the instruments parameter, 'q'.
+
     >>> q = np.array([dbf.by_col('DISCBD')]).T
-    >>> w = pysal.open('examples/columbus.gal', 'r').read() 
+
+    Since we want to run a spatial error model, we need to specify the spatial
+    weights matrix that includes the spatial configuration of the observations
+    into the error component of the model. To do that, we can open an already
+    existing gal file or create a new one. In this case, we will use
+    ``columbus.gal``, which contains contiguity relationships between the
+    observations in the Columbus dataset we are using throughout this example.
+    Note that, in order to read the file, not only to open it, we need to
+    append '.read()' at the end of the command.
+
+    >>> w = pysal.open(pysal.examples.get_path("columbus.gal"), 'r').read() 
+
+    
+    Unless there is a good reason not to do it, the weights have to be
+    row-standardized so every row of the matrix sums to one. Among other
+    things, his allows to interpret the spatial lag of a variable as the
+    average value of the neighboring observations. In PySAL, this can be
+    easily performed in the following way:
+
     >>> w.transform='r'
     >>> model = GM_Endog_Error(y, x, yend, q, w, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
     >>> print model.name_z
@@ -350,6 +461,7 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
         USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
                                             nonspat_diag=False, lamb=True,\
                                             vm=vm, instruments=True)        
+
 
 class BaseGM_Combo(BaseGM_Endog_Error):
     """
@@ -555,19 +667,6 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
 
    
 
-def _inference(ols):
-    """
-    DEPRECATED: not in current use
-
-    Inference for estimated coefficients
-    Coded as in GMerrorsar from R (which matches) using se_betas from diagnostics module
-    """
-    c = np.sqrt((ols.n-ols.k) / float(ols.n))
-    ses = np.array([se_betas(ols) * c]).T
-    zs = ols.betas / ses
-    pvals = norm.sf(abs(zs)) * 2.
-    return [ses, zs, pvals]
-
 def _momentsGM_Error(w, u):
 
     u2 = np.dot(u.T, u)
@@ -594,56 +693,3 @@ def _test():
 if __name__ == '__main__':
 
     _test()
-
-    """
-    import numpy as np
-    import pysal
-    db=pysal.open("examples/columbus.dbf","r")
-    y = np.array(db.by_col("HOVAL"))
-    y = np.reshape(y, (49,1))
-    X = []
-    X.append(db.by_col("INC"))
-    X.append(db.by_col("CRIME"))
-    X = np.array(X).T
-    w = pysal.rook_from_shapefile("examples/columbus.shp")
-    w = pysal.open('examples/columbus.gal', 'r').read()    
-    w.transform = 'r'
-    q = []
-    q.append(db.by_col("DISCBD"))
-    q = np.array(q).T
-    yd = []
-    yd.append(db.by_col("CRIME"))
-    yd = np.array(yd).T
-
-    #model = BaseGM_Error_Hom(y, X, w, A1='hom') 
-    ones = np.ones(y.shape)
-    model = BaseGM_Endog_Error_Hom(y, ones, w, yend=X, q=X, constant=False, A1='hom')
-
-    #model = BaseGM_Endog_Error_Hom(y, X, w, yend=yd, q=q, A1='hom_sc') #MATCHES
-    #model = BaseGM_Combo_Hom(y, X, w, A1='hom_sc', w_lags=2) #MATCHES
-    #model = BaseGM_Combo_Hom(y, X, w, yend=yd, q=q, A1='hom_sc', w_lags=2) #MATCHES
-    print '\n'
-    print np.around(np.hstack((model.betas,np.sqrt(model.vm.diagonal()).reshape(model.betas.shape[0],1))),8)
-    print '\n'
-    for row in model.vm:
-        print map(np.round, row, [5]*len(row))
-
-    tsls = TSLS.BaseTSLS(y, x, yd, q=q, constant=True)
-    print tsls.betas
-    psi = get_vc_hom(w, tsls, 0.3)
-    print psi
-    print '\n\tGM_Error model Example'
-    model = GM_Error(x, y, w)
-    print '\n### Betas ###'
-    print model.betas
-    print '\n### Std. Errors ###'
-    print model.se_betas
-    print '\n### z-Values ###'
-    print model.z
-    print '\n### p-Values ###'
-    print model.pvals
-    print '\n### Lambda ###'
-    print model.lamb
-    print '\n### Sig2 ###'
-    print model.sig2
-    """

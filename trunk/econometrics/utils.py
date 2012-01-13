@@ -149,7 +149,7 @@ def get_A1_hom(s, scalarKP=False):
     disturbances and additional endogenous variables". The Stata Journal, 1,
     N. 1, pp. 1-13.      
     """
-    n = s.shape[0]
+    n = float(s.shape[0])
     wpw = s.T * s
     twpw = np.sum(wpw.diagonal()) 
     e = SP.eye(n, n, format='csr')
@@ -158,7 +158,7 @@ def get_A1_hom(s, scalarKP=False):
     if not scalarKP:
         return num
     else:
-        den = 1 + (twpw / n)**2
+        den = 1. + (twpw / n)**2.
         return num / den
 
 def get_A2_hom(s):
@@ -222,7 +222,7 @@ def _moments2eqs(A1, s, u):
     disturbances and additional endogenous variables". The Stata Journal, 1,
     N. 1, pp. 1-13.
     '''
-    n = s.shape[0]
+    n = float(s.shape[0])
     A1u = A1 * u
     wu = s * u
     g1 = np.dot(u.T, A1u)
