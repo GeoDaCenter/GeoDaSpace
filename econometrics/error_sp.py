@@ -200,10 +200,10 @@ class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
 
     Once we have run the model, we can explore a little bit the output. The
     regression object we have created has many attributes so take your time to
-    descover them. Note that because we are running the classical GMM error
-    model from 1998, the spatial parameter is obtained as a point estimate, so
+    discover them. Note that because we are running the classical GMM error
+    model from 1998/99, the spatial parameter is obtained as a point estimate, so
     although you get a value for it (there are for coefficients under
-    model.betas), you do cannot perform inference on it (there are only three
+    model.betas), you cannot perform inference on it (there are only three
     values in model.se_betas).
 
     >>> print model.name_x
@@ -385,8 +385,8 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
     Extract INC (income) vector from the DBF to be used as
     independent variables in the regression.  Note that PySAL requires this to
     be an nxj numpy array, where j is the number of independent variables (not
-    including a constant). By default pysal.spreg.OLS adds a vector of ones to the
-    independent variables passed in, this can be overridden by passing
+    including a constant). By default this model adds a vector of ones to the
+    independent variables passed in, but this can be overridden by passing
     constant=False.
 
     >>> x = np.array([dbf.by_col('INC')]).T
@@ -414,15 +414,31 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
 
     >>> w = pysal.open(pysal.examples.get_path("columbus.gal"), 'r').read() 
 
-    
     Unless there is a good reason not to do it, the weights have to be
     row-standardized so every row of the matrix sums to one. Among other
-    things, his allows to interpret the spatial lag of a variable as the
+    things, this allows to interpret the spatial lag of a variable as the
     average value of the neighboring observations. In PySAL, this can be
     easily performed in the following way:
 
     >>> w.transform='r'
+
+    We are all set with the preliminars, we are good to run the model. In this
+    case, we will need the variables and the weights matrix. If we want to
+    have the names of the variables printed in the output summary, we will
+    have to pass them in as well, although this is optional.
+
     >>> model = GM_Endog_Error(y, x, yend, q, w, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
+
+    Once we have run the model, we can explore a little bit the output. The
+    regression object we have created has many attributes so take your time to
+    discover them. Note that because we are running the classical GMM error
+    model from 1998/99, the spatial parameter is obtained as a point estimate, so
+    although you get a value for it (there are for coefficients under
+    model.betas), you cannot perform inference on it (there are only three
+    values in model.se_betas). Also, this regression uses a two stage least
+    squares estimation method that accounts for the endogeneity created by the
+    endogenous variables included.
+
     >>> print model.name_z
     ['CONSTANT', 'inc', 'hoval', 'lambda']
     >>> np.around(model.betas, decimals=5)
@@ -581,22 +597,78 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
     Examples
     --------
 
+    We first need to import the needed modules, namely numpy to convert the
+    data we read into arrays that ``spreg`` understands and ``pysal`` to
+    perform all the analysis.
+
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("examples/columbus.dbf","r")
+
+    Open data on Columbus neighborhood crime (49 areas) using pysal.open().
+    This is the DBF associated with the Columbus shapefile.  Note that
+    pysal.open() also reads data in CSV format; since the actual OLS class
+    requires data to be passed in as numpy arrays, the user can read their
+    data in using any method.  
+
+    >>> db = pysal.open(pysal.examples.get_path("columbus.dbf"),'r')
+    
+    Extract the CRIME column (crime rates) from the DBF file and make it the
+    dependent variable for the regression. Note that PySAL requires this to be
+    an numpy array of shape (n, 1) as opposed to the also common shape of (n, )
+    that other packages accept.
+
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
+
+    Extract INC (income) vector from the DBF to be used as
+    independent variables in the regression.  Note that PySAL requires this to
+    be an nxj numpy array, where j is the number of independent variables (not
+    including a constant). By default this model adds a vector of ones to the
+    independent variables passed in, but this can be overridden by passing
+    constant=False.
+
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X = np.array(X).T
+
+    Since we want to run a spatial error model, we need to specify the spatial
+    weights matrix that includes the spatial configuration of the observations
+    into the error component of the model. To do that, we can open an already
+    existing gal file or create a new one. In this case, we will use
+    ``columbus.gal``, which contains contiguity relationships between the
+    observations in the Columbus dataset we are using throughout this example.
+    Note that, in order to read the file, not only to open it, we need to
+    append '.read()' at the end of the command.
+
     >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+
+    Unless there is a good reason not to do it, the weights have to be
+    row-standardized so every row of the matrix sums to one. Among other
+    things, this allows to interpret the spatial lag of a variable as the
+    average value of the neighboring observations. In PySAL, this can be
+    easily performed in the following way:
+
     >>> w.transform = 'r'
 
     Example only with spatial lag
+    The Combo class runs an SARAR model, that is a spatial lag+error model.
+    In this case we will run a simple version of that, where we have the
+    spatial effects as well as exogenous variables. Since it is a spatial
+    model, we to pass in the weights matrix. If we want to
+    have the names of the variables printed in the output summary, we will
+    have to pass them in as well, although this is optional.
 
     >>> reg = GM_Combo(y, X, w=w, name_y='crime', name_x=['income'], name_ds='columbus')
 
-    Print the betas
+    Once we have run the model, we can explore a little bit the output. The
+    regression object we have created has many attributes so take your time to
+    discover them. Note that because we are running the classical GMM error
+    model from 1998/99, the spatial parameter is obtained as a point estimate, so
+    although you get a value for it (there are for coefficients under
+    model.betas), you cannot perform inference on it (there are only three
+    values in model.se_betas). Also, this regression uses a two stage least
+    squares estimation method that accounts for the endogeneity created by the
+    spatial lag of the dependent variable. We can check the betas:
 
     >>> print reg.name_z
     ['CONSTANT', 'income', 'W_crime', 'lambda']
@@ -604,14 +676,19 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
     [[ 39.059  11.86 ]
      [ -1.404   0.391]
      [  0.467   0.2  ]]
-    
 
-    And lambda
+    And lambda:
 
     >>> print 'lambda: ', np.around(reg.betas[-1], 3)
     lambda:  [-0.048]
         
-    Example with both spatial lag and other endogenous variables
+    This class also allows the user to run a spatial lag+error model with the
+    extra feature of including non-spatial endogenous regressors. This means
+    that, in addition to the spatial lag and error, we consider some of the
+    variables on the right-hand side of the equation as endogenous and we
+    instrument for this. As an example, we will include HOVAL (home value) as
+    endogenous and will instrument with DISCBD (distance to the CSB). We first
+    need to read in the variables:
 
     >>> yd = []
     >>> yd.append(db.by_col("HOVAL"))
@@ -619,6 +696,9 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
+
+    And then we can run and explore the model analogously to the previous combo:
+
     >>> reg = GM_Combo(y, X, yd, q, w, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
