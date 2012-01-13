@@ -1150,7 +1150,6 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     have the names of the variables printed in the output summary, we will
     have to pass them in as well, although this is optional.
 
-
     >>> reg = GM_Combo_Het(y, X, w=w, step1c=True, name_y='hoval', name_x=['income'], name_ds='columbus')
    
     Once we have run the model, we can explore a little bit the output. The
@@ -1169,8 +1168,6 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
      [  1.5742   0.374 ]
      [  0.1535   0.3978]
      [  0.2103   0.3924]]
-        
-    Example with both spatial lag and other endogenous variables
         
     This class also allows the user to run a spatial lag+error model with the
     extra feature of including non-spatial endogenous regressors. This means
