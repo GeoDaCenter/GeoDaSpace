@@ -114,14 +114,14 @@ class DiagnosticBuilder:
                 self.pr2 = diagnostics_tsls.pr2_aspatial(self)
                 if spatial_lag:
                     if self.predy_e != None:
-                        self.pr2_sp = diagnostics_tsls.pr2_spatial(self)
+                        self.pr2_e = diagnostics_tsls.pr2_spatial(self)
                     else:
-                        self.pr2_sp = None
+                        self.pr2_e = None
 
         if nonspat_diag:
             if not instruments:  # quicky hack until we figure out the global nonspatial diag rules
                 #general information
-                self.sigML = self.sig2n  
+                self.sig2ML = self.sig2n  
                 self.f_stat = diagnostics.f_stat(self)  
                 self.logll = diagnostics.log_likelihood(self) 
                 self.aic = diagnostics.akaike(self) 
@@ -740,8 +740,8 @@ def summary_r2(reg, ols, spatial_lag):
     else:
         strSummary = "%-20s:%12.6f\n" % ('Pseudo R-squared',reg.pr2)
         if spatial_lag:
-            if reg.pr2_sp != None: 
-                strSummary += "%-20s:%12.6f\n" % ('Spatial Pseudo R-squared',reg.pr2_sp)
+            if reg.pr2_e != None: 
+                strSummary += "%-20s:%12.6f\n" % ('Spatial Pseudo R-squared',reg.pr2_e)
     return strSummary
 
 
@@ -750,8 +750,8 @@ def summary_nonspat_diag_1(reg):
     strSummary += "%-20s:%12.3f  %-22s:%12.4f\n" % ('Sum squared residual',reg.utu,'F-statistic',reg.f_stat[0])
     strSummary += "%-20s:%12.3f  %-22s:%12.7g\n" % ('Sigma-square',reg.sig2,'Prob(F-statistic)',reg.f_stat[1])
     strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('S.E. of regression',np.sqrt(reg.sig2),'Log likelihood',reg.logll)
-    strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('Sigma-square ML',reg.sigML,'Akaike info criterion',reg.aic)
-    strSummary += "%-20s:%12.4f  %-22s:%12.3f\n" % ('S.E of regression ML',np.sqrt(reg.sigML),'Schwarz criterion',reg.schwarz)
+    strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('Sigma-square ML',reg.sig2ML,'Akaike info criterion',reg.aic)
+    strSummary += "%-20s:%12.4f  %-22s:%12.3f\n" % ('S.E of regression ML',np.sqrt(reg.sig2ML),'Schwarz criterion',reg.schwarz)
     return strSummary
     
 

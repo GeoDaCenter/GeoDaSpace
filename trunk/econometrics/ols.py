@@ -12,64 +12,66 @@ __all__ = ["OLS"]
 
 class BaseOLS(RegressionPropsY, RegressionPropsVM):
     """
-    Compute ordinary least squares (note: no consistency checks or
-    diagnostics)
+    Ordinary least squares (OLS) (note: no consistency checks or diagnostics)
 
     Parameters
     ----------
-    y        : array
-               nx1 array of dependent variable
-    x        : array
-               nxj array of j independent variables
-    constant : boolean
-               If true it appends a vector of ones to the independent variables
-               to estimate intercept (set to True by default)
-    robust   : string
-               If 'white' or 'hac' then a White consistent or HAC estimator of the
-               variance-covariance matrix is given. If 'gls' then
-               generalized least squares is performed resulting in new
-               coefficient estimates along with a new variance-covariance
-               matrix.
-    gwk       : spatial weights object
-               pysal kernel weights object
-    sig2n_k  : boolean
-               Whether to use n-k (if True, default) or n (if False) to
-               estimate sigma2
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, excluding the constant
+    constant     : boolean
+                   If True, then add a constant term to the array of
+                   independent variables
+    robust       : string
+                   If 'white', then a White consistent estimator of the
+                   variance-covariance matrix is given.  If 'hac', then a
+                   HAC consistent estimator of the variance-covariance
+                   matrix is given. Default set to None. 
+    gwk          : pysal W object
+                   Kernel spatial weights needed for HAC estimation. Note:
+                   matrix must have ones along the main diagonal.
+    sig2n_k      : boolean
+                   If True, then use n-k to estimate sigma^2. If False, use n.
                
     Attributes
     ----------
+    betas        : array
+                   kx1 array of estimated coefficients
+    u            : array
+                   nx1 array of residuals
+    predy        : array
+                   nx1 array of predicted y values
+    n            : integer
+                   Number of observations
+    k            : integer
+                   Number of variables for which coefficients are estimated
+                   (including the constant)
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, including the constant
+    mean_y       : float
+                   Mean of dependent variable
+    std_y        : float
+                   Standard deviation of dependent variable
+    vm           : array
+                   Variance covariance matrix (kxk)
+    utu          : float
+                   Sum of squared residuals
+    sig2         : float
+                   Sigma squared used in computations
+    sig2n        : float
+                   Sigma squared (computed with n in the denominator)
+    sig2n_k      : float
+                   Sigma squared (computed with n-k in the denominator)
+    xtx          : float
+                   X'X
+    xtxi         : float
+                   (X'X)^-1
 
-    y       : array
-              nx1 array of dependent variable
-    x       : array
-              nxk array of independent variables (with constant added if
-              constant parameter set to True)
-    betas   : array
-              kx1 array with estimated coefficients
-    xtx     : array
-              kxk array
-    xtxi    : array
-              kxk array of inverted xtx
-    u       : array
-              nx1 array of residuals
-    predy   : array
-              nx1 array of predicted values
-    n       : int
-              Number of observations
-    k       : int
-              Number of variables (constant included)
-    utu     : float
-              Sum of the squared residuals
-    sig2    : float
-              Sigma squared with n in the denominator
-    sig2n_k : float
-              Sigma squared with n-k in the denominator
-    vm      : array
-              Variance-covariance matrix (kxk)
-    mean_y  : float
-              Mean of the dependent variable
-    std_y   : float
-              Standard deviation of the dependent variable
               
     Examples
     --------
@@ -123,125 +125,162 @@ class BaseOLS(RegressionPropsY, RegressionPropsVM):
 
 class OLS(BaseOLS, USER.DiagnosticBuilder):
     """
-    Compute ordinary least squares and return results and diagnostics.
+    Ordinary least squares with results and diagnostics.
     
     Parameters
     ----------
-
-    y        : array
-               nx1 array of dependent variable
-    x        : array
-               nxj array of j independent variables (without a constant) 
-    w        : spatial weights object
-               if provided then spatial diagnostics are computed
-    sig2n_k  : boolean
-               Whether to use n-k (if True, default) or n (if False) to
-               estimate sigma2               
-    name_y   : string
-               Name of dependent variables for use in output
-    name_x   : list of strings
-               Names of independent variables for use in output
-    name_ds  : string
-               Name of dataset for use in output
-    vm       : boolean
-               If True, include variance matrix in summary results
-    pred     : boolean
-               If True, include y, predicted values and residuals in summary results
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, excluding the constant
+    w            : pysal W object
+                   Spatial weights object (required if running spatial
+                   diagnostics)
+    robust       : string
+                   If 'white', then a White consistent estimator of the
+                   variance-covariance matrix is given.  If 'hac', then a
+                   HAC consistent estimator of the variance-covariance
+                   matrix is given. Default set to None. 
+    gwk          : pysal W object
+                   Kernel spatial weights needed for HAC estimation. Note:
+                   matrix must have ones along the main diagonal.
+    sig2n_k      : boolean
+                   If True, then use n-k to estimate sigma^2. If False, use n.
+    nonspat_diag : boolean
+                   If True, then compute non-spatial diagnostics on
+                   the regression.
+    spat_diag    : boolean
+                   If True, then compute Lagrange multiplier tests (requires
+                   w). Note: see moran for further tests.
+    moran        : boolean
+                   If True, compute Moran's I on the residuals. Note:
+                   requires spat_diag=True.
+    vm           : boolean
+                   If True, include variance-covariance matrix in summary
+                   results
+    name_y       : string
+                   Name of dependent variable for use in output
+    name_x       : list of strings
+                   Names of independent variables for use in output
+    name_w       : string
+                   Name of weights matrix for use in output
+    name_gwk     : string
+                   Name of kernel weights matrix for use in output
+    name_ds      : string
+                   Name of dataset for use in output
     
 
     Attributes
     ----------
-
-    y        : array
-               nx1 array of dependent variable
-    x        : array
-               nxk array of independent variables (with constant)
-    betas    : array
-               kx1 array with estimated coefficients
-    u        : array
-               nx1 array of residuals
-    predy    : array
-               nx1 array of predicted values
-    n        : int
-               Number of observations
-    k        : int
-               Number of variables (constant included)
-    name_ds  : string
-               dataset's name
-    name_y   : string
-               Dependent variable's name
-    name_x   : tuple
-               Independent variables' names
-    mean_y   : float
-               Mean value of dependent variable
-    std_y    : float
-               Standard deviation of dependent variable
-    vm       : array
-               Variance covariance matrix (kxk)
-    r2       : float
-               R squared
-    ar2      : float
-               Adjusted R squared
-    utu      : float
-               Sum of the squared residuals
-    sig2     : float
-               Sigma squared
-    sig2ML   : float
-               Sigma squared ML 
-    f_stat   : tuple
-               Statistic (float), p-value (float)
-    logll    : float
-               Log likelihood        
-    aic      : float
-               Akaike info criterion 
-    schwarz  : float
-               Schwarz info criterion     
-    std_err  : array
-               1xk array of Std.Error    
-    t_stat   : list of tuples
-               Each tuple contains the pair (statistic, p-value), where each is
-               a float; same order as self.x
-    mulColli : float
-               Multicollinearity condition number
-    jarque_bera : dictionary
-               'jb': Jarque-Bera statistic (float); 'pvalue': p-value (float); 'df':
-               degrees of freedom (int)  
+    summary      : string
+                   Summary of regression results and diagnostics (note: use in
+                   conjunction with the print command)
+    betas        : array
+                   kx1 array of estimated coefficients
+    u            : array
+                   nx1 array of residuals
+    predy        : array
+                   nx1 array of predicted y values
+    n            : integer
+                   Number of observations
+    k            : integer
+                   Number of variables for which coefficients are estimated
+                   (including the constant)
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, including the constant
+    robust       : string
+                   Adjustment for robust standard errors
+    mean_y       : float
+                   Mean of dependent variable
+    std_y        : float
+                   Standard deviation of dependent variable
+    vm           : array
+                   Variance covariance matrix (kxk)
+    r2           : float
+                   R squared
+    ar2          : float
+                   Adjusted R squared
+    utu          : float
+                   Sum of squared residuals
+    sig2         : float
+                   Sigma squared used in computations
+    sig2ML       : float
+                   Sigma squared (maximum likelihood)
+    f_stat       : tuple
+                   Statistic (float), p-value (float)
+    logll        : float
+                   Log likelihood
+    aic          : float
+                   Akaike information criterion 
+    schwarz      : float
+                   Schwarz information criterion     
+    std_err      : array
+                   1xk array of standard errors of the betas    
+    t_stat       : list of tuples
+                   t statistic; each tuple contains the pair (statistic,
+                   p-value), where each is a float
+    mulColli     : float
+                   Multicollinearity condition number
+    jarque_bera  : dictionary
+                   'jb': Jarque-Bera statistic (float); 'pvalue': p-value
+                   (float); 'df': degrees of freedom (int)  
     breusch_pagan : dictionary
-               'bp': Breusch-Pagan statistic (float); 'pvalue': p-value (float); 'df':
-               degrees of freedom (int)  
+                    'bp': Breusch-Pagan statistic (float); 'pvalue': p-value
+                    (float); 'df': degrees of freedom (int)  
     koenker_bassett : dictionary
-               'kb': Koenker-Bassett statistic (float); 'pvalue': p-value (float); 'df':
-               degrees of freedom (int)  
-    white    : dictionary
-               'wh': White statistic (float); 'pvalue': p-value (float); 'df':
-               degrees of freedom (int)  
-    lm_error : tuple
-               Lagrange multiplier test for spatial error model; each tuple contains
-               the pair (statistic, p-value), where each is a float; only available 
-               if w defined
-    lm_lag   : tuple
-               Lagrange multiplier test for spatial lag model; each tuple contains
-               the pair (statistic, p-value), where each is a float; only available 
-               if w defined
-    rlm_error : tuple
-               Robust lagrange multiplier test for spatial error model; each tuple 
-               contains the pair (statistic, p-value), where each is a float; only 
-               available if w defined
-    rlm_lag   : tuple
-               Robust lagrange multiplier test for spatial lag model; each tuple 
-               contains the pair (statistic, p-value), where each is a float; only 
-               available if w defined
-    lm_sarma : tuple
-               Lagrange multiplier test for spatial SARMA model; each tuple contains
-               the pair (statistic, p-value), where each is a float; only available 
-               if w defined
-    moran_res : tuple
-                Tuple containing the triple (Moran's I, standardized Moran's
-                I, p-value); only available if w defined
-    summary  : string
-               Includes OLS regression results and diagnostics in a nice
-               format for printing.        
-     
+                      'kb': Koenker-Bassett statistic (float); 'pvalue':
+                      p-value (float); 'df': degrees of freedom (int)  
+    white         : dictionary
+                    'wh': White statistic (float); 'pvalue': p-value (float);
+                    'df': degrees of freedom (int)  
+    lm_error      : tuple
+                    Lagrange multiplier test for spatial error model; tuple
+                    contains the pair (statistic, p-value), where each is a
+                    float 
+    lm_lag        : tuple
+                    Lagrange multiplier test for spatial lag model; tuple
+                    contains the pair (statistic, p-value), where each is a
+                    float 
+    rlm_error     : tuple
+                    Robust lagrange multiplier test for spatial error model;
+                    tuple contains the pair (statistic, p-value), where each
+                    is a float
+    rlm_lag       : tuple
+                    Robust lagrange multiplier test for spatial lag model;
+                    tuple contains the pair (statistic, p-value), where each
+                    is a float
+    lm_sarma      : tuple
+                    Lagrange multiplier test for spatial SARMA model; tuple
+                    contains the pair (statistic, p-value), where each is a
+                    float
+    moran_res     : tuple
+                    Moran's I for the residuals; tuple containing the triple
+                    (Moran's I, standardized Moran's I, p-value)
+    name_y        : string
+                    Name of dependent variable for use in output
+    name_x        : list of strings
+                    Names of independent variables for use in output
+    name_w        : string
+                    Name of weights matrix for use in output
+    name_gwk      : string
+                    Name of kernel weights matrix for use in output
+    name_ds       : string
+                    Name of dataset for use in output
+    title         : string
+                    Name of the regression method used
+    sig2n        : float
+                   Sigma squared (computed with n in the denominator)
+    sig2n_k      : float
+                   Sigma squared (computed with n-k in the denominator)
+    xtx          : float
+                   X'X
+    xtxi         : float
+                   (X'X)^-1
+
     
     Examples
     --------
