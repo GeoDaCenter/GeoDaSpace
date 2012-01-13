@@ -201,7 +201,6 @@ class BaseTSLS(RegressionPropsY, RegressionPropsVM):
             self._cache['vm'] = np.dot(self.sig2, self.varb)
         return self._cache['vm']
 
-
 class TSLS(BaseTSLS, USER.DiagnosticBuilder):
     """
     Two stage least squares with results and diagnostics.
@@ -349,26 +348,66 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
     Examples
     --------
 
+    We first need to import the needed modules, namely numpy to convert the
+    data we read into arrays that ``spreg`` understands and ``pysal`` to
+    perform all the analysis.
+
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("examples/columbus.dbf","r")
+
+    Open data on Columbus neighborhood crime (49 areas) using pysal.open().
+    This is the DBF associated with the Columbus shapefile.  Note that
+    pysal.open() also reads data in CSV format; since the actual class
+    requires data to be passed in as numpy arrays, the user can read their
+    data in using any method.  
+
+    >>> db = pysal.open(pysal.examples.get_path("columbus.dbf"),'r')
+    
+    Extract the CRIME column (crime rates) from the DBF file and make it the
+    dependent variable for the regression. Note that PySAL requires this to be
+    an numpy array of shape (n, 1) as opposed to the also common shape of (n, )
+    that other packages accept.
+
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
+
+    Extract INC (income) vector from the DBF to be used as
+    independent variables in the regression.  Note that PySAL requires this to
+    be an nxj numpy array, where j is the number of independent variables (not
+    including a constant). By default this model adds a vector of ones to the
+    independent variables passed in, but this can be overridden by passing
+    constant=False.
+
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X = np.array(X).T
+
+    In this case we consider HOVAL (home value) is an endogenous regressor.
+    We tell the model that this is so by passing it in a different parameter
+    from the exogenous variables (x).
+
     >>> yd = []
     >>> yd.append(db.by_col("HOVAL"))
     >>> yd = np.array(yd).T
+
+    Because we have endogenous variables, to obtain a correct estimate of the
+    model, we need to instrument for HOVAL. We use DISCBD (distance to the
+    CBD) for this and hence put it in the instruments parameter, 'q'.
+
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
+
+    We are all set with the preliminars, we are good to run the model. In this
+    case, we will need the variables (exogenous and endogenous) and the
+    instruments. If we want to have the names of the variables printed in the
+    output summary, we will have to pass them in as well, although this is optional.
+
     >>> reg = TSLS(y, X, yd, q, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
     >>> print reg.betas
     [[ 88.46579584]
      [  0.5200379 ]
      [ -1.58216593]]
-    
 
     """
     def __init__(self, y, x, yend, q,\
@@ -420,21 +459,4 @@ if __name__ == '__main__':
     _test()    
     import numpy as np
     import pysal
-    db=pysal.open("examples/columbus.dbf","r")
-    y = np.array(db.by_col("CRIME"))
-    y = np.reshape(y, (49,1))
-    X = []
-    X.append(db.by_col("INC"))
-    X = np.array(X).T
-    yd = []
-    yd.append(db.by_col("HOVAL"))
-    yd = np.array(yd).T
-    # instrument for HOVAL with DISCBD
-    q = []
-    q.append(db.by_col("DISCBD"))
-    q = np.array(q).T
-    reg = BaseTSLS(y, X, yd, q=q, robust='white')
-    print reg.betas
-    print reg.vm 
-
        
