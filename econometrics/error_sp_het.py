@@ -11,50 +11,65 @@ from pysal import lag_spatial
 class BaseGM_Error_Het(RegressionPropsY):
     """
     GMM method for a spatial error model with heteroskedasticity (note: no
-    consistency checks)
-
-    Based on Arraiz et al [1]_
-
-    ...
+    consistency checks or diagnostics); based on Arraiz et al [1]_.
 
     Parameters
     ----------
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, excluding the constant
+    w            : pysal W object
+                   Spatial weights object (note: if provided then spatial
+                   diagnostics are computed)   
+    max_iter     : int
+                   Maximum number of iterations of steps 2a and 2b from Arraiz
+                   et al. Note: epsilon provides an additional stop condition.
+    epsilon      : float
+                   Minimum change in lambda required to stop iterations of
+                   steps 2a and 2b from Arraiz et al. Note: max_iter provides
+                   an additional stop condition.
+    step1c       : boolean
+                   If True, then include Step 1c from Arraiz et al. 
 
-    y           : array
-                  nx1 array with dependent variables
-    x           : array
-                  nxk array with independent variables aligned with y
-    w           : W
-                  PySAL weights instance aligned with y and with instances S
-                  and A1 created
-    max_iter      : int
-                  Optional. Number of iterations of steps 2a. and 2b. Set to 1
-                  by default
-    step1c      : boolean
-                  Optional. Whether to include or not Step 1c in the estimation
-                  Set to True by default
 
     Attributes
     ----------
+    betas        : array
+                   kx1 array of estimated coefficients
+    u            : array
+                   nx1 array of residuals
+    e            : array
+                   nx1 array of spatially filtered residuals
+    predy        : array
+                   nx1 array of predicted y values
+    n            : integer
+                   Number of observations
+    k            : integer
+                   Number of variables for which coefficients are estimated
+                   (including the constant)
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, including the constant
+    iter_stop    : string
+                   Stop criterion reached during iteration of steps 2a and 2b
+                   from Arraiz et al.
+    iterations   : integer
+                   Number of iterations of steps 2a and 2b from Arraiz et al.
+    mean_y       : float
+                   Mean of dependent variable
+    std_y        : float
+                   Standard deviation of dependent variable
+    vm           : array
+                   Variance covariance matrix (kxk)
+    sig2         : float
+                   Sigma squared used in computations
+    xtx          : float
+                   X'X
 
-    y           : array
-                  nx1 array of dependent variable  
-    x           : array
-                  nxk array of independent variables (with constant)
-    xtx         : array
-                  X.T * X
-    betas       : array
-                  (k+1)x1 array with estimates for betas and lambda
-    n           : int
-                  Number of observations
-    k           : int
-                  Number of variables (constant included)
-    u           : array
-                  nx1 array with residuals
-    vm          : array
-                  (k+1)x(k+1) variance-covariance matrix
-    predy       : array
-                  nx1 array of predicted values
 
     References
     ----------
@@ -134,55 +149,97 @@ class BaseGM_Error_Het(RegressionPropsY):
 
 class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
     """
-    GMM method for a spatial error model with heteroskedasticity
-    Based on Arraiz et al [1]_
-
-    ...
+    GMM method for a spatial error model with heteroskedasticity, with results
+    and diagnostics; based on Arraiz et al [1]_.
 
     Parameters
     ----------
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, excluding the constant
+    w            : pysal W object
+                   Spatial weights object (note: if provided then spatial
+                   diagnostics are computed)   
+    max_iter     : int
+                   Maximum number of iterations of steps 2a and 2b from Arraiz
+                   et al. Note: epsilon provides an additional stop condition.
+    epsilon      : float
+                   Minimum change in lambda required to stop iterations of
+                   steps 2a and 2b from Arraiz et al. Note: max_iter provides
+                   an additional stop condition.
+    step1c       : boolean
+                   If True, then include Step 1c from Arraiz et al. 
+    vm           : boolean
+                   If True, include variance-covariance matrix in summary
+                   results
+    name_y       : string
+                   Name of dependent variable for use in output
+    name_x       : list of strings
+                   Names of independent variables for use in output
+    name_w       : string
+                   Name of weights matrix for use in output
+    name_ds      : string
+                   Name of dataset for use in output
 
-    y           : array
-                  nx1 array of dependent variable
-    x           : array
-                  nxj array of j independent variables (without a constant) 
-    xtx         : array
-                  X.T * X
-    w           : W
-                  PySAL weights instance aligned with y and with instances S
-                  and A1 created
-    max_iter      : int
-                  Optional. Number of iterations of steps 2a. and 2b. Set to 1
-                  by default
-    step1c      : boolean
-                  Optional. Whether to include or not Step 1c in the estimation
-                  Set to True by default                  
-    name_ds     : string
-                  dataset's name
-    name_y      : string
-                  Dependent variable's name
-    name_x      : tuple
-                  Independent variables' names
 
     Attributes
     ----------
+    summary      : string
+                   Summary of regression results and diagnostics (note: use in
+                   conjunction with the print command)
+    betas        : array
+                   kx1 array of estimated coefficients
+    u            : array
+                   nx1 array of residuals
+    e            : array
+                   nx1 array of spatially filtered residuals
+    predy        : array
+                   nx1 array of predicted y values
+    n            : integer
+                   Number of observations
+    k            : integer
+                   Number of variables for which coefficients are estimated
+                   (including the constant)
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, including the constant
+    iter_stop    : string
+                   Stop criterion reached during iteration of steps 2a and 2b
+                   from Arraiz et al.
+    iterations   : integer
+                   Number of iterations of steps 2a and 2b from Arraiz et al.
+    mean_y       : float
+                   Mean of dependent variable
+    std_y        : float
+                   Standard deviation of dependent variable
+    pr2          : float
+                   Pseudo R squared (squared correlation between y and ypred)
+    vm           : array
+                   Variance covariance matrix (kxk)
+    sig2         : float
+                   Sigma squared used in computations
+    std_err      : array
+                   1xk array of standard errors of the betas    
+    z_stat       : list of tuples
+                   z statistic; each tuple contains the pair (statistic,
+                   p-value), where each is a float
+    xtx          : float
+                   X'X
+    name_y       : string
+                   Name of dependent variable for use in output
+    name_x       : list of strings
+                   Names of independent variables for use in output
+    name_w       : string
+                   Name of weights matrix for use in output
+    name_ds      : string
+                   Name of dataset for use in output
+    title        : string
+                   Name of the regression method used
 
-    x           : array
-                  nxk array of independent variables (with constant)
-    y           : array
-                  nx1 array of dependent variable  
-    betas       : array
-                  (k+1)x1 array with estimates for betas and lambda
-    n           : int
-                  Number of observations
-    k           : int
-                  Number of variables (constant included)
-    u           : array
-                  nx1 array with residuals
-    vm          : array
-                  (k+1)x(k+1) variance-covariance matrix
-    predy       : array
-                  nx1 array of predicted values
 
     References
     ----------
@@ -243,63 +300,90 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
 class BaseGM_Endog_Error_Het(RegressionPropsY):
     """
     GMM method for a spatial error model with heteroskedasticity and
-    endogenous variables (note: no consistency checks)
-
-    Based on Arraiz et al [1]_
-
-    ...
+    endogenous variables (note: no consistency checks or diagnostics); based
+    on Arraiz et al [1]_.
 
     Parameters
     ----------
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, excluding the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    q            : array
+                   Two dimensional array with n rows and one column for each
+                   external exogenous variable to use as instruments (note: 
+                   this should not contain any variables from x)
+    w            : pysal W object
+                   Spatial weights object (note: if provided then spatial
+                   diagnostics are computed)   
+    constant     : boolean
+                   If True, then add a constant term to the array of
+                   independent variables
+    max_iter     : int
+                   Maximum number of iterations of steps 2a and 2b from Arraiz
+                   et al. Note: epsilon provides an additional stop condition.
+    epsilon      : float
+                   Minimum change in lambda required to stop iterations of
+                   steps 2a and 2b from Arraiz et al. Note: max_iter provides
+                   an additional stop condition.
+    step1c       : boolean
+                   If True, then include Step 1c from Arraiz et al. 
+    inv_method   : string
+                   If "power_exp", then compute inverse using the power
+                   expansion. If "true_inv", then compute the true inverse.
+                   Note that true_inv will fail for large n.
 
-    x           : array
-                  nxk array with independent variables aligned with y
-    y           : array
-                  nx1 array with dependent variables
-    yend        : array
-                  Endogenous variables
-    q           : array
-                  array of instruments for yend (note: this should not contain
-                  any variables from x;
-    w           : W
-                  PySAL weights instance aligned with y
-    max_iter      : int
-                  Optional. Number of iterations of steps 2a. and 2b. Set to 1
-                  by default
-    step1c      : boolean
-                  Optional. Whether to include or not Step 1c in the estimation
-                  Set to True by default                  
 
     Attributes
     ----------
-    
-    y           : array
-                  nx1 array of dependent variable
-    x           : array
-                  array of independent variables (with constant)
-    z           : array
-                  nxk array of variables (combination of x and yend)
-    h           : array
-                  nxl array of instruments (combination of x and q)
-    hth         : array
-                  h.T * h
-    yend        : array
-                  endogenous variables
-    q           : array
-                  array of external exogenous variables
-    betas       : array
-                  (k+1)x1 array with estimates for betas and lambda
-    u           : array
-                  nx1 array of residuals 
-    predy       : array
-                  nx1 array of predicted values 
-    n           : integer
-                  number of observations
-    k           : int
-                  Number of variables, including exogenous and endogenous
-                  variables and constant
-    vm          : array
-                  (k+1)x(k+1) variance-covariance matrix
+    betas        : array
+                   kx1 array of estimated coefficients
+    u            : array
+                   nx1 array of residuals
+    e            : array
+                   nx1 array of spatially filtered residuals
+    predy        : array
+                   nx1 array of predicted y values
+    n            : integer
+                   Number of observations
+    k            : integer
+                   Number of variables for which coefficients are estimated
+                   (including the constant)
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, including the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    q            : array
+                   Two dimensional array with n rows and one column for each
+                   external exogenous variable used as instruments 
+    z            : array
+                   nxk array of variables (combination of x and yend)
+    h            : array
+                   nxl array of instruments (combination of x and q)
+    iter_stop    : string
+                   Stop criterion reached during iteration of steps 2a and 2b
+                   from Arraiz et al.
+    iterations   : integer
+                   Number of iterations of steps 2a and 2b from Arraiz et al.
+    mean_y       : float
+                   Mean of dependent variable
+    std_y        : float
+                   Standard deviation of dependent variable
+    vm           : array
+                   Variance covariance matrix (kxk)
+    sig2         : float
+                   Sigma squared used in computations
+    hth          : float
+                   H'H
+
 
     References
     ----------
@@ -389,73 +473,130 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
 
 class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
     """
-    GMM method for a spatial error model with heteroskedasticity and endogenous variables
-
-    Based on Arraiz et al [1]_
-
-    ...
+    GMM method for a spatial error model with heteroskedasticity and
+    endogenous variables, with results and diagnostics; based on Arraiz et al
+    [1]_.
 
     Parameters
     ----------
-
-    x           : array
-                  nxk array with independent variables aligned with y
-    y           : array
-                  nx1 array with dependent variables
-    yend        : array
-                  Endogenous variables
-    q           : array
-                  array of instruments for yend (note: this should not contain
-                  any variables from x;
-    w           : W
-                  PySAL weights instance aligned with y
-    max_iter      : int
-                  Optional. Number of iterations of steps 2a. and 2b. Set to 1
-                  by default
-    step1c      : boolean
-                  Optional. Whether to include or not Step 1c in the estimation
-                  Set to True by default                  
-    name_y      : string
-                  Name of dependent variables for use in output
-    name_x      : list of strings
-                  Names of independent variables for use in output
-    name_yend   : list of strings
-                  Names of endogenous variables for use in output
-    name_q      : list of strings
-                  Names of instruments for use in output
-    name_ds     : string
-                  Name of dataset for use in output
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, excluding the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    q            : array
+                   Two dimensional array with n rows and one column for each
+                   external exogenous variable to use as instruments (note: 
+                   this should not contain any variables from x)
+    w            : pysal W object
+                   Spatial weights object (note: if provided then spatial
+                   diagnostics are computed)   
+    max_iter     : int
+                   Maximum number of iterations of steps 2a and 2b from Arraiz
+                   et al. Note: epsilon provides an additional stop condition.
+    epsilon      : float
+                   Minimum change in lambda required to stop iterations of
+                   steps 2a and 2b from Arraiz et al. Note: max_iter provides
+                   an additional stop condition.
+    step1c       : boolean
+                   If True, then include Step 1c from Arraiz et al. 
+    inv_method   : string
+                   If "power_exp", then compute inverse using the power
+                   expansion. If "true_inv", then compute the true inverse.
+                   Note that true_inv will fail for large n.
+    vm           : boolean
+                   If True, include variance-covariance matrix in summary
+                   results
+    name_y       : string
+                   Name of dependent variable for use in output
+    name_x       : list of strings
+                   Names of independent variables for use in output
+    name_yend    : list of strings
+                   Names of endogenous variables for use in output
+    name_q       : list of strings
+                   Names of instruments for use in output
+    name_w       : string
+                   Name of weights matrix for use in output
+    name_ds      : string
+                   Name of dataset for use in output
 
     Attributes
     ----------
-    
-    y           : array
-                  nx1 array of dependent variable
-    x           : array
-                  array of independent variables (with constant)
-    z           : array
-                  nxk array of variables (combination of x and yend)
-    h           : array
-                  nxl array of instruments (combination of x and q)
-    hth         : array
-                  h.T * h
-    yend        : array
-                  endogenous variables
-    q           : array
-                  array of external exogenous variables
-    betas       : array
-                  (k+1)x1 array with estimates for betas and lambda
-    u           : array
-                  nx1 array of residuals 
-    predy       : array
-                  nx1 array of predicted values 
-    n           : integer
-                  number of observations
-    k           : int
-                  Number of variables, including exogenous and endogenous
-                  variables and constant
-    vm          : array
-                  (k+1)x(k+1) variance-covariance matrix
+    summary      : string
+                   Summary of regression results and diagnostics (note: use in
+                   conjunction with the print command)
+    betas        : array
+                   kx1 array of estimated coefficients
+    u            : array
+                   nx1 array of residuals
+    e            : array
+                   nx1 array of spatially filtered residuals
+    predy        : array
+                   nx1 array of predicted y values
+    n            : integer
+                   Number of observations
+    k            : integer
+                   Number of variables for which coefficients are estimated
+                   (including the constant)
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, including the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    q            : array
+                   Two dimensional array with n rows and one column for each
+                   external exogenous variable used as instruments 
+    z            : array
+                   nxk array of variables (combination of x and yend)
+    h            : array
+                   nxl array of instruments (combination of x and q)
+    iter_stop    : string
+                   Stop criterion reached during iteration of steps 2a and 2b
+                   from Arraiz et al.
+    iterations   : integer
+                   Number of iterations of steps 2a and 2b from Arraiz et al.
+    mean_y       : float
+                   Mean of dependent variable
+    std_y        : float
+                   Standard deviation of dependent variable
+    vm           : array
+                   Variance covariance matrix (kxk)
+    pr2          : float
+                   Pseudo R squared (squared correlation between y and ypred)
+    sig2         : float
+                   Sigma squared used in computations
+    std_err      : array
+                   1xk array of standard errors of the betas    
+    z_stat       : list of tuples
+                   z statistic; each tuple contains the pair (statistic,
+                   p-value), where each is a float
+    name_y        : string
+                    Name of dependent variable for use in output
+    name_x        : list of strings
+                    Names of independent variables for use in output
+    name_yend     : list of strings
+                    Names of endogenous variables for use in output
+    name_z        : list of strings
+                    Names of exogenous and endogenous variables for use in 
+                    output
+    name_q        : list of strings
+                    Names of external instruments
+    name_h        : list of strings
+                    Names of all instruments used in ouput
+    name_w        : string
+                    Name of weights matrix for use in output
+    name_ds       : string
+                    Name of dataset for use in output
+    title         : string
+                    Name of the regression method used
+    hth          : float
+                   H'H
 
     References
     ----------
@@ -527,72 +668,93 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
 class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     """
     GMM method for a spatial lag and error model with heteroskedasticity and
-    endogenous variables  (note: no consistency checks) 
-
-    Based on Arraiz et al [1]_
-
-    ...
+    endogenous variables (note: no consistency checks or diagnostics); based
+    on Arraiz et al [1]_.
 
     Parameters
     ----------
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, excluding the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    q            : array
+                   Two dimensional array with n rows and one column for each
+                   external exogenous variable to use as instruments (note: 
+                   this should not contain any variables from x)
+    w            : pysal W object
+                   Spatial weights object (note: if provided then spatial
+                   diagnostics are computed)   
+    w_lags       : integer
+                   Orders of W to include as instruments for the spatially
+                   lagged dependent variable. For example, w_lags=1, then
+                   instruments are WX; if w_lags=2, then WX, WWX; and so on.
+    lag_q        : boolean
+                   If True, then include spatial lags of the additional 
+                   instruments (q).
+    max_iter     : int
+                   Maximum number of iterations of steps 2a and 2b from Arraiz
+                   et al. Note: epsilon provides an additional stop condition.
+    epsilon      : float
+                   Minimum change in lambda required to stop iterations of
+                   steps 2a and 2b from Arraiz et al. Note: max_iter provides
+                   an additional stop condition.
+    step1c       : boolean
+                   If True, then include Step 1c from Arraiz et al. 
+    inv_method   : string
+                   If "power_exp", then compute inverse using the power
+                   expansion. If "true_inv", then compute the true inverse.
+                   Note that true_inv will fail for large n.
 
-    y           : array
-                  nx1 array with dependent variable
-    x           : array
-                  nxk array with independent variables aligned with y
-    w           : W
-                  PySAL weights instance aligned with y
-    yend        : array
-                  Optional. Additional non-spatial endogenous variables (spatial lag is added by default)
-    q           : array
-                  array of instruments for yend (note: this should not contain
-                  any variables from x; spatial instruments are computed by 
-                  default)
-    w_lags      : int
-                  Number of orders to power W when including it as intrument
-                  for the spatial lag (e.g. if w_lags=1, then the only
-                  instrument is WX; if w_lags=2, the instrument is WWX; and so
-                  on)
-    lag_q       : boolean
-                  Optional. Whether to include or not as instruments spatial
-                  lags of the additional instruments q. Set to True by default                  
-    max_iter      : int
-                  Optional. Number of iterations of steps 2a. and 2b. Set to 1
-                  by default
-    step1c      : boolean
-                  Optional. Whether to include or not Step 1c in the estimation
-                  Set to True by default                  
 
     Attributes
     ----------
-    
-    y           : array
-                  nx1 array of dependent variable
-    x           : array
-                  array of independent variables (with constant)
-    z           : array
-                  nxk array of variables (combination of x and yend)
-    h           : array
-                  nxl array of instruments (combination of x and q)
-    hth         : array
-                  h.T * h
-    yend        : array
-                  endogenous variables
-    q           : array
-                  array of external exogenous variables
-    betas       : array
-                  (k+1)x1 array with estimates for betas and lambda
-    u           : array
-                  nx1 array of residuals 
-    predy       : array
-                  nx1 array of predicted values 
-    n           : integer
-                  number of observations
-    k           : int
-                  Number of variables, including exogenous and endogenous
-                  variables and constant
-    vm          : array
-                  (k+1)x(k+1) variance-covariance matrix
+    betas        : array
+                   kx1 array of estimated coefficients
+    u            : array
+                   nx1 array of residuals
+    e_filtered   : array
+                   nx1 array of spatially filtered residuals
+    predy        : array
+                   nx1 array of predicted y values
+    n            : integer
+                   Number of observations
+    k            : integer
+                   Number of variables for which coefficients are estimated
+                   (including the constant)
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, including the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    q            : array
+                   Two dimensional array with n rows and one column for each
+                   external exogenous variable used as instruments 
+    z            : array
+                   nxk array of variables (combination of x and yend)
+    h            : array
+                   nxl array of instruments (combination of x and q)
+    iter_stop    : string
+                   Stop criterion reached during iteration of steps 2a and 2b
+                   from Arraiz et al.
+    iterations   : integer
+                   Number of iterations of steps 2a and 2b from Arraiz et al.
+    mean_y       : float
+                   Mean of dependent variable
+    std_y        : float
+                   Standard deviation of dependent variable
+    vm           : array
+                   Variance covariance matrix (kxk)
+    sig2         : float
+                   Sigma squared used in computations
+    hth          : float
+                   H'H
 
     References
     ----------
@@ -654,87 +816,144 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
 class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     """
     GMM method for a spatial lag and error model with heteroskedasticity and
-    endogenous variables  (note: no consistency checks) 
-
-    Based on Arraiz et al [1]_
-
-    ...
+    endogenous variables, with results and diagnostics; based on Arraiz et al
+    [1]_.
 
     Parameters
     ----------
-
-    y           : array
-                  nx1 array with dependent variable
-    x           : array
-                  nxk array with independent variables aligned with y
-    w           : W
-                  PySAL weights instance aligned with y
-    yend        : array
-                  Optional. Additional non-spatial endogenous variables (spatial lag is added by default)
-    q           : array
-                  array of instruments for yend (note: this should not contain
-                  any variables from x; spatial instruments are computed by 
-                  default)
-    w_lags      : int
-                  Number of orders to power W when including it as intrument
-                  for the spatial lag (e.g. if w_lags=1, then the only
-                  instrument is WX; if w_lags=2, the instrument is WWX; and so
-                  on)
-    lag_q       : boolean
-                  Optional. Whether to include or not as instruments spatial
-                  lags of the additional instruments q. Set to True by default                                 
-    max_iter    : int
-                  Optional. Number of iterations of steps 2a. and 2b. Set to 1
-                  by default
-    step1c      : boolean
-                  Optional. Whether to include or not Step 1c in the estimation
-                  Set to True by default                  
-    name_y      : string
-                  Name of dependent variables for use in output
-    name_x      : list of strings
-                  Names of independent variables for use in output
-    name_yend   : list of strings
-                  Names of endogenous variables for use in output
-    name_q      : list of strings
-                  Names of instruments for use in output
-    name_ds     : string
-                  Name of dataset for use in output
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, excluding the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    q            : array
+                   Two dimensional array with n rows and one column for each
+                   external exogenous variable to use as instruments (note: 
+                   this should not contain any variables from x)
+    w            : pysal W object
+                   Spatial weights object (note: if provided then spatial
+                   diagnostics are computed)   
+    w_lags       : integer
+                   Orders of W to include as instruments for the spatially
+                   lagged dependent variable. For example, w_lags=1, then
+                   instruments are WX; if w_lags=2, then WX, WWX; and so on.
+    lag_q        : boolean
+                   If True, then include spatial lags of the additional 
+                   instruments (q).
+    max_iter     : int
+                   Maximum number of iterations of steps 2a and 2b from Arraiz
+                   et al. Note: epsilon provides an additional stop condition.
+    epsilon      : float
+                   Minimum change in lambda required to stop iterations of
+                   steps 2a and 2b from Arraiz et al. Note: max_iter provides
+                   an additional stop condition.
+    step1c       : boolean
+                   If True, then include Step 1c from Arraiz et al. 
+    inv_method   : string
+                   If "power_exp", then compute inverse using the power
+                   expansion. If "true_inv", then compute the true inverse.
+                   Note that true_inv will fail for large n.
+    vm           : boolean
+                   If True, include variance-covariance matrix in summary
+                   results
+    name_y       : string
+                   Name of dependent variable for use in output
+    name_x       : list of strings
+                   Names of independent variables for use in output
+    name_yend    : list of strings
+                   Names of endogenous variables for use in output
+    name_q       : list of strings
+                   Names of instruments for use in output
+    name_w       : string
+                   Name of weights matrix for use in output
+    name_ds      : string
+                   Name of dataset for use in output
 
     Attributes
     ----------
-    
-    y           : array
-                  nx1 array of dependent variable
-    x           : array
-                  array of independent variables (with constant)
-    z           : array
-                  nxk array of variables (combination of x and yend)
-    h           : array
-                  nxl array of instruments (combination of x and q)
-    hth         : array
-                  h.T * h
-    yend        : array
-                  endogenous variables
-    q           : array
-                  array of external exogenous variables
-    betas       : array
-                  (k+1)x1 array with estimates for betas and lambda
-    u           : array
-                  nx1 array of residuals 
-    predy       : array
-                  nx1 array of predicted values
-    predy_sp    : array
-                  nx1 array of spatially weighted predicted values
-                  predy_sp = (I - \rho W)^{-1}predy
-    resid_sp    : array
-                  nx1 array of residuals considering predy_sp as predicted values
-    n           : integer
-                  number of observations
-    k           : int
-                  Number of variables, including exogenous and endogenous
-                  variables and constant
-    vm          : array
-                  (k+1)x(k+1) variance-covariance matrix
+    summary      : string
+                   Summary of regression results and diagnostics (note: use in
+                   conjunction with the print command)
+    betas        : array
+                   kx1 array of estimated coefficients
+    u            : array
+                   nx1 array of residuals
+    e_filtered   : array
+                   nx1 array of spatially filtered residuals
+    e_reduced    : array
+                   nx1 array of residuals (using reduced form)
+    predy        : array
+                   nx1 array of predicted y values
+    predy_e      : array
+                   nx1 array of predicted y values (using reduced form)
+    n            : integer
+                   Number of observations
+    k            : integer
+                   Number of variables for which coefficients are estimated
+                   (including the constant)
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, including the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    q            : array
+                   Two dimensional array with n rows and one column for each
+                   external exogenous variable used as instruments 
+    z            : array
+                   nxk array of variables (combination of x and yend)
+    h            : array
+                   nxl array of instruments (combination of x and q)
+    iter_stop    : string
+                   Stop criterion reached during iteration of steps 2a and 2b
+                   from Arraiz et al.
+    iterations   : integer
+                   Number of iterations of steps 2a and 2b from Arraiz et al.
+    mean_y       : float
+                   Mean of dependent variable
+    std_y        : float
+                   Standard deviation of dependent variable
+    vm           : array
+                   Variance covariance matrix (kxk)
+    pr2          : float
+                   Pseudo R squared (squared correlation between y and ypred)
+    pr2_e        : float
+                   Pseudo R squared (squared correlation between y and ypred_e
+                   (using reduced form))
+    sig2         : float
+                   Sigma squared used in computations (based on filtered
+                   residuals)
+    std_err      : array
+                   1xk array of standard errors of the betas    
+    z_stat       : list of tuples
+                   z statistic; each tuple contains the pair (statistic,
+                   p-value), where each is a float
+    name_y        : string
+                    Name of dependent variable for use in output
+    name_x        : list of strings
+                    Names of independent variables for use in output
+    name_yend     : list of strings
+                    Names of endogenous variables for use in output
+    name_z        : list of strings
+                    Names of exogenous and endogenous variables for use in 
+                    output
+    name_q        : list of strings
+                    Names of external instruments
+    name_h        : list of strings
+                    Names of all instruments used in ouput
+    name_w        : string
+                    Name of weights matrix for use in output
+    name_ds       : string
+                    Name of dataset for use in output
+    title         : string
+                    Name of the regression method used
+    hth          : float
+                   H'H
 
     Examples
     --------
@@ -793,7 +1012,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
         BaseGM_Combo_Het.__init__(self, y=y, x=x, yend=yend, q=q, w=w, w_lags=w_lags,\
               max_iter=max_iter, step1c=step1c, lag_q=lag_q,\
               epsilon=epsilon, inv_method=inv_method)
-        self.predy_e, self.resid_sp = UTILS.sp_att(w,self.y,self.predy,\
+        self.predy_e, self.e_reduced = UTILS.sp_att(w,self.y,self.predy,\
                             self.z[:,-1].reshape(self.n,1),self.betas[-1])        
         self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)

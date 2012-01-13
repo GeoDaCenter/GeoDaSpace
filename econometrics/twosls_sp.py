@@ -9,84 +9,100 @@ from utils import get_lags, set_endog, sp_att
 
 class BaseGM_Lag(TSLS.BaseTSLS):
     """
-    Spatial 2SLS class to do all the computations
-
+    Spatial two stage least squares (S2SLS) (note: no consistency checks or
+    diagnostics)
 
     Parameters
     ----------
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, excluding the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    q            : array
+                   Two dimensional array with n rows and one column for each
+                   external exogenous variable to use as instruments (note: 
+                   this should not contain any variables from x); cannot be
+                   used in combination with h
+    w            : pysal W object
+                   Spatial weights object (note: if provided then spatial
+                   diagnostics are computed)   
+    w_lags       : integer
+                   Orders of W to include as instruments for the spatially
+                   lagged dependent variable. For example, w_lags=1, then
+                   instruments are WX; if w_lags=2, then WX, WWX; and so on.
+    lag_q        : boolean
+                   If True, then include spatial lags of the additional 
+                   instruments (q).
+    robust       : string
+                   If 'white', then a White consistent estimator of the
+                   variance-covariance matrix is given.  If 'hac', then a
+                   HAC consistent estimator of the variance-covariance
+                   matrix is given. Default set to None. 
+    gwk          : pysal W object
+                   Kernel spatial weights needed for HAC estimation. Note:
+                   matrix must have ones along the main diagonal.
+    sig2n_k      : boolean
+                   If True, then use n-k to estimate sigma^2. If False, use n.
 
-    y           : array
-                  nx1 array of dependent variable
-    x           : array
-                  array of independent variables, excluding endogenous
-                  variables and constant
-    w           : spatial weights object
-                  pysal spatial weights object
-    yend        : array
-                  non-spatial endogenous variables [optional]
-    q           : array
-                  array of instruments for yend (note: this should not contain
-                  any variables from x; spatial instruments are computed by 
-                  default) [only if 'yend' passed]
-    w_lags      : integer
-                  Number of spatial lags of the exogenous variables to be
-                  included as spatial instruments (default set to 1)
-    lag_q       : boolean
-                  Optional. Whether to include or not as instruments spatial
-                  lags of the additional instruments q. Set to True by default                   
-    robust      : string
-                  If 'white' or 'hac' then a White consistent or HAC estimator
-                  of the variance-covariance matrix is given. If 'gls' then
-                  generalized least squares is performed resulting in new
-                  coefficient estimates along with a new variance-covariance
-                  matrix. 
-    gwk          : spatial weights object
-                  pysal kernel weights object
 
     Attributes
     ----------
-
-    y           : array
-                  nx1 array of dependent variable
-    x           : array
-                  array of independent variables (with constant)
-    z           : array
-                  nxk array of variables (combination of x, yend and spatial
-                  lag of y)
-    h           : array
-                  nxl array of instruments (combination of x, q, spatial lags)
-    yend        : array
-                  endogenous variables (including spatial lag)
-    q           : array
-                  array of external exogenous variables (including spatial
-                  lags)
-    betas       : array
-                  kx1 array of estimated coefficients
-    u           : array
-                  nx1 array of residuals
-    predy       : array
-                  nx1 array of predicted values              
-    n           : int
-                  Number of observations
-    k           : int
-                  Number of variables, including exogenous and endogenous
-                  variables and constant
-    kstar       : int
-                  Number of endogenous variables. 
-    zth         : array
-                  z.T * h
-    hth         : array
-                  h.T * h
-    htz         : array
-                  h.T * z
-    hthi        : array
-                  inverse of h.T * h
-    xp          : array
-                  h * np.dot(hthi, htz)           
-    xptxpi      : array
-                  inverse of np.dot(xp.T,xp), used to compute vm
-    pfora1a2    : array
-                  used to compute a1, a2
+    betas        : array
+                   kx1 array of estimated coefficients
+    u            : array
+                   nx1 array of residuals
+    predy        : array
+                   nx1 array of predicted y values
+    n            : integer
+                   Number of observations
+    k            : integer
+                   Number of variables for which coefficients are estimated
+                   (including the constant)
+    kstar        : integer
+                   Number of endogenous variables. 
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, including the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    q            : array
+                   Two dimensional array with n rows and one column for each
+                   external exogenous variable used as instruments 
+    z            : array
+                   nxk array of variables (combination of x and yend)
+    h            : array
+                   nxl array of instruments (combination of x and q)
+    mean_y       : float
+                   Mean of dependent variable
+    std_y        : float
+                   Standard deviation of dependent variable
+    vm           : array
+                   Variance covariance matrix (kxk)
+    utu          : float
+                   Sum of squared residuals
+    sig2         : float
+                   Sigma squared used in computations
+    sig2n        : float
+                   Sigma squared (computed with n in the denominator)
+    sig2n_k      : float
+                   Sigma squared (computed with n-k in the denominator)
+    hth          : float
+                   H'H
+    hthi         : float
+                   (H'H)^-1
+    varb         : array
+                   (Z'H (H'H)^-1 H'Z)^-1
+    zthhthi      : array
+                   Z'H(H'H)^-1
+    pfora1a2     : array
+                   n(zthhthi)'varb
 
 
     Examples
@@ -152,90 +168,160 @@ class BaseGM_Lag(TSLS.BaseTSLS):
 
 class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
     """
-    Spatial two stage least squares (S2SLS). Also accommodates the case of
-    endogenous explanatory variables.  Note: pure non-spatial 2SLS can be run
-    using the class TSLS.
+    Spatial two stage least squares (S2SLS) with results and diagnostics.
 
     Parameters
     ----------
-
-    y           : array
-                  nx1 array of dependent variable
-    x           : array
-                  array of independent variables, excluding endogenous
-                  variables and constant
-    w           : spatial weights object
-                  pysal spatial weights object
-    yend        : array
-                  non-spatial endogenous variables [optional]
-    q           : array
-                  array of instruments for yend (note: this should not contain
-                  any variables from x; spatial instruments are computed by 
-                  default) [only if 'yend' passed]
-    w_lags      : integer
-                  Number of spatial lags of the exogenous variables to be
-                  included as spatial instruments (default set to 1)
-    lag_q       : boolean
-                  Optional. Whether to include or not as instruments spatial
-                  lags of the additional instruments q. Set to True by default                   
-    robust      : string
-                  If 'white' or 'hac' then a White consistent or HAC estimator
-                  of the variance-covariance matrix is given. If 'gls' then
-                  generalized least squares is performed resulting in new
-                  coefficient estimates along with a new variance-covariance
-                  matrix. 
-    wk          : spatial weights object
-                  pysal kernel weights object
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, excluding the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    q            : array
+                   Two dimensional array with n rows and one column for each
+                   external exogenous variable to use as instruments (note: 
+                   this should not contain any variables from x); cannot be
+                   used in combination with h
+    w            : pysal W object
+                   Spatial weights object 
+    w_lags       : integer
+                   Orders of W to include as instruments for the spatially
+                   lagged dependent variable. For example, w_lags=1, then
+                   instruments are WX; if w_lags=2, then WX, WWX; and so on.
+    lag_q        : boolean
+                   If True, then include spatial lags of the additional 
+                   instruments (q).
+    robust       : string
+                   If 'white', then a White consistent estimator of the
+                   variance-covariance matrix is given.  If 'hac', then a
+                   HAC consistent estimator of the variance-covariance
+                   matrix is given. Default set to None. 
+    gwk          : pysal W object
+                   Kernel spatial weights needed for HAC estimation. Note:
+                   matrix must have ones along the main diagonal.
+    sig2n_k      : boolean
+                   If True, then use n-k to estimate sigma^2. If False, use n.
+    spat_diag    : boolean
+                   If True, then compute Anselin-Kelejian test
+    vm           : boolean
+                   If True, include variance-covariance matrix in summary
+                   results
+    name_y       : string
+                   Name of dependent variable for use in output
+    name_x       : list of strings
+                   Names of independent variables for use in output
+    name_yend    : list of strings
+                   Names of endogenous variables for use in output
+    name_q       : list of strings
+                   Names of instruments for use in output
+    name_w       : string
+                   Name of weights matrix for use in output
+    name_gwk     : string
+                   Name of kernel weights matrix for use in output
+    name_ds      : string
+                   Name of dataset for use in output
 
     Attributes
     ----------
+    summary      : string
+                   Summary of regression results and diagnostics (note: use in
+                   conjunction with the print command)
+    betas        : array
+                   kx1 array of estimated coefficients
+    u            : array
+                   nx1 array of residuals
+    e            : array
+                   nx1 array of residuals (using reduced form)
+    predy        : array
+                   nx1 array of predicted y values
+    predy_e      : array
+                   nx1 array of predicted y values (using reduced form)
+    n            : integer
+                   Number of observations
+    k            : integer
+                   Number of variables for which coefficients are estimated
+                   (including the constant)
+    kstar        : integer
+                   Number of endogenous variables. 
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, including the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    q            : array
+                   Two dimensional array with n rows and one column for each
+                   external exogenous variable used as instruments 
+    z            : array
+                   nxk array of variables (combination of x and yend)
+    h            : array
+                   nxl array of instruments (combination of x and q)
+    robust       : string
+                   Adjustment for robust standard errors
+    mean_y       : float
+                   Mean of dependent variable
+    std_y        : float
+                   Standard deviation of dependent variable
+    vm           : array
+                   Variance covariance matrix (kxk)
+    pr2          : float
+                   Pseudo R squared (squared correlation between y and ypred)
+    pr2_e        : float
+                   Pseudo R squared (squared correlation between y and ypred_e
+                   (using reduced form))
+    utu          : float
+                   Sum of squared residuals
+    sig2         : float
+                   Sigma squared used in computations
+    std_err      : array
+                   1xk array of standard errors of the betas    
+    z_stat       : list of tuples
+                   z statistic; each tuple contains the pair (statistic,
+                   p-value), where each is a float
+    ak_test      : tuple
+                   Anselin-Kelejian test; tuple contains the pair (statistic,
+                   p-value)
+    name_y       : string
+                   Name of dependent variable for use in output
+    name_x       : list of strings
+                   Names of independent variables for use in output
+    name_yend    : list of strings
+                   Names of endogenous variables for use in output
+    name_z       : list of strings
+                   Names of exogenous and endogenous variables for use in 
+                   output
+    name_q       : list of strings
+                   Names of external instruments
+    name_h       : list of strings
+                   Names of all instruments used in ouput
+    name_w       : string
+                   Name of weights matrix for use in output
+    name_gwk     : string
+                   Name of kernel weights matrix for use in output
+    name_ds      : string
+                   Name of dataset for use in output
+    title        : string
+                   Name of the regression method used
+    sig2n        : float
+                   Sigma squared (computed with n in the denominator)
+    sig2n_k      : float
+                   Sigma squared (computed with n-k in the denominator)
+    hth          : float
+                   H'H
+    hthi         : float
+                   (H'H)^-1
+    varb         : array
+                   (Z'H (H'H)^-1 H'Z)^-1
+    zthhthi      : array
+                   Z'H(H'H)^-1
+    pfora1a2     : array
+                   n(zthhthi)'varb
 
-    y           : array
-                  nx1 array of dependent variable
-    x           : array
-                  array of independent variables (with constant)
-    z           : array
-                  nxk array of variables (combination of x, yend and spatial
-                  lag of y)
-    h           : array
-                  nxl array of instruments (combination of x, q, spatial lags)
-    yend        : array
-                  endogenous variables (including spatial lag)
-    q           : array
-                  array of external exogenous variables (including spatial
-                  lags)
-    betas       : array
-                  kx1 array of estimated coefficients
-    u           : array
-                  nx1 array of residuals
-    predy       : array
-                  nx1 array of predicted values
-    predy_sp    : array
-                  nx1 array of spatially weighted predicted values
-                  predy_sp = (I - \rho W)^{-1}predy
-    resid_sp    : array
-                  nx1 array of residuals considering predy_sp as predicted values                  
-    n           : int
-                  Number of observations
-    k           : int
-                  Number of variables, including exogenous and endogenous
-                  variables and constant
-    kstar       : int
-                  Number of endogenous variables. 
-    zth         : array
-                  z.T * h
-    hth         : array
-                  h.T * h
-    htz         : array
-                  h.T * z
-    hthi        : array
-                  inverse of h.T * h
-    xp          : array
-                  h * np.dot(hthi, htz)           
-    xptxpi      : array
-                  inverse of np.dot(xp.T,xp), used to compute vm
-    pfora1a2    : array
-                  used to compute a1, a2
     
     Examples
     --------
