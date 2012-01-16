@@ -32,23 +32,64 @@ def t_stat(reg, z_stat=False):
 
     Examples
     --------
+
+    We first need to import the needed modules. Numpy is needed to convert the
+    data we read into arrays that ``spreg`` understands and ``pysal`` to
+    perform all the analysis. The ``diagnostics`` module is used for the tests
+    we will show here and the OLS and TSLS are required to run the models on
+    which we will perform the tests.
+
     >>> import numpy as np
     >>> import pysal
     >>> import pysal.spreg.diagnostics as diagnostics
     >>> from pysal.spreg.ols import BaseOLS as OLS
     >>> from twosls import BaseTSLS as TSLS
-    >>> db = pysal.open("examples/columbus.dbf","r")
+
+    Open data on Columbus neighborhood crime (49 areas) using pysal.open().
+    This is the DBF associated with the Columbus shapefile.  Note that
+    pysal.open() also reads data in CSV format; since the actual class
+    requires data to be passed in as numpy arrays, the user can read their
+    data in using any method.  
+
+    >>> db = pysal.open(pysal.examples.get_path("columbus.dbf"),'r')
+    
+    Before being able to apply the diagnostics, we have to run a model and,
+    for that, we need the input variables. Extract the CRIME column (crime
+    rates) from the DBF file and make it the dependent variable for the
+    regression. Note that PySAL requires this to be an numpy array of shape
+    (n, 1) as opposed to the also common shape of (n, ) that other packages
+    accept.
+
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
+
+    Extract INC (income) and HOVAL (home value) vector from the DBF to be used as
+    independent variables in the regression.  Note that PySAL requires this to
+    be an nxj numpy array, where j is the number of independent variables (not
+    including a constant). By default this model adds a vector of ones to the
+    independent variables passed in, but this can be overridden by passing
+    constant=False.
+
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
+
+    Run an OLS regression. Since it is a non-spatial model, all we need is the
+    dependent and the independent variable.
+
     >>> reg = OLS(y,X)
-    >>> # t-stat for OLS
+
+    Now we can perform a t-statistic on the model:
+
     >>> testresult = diagnostics.t_stat(reg)
     >>> print("%12.12f"%testresult[0][0], "%12.12f"%testresult[0][1], "%12.12f"%testresult[1][0], "%12.12f"%testresult[1][1], "%12.12f"%testresult[2][0], "%12.12f"%testresult[2][1])
     ('14.490373143689', '0.000000000000', '-4.780496191297', '0.000018289595', '-2.654408642718', '0.010874504910')
+
+    We can also use the z-stat. For that, we re-build the model so we consider
+    HOVAL as endogenous, instrument for it using DISCBD and carry out two
+    stage least squares (TSLS) estimation.
+
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X = np.array(X).T    
@@ -58,8 +99,14 @@ def t_stat(reg, z_stat=False):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
+
+    Once the variables are read as different objects, we are good to run the
+    model.
+
     >>> reg = TSLS(y, X, yd, q)
-    >>> # z-stat for TSLS
+
+    With the output of the TSLS regression, we can perform a z-statistic:
+
     >>> testresult = diagnostics.t_stat(reg, z_stat=True)
     >>> print("%12.10f"%testresult[0][0], "%12.10f"%testresult[0][1], "%12.10f"%testresult[1][0], "%12.10f"%testresult[1][1], "%12.10f"%testresult[2][0], "%12.10f"%testresult[2][1])
     ('5.8452644705', '0.0000000051', '0.3676015668', '0.7131703463', '-1.9946891308', '0.0460767956')
@@ -101,22 +148,65 @@ def pr2_aspatial(tslsreg):
     Examples
     --------
 
+    We first need to import the needed modules. Numpy is needed to convert the
+    data we read into arrays that ``spreg`` understands and ``pysal`` to
+    perform all the analysis. The TSLS is required to run the model on
+    which we will perform the tests.
+
     >>> import numpy as np
     >>> import pysal
     >>> from twosls import BaseTSLS as TSLS
-    >>> db=pysal.open("examples/columbus.dbf","r")
+
+    Open data on Columbus neighborhood crime (49 areas) using pysal.open().
+    This is the DBF associated with the Columbus shapefile.  Note that
+    pysal.open() also reads data in CSV format; since the actual class
+    requires data to be passed in as numpy arrays, the user can read their
+    data in using any method.  
+
+    >>> db = pysal.open(pysal.examples.get_path("columbus.dbf"),'r')
+    
+    Before being able to apply the diagnostics, we have to run a model and,
+    for that, we need the input variables. Extract the CRIME column (crime
+    rates) from the DBF file and make it the dependent variable for the
+    regression. Note that PySAL requires this to be an numpy array of shape
+    (n, 1) as opposed to the also common shape of (n, ) that other packages
+    accept.
+
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
+
+    Extract INC (income) vector from the DBF to be used as
+    independent variables in the regression.  Note that PySAL requires this to
+    be an nxj numpy array, where j is the number of independent variables (not
+    including a constant). By default this model adds a vector of ones to the
+    independent variables passed in, but this can be overridden by passing
+    constant=False.
+
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X = np.array(X).T
+
+    In this case, we consider HOVAL (home value) as an endogenous regressor,
+    so we acknowledge that by reading it in a different category.
+
     >>> yd = []
     >>> yd.append(db.by_col("HOVAL"))
     >>> yd = np.array(yd).T
+
+    In order to properly account for the endogeneity, we have to pass in the
+    instruments. Let us consider DISCBD (distance to the CBD) is a good one:
+
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
+
+    Now we are good to run the model. It is an easy one line task.
+
     >>> reg = TSLS(y, X, yd, q=q)
+
+    In order to perform the pseudo R^2, we pass the regression object to the
+    function and we are done!
+
     >>> result = pr2_aspatial(reg)
     >>> print("%1.6f"%result)    
     0.279361
@@ -152,22 +242,83 @@ def pr2_spatial(tslsreg):
     Examples
     --------
 
+    We first need to import the needed modules. Numpy is needed to convert the
+    data we read into arrays that ``spreg`` understands and ``pysal`` to
+    perform all the analysis. The GM_Lag is required to run the model on
+    which we will perform the tests and the ``pysal.spreg.diagnostics`` module
+    contains the function with the test.
+
     >>> import numpy as np
     >>> import pysal
     >>> import pysal.spreg.diagnostics as D
     >>> from twosls_sp import GM_Lag
-    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
-    >>> w.transform = 'r'
+
+    Open data on Columbus neighborhood crime (49 areas) using pysal.open().
+    This is the DBF associated with the Columbus shapefile.  Note that
+    pysal.open() also reads data in CSV format; since the actual class
+    requires data to be passed in as numpy arrays, the user can read their
+    data in using any method.  
+
     >>> db=pysal.open("examples/columbus.dbf","r")
+    
+    Extract the HOVAL column (home value) from the DBF file and make it the
+    dependent variable for the regression. Note that PySAL requires this to be
+    an numpy array of shape (n, 1) as opposed to the also common shape of (n, )
+    that other packages accept.
+
     >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
+
+    Extract INC (income) vectors from the DBF to be used as
+    independent variables in the regression.  Note that PySAL requires this to
+    be an nxj numpy array, where j is the number of independent variables (not
+    including a constant). By default this model adds a vector of ones to the
+    independent variables passed in, but this can be overridden by passing
+    constant=False.
+
     >>> X = np.array(db.by_col("INC"))
     >>> X = np.reshape(X, (49,1))
+
+    In this case, we consider CRIME (crime rates) as an endogenous regressor,
+    so we acknowledge that by reading it in a different category.
+
     >>> yd = np.array(db.by_col("CRIME"))
     >>> yd = np.reshape(yd, (49,1))
+
+    In order to properly account for the endogeneity, we have to pass in the
+    instruments. Let us consider DISCBD (distance to the CBD) is a good one:
+
     >>> q = np.array(db.by_col("DISCBD"))
     >>> q = np.reshape(q, (49,1))
+
+    Since this test has a spatial component, we need to specify the spatial
+    weights matrix that includes the spatial configuration of the observations
+    into the error component of the model. To do that, we can open an already
+    existing gal file or create a new one. In this case, we will use
+    ``columbus.gal``, which contains contiguity relationships between the
+    observations in the Columbus dataset we are using throughout this example.
+    Note that, in order to read the file, not only to open it, we need to
+    append '.read()' at the end of the command.
+
+    >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp")) 
+
+    Unless there is a good reason not to do it, the weights have to be
+    row-standardized so every row of the matrix sums to one. Among other
+    things, this allows to interpret the spatial lag of a variable as the
+    average value of the neighboring observations. In PySAL, this can be
+    easily performed in the following way:
+
+    >>> w.transform = 'r'
+
+    Now we are good to run the spatial lag model. Make sure you pass all the
+    parameters correctly and, if desired, pass the names of the variables as
+    well so when you print the summary (reg.summary) they are included:
+
     >>> reg = GM_Lag(y, X, w=w, yend=yd, q=q, w_lags=2, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
+
+    Once we have a regression object, we can perform the spatial version of
+    the pesudo R^2. It is as simple as one line!
+
     >>> result = pr2_spatial(reg)
     >>> print("%1.6f"%result)
     0.299649
