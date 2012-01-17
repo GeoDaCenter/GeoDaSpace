@@ -290,11 +290,8 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
     Since we want to run a spatial error model, we need to specify the spatial
     weights matrix that includes the spatial configuration of the observations
     into the error component of the model. To do that, we can open an already
-    existing gal file or create a new one. In this case, we will use
-    ``columbus.gal``, which contains contiguity relationships between the
-    observations in the Columbus dataset we are using throughout this example.
-    Note that, in order to read the file, not only to open it, we need to
-    append '.read()' at the end of the command.
+    existing gal file or create a new one. In this case, we will create one
+    from ``columbus.shp``.
 
     >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     
@@ -724,11 +721,8 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
     Since we want to run a spatial error model, we need to specify the spatial
     weights matrix that includes the spatial configuration of the observations
     into the error component of the model. To do that, we can open an already
-    existing gal file or create a new one. In this case, we will use
-    ``columbus.gal``, which contains contiguity relationships between the
-    observations in the Columbus dataset we are using throughout this example.
-    Note that, in order to read the file, not only to open it, we need to
-    append '.read()' at the end of the command.
+    existing gal file or create a new one. In this case, we will create one
+    from ``columbus.shp``.
 
     >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     
@@ -1127,11 +1121,8 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     Since we want to run a spatial error model, we need to specify the spatial
     weights matrix that includes the spatial configuration of the observations
     into the error component of the model. To do that, we can open an already
-    existing gal file or create a new one. In this case, we will use
-    ``columbus.gal``, which contains contiguity relationships between the
-    observations in the Columbus dataset we are using throughout this example.
-    Note that, in order to read the file, not only to open it, we need to
-    append '.read()' at the end of the command.
+    existing gal file or create a new one. In this case, we will create one
+    from ``columbus.shp``.
 
     >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     
