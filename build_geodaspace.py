@@ -15,16 +15,27 @@ import time,datetime
 import geodaspace.version
 import sys,os
 if __name__=='__main__':
-    if len(sys.argv) == 1:
+    if len(sys.argv) == 1 or (len(sys.argv) == 2 and 'force' in sys.argv):
         print "Going to Build Now!"
         today = datetime.date(*time.localtime()[:3])
         if geodaspace.version.version_date != today:
-            print 
-            print "Sorry, can not build now!"
-            print "Today is:",today.isoformat()
-            print "Version Release Date is:", geodaspace.version.version_date.isoformat()
-            print "Please update the version information before building!"
-            sys.exit(1)
+            if 'force' in sys.argv:
+                print "Today is:",today.isoformat()
+                print "Version Release Date is:", geodaspace.version.version_date.isoformat()
+                print "Please update the version information before building!"
+                print "But if you are going to force me to build..."
+                idx = sys.argv.index('force')
+                sys.argv.pop(idx)
+                
+            else:
+                print 
+                print "Sorry, can not build now!"
+                print "Today is:",today.isoformat()
+                print "Version Release Date is:", geodaspace.version.version_date.isoformat()
+                print "Please update the version information before building!"
+                print "You can force a build by running:"
+                print "\t python build_geodaspace.py force"
+                sys.exit(1)
 
 
         if sys.platform == 'darwin':
