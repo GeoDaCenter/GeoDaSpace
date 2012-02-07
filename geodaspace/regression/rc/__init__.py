@@ -1,1 +1,0 @@
-import OGRegression_xrc
