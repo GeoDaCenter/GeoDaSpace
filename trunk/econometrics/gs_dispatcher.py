@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as np 
 import copy as COPY
 from ols import OLS
 from twosls import TSLS
