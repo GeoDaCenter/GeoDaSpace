@@ -1,3 +1,9 @@
+'''
+Spatial Two Stages Least Squares
+'''
+
+__author__ = "Luc Anselin luc.anselin@asu.edu, David C. Folch david.folch@asu.edu"
+
 import copy
 import numpy as np
 import pysal
@@ -7,10 +13,12 @@ import robust as ROBUST
 import user_output as USER
 from utils import get_lags, set_endog, sp_att
 
+__all__ = ["GM_Lag"]
+
 class BaseGM_Lag(TSLS.BaseTSLS):
     """
     Spatial two stage least squares (S2SLS) (note: no consistency checks or
-    diagnostics)
+    diagnostics); Anselin (1988) [1]_
 
     Parameters
     ----------
@@ -104,6 +112,11 @@ class BaseGM_Lag(TSLS.BaseTSLS):
     pfora1a2     : array
                    n(zthhthi)'varb
 
+    References
+    ----------
+
+    .. [1] Anselin, L. (1988) "Spatial Econometrics: Methods and Models".
+    Kluwer Academic Publishers. Dordrecht.
 
     Examples
     --------
@@ -111,9 +124,9 @@ class BaseGM_Lag(TSLS.BaseTSLS):
     >>> import numpy as np
     >>> import pysal
     >>> import pysal.spreg.diagnostics as D
-    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     >>> w.transform = 'r'
-    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> db = pysal.open(pysal.examples.get_path("columbus.dbf"),'r')
     >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
     >>> # no non-spatial endogenous variables
@@ -145,14 +158,14 @@ class BaseGM_Lag(TSLS.BaseTSLS):
     >>> q = np.array(db.by_col("DISCBD"))
     >>> q = np.reshape(q, (49,1))
     >>> reg=BaseGM_Lag(y, X, w=w, yend=yd, q=q, w_lags=2)
+    >>> reg.betas
+    array([[ 100.79359082],
+           [  -0.50215501],
+           [  -1.14881711],
+           [  -0.38235022]])
+    >>> D.se_betas(reg)
+    array([ 53.0829123 ,   1.02511494,   0.57589064,   0.59891744])
 
-    References
-    ----------
-
-    .. [1] Kelejian, H.H., Prucha, I.R. and Yuzefovich, Y. (2004)
-    "Instrumental variable estimation of a spatial autoregressive model with
-    autoregressive disturbances: large and small sample results". Advances in
-    Econometrics, 18, 163-198.
     """
 
     def __init__(self, y, x, yend=None, q=None,\
@@ -160,7 +173,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
                  robust=None, gwk=None, sig2n_k=False):
 
         yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
-        TSLS.BaseTSLS.__init__(self, y, x, yend2, q=q2,\
+        TSLS.BaseTSLS.__init__(self, y=y, x=x, yend=yend2, q=q2,\
                                sig2n_k=sig2n_k)        
         if robust:
             self.vm = ROBUST.robust_vm(self, gwk=gwk)
@@ -168,7 +181,8 @@ class BaseGM_Lag(TSLS.BaseTSLS):
 
 class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
     """
-    Spatial two stage least squares (S2SLS) with results and diagnostics.
+    Spatial two stage least squares (S2SLS) with results and diagnostics; 
+    Anselin (1988) [1]_
 
     Parameters
     ----------
@@ -233,7 +247,7 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
                    kx1 array of estimated coefficients
     u            : array
                    nx1 array of residuals
-    e            : array
+    e_pred       : array
                    nx1 array of residuals (using reduced form)
     predy        : array
                    nx1 array of predicted y values
@@ -322,6 +336,13 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
     pfora1a2     : array
                    n(zthhthi)'varb
 
+
+    References
+    ----------
+
+    .. [1] Anselin, L. (1988) "Spatial Econometrics: Methods and Models".
+    Kluwer Academic Publishers. Dordrecht.
+
     
     Examples
     --------
@@ -369,7 +390,7 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
     existing gal file or create a new one. In this case, we will create one
     from ``columbus.shp``.
 
-    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
 
     Unless there is a good reason not to do it, the weights have to be
     row-standardized so every row of the matrix sums to one. Among other
@@ -431,7 +452,17 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
     And we can run the model again:
 
     >>> reg=GM_Lag(y, X, w=w, yend=yd, q=q, w_lags=2, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
+    >>> reg.betas
+    array([[ 100.79359082],
+           [  -0.50215501],
+           [  -1.14881711],
+           [  -0.38235022]])
 
+    Once the model is run, we can obtain the standard error of the coefficient
+    estimates by calling the diagnostics module:
+
+    >>> D.se_betas(reg)
+    array([ 53.0829123 ,   1.02511494,   0.57589064,   0.59891744])
 
     """
     def __init__(self, y, x, yend=None, q=None,\
@@ -447,9 +478,9 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
         USER.check_robust(robust, gwk)
         USER.check_constant(x)
         BaseGM_Lag.__init__(self, y=y, x=x, w=w, yend=yend, q=q,\
-                            w_lags=w_lags, robust=robust,\
+                            w_lags=w_lags, robust=robust, gwk=gwk,\
                             lag_q=lag_q, sig2n_k=sig2n_k)
-        self.predy_e, self.e = sp_att(w,self.y,self.predy,\
+        self.predy_e, self.e_pred = sp_att(w,self.y,self.predy,\
                       self.z[:,-1].reshape(self.n,1),self.betas[-1])
         self.title = "SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)

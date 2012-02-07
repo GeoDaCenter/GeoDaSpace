@@ -11,14 +11,13 @@ Following:
     and without Heteroskedasticity".
 
 '''
-from scipy.stats import norm
+
+__author__ = "Luc Anselin luc.anselin@asu.edu, Daniel Arribas-Bel darribas@asu.edu"
+
 from scipy import sparse as SP
 import numpy as np
-import multiprocessing as mp
-import copy
 from numpy import linalg as la
-import pysal.spreg.ols as OLS
-from pysal.spreg.diagnostics import se_betas
+import ols as OLS
 from pysal import lag_spatial
 from utils import power_expansion, set_endog, iter_msg, sp_att
 from utils import get_A1_hom, get_A2_hom, get_A1_het, optim_moments, get_spFilter, get_lags, _moments2eqs
@@ -26,11 +25,13 @@ from utils import RegressionPropsY
 import twosls as TSLS
 import user_output as USER
 
+__all__ = ["GM_Error_Hom", "GM_Endog_Error_Hom", "GM_Combo_Hom"]
 
 class BaseGM_Error_Hom(RegressionPropsY):
     '''
     GMM method for a spatial error model with homoskedasticity (note: no
-    consistency checks or diagnostics); based on Anselin (2011) [1]_.
+    consistency checks or diagnostics); based on Drukker et al. (2010) [1]_,
+    following Anselin (2011) [2]_.
 
     Parameters
     ----------
@@ -62,7 +63,7 @@ class BaseGM_Error_Hom(RegressionPropsY):
                    kx1 array of estimated coefficients
     u            : array
                    nx1 array of residuals
-    e            : array
+    e_filtered   : array
                    nx1 array of spatially filtered residuals
     predy        : array
                    nx1 array of predicted y values
@@ -96,21 +97,25 @@ class BaseGM_Error_Hom(RegressionPropsY):
     References
     ----------
 
-    .. [1] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
+    .. [1] Drukker, D. M., Egger, P., Prucha, I. R. (2010)
+    "On Two-step Estimation of a Spatial Autoregressive Model with Autoregressive
+    Disturbances and Endogenous Regressors". Working paper.
+ 
+    .. [2] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
     with and without Heteroskedasticity". 
 
     Examples
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
     >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("CRIME"))
     >>> X = np.array(X).T
-    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     >>> w.transform = 'r'
 
     Model commands
@@ -169,13 +174,15 @@ class BaseGM_Error_Hom(RegressionPropsY):
 
         # Output
         self.betas = np.vstack((ols_s.betas,lambda2))
-        self.vm = get_omega_hom_ols(w, self, lambda2, moments[0])
+        self.vm,self.sig2 = get_omega_hom_ols(w, self, lambda2, moments[0])
+        self.e_filtered = self.u - lambda2*lag_spatial(w,self.u)
         self._cache = {}
 
 class GM_Error_Hom(BaseGM_Error_Hom, USER.DiagnosticBuilder):
     '''
     GMM method for a spatial error model with homoskedasticity, with results
-    and diagnostics; based on Anselin (2011) [1]_.
+    and diagnostics; based on Drukker et al. (2010) [1]_, following Anselin
+    (2011) [2]_.
 
     Parameters
     ----------
@@ -221,7 +228,7 @@ class GM_Error_Hom(BaseGM_Error_Hom, USER.DiagnosticBuilder):
                    kx1 array of estimated coefficients
     u            : array
                    nx1 array of residuals
-    e            : array
+    e_filtered   : array
                    nx1 array of spatially filtered residuals
     predy        : array
                    nx1 array of predicted y values
@@ -268,11 +275,14 @@ class GM_Error_Hom(BaseGM_Error_Hom, USER.DiagnosticBuilder):
     title        : string
                    Name of the regression method used
 
-
     References
     ----------
 
-    .. [1] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
+    .. [1] Drukker, D. M., Egger, P., Prucha, I. R. (2010)
+    "On Two-step Estimation of a Spatial Autoregressive Model with Autoregressive
+    Disturbances and Endogenous Regressors". Working paper.
+ 
+    .. [2] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
     with and without Heteroskedasticity". 
 
     Examples
@@ -362,7 +372,7 @@ class GM_Error_Hom(BaseGM_Error_Hom, USER.DiagnosticBuilder):
         USER.check_constant(x)
         BaseGM_Error_Hom.__init__(self, y=y, x=x, w=w, A1=A1,\
                 max_iter=max_iter, epsilon=epsilon)
-        self.title = "GENERALIZED SPATIAL LEAST SQUARES (Hom)"
+        self.title = "SPATIALLY WEIGHTED LEAST SQUARES (HOM)"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x)
@@ -380,8 +390,7 @@ class BaseGM_Endog_Error_Hom(RegressionPropsY):
     '''
     GMM method for a spatial error model with homoskedasticity and
     endogenous variables (note: no consistency checks or diagnostics); based
-    on Drukker et al. (2010) [1]_ and Drukker et al. (2011) [2]_, following
-    Anselin (2011) [3]_.
+    on Drukker et al. (2010) [1]_, following Anselin (2011) [2]_.
 
     Parameters
     ----------
@@ -423,7 +432,7 @@ class BaseGM_Endog_Error_Hom(RegressionPropsY):
                    kx1 array of estimated coefficients
     u            : array
                    nx1 array of residuals
-    e            : array
+    e_filtered   : array
                    nx1 array of spatially filtered residuals
     predy        : array
                    nx1 array of predicted y values
@@ -467,23 +476,18 @@ class BaseGM_Endog_Error_Hom(RegressionPropsY):
     References
     ----------
 
-    .. [1] Drukker, D. M., Egger, P., Prucha, I. R. (2010) "On Two-step
-    Estimation of a Spatial Autoregressive Model with Autoregressive
+    .. [1] Drukker, D. M., Egger, P., Prucha, I. R. (2010)
+    "On Two-step Estimation of a Spatial Autoregressive Model with Autoregressive
     Disturbances and Endogenous Regressors". Working paper.
-
-    .. [2] Drukker, Prucha, I. R., Raciborski, R. (2010) "A command for
-    estimating spatial-autoregressive models with spatial-autoregressive
-    disturbances and additional endogenous variables". The Stata Journal, 1,
-    N. 1, pp. 1-13.
-
-    .. [3] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
+ 
+    .. [2] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
     with and without Heteroskedasticity". 
 
     Examples
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
     >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
     >>> X = []
@@ -495,7 +499,7 @@ class BaseGM_Endog_Error_Hom(RegressionPropsY):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     >>> w.transform = 'r'
     >>> reg = BaseGM_Endog_Error_Hom(y, X, yd, q, w, A1='hom_sc')
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
@@ -550,14 +554,15 @@ class BaseGM_Endog_Error_Hom(RegressionPropsY):
 
         # Output
         self.betas = np.vstack((tsls_s.betas,lambda2))
-        self.vm = get_omega_hom(w, self, lambda2, moments[0])
+        self.vm,self.sig2 = get_omega_hom(w, self, lambda2, moments[0])
+        self.e_filtered = self.u - lambda2*lag_spatial(w,self.u)
         self._cache = {}
 
 class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom, USER.DiagnosticBuilder):
     '''
     GMM method for a spatial error model with homoskedasticity and endogenous
-    variables, with results and diagnostics; based on Drukker et al. (2010)
-    [1]_ and Drukker et al. (2011) [2]_, following Anselin (2011) [3]_.
+    variables, with results and diagnostics; based on Drukker et al. (2010) [1]_,
+    following Anselin (2011) [2]_.
 
     Parameters
     ----------
@@ -613,7 +618,7 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom, USER.DiagnosticBuilder):
                    kx1 array of estimated coefficients
     u            : array
                    nx1 array of residuals
-    e            : array
+    e_filtered   : array
                    nx1 array of spatially filtered residuals
     predy        : array
                    nx1 array of predicted y values
@@ -683,16 +688,11 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom, USER.DiagnosticBuilder):
     References
     ----------
 
-    .. [1] Drukker, D. M., Egger, P., Prucha, I. R. (2010) "On Two-step
-    Estimation of a Spatial Autoregressive Model with Autoregressive
+    .. [1] Drukker, D. M., Egger, P., Prucha, I. R. (2010)
+    "On Two-step Estimation of a Spatial Autoregressive Model with Autoregressive
     Disturbances and Endogenous Regressors". Working paper.
-
-    .. [2] Drukker, Prucha, I. R., Raciborski, R. (2010) "A command for
-    estimating spatial-autoregressive models with spatial-autoregressive
-    disturbances and additional endogenous variables". The Stata Journal, 1,
-    N. 1, pp. 1-13.
-
-    .. [3] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
+ 
+    .. [2] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
     with and without Heteroskedasticity". 
 
     Examples
@@ -801,7 +801,7 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom, USER.DiagnosticBuilder):
         USER.check_constant(x)
         BaseGM_Endog_Error_Hom.__init__(self, y=y, x=x, w=w, yend=yend, q=q,\
                 A1=A1, max_iter=max_iter, epsilon=epsilon, constant=True)
-        self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES (Hom)"
+        self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HOM)"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x)
@@ -823,8 +823,7 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom):
     '''
     GMM method for a spatial lag and error model with homoskedasticity and
     endogenous variables (note: no consistency checks or diagnostics); based
-    on Drukker et al. (2010) [1]_ and Drukker et al. (2011) [2]_,
-    following Anselin (2011) [3]_.
+    on Drukker et al. (2010) [1]_, following Anselin (2011) [2]_.
 
     Parameters
     ----------
@@ -914,29 +913,24 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom):
     References
     ----------
 
-    .. [1] Drukker, D. M., Egger, P., Prucha, I. R. (2010) "On Two-step
-    Estimation of a Spatial Autoregressive Model with Autoregressive
+    .. [1] Drukker, D. M., Egger, P., Prucha, I. R. (2010)
+    "On Two-step Estimation of a Spatial Autoregressive Model with Autoregressive
     Disturbances and Endogenous Regressors". Working paper.
-
-    .. [2] Drukker, Prucha, I. R., Raciborski, R. (2010) "A command for
-    estimating spatial-autoregressive models with spatial-autoregressive
-    disturbances and additional endogenous variables". The Stata Journal, 1,
-    N. 1, pp. 1-13.
-
-    .. [3] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
+ 
+    .. [2] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
     with and without Heteroskedasticity". 
 
     Examples
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
     >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X = np.array(X).T
-    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     >>> w.transform = 'r'
 
     Example only with spatial lag
@@ -979,8 +973,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
     '''
     GMM method for a spatial lag and error model with homoskedasticity and
     endogenous variables, with results and diagnostics; based on Drukker et
-    al. (2010) [1]_ and Drukker et al. (2011) [2]_, following Anselin (2011)
-    [3]_.
+    al. (2010) [1]_, following Anselin (2011) [2]_.
 
     Parameters
     ----------
@@ -1045,7 +1038,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
                    nx1 array of residuals
     e_filtered   : array
                    nx1 array of spatially filtered residuals
-    e_reduced    : array
+    e_pred       : array
                    nx1 array of residuals (using reduced form)
     predy        : array
                    nx1 array of predicted y values
@@ -1121,16 +1114,11 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
     References
     ----------
 
-    .. [1] Drukker, D. M., Egger, P., Prucha, I. R. (2010) "On Two-step
-    Estimation of a Spatial Autoregressive Model with Autoregressive
+    .. [1] Drukker, D. M., Egger, P., Prucha, I. R. (2010)
+    "On Two-step Estimation of a Spatial Autoregressive Model with Autoregressive
     Disturbances and Endogenous Regressors". Working paper.
-
-    .. [2] Drukker, Prucha, I. R., Raciborski, R. (2010) "A command for
-    estimating spatial-autoregressive models with spatial-autoregressive
-    disturbances and additional endogenous variables". The Stata Journal, 1,
-    N. 1, pp. 1-13.
-
-    .. [3] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
+ 
+    .. [2] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
     with and without Heteroskedasticity". 
 
     Examples
@@ -1246,9 +1234,9 @@ class GM_Combo_Hom(BaseGM_Combo_Hom, USER.DiagnosticBuilder):
         BaseGM_Combo_Hom.__init__(self, y=y, x=x, w=w, yend=yend, q=q,\
                     w_lags=w_lags, A1=A1, lag_q=lag_q,\
                     max_iter=max_iter, epsilon=epsilon)
-        self.predy_e, self.e_reduced = sp_att(w,self.y,self.predy,\
+        self.predy_e, self.e_pred = sp_att(w,self.y,self.predy,\
                              self.z[:,-1].reshape(self.n,1),self.betas[-2])        
-        self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES (Hom)"        
+        self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HOM)"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x)
@@ -1456,7 +1444,7 @@ def get_omega_hom(w, reg, lamb, G):
 
     o_upper = np.hstack((oDD, oDL))
     o_lower = np.hstack((oDL.T, oLL))
-    return np.vstack((o_upper, o_lower))
+    return np.vstack((o_upper, o_lower)),float(sig2)
 
 def get_omega_hom_ols(w, reg, lamb, G):
     '''
@@ -1506,7 +1494,7 @@ def get_omega_hom_ols(w, reg, lamb, G):
 
     o_upper = np.hstack((oDD, oDL))
     o_lower = np.hstack((oDL.T, oLL))
-    return np.vstack((o_upper, o_lower))
+    return np.vstack((o_upper, o_lower)),float(sig2)
 
 def _test():
     import doctest

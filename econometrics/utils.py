@@ -2,6 +2,11 @@
 Tools for different procedure estimations
 """
 
+__author__ = "Luc Anselin luc.anselin@asu.edu, \
+        Pedro V. Amaral pedro.amaral@asu.edu, \
+        David C. Folch david.folch@asu.edu, \
+        Daniel Arribas-Bel darribas@asu.edu"
+
 import numpy as np
 from scipy import sparse as SP
 import scipy.optimize as op
@@ -328,10 +333,10 @@ def get_spFilter(w,lamb,sf):
 
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
-    >>> w=pysal.open("examples/columbus.GAL").read()        
+    >>> w=pysal.open(pysal.examples.get_path("columbus.gal")).read()        
     >>> solu = get_spFilter(w,0.5,y)
     >>> print solu[0:5]
     [[  -8.9882875]
@@ -418,7 +423,7 @@ def inverse_prod(w, data, scalar, post_multiply=False, inv_method="power_exp", t
     >>> np.allclose(inv_pow, inv_reg, atol=0.0001)
     True
     >>> # test the transpose version
-    >>> inv_pow = power_expansion(w, data, rho, inv_method="power_exp", post_multiply=True)
+    >>> inv_pow = inverse_prod(w, data, rho, inv_method="power_exp", post_multiply=True)
     >>> inv_reg = inverse_prod(w, data, rho, inv_method="true_inv", post_multiply=True)
     >>> np.allclose(inv_pow, inv_reg, atol=0.0001)
     True

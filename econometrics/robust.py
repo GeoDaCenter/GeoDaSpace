@@ -1,3 +1,7 @@
+__author__ = "Luc Anselin luc.anselin@asu.edu, \
+        Pedro V. Amaral pedro.amaral@asu.edu, \
+        David C. Folch david.folch@asu.edu"
+
 import numpy as np
 import numpy.linalg as la
 from pysal import lag_spatial
@@ -29,7 +33,7 @@ def robust_vm(reg, gwk=None):
     >>> import pysal
     >>> from ols import BaseOLS
     >>> from twosls import BaseTSLS
-    >>> db=pysal.open("examples/NAT.dbf","r")
+    >>> db=pysal.open(pysal.examples.get_path("NAT.dbf"),"r")
     >>> y = np.array(db.by_col("HR90"))
     >>> y = np.reshape(y, (y.shape[0],1))
     >>> X = []
@@ -55,7 +59,7 @@ def robust_vm(reg, gwk=None):
     
     Example with OLS and HAC
 
-    >>> wk = pysal.kernelW_from_shapefile('examples/NAT.shp',k=15,function='triangular', fixed=False)
+    >>> wk = pysal.kernelW_from_shapefile(pysal.examples.get_path('NAT.shp'),k=15,function='triangular', fixed=False)
     >>> wk.transform = 'o'
     >>> ols = BaseOLS(y,X, robust='hac', gwk=wk)
     >>> ols.vm

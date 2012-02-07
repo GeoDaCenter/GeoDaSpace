@@ -1,3 +1,13 @@
+'''
+Spatial Error with Heteroskedasticity family of models
+'''
+
+__author__ = "Luc Anselin luc.anselin@asu.edu, \
+        Pedro V. Amaral pedro.amaral@asu.edu, \
+        Daniel Arribas-Bel darribas@asu.edu, \
+        David C. Folch david.folch@asu.edu \
+        Ran Wei rwei5@asu.edu"
+
 import numpy as np
 import numpy.linalg as la
 import ols as OLS
@@ -8,10 +18,13 @@ from utils import RegressionPropsY
 from scipy import sparse as SP
 from pysal import lag_spatial
 
+__all__ = ["GM_Error_Het", "GM_Endog_Error_Het", "GM_Combo_Het"]
+
 class BaseGM_Error_Het(RegressionPropsY):
     """
     GMM method for a spatial error model with heteroskedasticity (note: no
-    consistency checks or diagnostics); based on Arraiz et al [1]_.
+    consistency checks or diagnostics); based on Arraiz et al [1]_, following
+    Anselin [2]_.
 
     Parameters
     ----------
@@ -40,7 +53,7 @@ class BaseGM_Error_Het(RegressionPropsY):
                    kx1 array of estimated coefficients
     u            : array
                    nx1 array of residuals
-    e            : array
+    e_filtered   : array
                    nx1 array of spatially filtered residuals
     predy        : array
                    nx1 array of predicted y values
@@ -65,8 +78,6 @@ class BaseGM_Error_Het(RegressionPropsY):
                    Standard deviation of dependent variable
     vm           : array
                    Variance covariance matrix (kxk)
-    sig2         : float
-                   Sigma squared used in computations
     xtx          : float
                    X'X
 
@@ -79,18 +90,20 @@ class BaseGM_Error_Het(RegressionPropsY):
     Large Sample Results". Journal of Regional Science, Vol. 60, No. 2, pp.
     592-614.
 
+    .. [2] Anselin, L. GMM Estimation of Spatial Error Autocorrelation with Heteroskedasticity
+
     Examples
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
     >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("CRIME"))
     >>> X = np.array(X).T
-    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     >>> w.transform = 'r'
     >>> reg = BaseGM_Error_Het(y, X, w, step1c=True)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
@@ -145,12 +158,13 @@ class BaseGM_Error_Het(RegressionPropsY):
         vc3 = get_vc_het(w, sigma)
         self.vm = get_vm_het(moments_i[0], lambda3, self, w, vc3)
         self.betas = np.vstack((ols_s.betas, lambda3))
+        self.e_filtered = self.u - lambda3*lag_spatial(w,self.u)
         self._cache = {}
 
 class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
     """
     GMM method for a spatial error model with heteroskedasticity, with results
-    and diagnostics; based on Arraiz et al [1]_.
+    and diagnostics; based on Arraiz et al [1]_, following Anselin [2]_.
 
     Parameters
     ----------
@@ -193,7 +207,7 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
                    kx1 array of estimated coefficients
     u            : array
                    nx1 array of residuals
-    e            : array
+    e_filtered   : array
                    nx1 array of spatially filtered residuals
     predy        : array
                    nx1 array of predicted y values
@@ -220,8 +234,6 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
                    Pseudo R squared (squared correlation between y and ypred)
     vm           : array
                    Variance covariance matrix (kxk)
-    sig2         : float
-                   Sigma squared used in computations
     std_err      : array
                    1xk array of standard errors of the betas    
     z_stat       : list of tuples
@@ -248,6 +260,8 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
     Spatial Cliff-Ord-Type Model with Heteroskedastic Innovations: Small and
     Large Sample Results". Journal of Regional Science, Vol. 60, No. 2, pp.
     592-614.
+
+    .. [2] Anselin, L. GMM Estimation of Spatial Error Autocorrelation with Heteroskedasticity
 
     Examples
     --------
@@ -341,7 +355,7 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
         USER.check_constant(x)
         BaseGM_Error_Het.__init__(self, y, x, w, max_iter=max_iter,\
                 step1c=step1c, epsilon=epsilon)
-        self.title = "SPATIALLY WEIGHTED LEAST SQUARES"        
+        self.title = "SPATIALLY WEIGHTED LEAST SQUARES (HET)"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x)
@@ -360,7 +374,7 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
     """
     GMM method for a spatial error model with heteroskedasticity and
     endogenous variables (note: no consistency checks or diagnostics); based
-    on Arraiz et al [1]_.
+    on Arraiz et al [1]_, following Anselin [2]_.
 
     Parameters
     ----------
@@ -403,7 +417,7 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
                    kx1 array of estimated coefficients
     u            : array
                    nx1 array of residuals
-    e            : array
+    e_filtered   : array
                    nx1 array of spatially filtered residuals
     predy        : array
                    nx1 array of predicted y values
@@ -438,8 +452,6 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
                    Standard deviation of dependent variable
     vm           : array
                    Variance covariance matrix (kxk)
-    sig2         : float
-                   Sigma squared used in computations
     hth          : float
                    H'H
 
@@ -452,11 +464,13 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
     Large Sample Results". Journal of Regional Science, Vol. 60, No. 2, pp.
     592-614.
 
+    .. [2] Anselin, L. GMM Estimation of Spatial Error Autocorrelation with Heteroskedasticity
+
     Examples
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
     >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
     >>> X = []
@@ -468,7 +482,7 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     >>> w.transform = 'r'
     >>> reg = BaseGM_Endog_Error_Het(y, X, yd, q, w, step1c=True)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
@@ -527,13 +541,14 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
         vc3 = get_vc_het_tsls(w, self, lambda3, P, zs, inv_method, save_a1a2=True)
         self.vm = get_Omega_GS2SLS(w, lambda3, self, moments_i[0], vc3, P)
         self.betas = np.vstack((tsls_s.betas, lambda3))
+        self.e_filtered = self.u - lambda3*lag_spatial(w,self.u)
         self._cache = {}
 
 class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
     """
     GMM method for a spatial error model with heteroskedasticity and
     endogenous variables, with results and diagnostics; based on Arraiz et al
-    [1]_.
+    [1]_, following Anselin [2]_.
 
     Parameters
     ----------
@@ -590,7 +605,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
                    kx1 array of estimated coefficients
     u            : array
                    nx1 array of residuals
-    e            : array
+    e_filtered   : array
                    nx1 array of spatially filtered residuals
     predy        : array
                    nx1 array of predicted y values
@@ -627,8 +642,6 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
                    Variance covariance matrix (kxk)
     pr2          : float
                    Pseudo R squared (squared correlation between y and ypred)
-    sig2         : float
-                   Sigma squared used in computations
     std_err      : array
                    1xk array of standard errors of the betas    
     z_stat       : list of tuples
@@ -664,6 +677,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
     Large Sample Results". Journal of Regional Science, Vol. 60, No. 2, pp.
     592-614.
 
+    .. [2] Anselin, L. GMM Estimation of Spatial Error Autocorrelation with Heteroskedasticity
 
     Examples
     --------
@@ -772,7 +786,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
         USER.check_constant(x)
         BaseGM_Endog_Error_Het.__init__(self, y=y, x=x, yend=yend, q=q, w=w, max_iter=max_iter,\
                                         step1c=step1c, epsilon=epsilon, inv_method=inv_method)
-        self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"
+        self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HET)"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x)
@@ -795,7 +809,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     """
     GMM method for a spatial lag and error model with heteroskedasticity and
     endogenous variables (note: no consistency checks or diagnostics); based
-    on Arraiz et al [1]_.
+    on Arraiz et al [1]_, following Anselin [2]_.
 
     Parameters
     ----------
@@ -877,8 +891,6 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
                    Standard deviation of dependent variable
     vm           : array
                    Variance covariance matrix (kxk)
-    sig2         : float
-                   Sigma squared used in computations
     hth          : float
                    H'H
 
@@ -890,17 +902,19 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     Large Sample Results". Journal of Regional Science, Vol. 60, No. 2, pp.
     592-614.
 
+    .. [2] Anselin, L. GMM Estimation of Spatial Error Autocorrelation with Heteroskedasticity
+
     Examples
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
     >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X = np.array(X).T
-    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     >>> w.transform = 'r'
 
     Example only with spatial lag
@@ -943,7 +957,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     """
     GMM method for a spatial lag and error model with heteroskedasticity and
     endogenous variables, with results and diagnostics; based on Arraiz et al
-    [1]_.
+    [1]_, following Anselin [2]_.
 
     Parameters
     ----------
@@ -1009,7 +1023,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
                    nx1 array of residuals
     e_filtered   : array
                    nx1 array of spatially filtered residuals
-    e_reduced    : array
+    e_pred       : array
                    nx1 array of residuals (using reduced form)
     predy        : array
                    nx1 array of predicted y values
@@ -1051,9 +1065,6 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
     pr2_e        : float
                    Pseudo R squared (squared correlation between y and ypred_e
                    (using reduced form))
-    sig2         : float
-                   Sigma squared used in computations (based on filtered
-                   residuals)
     std_err      : array
                    1xk array of standard errors of the betas    
     z_stat       : list of tuples
@@ -1080,6 +1091,16 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
                     Name of the regression method used
     hth          : float
                    H'H
+
+    References
+    ----------
+
+    .. [1] Arraiz, I., Drukker, D. M., Kelejian, H., Prucha, I. R. (2010) "A
+    Spatial Cliff-Ord-Type Model with Heteroskedastic Innovations: Small and
+    Large Sample Results". Journal of Regional Science, Vol. 60, No. 2, pp.
+    592-614.
+
+    .. [2] Anselin, L. GMM Estimation of Spatial Error Autocorrelation with Heteroskedasticity
 
     Examples
     --------
@@ -1202,9 +1223,9 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
         BaseGM_Combo_Het.__init__(self, y=y, x=x, yend=yend, q=q, w=w, w_lags=w_lags,\
               max_iter=max_iter, step1c=step1c, lag_q=lag_q,\
               epsilon=epsilon, inv_method=inv_method)
-        self.predy_e, self.e_reduced = UTILS.sp_att(w,self.y,self.predy,\
-                            self.z[:,-1].reshape(self.n,1),self.betas[-1])        
-        self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"        
+        self.predy_e, self.e_pred = UTILS.sp_att(w,self.y,self.predy,\
+                            self.z[:,-1].reshape(self.n,1),self.betas[-2])        
+        self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HET)"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x)
