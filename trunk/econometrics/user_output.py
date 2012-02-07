@@ -4,10 +4,9 @@ __author__ = "Luc Anselin luc.anselin@asu.edu, David C. Folch david.folch@asu.ed
 import textwrap as TW
 import numpy as np
 import copy as COPY
-import pysal.spreg.diagnostics as diagnostics
+import diagnostics as diagnostics
 import diagnostics_tsls as diagnostics_tsls
-import pysal.spreg.diagnostics_sp as diagnostics_sp
-import ak as AK
+import diagnostics_sp as diagnostics_sp
 import pysal
 
 __all__ = []
@@ -17,85 +16,6 @@ class DiagnosticBuilder:
     """
     Dispatch appropriate diagnostics to various regression types. This is
     generally inherited by a regression class.
-
-    Parameters
-    ----------
-
-    w           : pysal spatial weights object
-                  This triggers if spatial diagnostics are run
-    vm          : boolean
-                  If True then include the variance-covariance matrix in the
-                  output
-    pred        : boolean
-                  If True then include the predicted values in the output
-    instruments : boolean
-                  If True then the class assumes the regression is some form
-                  of 2SLS
-
-    Attributes
-    ----------
-    r2       : float
-               R squared
-    ar2      : float
-               Adjusted R squared
-    utu      : float
-               Sum of the squared residuals
-    sig2     : float
-               Sigma squared
-    sig2ML   : float
-               Sigma squared ML 
-    f_stat   : tuple
-               Statistic (float), p-value (float)
-    logll    : float
-               Log likelihood        
-    aic      : float
-               Akaike info criterion 
-    schwarz  : float
-               Schwarz criterion     
-    std_err  : array
-               1xk array of Std.Error    
-    t_stat   : list of tuples
-               Each tuple contains the pair (statistic, p-value), where each is
-               a float; same order as self.x
-    mulColli : float
-               Multicollinearity condition number
-    jarque_bera : dictionary
-               'jb': Jarque-Bera statistic (float); 'pvalue': p-value (float); 'df':
-               degrees of freedom (int)  
-    breusch_pagan : dictionary
-               'bp': Breusch-Pagan statistic (float); 'pvalue': p-value (float); 'df':
-               degrees of freedom (int)  
-    koenker_bassett : dictionary
-               'kb': Koenker-Bassett statistic (float); 'pvalue': p-value (float); 'df':
-               degrees of freedom (int)  
-    white    : dictionary
-               'wh': White statistic (float); 'pvalue': p-value (float); 'df':
-               degrees of freedom (int)  
-    lm_error : tuple
-               Lagrange multiplier test for spatial error model; each tuple contains
-               the pair (statistic, p-value), where each is a float; only available 
-               if w defined
-    lm_lag   : tuple
-               Lagrange multiplier test for spatial lag model; each tuple contains
-               the pair (statistic, p-value), where each is a float; only available 
-               if w defined
-    rlm_error : tuple
-               Robust lagrange multiplier test for spatial error model; each tuple 
-               contains the pair (statistic, p-value), where each is a float; only 
-               available if w defined
-    rlm_lag   : tuple
-               Robust lagrange multiplier test for spatial lag model; each tuple 
-               contains the pair (statistic, p-value), where each is a float; only 
-               available if w defined
-    lm_sarma : tuple
-               Lagrange multiplier test for spatial SARMA model; each tuple contains
-               the pair (statistic, p-value), where each is a float; only available 
-               if w defined
-    moran_res : tuple
-                Tuple containing the triple (Moran's I, stansardized Moran's
-                I, p-value); only available if w defined
-    summary  : string
-               Including all the information in OLS class in nice format          
 
     """
     def __init__(self, w, vm, instruments=False, beta_diag=True,\
@@ -141,7 +61,7 @@ class DiagnosticBuilder:
             if spat_diag:
                 if instruments:
                     cache = diagnostics_sp.spDcache(self, w)
-                    mi, ak, ak_p = AK.akTest(self, w, cache)
+                    mi, ak, ak_p = diagnostics_sp.akTest(self, w, cache)
                     self.ak_test = ak, ak_p
                 else:
                     lm_tests = diagnostics_sp.LMtests(self, w)
@@ -436,7 +356,7 @@ def check_arrays(*arrays):
 
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("../examples/columbus.dbf","r")
+    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
     >>> # Extract CRIME column from the dbf file
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -492,7 +412,7 @@ def check_weights(w, y):
 
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("../examples/columbus.dbf","r")
+    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
     >>> # Extract CRIME column from the dbf file
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -500,7 +420,7 @@ def check_weights(w, y):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> w = pysal.open("../examples/columbus.gal", 'r').read()
+    >>> w = pysal.open(pysal.examples.get_path("columbus.gal"), 'r').read()
     >>> check_weights(w, y)
     >>> # should not raise an exception
 
@@ -543,7 +463,7 @@ def check_robust(robust, wk):
 
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("../examples/columbus.dbf","r")
+    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
     >>> # Extract CRIME column from the dbf file
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -551,8 +471,8 @@ def check_robust(robust, wk):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> w = pysal.open("../examples/columbus.gal", 'r').read()
-    >>> check_robust('White', w)
+    >>> wk = None
+    >>> check_robust('White', wk)
     >>> # should not raise an exception
 
     """
@@ -609,7 +529,7 @@ def check_spat_diag(spat_diag, w):
 
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("../examples/columbus.dbf","r")
+    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
     >>> # Extract CRIME column from the dbf file
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
@@ -617,7 +537,7 @@ def check_spat_diag(spat_diag, w):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> w = pysal.open("../examples/columbus.gal", 'r').read()
+    >>> w = pysal.open(pysal.examples.get_path("columbus.gal"), 'r').read()
     >>> check_spat_diag(True, w)
     >>> # should not raise an exception
 
@@ -648,12 +568,12 @@ def check_constant(x):
 
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("../examples/columbus.dbf","r")
+    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> check_constant(x)
+    >>> check_constant(X)
     >>> # should not raise an exception
 
     """

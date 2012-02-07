@@ -1,14 +1,14 @@
 """
 Spatial Error Models module
 """
-from scipy.stats import norm
-from scipy import sparse as SP
+
+__author__ = "Luc Anselin luc.anselin@asu.edu, \
+        Daniel Arribas-Bel darribas@asu.edu, \
+        Pedro V. Amaral pedro.amaral@asu.edu"
+
 import numpy as np
-import multiprocessing as mp
-import copy
 from numpy import linalg as la
-import pysal.spreg.ols as OLS
-from pysal.spreg.diagnostics import se_betas
+import ols as OLS
 from pysal import lag_spatial
 from utils import power_expansion, set_endog, iter_msg, sp_att
 from utils import get_A1_hom, get_A2_hom, get_A1_het, optim_moments, get_spFilter, get_lags, _moments2eqs
@@ -16,45 +16,53 @@ from utils import RegressionPropsY
 import twosls as TSLS
 import user_output as USER
 
-
+__all__ = ["GM_Error", "GM_Endog_Error", "GM_Combo"]
 
 class BaseGM_Error(RegressionPropsY):
     """
-    Generalized Moments Spatially Weighted Least Squares (OLS + GMM) as in Kelejian and Prucha
-    (1998) [1]_ and Kelejian and Prucha (1999) [2]_
-    ...
+    GMM method for a spatial error model (note: no consistency checks or
+    diagnostics); based on Kelejian and Prucha (1998, 1999)[1]_ [2]_.
 
     Parameters
     ----------
-
-    y           : array
-                  nx1 array of dependent variable
-    x           : array
-                  nxk array of independent variables (assumed to be aligned with y)
-    w           : W
-                  Spatial weights instance 
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, excluding the constant
+    w            : pysal W object
+                   Spatial weights object (note: if provided then spatial
+                   diagnostics are computed)   
 
     Attributes
     ----------
+    betas        : array
+                   kx1 array of estimated coefficients
+    u            : array
+                   nx1 array of residuals
+    e_filtered   : array
+                   nx1 array of spatially filtered residuals
+    predy        : array
+                   nx1 array of predicted y values
+    n            : integer
+                   Number of observations
+    k            : integer
+                   Number of variables for which coefficients are estimated
+                   (including the constant)
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, including the constant
+    mean_y       : float
+                   Mean of dependent variable
+    std_y        : float
+                   Standard deviation of dependent variable
+    vm           : array
+                   Variance covariance matrix (kxk)
+    sig2         : float
+                   Sigma squared used in computations
 
-    betas       : array
-                  kx1 array with estimated coefficients (including spatial
-                  parameter)
-    se_betas    : array
-                  kx1 array with standard errors for estimated coefficients
-                  NOTE: it corrects by sqrt( (n-k)/n ) as in R's spdep
-    z           : array
-                  kx1 array with estimated coefficients divided by the standard errors
-    pvals       : array
-                  kx1 array with p-values of the estimated coefficients
-    u           : array
-                  Vector of residuals
-    sig2        : float
-                  Sigma squared for the residuals of the transformed model (as
-                  in R's spdep)
-    step2OLS    : ols
-                  Regression object from the OLS step with spatially filtered
-                  variables
 
     References
     ----------
@@ -73,10 +81,10 @@ class BaseGM_Error(RegressionPropsY):
 
     >>> import pysal
     >>> import numpy as np
-    >>> dbf = pysal.open('examples/columbus.dbf','r')
+    >>> dbf = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
     >>> y = np.array([dbf.by_col('HOVAL')]).T
     >>> x = np.array([dbf.by_col('INC'), dbf.by_col('CRIME')]).T
-    >>> w = pysal.open('examples/columbus.gal', 'r').read() 
+    >>> w = pysal.open(pysal.examples.get_path("columbus.gal"), 'r').read() 
     >>> w.transform='r'
     >>> model = BaseGM_Error(y, x, w)
     >>> np.around(model.betas, decimals=6)
@@ -84,21 +92,6 @@ class BaseGM_Error(RegressionPropsY):
            [  0.710453],
            [ -0.550527],
            [  0.32573 ]])
-    >>> np.around(model.se_betas, decimals=6)
-    array([[ 12.412038],
-           [  0.504443],
-           [  0.178496]])
-    >>> np.around(model.z, decimals=6)
-    array([[ 3.842611],
-           [ 1.408392],
-           [-3.084247]])
-    >>> np.around(model.pvals, decimals=6)
-    array([[  1.22000000e-04],
-           [  1.59015000e-01],
-           [  2.04100000e-03]])
-    >>> np.around(model.sig2, decimals=6)
-    198.55957900000001
-
     """
     def __init__(self, y, x, w):
 
@@ -122,20 +115,100 @@ class BaseGM_Error(RegressionPropsY):
         self.u = y - self.predy
         self.betas = np.vstack((ols2.betas, np.array([[lambda1]])))
         self.sig2 = ols2.sig2n
+        self.e_filtered = self.u - lambda1*lag_spatial(w,self.u)
 
         self.vm = self.sig2 * ols2.xtxi
         se_betas = np.sqrt(self.vm.diagonal())
-        self.se_betas = se_betas.reshape((len(ols2.betas), 1))
-        zs = ols2.betas / self.se_betas
-        pvals = norm.sf(abs(zs)) * 2.
-        self.z, self.pvals = zs, pvals
-        
-        self.step2OLS = ols2
         self._cache = {}
 
 class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
     """
+    GMM method for a spatial error model, with results and diagnostics; based
+    on Kelejian and Prucha (1998, 1999)[1]_ [2]_.
 
+    Parameters
+    ----------
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, excluding the constant
+    w            : pysal W object
+                   Spatial weights object (note: if provided then spatial
+                   diagnostics are computed)   
+    vm           : boolean
+                   If True, include variance-covariance matrix in summary
+                   results
+    name_y       : string
+                   Name of dependent variable for use in output
+    name_x       : list of strings
+                   Names of independent variables for use in output
+    name_w       : string
+                   Name of weights matrix for use in output
+    name_ds      : string
+                   Name of dataset for use in output
+
+
+    Attributes
+    ----------
+    summary      : string
+                   Summary of regression results and diagnostics (note: use in
+                   conjunction with the print command)
+    betas        : array
+                   kx1 array of estimated coefficients
+    u            : array
+                   nx1 array of residuals
+    e_filtered   : array
+                   nx1 array of spatially filtered residuals
+    predy        : array
+                   nx1 array of predicted y values
+    n            : integer
+                   Number of observations
+    k            : integer
+                   Number of variables for which coefficients are estimated
+                   (including the constant)
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, including the constant
+    mean_y       : float
+                   Mean of dependent variable
+    std_y        : float
+                   Standard deviation of dependent variable
+    pr2          : float
+                   Pseudo R squared (squared correlation between y and ypred)
+    vm           : array
+                   Variance covariance matrix (kxk)
+    sig2         : float
+                   Sigma squared used in computations
+    std_err      : array
+                   1xk array of standard errors of the betas    
+    z_stat       : list of tuples
+                   z statistic; each tuple contains the pair (statistic,
+                   p-value), where each is a float
+    name_y       : string
+                   Name of dependent variable for use in output
+    name_x       : list of strings
+                   Names of independent variables for use in output
+    name_w       : string
+                   Name of weights matrix for use in output
+    name_ds      : string
+                   Name of dataset for use in output
+    title        : string
+                   Name of the regression method used
+
+    References
+    ----------
+
+    .. [1] Kelejian, H.R., Prucha, I.R. (1998) "A generalized spatial
+    two-stage least squares procedure for estimating a spatial autoregressive
+    model with autoregressive disturbances". The Journal of Real State
+    Finance and Economics, 17, 1.
+
+    .. [2] Kelejian, H.R., Prucha, I.R. (1999) "A Generalized Moments
+    Estimator for the Autoregressive Parameter in a Spatial Model".
+    International Economic Review, 40, 2.
 
     Examples
     --------
@@ -213,18 +286,12 @@ class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
            [  0.710453],
            [ -0.550527],
            [  0.32573 ]])
-    >>> np.around(model.se_betas, decimals=6)
-    array([[ 12.412038],
-           [  0.504443],
-           [  0.178496]])
-    >>> np.around(model.z, decimals=6)
-    array([[ 3.842611],
-           [ 1.408392],
-           [-3.084247]])
-    >>> np.around(model.pvals, decimals=6)
-    array([[  1.22000000e-04],
-           [  1.59015000e-01],
-           [  2.04100000e-03]])
+    >>> np.around(model.std_err, decimals=6)
+    array([ 12.412038,   0.504443,   0.178496])
+    >>> np.around(model.z_stat, decimals=6)
+    array([[  3.84261100e+00,   1.22000000e-04],
+           [  1.40839200e+00,   1.59015000e-01],
+           [ -3.08424700e+00,   2.04100000e-03]])
     >>> np.around(model.sig2, decimals=6)
     198.55957900000001
 
@@ -253,38 +320,61 @@ class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
 
 class BaseGM_Endog_Error(RegressionPropsY):
     '''
-    Generalized Spatial Two Stages Least Squares (TSLS + GMM) using spatial
-    error from Kelejian and Prucha (1998) [1]_ and Kelejian and Prucha (1999) [2]_
-    ...
+    GMM method for a spatial error model with endogenous variables (note: no
+    consistency checks or diagnostics); based on Kelejian and Prucha (1998,
+    1999)[1]_[2]_.
 
     Parameters
     ----------
-    y           : array
-                  nx1 array of dependent variable
-    x           : array
-                  nxk array of independent variables (assumed to be aligned with y)
-    w           : W
-                  Spatial weights instance 
-    yend        : array
-                  endogenous variables
-    q           : array
-                  array of external exogenous variables to use as instruments;
-                  (note: this should not contain any variables from x; all x
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, excluding the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    q            : array
+                   Two dimensional array with n rows and one column for each
+                   external exogenous variable to use as instruments (note: 
+                   this should not contain any variables from x)
+    w            : pysal W object
+                   Spatial weights object (note: if provided then spatial
+                   diagnostics are computed)   
 
     Attributes
     ----------
-
-    betas       : array
-                  (k+1)x1 array with estimated coefficients (betas + lambda)
-    se_betas    : array
-                  kx1 array with standard errors for estimated coefficients
-    pvals       : array
-                  kx1 array with p-values of the estimated coefficients
-    u           : array
-                  Vector of residuals (Note it employs original x and y
-                  instead of the spatially filtered ones)
-    vm          : array
-                  Variance-covariance matrix
+    betas        : array
+                   kx1 array of estimated coefficients
+    u            : array
+                   nx1 array of residuals
+    e_filtered   : array
+                   nx1 array of spatially filtered residuals
+    predy        : array
+                   nx1 array of predicted y values
+    n            : integer
+                   Number of observations
+    k            : integer
+                   Number of variables for which coefficients are estimated
+                   (including the constant)
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, including the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    z            : array
+                   nxk array of variables (combination of x and yend)
+    mean_y       : float
+                   Mean of dependent variable
+    std_y        : float
+                   Standard deviation of dependent variable
+    vm           : array
+                   Variance covariance matrix (kxk)
+    sig2         : float
+                   Sigma squared used in computations
 
 
     References
@@ -304,12 +394,12 @@ class BaseGM_Endog_Error(RegressionPropsY):
 
     >>> import pysal
     >>> import numpy as np
-    >>> dbf = pysal.open('examples/columbus.dbf','r')
+    >>> dbf = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
     >>> y = np.array([dbf.by_col('CRIME')]).T
     >>> x = np.array([dbf.by_col('INC')]).T
     >>> yend = np.array([dbf.by_col('HOVAL')]).T
     >>> q = np.array([dbf.by_col('DISCBD')]).T
-    >>> w = pysal.open('examples/columbus.gal', 'r').read() 
+    >>> w = pysal.open(pysal.examples.get_path("columbus.gal"), 'r').read() 
     >>> w.transform='r'
     >>> model = BaseGM_Endog_Error(y, x, yend, q, w)
     >>> np.around(model.betas, decimals=5)
@@ -317,10 +407,6 @@ class BaseGM_Endog_Error(RegressionPropsY):
            [  0.58096],
            [ -1.44808],
            [  0.34992]])
-    >>> np.around(model.se_betas, decimals=6)
-    array([[ 16.138089],
-           [  1.354476],
-           [  0.786205]])
 
     '''
     def __init__(self, y, x, yend, q, w):
@@ -346,16 +432,123 @@ class BaseGM_Endog_Error(RegressionPropsY):
         self.betas = np.vstack((tsls2.betas, np.array([[lambda1]])))
         self.predy = np.dot(tsls.z, tsls2.betas)
         self.u = y - self.predy
-        sig2 = np.dot(tsls2.u.T,tsls2.u) / self.n
-        self.vm = sig2 * tsls2.varb 
-        self.se_betas = np.sqrt(self.vm.diagonal()).reshape(tsls2.betas.shape)
-        zs = tsls2.betas / self.se_betas
-        self.pvals = norm.sf(abs(zs)) * 2.
+        self.sig2 = float(np.dot(tsls2.u.T,tsls2.u)) / self.n
+        self.e_filtered = self.u - lambda1*lag_spatial(w,self.u)
+        self.vm = self.sig2 * tsls2.varb 
         self._cache = {}
 
 class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
     '''
+    GMM method for a spatial error model with endogenous variables, with
+    results and diagnostics; based on Kelejian and Prucha (1998, 1999)[1]_[2]_.
 
+    Parameters
+    ----------
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, excluding the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    q            : array
+                   Two dimensional array with n rows and one column for each
+                   external exogenous variable to use as instruments (note: 
+                   this should not contain any variables from x)
+    w            : pysal W object
+                   Spatial weights object (note: if provided then spatial
+                   diagnostics are computed)   
+    vm           : boolean
+                   If True, include variance-covariance matrix in summary
+                   results
+    name_y       : string
+                   Name of dependent variable for use in output
+    name_x       : list of strings
+                   Names of independent variables for use in output
+    name_yend    : list of strings
+                   Names of endogenous variables for use in output
+    name_q       : list of strings
+                   Names of instruments for use in output
+    name_w       : string
+                   Name of weights matrix for use in output
+    name_ds      : string
+                   Name of dataset for use in output
+
+    Attributes
+    ----------
+    summary      : string
+                   Summary of regression results and diagnostics (note: use in
+                   conjunction with the print command)
+    betas        : array
+                   kx1 array of estimated coefficients
+    u            : array
+                   nx1 array of residuals
+    e_filtered   : array
+                   nx1 array of spatially filtered residuals
+    predy        : array
+                   nx1 array of predicted y values
+    n            : integer
+                   Number of observations
+    k            : integer
+                   Number of variables for which coefficients are estimated
+                   (including the constant)
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, including the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    z            : array
+                   nxk array of variables (combination of x and yend)
+    mean_y       : float
+                   Mean of dependent variable
+    std_y        : float
+                   Standard deviation of dependent variable
+    vm           : array
+                   Variance covariance matrix (kxk)
+    pr2          : float
+                   Pseudo R squared (squared correlation between y and ypred)
+    sig2         : float
+                   Sigma squared used in computations
+    std_err      : array
+                   1xk array of standard errors of the betas    
+    z_stat       : list of tuples
+                   z statistic; each tuple contains the pair (statistic,
+                   p-value), where each is a float
+    name_y        : string
+                    Name of dependent variable for use in output
+    name_x        : list of strings
+                    Names of independent variables for use in output
+    name_yend     : list of strings
+                    Names of endogenous variables for use in output
+    name_z        : list of strings
+                    Names of exogenous and endogenous variables for use in 
+                    output
+    name_q        : list of strings
+                    Names of external instruments
+    name_h        : list of strings
+                    Names of all instruments used in ouput
+    name_w        : string
+                    Name of weights matrix for use in output
+    name_ds       : string
+                    Name of dataset for use in output
+    title         : string
+                    Name of the regression method used
+
+    References
+    ----------
+
+    .. [1] Kelejian, H.R., Prucha, I.R. (1998) "A generalized spatial
+    two-stage least squares procedure for estimating a spatial autoregressive
+    model with autoregressive disturbances". The Journal of Real State
+    Finance and Economics, 17, 1.
+
+    .. [2] Kelejian, H.R., Prucha, I.R. (1999) "A Generalized Moments
+    Estimator for the Autoregressive Parameter in a Spatial Model".
+    International Economic Review, 40, 2.
 
     Examples
     --------
@@ -447,10 +640,8 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
            [  0.58096],
            [ -1.44808],
            [  0.34992]])
-    >>> np.around(model.se_betas, decimals=6)
-    array([[ 16.138089],
-           [  1.354476],
-           [  0.786205]])
+    >>> np.around(model.std_err, decimals=6)
+    array([ 16.138089,   1.354476,   0.786205])
     
     '''
     def __init__(self, y, x, yend, q, w,\
@@ -462,7 +653,7 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
         USER.check_weights(w, y)
         USER.check_constant(x)
         BaseGM_Endog_Error.__init__(self, y=y, x=x, w=w, yend=yend, q=q)
-        self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"        
+        self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x)
@@ -482,48 +673,69 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
 
 class BaseGM_Combo(BaseGM_Endog_Error):
     """
-    Generalized Spatial Two Stages Least Squares (TSLS + GMM) with spatial lag using spatial
-    error from Kelejian and Prucha (1998) [1]_ and Kelejian and Prucha (1999) [2]_
-    ...
+    GMM method for a spatial lag and error model, with endogenous variables
+    (note: no consistency checks or diagnostics); based on Kelejian and Prucha
+    (1998, 1999)[1]_[2]_.
 
     Parameters
     ----------
-
-    y           : array
-                  nx1 array with dependent variables
-    x           : array
-                  nxk array with independent variables aligned with y
-    w           : W
-                  PySAL weights instance aligned with y
-    yend        : array
-                  Optional. Additional non-spatial endogenous variables (spatial lag is added by default)
-    q           : array
-                  array of instruments for yend (note: this should not contain
-                  any variables from x; spatial instruments are computed by 
-                  default)
-    w_lags      : int
-                  Number of orders to power W when including it as intrument
-                  for the spatial lag (e.g. if w_lags=1, then the only
-                  instrument is WX; if w_lags=2, the instrument is WWX; and so
-                  on)
-    lag_q       : boolean
-                  Optional. Whether to include or not as instruments spatial
-                  lags of the additional instruments q. Set to True by default                  
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, excluding the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    q            : array
+                   Two dimensional array with n rows and one column for each
+                   external exogenous variable to use as instruments (note: 
+                   this should not contain any variables from x)
+    w            : pysal W object
+                   Spatial weights object (note: if provided then spatial
+                   diagnostics are computed)   
+    w_lags       : integer
+                   Orders of W to include as instruments for the spatially
+                   lagged dependent variable. For example, w_lags=1, then
+                   instruments are WX; if w_lags=2, then WX, WWX; and so on.
+    lag_q        : boolean
+                   If True, then include spatial lags of the additional 
+                   instruments (q).
 
     Attributes
     ----------
-    
-    betas       : array
-                  (k+1)x1 array with estimated coefficients (betas + lambda)
-    se_betas    : array
-                  kx1 array with standard errors for estimated coefficients
-    pvals       : array
-                  kx1 array with p-values of the estimated coefficients
-    u           : array
-                  Vector of residuals (Note it employs original x and y
-                  instead of the spatially filtered ones)
-    vm          : array
-                  Variance-covariance matrix
+    betas        : array
+                   kx1 array of estimated coefficients
+    u            : array
+                   nx1 array of residuals
+    e_filtered   : array
+                   nx1 array of spatially filtered residuals
+    predy        : array
+                   nx1 array of predicted y values
+    n            : integer
+                   Number of observations
+    k            : integer
+                   Number of variables for which coefficients are estimated
+                   (including the constant)
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, including the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    z            : array
+                   nxk array of variables (combination of x and yend)
+    mean_y       : float
+                   Mean of dependent variable
+    std_y        : float
+                   Standard deviation of dependent variable
+    vm           : array
+                   Variance covariance matrix (kxk)
+    sig2         : float
+                   Sigma squared used in computations
+
 
     References
     ----------
@@ -542,13 +754,13 @@ class BaseGM_Combo(BaseGM_Endog_Error):
 
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X = np.array(X).T
-    >>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+    >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     >>> w.transform = 'r'
 
     Example only with spatial lag
@@ -593,7 +805,132 @@ class BaseGM_Combo(BaseGM_Endog_Error):
 
 class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
     """
+    GMM method for a spatial lag and error model with endogenous variables,
+    with results and diagnostics; based on Kelejian and Prucha (1998,
+    1999)[1]_[2]_.
 
+    Parameters
+    ----------
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, excluding the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    q            : array
+                   Two dimensional array with n rows and one column for each
+                   external exogenous variable to use as instruments (note: 
+                   this should not contain any variables from x)
+    w            : pysal W object
+                   Spatial weights object (note: if provided then spatial
+                   diagnostics are computed)   
+    w_lags       : integer
+                   Orders of W to include as instruments for the spatially
+                   lagged dependent variable. For example, w_lags=1, then
+                   instruments are WX; if w_lags=2, then WX, WWX; and so on.
+    lag_q        : boolean
+                   If True, then include spatial lags of the additional 
+                   instruments (q).
+    vm           : boolean
+                   If True, include variance-covariance matrix in summary
+                   results
+    name_y       : string
+                   Name of dependent variable for use in output
+    name_x       : list of strings
+                   Names of independent variables for use in output
+    name_yend    : list of strings
+                   Names of endogenous variables for use in output
+    name_q       : list of strings
+                   Names of instruments for use in output
+    name_w       : string
+                   Name of weights matrix for use in output
+    name_ds      : string
+                   Name of dataset for use in output
+
+    Attributes
+    ----------
+    summary      : string
+                   Summary of regression results and diagnostics (note: use in
+                   conjunction with the print command)
+    betas        : array
+                   kx1 array of estimated coefficients
+    u            : array
+                   nx1 array of residuals
+    e_filtered   : array
+                   nx1 array of spatially filtered residuals
+    e_pred       : array
+                   nx1 array of residuals (using reduced form)
+    predy        : array
+                   nx1 array of predicted y values
+    predy_e      : array
+                   nx1 array of predicted y values (using reduced form)
+    n            : integer
+                   Number of observations
+    k            : integer
+                   Number of variables for which coefficients are estimated
+                   (including the constant)
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, including the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    z            : array
+                   nxk array of variables (combination of x and yend)
+    mean_y       : float
+                   Mean of dependent variable
+    std_y        : float
+                   Standard deviation of dependent variable
+    vm           : array
+                   Variance covariance matrix (kxk)
+    pr2          : float
+                   Pseudo R squared (squared correlation between y and ypred)
+    pr2_e        : float
+                   Pseudo R squared (squared correlation between y and ypred_e
+                   (using reduced form))
+    sig2         : float
+                   Sigma squared used in computations (based on filtered
+                   residuals)
+    std_err      : array
+                   1xk array of standard errors of the betas    
+    z_stat       : list of tuples
+                   z statistic; each tuple contains the pair (statistic,
+                   p-value), where each is a float
+    name_y        : string
+                    Name of dependent variable for use in output
+    name_x        : list of strings
+                    Names of independent variables for use in output
+    name_yend     : list of strings
+                    Names of endogenous variables for use in output
+    name_z        : list of strings
+                    Names of exogenous and endogenous variables for use in 
+                    output
+    name_q        : list of strings
+                    Names of external instruments
+    name_h        : list of strings
+                    Names of all instruments used in ouput
+    name_w        : string
+                    Name of weights matrix for use in output
+    name_ds       : string
+                    Name of dataset for use in output
+    title         : string
+                    Name of the regression method used
+
+    References
+    ----------
+
+    .. [1] Kelejian, H.R., Prucha, I.R. (1998) "A generalized spatial
+    two-stage least squares procedure for estimating a spatial autoregressive
+    model with autoregressive disturbances". The Journal of Real State
+    Finance and Economics, 17, 1.
+
+    .. [2] Kelejian, H.R., Prucha, I.R. (1999) "A Generalized Moments
+    Estimator for the Autoregressive Parameter in a Spatial Model".
+    International Economic Review, 40, 2.
 
     Examples
     --------
@@ -720,9 +1057,9 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
         USER.check_constant(x)
         BaseGM_Combo.__init__(self, y=y, x=x, w=w, yend=yend, q=q, w_lags=w_lags,\
                               lag_q=lag_q)
-        self.predy_e, self.resid_sp = sp_att(w,self.y,\
+        self.predy_e, self.e_pred = sp_att(w,self.y,\
                    self.predy,self.z[:,-1].reshape(self.n,1),self.betas[-2])        
-        self.title = "GENERALIZED SPATIAL TWO STAGE LEAST SQUARES"        
+        self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x)
@@ -745,7 +1082,6 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
    
 
 def _momentsGM_Error(w, u):
-
     u2 = np.dot(u.T, u)
     wu = w.sparse * u
     uwu = np.dot(u.T, wu)
@@ -756,11 +1092,8 @@ def _momentsGM_Error(w, u):
     wuwwu = np.dot(wu.T, wwu)
     wtw = w.sparse.T * w.sparse
     trWtW = np.sum(wtw.diagonal())
-
     g = np.array([[u2[0][0], wu2[0][0], uwu[0][0]]]).T / w.n
-
     G = np.array([[2 * uwu[0][0], -wu2[0][0], w.n], [2 * wuwwu[0][0], -wwu2[0][0], trWtW], [uwwu[0][0] + wu2[0][0], -wuwwu[0][0], 0.]]) / w.n
-
     return [G, g]
 
 def _test():

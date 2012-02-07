@@ -3,10 +3,13 @@ Diagnostics for two stage least squares regression estimations.
         
 """
 
+__author__ = "Luc Anselin luc.anselin@asu.edu, Nicholas Malizia nicholas.malizia@asu.edu "
+
 import pysal
 from pysal.common import *
 from scipy.stats import pearsonr
 
+__all__ = ["t_stat", "pr2_aspatial", "pr2_spatial"]
 
 def t_stat(reg, z_stat=False):
     """
@@ -259,7 +262,7 @@ def pr2_spatial(tslsreg):
     requires data to be passed in as numpy arrays, the user can read their
     data in using any method.  
 
-    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> db = pysal.open(pysal.examples.get_path("columbus.dbf"),'r')
     
     Extract the HOVAL column (home value) from the DBF file and make it the
     dependent variable for the regression. Note that PySAL requires this to be

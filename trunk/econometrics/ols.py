@@ -78,7 +78,7 @@ class BaseOLS(RegressionPropsY, RegressionPropsVM):
 
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
     >>> y = np.array(db.by_col("HOVAL"))
     >>> y = np.reshape(y, (49,1))
     >>> X = []
@@ -293,7 +293,7 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     requires data to be passed in as numpy arrays so the user can read their
     data in using any method.  
 
-    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
     
     Extract the HOVAL column (home values) from the DBF file and make it the
     dependent variable for the regression. Note that PySAL requires this to be
@@ -394,7 +394,7 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     residuals is 0.2037 with a standardized value of 2.5918 and a p-value of
     0.009547.
 
-    >>> w = pysal.weights.rook_from_shapefile("examples/columbus.shp")
+    >>> w = pysal.weights.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     >>> ols = OLS(y, X, w, spat_diag=True, moran=True, name_y='home value', name_x=['income','crime'], name_ds='columbus')
     >>> ols.betas
     array([[ 46.42818268],

@@ -5,6 +5,8 @@ import robust as ROBUST
 import user_output as USER
 from utils import RegressionPropsY, RegressionPropsVM
 
+__author__ = "Luc Anselin luc.anselin@asu.edu, David C. Folch david.folch@asu.edu, Jing Yao jingyao@asu.edu"
+__all__ = ["TSLS"]
 
 class BaseTSLS(RegressionPropsY, RegressionPropsVM):
     """
@@ -99,16 +101,12 @@ class BaseTSLS(RegressionPropsY, RegressionPropsVM):
                    n(zthhthi)'varb
 
     
-    Notes
-    -----
-    Sigma squared calculated using n in the denominator. 
-    
     Examples
     --------
 
     >>> import numpy as np
     >>> import pysal
-    >>> db=pysal.open("examples/columbus.dbf","r")
+    >>> db = pysal.open(pysal.examples.get_path("columbus.dbf"),'r')
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
     >>> X = []
@@ -450,13 +448,7 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
                                             moran=False, std_err=std_err)
         
 
-def _test():
-    import doctest
-    doctest.testmod()
-
                      
 if __name__ == '__main__':
-    _test()    
-    import numpy as np
-    import pysal
-       
+    import doctest
+    doctest.testmod()
