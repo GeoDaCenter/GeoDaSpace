@@ -185,7 +185,7 @@ class guiRegModel(abstractmodel.AbstractModel):
                 if headerOnly:
                     for field,spec in zip(db.header, db.field_spec):
                         typ = spec[0].lower()
-                        if typ in  ['d','n']:
+                        if typ in  ['d','n','f']:
                             header.append(field)
                     return {'header':header}
                 else:
