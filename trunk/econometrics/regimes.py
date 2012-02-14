@@ -63,13 +63,12 @@ def x2xsp(x, regimes):
     regimes_set.sort()
     data = x.flatten()
     R = len(regimes_set)
-    row_map = {r: [ri + R*ki for ki in np.arange(k)] \
-            for ri, r in enumerate(regimes_set)}
     regime_by_row = np.array(list(regimes_set) * k)
     row_map = {r: np.where(regime_by_row == r)[0] for r in regimes_set}
     indices = np.array([row_map[row] for row in regimes]).flatten()
-    indptr = [i*k for i in np.arange(n)]
-    indptr.append(n*k)
+    indptr = np.zeros((n+1, ), dtype=int)
+    indptr[:-1] = list(np.arange(n) * k)
+    indptr[-1] = n*k
     return SP.csr_matrix((data, indices, indptr))
 
 def x2xsp_csc(x, regimes):
@@ -111,8 +110,8 @@ def x2xsp_pandas(x, regimes):
 
 if __name__ == '__main__':
     # Data Setup
-    n, k, r = (2000000, 9, 50)
-    #n, k, r = (50000, 6, 359)
+    n, k, r = (3000000, 9, 50)
+    #n, k, r = (50000, 26, 359)
     #n, k, r = (10, 5, 3)
     print('Using setup with n=%i, k=%i and %i regimes'%(n, k, r))
     x = np.random.random((n, k))
@@ -133,13 +132,13 @@ if __name__ == '__main__':
     t1 = time.time()
     print('XS_csr created in %f seconds'%(t1-t0))
 
+    '''
     t0 = time.time()
     xc = np.hstack((np.ones(y.shape), x))
     xsp_csc = x2xsp_csc(xc, regimes)
     t1 = time.time()
     print('XS_csc created in %f seconds'%(t1-t0))
 
-    '''
     print '\n'
     t0 = time.time()
     ols_sp = BaseOLS_sp(y, xsp, constant=False)
