@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import pysal as ps
 import scipy.sparse as SP
+import itertools as iter
 # For OLS
 from pysal.spreg.utils import RegressionPropsY, RegressionPropsVM
 import pysal.spreg.robust as ROBUST
@@ -64,10 +65,33 @@ def x2xsp(x, regimes):
     R = len(regimes_set)
     row_map = {r: [ri + R*ki for ki in np.arange(k)] \
             for ri, r in enumerate(regimes_set)}
+    regime_by_row = np.array(list(regimes_set) * k)
+    row_map = {r: np.where(regime_by_row == r)[0] for r in regimes_set}
     indices = np.array([row_map[row] for row in regimes]).flatten()
     indptr = [i*k for i in np.arange(n)]
     indptr.append(n*k)
     return SP.csr_matrix((data, indices, indptr))
+
+def x2xsp_csc(x, regimes):
+    '''
+    Implementation of x2xsp based on csc sparse matrices
+
+    Slower as r grows
+    '''
+    n, k = x.shape
+    regimes_set = list(set(regimes))
+    regimes_set.sort()
+    regimes = np.array(regimes)
+    data = x.flatten('F')
+    R = len(regimes_set)
+    col_map = {r: np.where(regimes == regimes_set[r])[0] for r in np.arange(R)}
+    reg_order = np.array([np.arange(R) for i in np.arange(k)]).flatten()
+    indices = list(iter.chain(*[col_map[r] for r in reg_order]))
+    indptr = np.zeros(reg_order.shape[0] + 1, dtype=int)
+    for i in np.arange(1, indptr.shape[0]):
+        indptr[i] = indptr[i-1] + len(col_map[reg_order[i-1]])
+    return SP.csc_matrix((data, indices, indptr)).tocsr()
+    #return data, indices, indptr
 
 def x2xsp_pandas(x, regimes):
     '''
@@ -87,23 +111,35 @@ def x2xsp_pandas(x, regimes):
 
 if __name__ == '__main__':
     # Data Setup
-    n, k = (2000000, 5)
-    #n, k = (20, 3)
-    print('Using setup with n=%i and k=%i'%(n, k))
+    n, k, r = (2000000, 9, 50)
+    #n, k, r = (50000, 6, 359)
+    #n, k, r = (10, 5, 3)
+    print('Using setup with n=%i, k=%i and %i regimes'%(n, k, r))
     x = np.random.random((n, k))
     y = np.random.random((n, 1))
     inR1 = n / 2
     inR2 = n / 2
     regimes = ['r1'] * inR1 + ['r2'] * inR2
+    nr = [int(np.round(n/r))] * (r-1)
+    regimes = list(iter.chain(*[['r'+str(i)]*j for i, j in enumerate(nr)]))
+    regimes = regimes + ['r'+str(r-1)] * (n-len(regimes)) 
     #np.random.shuffle(regimes)
 
     # Self-cooked option
     t0 = time.time()
     xc = np.hstack((np.ones(y.shape), x))
     xsp = x2xsp(xc, regimes)
+    #xc = SP.hstack((SP.csr_matrix(np.random.random(x.shape)), xsp))
     t1 = time.time()
-    print('XS created in %f seconds'%(t1-t0))
+    print('XS_csr created in %f seconds'%(t1-t0))
 
+    t0 = time.time()
+    xc = np.hstack((np.ones(y.shape), x))
+    xsp_csc = x2xsp_csc(xc, regimes)
+    t1 = time.time()
+    print('XS_csc created in %f seconds'%(t1-t0))
+
+    '''
     print '\n'
     t0 = time.time()
     ols_sp = BaseOLS_sp(y, xsp, constant=False)
@@ -116,3 +152,4 @@ if __name__ == '__main__':
     print ''
     print 'Regime 2 (pooled, independent):'
     print np.hstack((ols_sp.betas[range(1, 9, 2)], ols2.betas))
+    '''
