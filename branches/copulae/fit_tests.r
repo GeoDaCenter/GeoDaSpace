@@ -27,7 +27,7 @@ set.seed(123)
 
 # Generate spatially autocorrelated data for a lattice of 10, 10
 lambda <- 0.5
-w <- cell2nb(10, 10)
+
 e <- runif(100)
 u <- invIrM(w, rho=lambda, method="chol", feasible=TRUE) %*% e
 wu <- lag.listw(nb2listw(w), u)
@@ -59,7 +59,6 @@ frankCop <- frankCopula(1)
 plackettCop <- plackettCopula(1)
 
 copulas <- c(normalCop, claytonCop, gumbelCop, frankCop, plackettCop)
-#copulas <- c(c(normalCop, 'normal'))
 
 for(cop in copulas){
     #print(paste('Copula', cop))
