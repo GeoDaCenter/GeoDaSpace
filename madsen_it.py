@@ -2,6 +2,7 @@
 Madsen's code for iterative method
 '''
 
+import time
 import numpy as np
 import multiprocessing as mp
 from scipy.linalg import inv, det
@@ -165,10 +166,16 @@ def negLogEL_multi(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
     for i in range(dimbeta):
         dmudbeta[:, i] = np.reshape(np.multiply(mu, np.reshape(XX[:, i], (n, 1))),(n,))
         dzdbeta[:,:,i] = dzdmu * np.array([dmudbeta[:,i]] * m).T
+    '''
     T=np.zeros((1,m),float) 
     for j in range(m):
         zj = np.reshape(z[:,j], (n, 1))
         T[0, j]=np.exp(-0.5*np.dot(zj.T,np.dot((SigmaInv-np.eye(n)),zj)))
+    '''
+    parss = [(j, z, n, SigmaInv) for j in np.arange(m)]
+    cores = mp.cpu_count()
+    pool = mp.Pool(cores)
+    T = np.array(pool.map(multi_m, parss))
     meanT=np.mean(T)
     #print zj.T
     # Calculate the negative log expected likelihood.
@@ -186,23 +193,22 @@ def negLogEL_multi(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
         for i, j in zip(np.nonzero(H==0)[0], np.nonzero(H==0)[1]):
             dSigmadalphaR[i,j] = 0.
             dSigmadalphaN[i,j] = 0.
+        dldbeta = np.zeros((1,dimbeta))
+        SigmaInv1 = SigmaInv - np.eye(n)
+        parss = [(j, z, SigmaInv, SigmaInv1, dSigmadalphaR, dSigmadalphaN, T, dzdphi, n, dimbeta, dzdbeta) \
+                for j in np.arange(m)]
+        cores = mp.cpu_count()
+        pool = mp.Pool(cores)
+        out = pool.map(multi_m_derivatives, parss)
         dTdalphaR = np.zeros((1, m))
         dTdalphaN = np.zeros((1, m))
         dTdbeta = np.zeros((dimbeta, m))
         dTdphi = np.zeros((1, m))
-        dldbeta = np.zeros((1,dimbeta))
-        SigmaInv1 = SigmaInv - np.eye(n)
-        for j in range(m):
-            zj = np.reshape(z[:,j], (n, 1))            
-            dTdalpha0 = np.dot(np.exp(np.dot(zj.T, np.dot(SigmaInv1, zj))/-2.), np.dot(zj.T, SigmaInv)) / 2.
-            dTdalphaR1 = np.dot(dSigmadalphaR, np.dot(SigmaInv, zj))
-            dTdalphaR[0, j] = np.dot(dTdalpha0,dTdalphaR1)
-            dTdalphaN1 = np.dot(dSigmadalphaN, np.dot(SigmaInv, zj))
-            dTdalphaN[0, j] = np.dot(dTdalpha0,dTdalphaN1)
-            dTdphi[0, j] = T[0, j]*np.dot(np.reshape(dzdphi[:, j], (1, n)), np.dot(SigmaInv1, zj))
-            for i in range(dimbeta):
-                dTdbeta[i, j] = T[0, j]*np.dot(np.reshape(dzdbeta[:, j, i],(1,n)), \
-                         np.dot(SigmaInv1, zj))
+        for j in np.arange(m):
+            dTdalphaR[0, j] = out[j][0][0]
+            dTdalphaN[0, j] = out[j][1][0]
+            dTdphi[0, j] = out[j][2][0]
+            dTdbeta[:, j] = out[j][3][0]
         tr_dldalphaR = np.sum(np.diagonal(np.dot(SigmaInv, dSigmadalphaR)))
         dldalphaR = tr_dldalphaR / 2. - 1./ meanT * np.mean(dTdalphaR)
         tr_dldalphaN = np.sum(np.diagonal(np.dot(SigmaInv, dSigmadalphaN)))
@@ -222,7 +228,30 @@ def negLogEL_multi(theta, y, U, XX, H, dimbeta, B, Bphi, want_derivatives=None):
         eg.append(eg2)
         for i in dldbeta.T:
             eg.append(float(i))
-    return NLEL, np.array(eg)
+    if want_derivatives:
+        return NLEL, np.array(eg)
+    else:
+        return NLEL
+
+def multi_m(pars):
+    j, z, n, SigmaInv = pars
+    zj = np.reshape(z[:,j], (n, 1))
+    return np.exp(-0.5*np.dot(zj.T,np.dot((SigmaInv-np.eye(n)),zj)))
+
+def multi_m_derivatives(pars):
+    j, z, SigmaInv, SigmaInv1, dSigmadalphaR, dSigmadalphaN, T, dzdphi, n, dimbeta, dzdbeta = pars
+    zj = np.reshape(z[:,j], (n, 1))            
+    dTdalpha0 = np.dot(np.exp(np.dot(zj.T, np.dot(SigmaInv1, zj))/-2.), np.dot(zj.T, SigmaInv)) / 2.
+    dTdalphaR1 = np.dot(dSigmadalphaR, np.dot(SigmaInv, zj))
+    dTdalphaR = np.dot(dTdalpha0,dTdalphaR1)
+    dTdalphaN1 = np.dot(dSigmadalphaN, np.dot(SigmaInv, zj))
+    dTdalphaN = np.dot(dTdalpha0,dTdalphaN1)
+    dTdphi = T[0, j]*np.dot(np.reshape(dzdphi[:, j], (1, n)), np.dot(SigmaInv1, zj))
+    dTdbeta = np.zeros((dimbeta, 1))
+    for i in range(dimbeta):
+        dTdbeta[i, 0] = T[0, j]*np.dot(np.reshape(dzdbeta[:, j, i],(1,n)), \
+                 np.dot(SigmaInv1, zj))
+    return dTdalphaR, dTdalphaN, dTdphi, dTdbeta
 
 # p(y,phi,mu) is the negative binomial probability mass function with parameters phi and mu.
 def p(y,phi,mu): #Madsen's code
