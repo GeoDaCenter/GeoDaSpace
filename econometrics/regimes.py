@@ -37,6 +37,62 @@ class BaseOLS_sp(RegressionPropsY, RegressionPropsVM):
         else:
             self.sig2 = self.sig2n
 
+def regimeX_setup(x, regimes, cols2regi, constant=False):
+    '''
+    Flexible full setup of a regime structure
+    ...
+
+    Arguments
+    =========
+    x           : np.array
+                  Dense array of dimension (n, k) with values for all observations
+    regimes     : list
+                  list of n values with the mapping of each observation to a
+                  regime. Assumed to be aligned with 'x'.
+    cols2regi   : list
+                  List of k booleans indicating whether each column should be
+                  considered as different per regime (True) or held constant
+                  across regimes (False)
+    constant    : [False, 'one', 'many']
+                  Switcher controlling the constant term setup. It may take
+                  the following values:
+                    
+                    *  False: no constant term is appended in any way
+                    *  'one': a vector of ones is appended to x and held
+                              constant across regimes
+                    * 'many': a vector of ones is appended to x and considered
+                              different per regime
+
+    Returns
+    =======
+    xsp         : csr sparse matrix
+                  Sparse matrix containing the full setup for a regimes model
+                  as specified in the arguments passed
+                  NOTE: columns are reordered so first are all the regime
+                  columns then all the global columns (this makes it much more
+                  efficient)
+                  Structure of the output matrix (assuming X1, X2 to vary
+                  across regimes and constant term, X3 and X4 to be global):
+                    X1r1, X1r2, ... , X2r1, X2r2, ... , constant, X3, X4
+    '''
+    n, k = x.shape
+    if constant:
+        x = np.hstack((np.ones((n, 1)), x))
+        if constant == 'one':
+            cols2regi.insert(0, False)
+        elif constant == 'many':
+            cols2regi.insert(0, True)
+        else:
+            raise Exception, "Invalid argument (%s) passed for 'constant'. Please secify a valid term."%str(constant)
+    cols2regi = np.array(cols2regi)
+    if len(set(cols2regi))==1:
+        return x2xsp(x, regimes)
+    else:
+        not_regi = x[:, np.where(cols2regi==False)[0]]
+        regi_subset = x[:, np.where(cols2regi)[0]]
+        regi_subset = x2xsp(regi_subset, regimes)
+        return SP.hstack( (regi_subset, SP.csr_matrix(not_regi)) )
+
 def x2xsp(x, regimes):
     '''
     Convert X matrix with regimes into a sparse X matrix that accounts for the
@@ -76,6 +132,8 @@ def x2xsp_csc(x, regimes):
     Implementation of x2xsp based on csc sparse matrices
 
     Slower as r grows
+
+    NOTE: for legacy purposes
     '''
     n, k = x.shape
     regimes_set = list(set(regimes))
@@ -99,6 +157,8 @@ def x2xsp_pandas(x, regimes):
         * You have to build full XS before making it sparse
         * You have to convert XS DataFrame to an np.array before going to csr
     These make it slower and less memory efficient
+
+    NOTE: for legacy purposes
     '''
     n, k = x.shape
     multiID = pd.MultiIndex.from_tuples(zip(np.arange(n), regimes), \
@@ -110,10 +170,12 @@ def x2xsp_pandas(x, regimes):
 
 if __name__ == '__main__':
     # Data Setup
-    n, k, r = (3000000, 9, 50)
-    #n, k, r = (50000, 26, 359)
-    #n, k, r = (10, 5, 3)
-    print('Using setup with n=%i, k=%i and %i regimes'%(n, k, r))
+    n, kr, kf, r = (1000000, 8, 1, 50)
+    #n, kr, kf, r = (50000, 16, 15, 359)
+    #n, kr, kf, r = (50000, 11, 0, 359)
+    #n, kr, kf, r = (10, 1, 1, 359)
+    print('Using setup with n=%i, kr=%i, kf=%i and %i regimes'%(n, kr, kf, r))
+    k = kr + kf
     x = np.random.random((n, k))
     y = np.random.random((n, 1))
     inR1 = n / 2
@@ -126,29 +188,12 @@ if __name__ == '__main__':
 
     # Self-cooked option
     t0 = time.time()
-    xc = np.hstack((np.ones(y.shape), x))
-    xsp = x2xsp(xc, regimes)
-    #xc = SP.hstack((SP.csr_matrix(np.random.random(x.shape)), xsp))
+    cols2regi = [True] * kr + [False] * kf
+    xsp = regimeX_setup(x, regimes, cols2regi, constant='many')
     t1 = time.time()
-    print('XS_csr created in %f seconds'%(t1-t0))
+    print('Full setup created in %.4f seconds'%(t1-t0))
 
-    '''
-    t0 = time.time()
-    xc = np.hstack((np.ones(y.shape), x))
-    xsp_csc = x2xsp_csc(xc, regimes)
-    t1 = time.time()
-    print('XS_csc created in %f seconds'%(t1-t0))
+    ols = BaseOLS_sp(y, xsp, constant=False)
+    t2 = time.time()
+    print('OLS run in %.4f seconds'%(t2-t1))
 
-    print '\n'
-    t0 = time.time()
-    ols_sp = BaseOLS_sp(y, xsp, constant=False)
-    t1 = time.time()
-    print('OLS run in %f seconds'%(t1-t0))
-    ols1 = ps.spreg.ols.BaseOLS(y[:inR1, :], x[:inR1, :])
-    ols2 = ps.spreg.ols.BaseOLS(y[inR1:, :], x[inR1:, :])
-    print 'Regime 1 (pooled, independent):'
-    print np.hstack((ols_sp.betas[range(0, 8, 2)], ols1.betas))
-    print ''
-    print 'Regime 2 (pooled, independent):'
-    print np.hstack((ols_sp.betas[range(1, 9, 2)], ols2.betas))
-    '''
