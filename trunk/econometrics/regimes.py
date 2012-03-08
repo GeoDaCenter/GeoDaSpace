@@ -4,29 +4,30 @@ import pandas as pd
 import pysal as ps
 import scipy.sparse as SP
 import itertools as iter
+from scipy.stats import f
 # For OLS
 from pysal.spreg.utils import RegressionPropsY, RegressionPropsVM
 import pysal.spreg.robust as ROBUST
 import numpy.linalg as la
 
 class BaseOLS_sp(RegressionPropsY, RegressionPropsVM):
-    def __init__(self, y, x, constant=True,\
+    def __init__(self, y, xsp, constant=True,\
                  robust=None, gwk=None, sig2n_k=True):
 
         if constant:
-            self.x = SP.hstack((SP.csr_matrix(np.ones(y.shape)), x))
+            self.xsp = SP.hstack((SP.csr_matrix(np.ones(y.shape)), xsp))
         else:
-            self.x = x
-        self.xtx = (self.x.T * self.x).toarray()
+            self.xsp = xsp
+        self.xtx = (self.xsp.T * self.xsp).toarray()
         self.xtxi = la.inv(self.xtx)
-        xty = self.x.T * y
+        xty = self.xsp.T * y
         self.betas = np.dot(self.xtxi, xty)
-        predy = self.x * self.betas
+        predy = self.xsp * self.betas
         u = y-predy
         self.u = u
         self.predy = predy
         self.y = y
-        self.n, self.k = self.x.shape
+        self.n, self.k = self.xsp.shape
 
         if robust:
             self.vm = ROBUST.robust_vm(reg=self, gwk=gwk)
@@ -36,6 +37,101 @@ class BaseOLS_sp(RegressionPropsY, RegressionPropsVM):
             self.sig2 = self.sig2n_k
         else:
             self.sig2 = self.sig2n
+
+class Chow:
+    '''
+    Traditional Chow test for parameter instability. Implemented following
+    first equation of page 192 of Anselin (1990) [1]_
+    ...
+
+    Arguments
+    =========
+
+    ols_sp  : OLS_sp
+              Sparse OLS regression object 
+    x       : array
+              Original nxk dense array with observations and variables used in
+              the regime implementation of ols_sp
+
+    Attributes
+    ==========
+
+    chow    : float
+              Value of the Chow statistic
+    p       : float
+              P-value associated to the Chow statistic, distributed as a F
+              with K and (N - 2K) degrees of freedom
+
+    References
+    ==========
+
+    .. [1] Anselin, L. (1990) "Spatial Dependence and Spatial Structural
+    Instability in Applied Regression Analysis" Journal of Regional Science,
+    vol. 30, No. 2, pp. 185-207
+
+    '''
+    def __init__(self, ols_sp, x):
+        n, k = x.shape
+        if ols_sp.xsp.constant:
+            constant=True
+        else:
+            constant=False
+        ols = ps.spreg.ols.BaseOLS(ols_sp.y, x, constant=constant)
+        u_r = ols.u
+        u_u = ols_sp.u
+        chow, p = chow_test(u_u, u_r, n, k)
+        self.chow = chow
+        self.p = p
+
+def chow_test(u_u, u_r, n, k):
+    '''
+    Stripped down Chow test implemented following first equation of page 192
+    of Anselin (1990) [1]_
+    ...
+
+    Arguments
+    =========
+
+    u_u     : array
+              Vector of dimension nx1 with residuals from unrestricted
+              model
+    u_r     : array
+              Vector of dimension nx1 with residuals from restricted
+              model
+    n       : int
+              Number of observations
+    k       : int
+              Number of variables
+
+    Returns
+    =======
+
+    chow    : float
+              Value of the Chow statistic
+    p       : float
+              P-value associated to the Chow statistic, distributed as a F
+              with K and (N - 2K) degrees of freedom
+
+    References
+    ==========
+
+    .. [1] Anselin, L. (1990) "Spatial Dependence and Spatial Structural
+    Instability in Applied Regression Analysis" Journal of Regional Science,
+    vol. 30, No. 2, pp. 185-207
+
+    '''
+    n, k = map(float, [n, k])
+    uutuu = np.dot(u_u.T, u_u)
+    nm2k = n - 2.*k
+    num = (np.dot(u_r.T, u_r) - uutuu) / float(k)
+    den = uutuu / nm2k
+    chow = num / den
+    p = f.sf(chow, k, nm2k)
+    return chow, p
+
+    fStat = (U/(k-1))/(Q/(n-k))
+    pValue = stats.f.sf(fStat,k-1,n-k)
+    fs_result = (fStat, pValue)
 
 def regimeX_setup(x, regimes, cols2regi, constant=False):
     '''
@@ -74,6 +170,12 @@ def regimeX_setup(x, regimes, cols2regi, constant=False):
                   Structure of the output matrix (assuming X1, X2 to vary
                   across regimes and constant term, X3 and X4 to be global):
                     X1r1, X1r2, ... , X2r1, X2r2, ... , constant, X3, X4
+                  Besides the normal attributes of a csr sparse matrix, xsp
+                  has the following appended as meta-data:
+                    
+                    * regimes
+                    * cols2regi
+                    * constant
     '''
     n, k = x.shape
     if constant:
@@ -86,12 +188,16 @@ def regimeX_setup(x, regimes, cols2regi, constant=False):
             raise Exception, "Invalid argument (%s) passed for 'constant'. Please secify a valid term."%str(constant)
     cols2regi = np.array(cols2regi)
     if len(set(cols2regi))==1:
-        return x2xsp(x, regimes)
+        xsp = x2xsp(x, regimes)
     else:
         not_regi = x[:, np.where(cols2regi==False)[0]]
         regi_subset = x[:, np.where(cols2regi)[0]]
         regi_subset = x2xsp(regi_subset, regimes)
-        return SP.hstack( (regi_subset, SP.csr_matrix(not_regi)) )
+        xsp = SP.hstack( (regi_subset, SP.csr_matrix(not_regi)) )
+    xsp.regimes = regimes
+    xsp.cols2regi = cols2regi
+    xsp.constant = constant
+    return xsp
 
 def x2xsp(x, regimes):
     '''
@@ -170,13 +276,16 @@ def x2xsp_pandas(x, regimes):
 
 if __name__ == '__main__':
     # Data Setup
-    n, kr, kf, r = (1000000, 8, 1, 50)
+    #n, kr, kf, r = (1000000, 8, 1, 50)
     #n, kr, kf, r = (50000, 16, 15, 359)
     #n, kr, kf, r = (50000, 11, 0, 359)
-    #n, kr, kf, r = (10, 1, 1, 359)
-    print('Using setup with n=%i, kr=%i, kf=%i and %i regimes'%(n, kr, kf, r))
+    n, kr, kf, r, constant = (100, 2, 0, 2, 'many')
+    print('Using setup with n=%i, kr=%i, kf=%i, %i regimes and %s constant' \
+            %(n, kr, kf, r, constant))
     k = kr + kf
     x = np.random.random((n, k))
+    x[:50, :] = x[:50, :] * 100
+    #x[:50, :] = np.random.random((50, k))
     y = np.random.random((n, 1))
     inR1 = n / 2
     inR2 = n / 2
@@ -186,14 +295,17 @@ if __name__ == '__main__':
     regimes = regimes + ['r'+str(r-1)] * (n-len(regimes)) 
     #np.random.shuffle(regimes)
 
-    # Self-cooked option
+    # Regime model setup
     t0 = time.time()
     cols2regi = [True] * kr + [False] * kf
-    xsp = regimeX_setup(x, regimes, cols2regi, constant='many')
+    xsp = regimeX_setup(x, regimes, cols2regi, constant=constant)
     t1 = time.time()
     print('Full setup created in %.4f seconds'%(t1-t0))
 
+    # Regression and Chow test
     ols = BaseOLS_sp(y, xsp, constant=False)
     t2 = time.time()
     print('OLS run in %.4f seconds'%(t2-t1))
+    chow = Chow(ols, x)
+    print 'Chow test:  %.4f\t\tp-value:  %.4f'%(chow.chow, chow.p)
 
