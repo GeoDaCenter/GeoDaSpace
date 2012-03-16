@@ -169,7 +169,7 @@ def regimeX_setup(x, regimes, cols2regi, constant=False):
                   efficient)
                   Structure of the output matrix (assuming X1, X2 to vary
                   across regimes and constant term, X3 and X4 to be global):
-                    X1r1, X1r2, ... , X2r1, X2r2, ... , constant, X3, X4
+                    X1r1, X2r1, ... , X1r2, X2r2, ... , constant, X3, X4
                   Besides the normal attributes of a csr sparse matrix, xsp
                   has the following appended as meta-data:
                     
@@ -218,14 +218,14 @@ def x2xsp(x, regimes):
                   Sparse matrix containing X variables properly aligned for
                   regimes regression. 'xsp' is of dimension (n, k*r) where 'r'
                   is the number of different regimes
-                  The structure of the alignent is X1r1 X1r2 ... X2r1 X2r2 ...
+                  The structure of the alignent is X1r1 X2r1 ... X1r2 X2r2 ...
     '''
     n, k = x.shape
     regimes_set = list(set(regimes))
     regimes_set.sort()
     data = x.flatten()
     R = len(regimes_set)
-    regime_by_row = np.array(list(regimes_set) * k)
+    regime_by_row = np.array([[r] * k for r in list(regimes_set)]).flatten() #X1r1 X2r1 ... X1r2 X2r2 ...
     row_map = {r: np.where(regime_by_row == r)[0] for r in regimes_set}
     indices = np.array([row_map[row] for row in regimes]).flatten()
     indptr = np.zeros((n+1, ), dtype=int)
@@ -276,10 +276,10 @@ def x2xsp_pandas(x, regimes):
 
 if __name__ == '__main__':
     # Data Setup
-    #n, kr, kf, r = (1000000, 8, 1, 50)
-    #n, kr, kf, r = (50000, 16, 15, 359)
+    #n, kr, kf, r, constant = (1500000, 8, 1, 50, 'many')
+    #n, kr, kf, r, constant = (50000, 16, 15, 359, 'many')
     #n, kr, kf, r = (50000, 11, 0, 359)
-    n, kr, kf, r, constant = (100, 2, 0, 2, 'many')
+    n, kr, kf, r, constant = (10, 2, 0, 2, 'many')
     print('Using setup with n=%i, kr=%i, kf=%i, %i regimes and %s constant' \
             %(n, kr, kf, r, constant))
     k = kr + kf
@@ -302,10 +302,12 @@ if __name__ == '__main__':
     t1 = time.time()
     print('Full setup created in %.4f seconds'%(t1-t0))
 
+    '''
     # Regression and Chow test
     ols = BaseOLS_sp(y, xsp, constant=False)
     t2 = time.time()
     print('OLS run in %.4f seconds'%(t2-t1))
     chow = Chow(ols, x)
     print 'Chow test:  %.4f\t\tp-value:  %.4f'%(chow.chow, chow.p)
+    '''
 
