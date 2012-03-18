@@ -4,7 +4,7 @@ import pandas as pd
 import pysal as ps
 import scipy.sparse as SP
 import itertools as iter
-from scipy.stats import f
+from scipy.stats import f, chisqprob
 # For OLS
 from pysal.spreg.utils import RegressionPropsY, RegressionPropsVM
 import pysal.spreg.robust as ROBUST
@@ -38,100 +38,186 @@ class BaseOLS_sp(RegressionPropsY, RegressionPropsVM):
         else:
             self.sig2 = self.sig2n
 
-class Chow:
+class Chow_sp:
     '''
-    Traditional Chow test for parameter instability. Implemented following
-    first equation of page 192 of Anselin (1990) [1]_
+    Spatial Chow test of coefficient stability across regimes. The test is a
+    particular case of the Wald statistic in which the constraint are setup
+    according to the spatial regime structure
     ...
 
     Arguments
     =========
-
-    ols_sp  : OLS_sp
-              Sparse OLS regression object 
-    x       : array
-              Original nxk dense array with observations and variables used in
-              the regime implementation of ols_sp
+    reg     : regression object
+              Regression object from PySAL.spreg which is assumed to have the
+              following attributes:
+                    
+                    * betas : coefficient estimates
+                    * vm    : variance covariance matrix of betas
+                    * kr    : Number of variables varying across regimes
+                    * kf    : Number of variables fixed (global) across regimes
+                    * nr    : Number of regimes
 
     Attributes
     ==========
-
-    chow    : float
-              Value of the Chow statistic
-    p       : float
-              P-value associated to the Chow statistic, distributed as a F
-              with K and (N - 2K) degrees of freedom
-
-    References
-    ==========
-
-    .. [1] Anselin, L. (1990) "Spatial Dependence and Spatial Structural
-    Instability in Applied Regression Analysis" Journal of Regional Science,
-    vol. 30, No. 2, pp. 185-207
-
+    joint   : tuple
+              Pair of Wald statistic and p-value for the setup of global
+              spatial stability, that is all betas are the same across
+              regimes.
+    regi    : array
+              kr x 2 array with Wald statistic (col 0) and its p-value (col 1)
+              for each beta that varies across regimes. The restrictions
+              are setup to test for the global stability (all regimes have the
+              same parameter) of the beta.
     '''
-    def __init__(self, ols_sp, x):
-        n, k = x.shape
-        if ols_sp.xsp.constant:
-            constant=True
-        else:
-            constant=False
-        ols = ps.spreg.ols.BaseOLS(ols_sp.y, x, constant=constant)
-        u_r = ols.u
-        u_u = ols_sp.u
-        chow, p = chow_test(u_u, u_r, n, k)
-        self.chow = chow
-        self.p = p
+    def __init__(self, reg):
+        kr, kf, nr, betas, vm = reg.kr, reg.kf, reg.nr, reg.betas, reg.vm
+        r_global = []
+        regi = np.zeros((reg.kr, 2))
+        for vari in np.arange(kr):
+            r_vari = buildR1var(vari, kr, kf, nr)
+            r_global.append(r_vari)
+            q = np.zeros((r_vari.shape[0], 1))
+            regi[vari, :] = wald_test(betas, r_vari, q, vm)
+        r_global = np.vstack(tuple(r_global))
+        q = np.zeros((r_global.shape[0], 1))
+        joint = wald_test(betas, r_global, q, vm)
+        self.joint = joint
+        self.regi = regi
 
-def chow_test(u_u, u_r, n, k):
+class Wald:
     '''
-    Stripped down Chow test implemented following first equation of page 192
-    of Anselin (1990) [1]_
+    Chi sq. Wald statistic to test for restriction of coefficients.
+    Implementation following Greene [1]_ eq. (17-24), p. 488
     ...
 
     Arguments
     =========
+    reg     : regression object
+              Regression object from PySAL.spreg
+    r       : array
+              Array of dimension Rxk (R being number of restrictions) with constrain setup.
+    q       : array
+              Rx1 array with constants in the constraint setup. See Greene
+              [1]_ for reference.
 
-    u_u     : array
-              Vector of dimension nx1 with residuals from unrestricted
-              model
-    u_r     : array
-              Vector of dimension nx1 with residuals from restricted
-              model
-    n       : int
-              Number of observations
-    k       : int
-              Number of variables
-
-    Returns
-    =======
-
-    chow    : float
-              Value of the Chow statistic
-    p       : float
-              P-value associated to the Chow statistic, distributed as a F
-              with K and (N - 2K) degrees of freedom
+    Attributes
+    ==========
+    w       : float
+              Wald statistic
+    pvalue  : float
+              P value for Wald statistic calculated as a Chi sq. distribution
+              with R degrees of freedom
 
     References
     ==========
-
-    .. [1] Anselin, L. (1990) "Spatial Dependence and Spatial Structural
-    Instability in Applied Regression Analysis" Journal of Regional Science,
-    vol. 30, No. 2, pp. 185-207
-
+    .. [1] W. Greene. 2003. Econometric Analysis (Fifth Edtion). Prentice Hall, Upper
+       Saddle River. 
     '''
-    n, k = map(float, [n, k])
-    uutuu = np.dot(u_u.T, u_u)
-    nm2k = n - 2.*k
-    num = (np.dot(u_r.T, u_r) - uutuu) / float(k)
-    den = uutuu / nm2k
-    chow = num / den
-    p = f.sf(chow, k, nm2k)
-    return chow, p
+    def __init__(self, reg, r, q=None):
+        if not q:
+            q = np.zeros((r.shape[0], 1))
+        self.w, self.pvalue = wald_test(reg.betas, r, q, reg.vm)
 
-    fStat = (U/(k-1))/(Q/(n-k))
-    pValue = stats.f.sf(fStat,k-1,n-k)
-    fs_result = (fStat, pValue)
+def wald_test(betas, r, q, vm):
+    '''
+    Chi sq. Wald statistic to test for restriction of coefficients.
+    Implementation following Greene [1]_ eq. (17-24), p. 488
+    ...
+
+    Arguments
+    =========
+    betas   : array
+              kx1 array with coefficient estimates
+    r       : array
+              Array of dimension Rxk (R being number of restrictions) with constrain setup.
+    q       : array
+              Rx1 array with constants in the constraint setup. See Greene
+              [1]_ for reference.
+    vm      : array
+              kxk variance-covariance matrix of coefficient estimates
+
+    Returns
+    =======
+    w       : float
+              Wald statistic
+    pvalue  : float
+              P value for Wald statistic calculated as a Chi sq. distribution
+              with R degrees of freedom
+
+    References
+    ==========
+    .. [1] W. Greene. 2003. Econometric Analysis (Fifth Edtion). Prentice Hall, Upper
+       Saddle River. 
+    '''
+    rbq = np.dot(r, betas) - q
+    rvri = la.inv(np.dot(r, np.dot(vm, r.T)))
+    w = np.dot(rbq.T, np.dot(rvri, rbq))[0][0]
+    df = r.shape[0]
+    pvalue = chisqprob(w, df)
+    return w, pvalue
+
+def buildR(kr, kf, nr):
+    '''
+    Build R matrix to globally test for spatial heterogeneity across regimes.
+    The constraint setup reflects the null every beta is the same
+    across regimes
+    ...
+
+    Arguments
+    =========
+    kr      : int
+              Number of variables that vary across regimes ("regimized")
+    kf      : int
+              Number of variables that do not vary across regimes ("fixed" or
+              global)
+    nr      : int
+              Number of regimes
+
+    Returns
+    =======
+    R       : array
+              Array with constrain setup to test stability across regimes of
+              one variable
+    '''
+    return np.vstack(tuple(map(buildR1var, np.arange(kr), [kr]*kr, [kf]*kr, [nr]*kr)))
+
+def buildR1var(vari, kr, kf, nr):
+    '''
+    Build R matrix to test for spatial heterogeneity across regimes in one
+    variable. The constraint setup reflects the null betas for variable 'vari'
+    are the same across regimes
+    ...
+
+    Arguments
+    =========
+    vari    : int
+              Position of the variable to be tested (order in the sequence of
+              variables per regime)
+    kr      : int
+              Number of variables that vary across regimes ("regimized")
+    kf      : int
+              Number of variables that do not vary across regimes ("fixed" or
+              global)
+    nr      : int
+              Number of regimes
+
+    Returns
+    =======
+    R       : array
+              Array with constrain setup to test stability across regimes of
+              one variable
+    '''
+    ncols = (kr * nr)
+    nrows = np.arange(nr).sum()
+    r = np.zeros((nrows, ncols), dtype=int)
+    blockl = np.arange(1, nr)[::-1]
+    for c1, i in enumerate(blockl):
+        rbeg = blockl[:c1].sum()
+        cbeg = vari + c1*kr
+        r[rbeg: rbeg+i , cbeg] = 1
+        for j in np.arange(i):
+            r[rbeg+j, kr + cbeg + j*kr] = -1
+    return np.hstack( (r, np.zeros((nrows, kf), dtype=int)) )
 
 def regimeX_setup(x, regimes, cols2regi, constant=False):
     '''
@@ -279,13 +365,13 @@ if __name__ == '__main__':
     #n, kr, kf, r, constant = (1500000, 8, 1, 50, 'many')
     #n, kr, kf, r, constant = (50000, 16, 15, 359, 'many')
     #n, kr, kf, r = (50000, 11, 0, 359)
-    n, kr, kf, r, constant = (10, 2, 0, 2, 'many')
-    print('Using setup with n=%i, kr=%i, kf=%i, %i regimes and %s constant' \
+    n, kr, kf, r, constant = (1000, 3, 0, 2, 'many')
+    print('Using setup with n=%i, kr=%i, kf=%i, %i regimes and %s constant(s)' \
             %(n, kr, kf, r, constant))
     k = kr + kf
     x = np.random.random((n, k))
-    x[:50, :] = x[:50, :] * 100
-    #x[:50, :] = np.random.random((50, k))
+    #x[:50, :] = (x[:50, :] + 100) ** 2
+    x[:500, 2:] = np.random.normal(loc=10, size=(500, k-2)) + 10000
     y = np.random.random((n, 1))
     inR1 = n / 2
     inR2 = n / 2
@@ -300,14 +386,29 @@ if __name__ == '__main__':
     cols2regi = [True] * kr + [False] * kf
     xsp = regimeX_setup(x, regimes, cols2regi, constant=constant)
     t1 = time.time()
-    print('Full setup created in %.4f seconds'%(t1-t0))
+    #print('Full setup created in %.4f seconds'%(t1-t0))
+    R = buildR(kr+1, kf, r)
 
-    '''
     # Regression and Chow test
     ols = BaseOLS_sp(y, xsp, constant=False)
+    ols.kr = kr
+    ols.kf = kf
+    if constant == 'many':
+        ols.kr += 1
+    else:
+        ols.kf += 1
+    ols.nr = r
     t2 = time.time()
     print('OLS run in %.4f seconds'%(t2-t1))
-    chow = Chow(ols, x)
-    print 'Chow test:  %.4f\t\tp-value:  %.4f'%(chow.chow, chow.p)
-    '''
+    chow = Chow_sp(ols)
+
+    # columbus test (against R::aod wald.test)
+    import pandas as pd
+    db = pd.read_csv('examples/columbus.csv')
+    y = db['HOVAL,N,9,6'].values.reshape((len(db), 1))
+    name_x = ['INC,N,9,6', 'DISCBD,N,8,6']
+    x = db[name_x].as_matrix()
+    lm = ps.spreg.OLS(y, x, name_x=name_x)
+    R = np.array([[1, 0, 0]])
+    wald = Wald(lm, R)
 
