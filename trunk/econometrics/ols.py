@@ -6,6 +6,7 @@ import copy as COPY
 import numpy.linalg as la
 import user_output as USER
 import robust as ROBUST
+import regimes as REGI
 from utils import RegressionPropsY, RegressionPropsVM
 
 __all__ = ["OLS"]
@@ -23,7 +24,7 @@ class BaseOLS(RegressionPropsY, RegressionPropsVM):
                    independent (exogenous) variable, excluding the constant
     constant     : boolean
                    If True, then add a constant term to the array of
-                   independent variables
+                   independent variables. Ignored if x is sparse
     robust       : string
                    If 'white', then a White consistent estimator of the
                    variance-covariance matrix is given.  If 'hac', then a
@@ -98,15 +99,28 @@ class BaseOLS(RegressionPropsY, RegressionPropsVM):
     def __init__(self, y, x, constant=True,\
                  robust=None, gwk=None, sig2n_k=True):
 
-        if constant:
-            self.x = np.hstack((np.ones(y.shape), x))
+        self.x = x
+        spar = False
+        if type(x).__name__ == 'ndarray':
+            if constant:
+                self.x = np.hstack((np.ones(y.shape), x))
+            self.xtx = np.dot(self.x.T, self.x)
+            xty = np.dot(self.x.T, y)
+        elif type(x).__name__ == 'csr_matrix':
+            self.xtx = (self.x.T * self.x).toarray()
+            xty = self.x.T * y
+            spar = True
         else:
-            self.x = x
-        self.xtx = np.dot(self.x.T, self.x)
+            raise Exception, "Invalid format for 'x' argument: %s"%type(x).__name__
+
         self.xtxi = la.inv(self.xtx)
-        xty = np.dot(self.x.T, y)
         self.betas = np.dot(self.xtxi, xty)
         predy = np.dot(self.x, self.betas)
+        if not spar:
+            predy = np.dot(self.x, self.betas)
+        else:
+            predy = self.x * self.betas
+
         u = y-predy
         self.u = u
         self.predy = predy
@@ -159,6 +173,26 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
     vm           : boolean
                    If True, include variance-covariance matrix in summary
                    results
+    regimes      : list
+                   [Optional] List of n values with the mapping of each
+                   observation to a regime. Assumed to be aligned with 'x'.
+    constant_regi: [False, 'one', 'many']
+                   Ignored if regimes=False. Constant option for regimes.
+                   Switcher controlling the constant term setup. It may take
+                   the following values:
+                    
+                     *  False: no constant term is appended in any way
+                     *  'one': a vector of ones is appended to x and held
+                               constant across regimes
+                     * 'many': a vector of ones is appended to x and considered
+                               different per regime
+    cols2regi    : list, 'all'
+                   Ignored if regimes=False. Argument indicating whether each
+                   column of x should be considered as different per regime
+                   or held constant across regimes (False).
+                   If a list, k booleans indicating for each variable the
+                   option (True if one per regime, False to be held constant).
+                   If 'all', all the variables vary by regime.
     name_y       : string
                    Name of dependent variable for use in output
     name_x       : list of strings
@@ -280,6 +314,26 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
                    X'X
     xtxi         : float
                    (X'X)^-1
+    regimes      : list
+                   [Optional] List of n values with the mapping of each
+                   observation to a regime. Assumed to be aligned with 'x'.
+    constant_regi: [False, 'one', 'many']
+                   Ignored if regimes=False. Constant option for regimes.
+                   Switcher controlling the constant term setup. It may take
+                   the following values:
+                    
+                     *  False: no constant term is appended in any way
+                     *  'one': a vector of ones is appended to x and held
+                               constant across regimes
+                     * 'many': a vector of ones is appended to x and considered
+                               different per regime
+    cols2regi    : list, 'all'
+                   Ignored if regimes=False. Argument indicating whether each
+                   column of x should be considered as different per regime
+                   or held constant across regimes (False).
+                   If a list, k booleans indicating for each variable the
+                   option (True if one per regime, False to be held constant).
+                   If 'all', all the variables vary by regime.
 
     
     Examples
@@ -412,26 +466,38 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
                  w=None,\
                  robust=None, gwk=None, sig2n_k=True,\
                  nonspat_diag=True, spat_diag=False, moran=False,\
-                 vm=False, name_y=None, name_x=None,\
+                 vm=False, regimes=None, constant_regi='many',
+                 cols2regi='all', name_y=None, name_x=None,\
                  name_w=None, name_gwk=None, name_ds=None):
 
-        USER.check_arrays(y, x)
+        #USER.check_arrays(y, x) #Turned off until agreement is made on how deal with sparse
         USER.check_weights(w, y)
         USER.check_robust(robust, gwk)
         USER.check_spat_diag(spat_diag, w)
         USER.check_constant(x)
+        regi = False
+        if regimes:
+            regi = True
+            self.regimes = regimes
+            self.constant_regi = constant_regi
+            if cols2regi == 'all':
+                self.cols2regi = cols2regi
+                cols2regi = [True] * x.shape[1]
+            name_x = REGI.set_name_x_regimes(name_x, x, regimes, constant_regi)
+            x = REGI.regimeX_setup(x, regimes, cols2regi, constant=constant_regi)
         BaseOLS.__init__(self, y=y, x=x, robust=robust,\
                          gwk=gwk, sig2n_k=sig2n_k) 
         self.title = "ORDINARY LEAST SQUARES"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
-        self.name_x = USER.set_name_x(name_x, x)
+        self.name_x = USER.set_name_x(name_x, x, regi=regi)
         self.robust = USER.set_robust(robust)
         self.name_w = USER.set_name_w(name_w, w)
         self.name_gwk = USER.set_name_w(name_gwk, gwk)
-        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=nonspat_diag,\
-                                    spat_diag=spat_diag, vm=vm, moran=moran,
-                                    std_err=self.robust)
+        #self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=nonspat_diag,\
+        #                            spat_diag=spat_diag, vm=vm, moran=moran,
+        #                            std_err=self.robust)
+        #Turned off until agreement is made on how deal with sparse
 
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
                               spat_diag=False, vm=False, moran=False,

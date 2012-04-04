@@ -138,7 +138,7 @@ def set_name_y(name_y):
         name_y = 'dep_var'
     return name_y
 
-def set_name_x(name_x, x):
+def set_name_x(name_x, x, regi=False):
     """Set the independent variable names in regression; return generic name if user
     provides no explicit name."
 
@@ -150,6 +150,9 @@ def set_name_x(name_x, x):
 
     x           : array
                   User provided exogenous variables.
+    regi        : boolean
+                  If False (default), append 'CONSTANT' at the front of the
+                  names
 
     Returns
     -------
@@ -158,10 +161,11 @@ def set_name_x(name_x, x):
                   
     """
     if not name_x:
-        name_x = ['var_'+str(i+1) for i in range(len(x[0]))]
+        name_x = ['var_'+str(i+1) for i in range(x.shape[1])]
     else:
         name_x = name_x[:]
-    name_x.insert(0, 'CONSTANT')
+    if not regi:
+        name_x.insert(0, 'CONSTANT')
     return name_x
     
 def set_name_yend(name_yend, yend):

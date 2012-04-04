@@ -208,15 +208,13 @@ def buildR1var(vari, kr, kf, nr):
               one variable
     '''
     ncols = (kr * nr)
-    nrows = np.arange(nr).sum()
+    nrows = nr - 1
     r = np.zeros((nrows, ncols), dtype=int)
-    blockl = np.arange(1, nr)[::-1]
-    for c1, i in enumerate(blockl):
-        rbeg = blockl[:c1].sum()
-        cbeg = vari + c1*kr
-        r[rbeg: rbeg+i , cbeg] = 1
-        for j in np.arange(i):
-            r[rbeg+j, kr + cbeg + j*kr] = -1
+    rbeg = 0
+    cbeg = vari
+    r[rbeg: rbeg+nrows , cbeg] = 1
+    for j in np.arange(nrows):
+        r[rbeg+j, kr + cbeg + j*kr] = -1
     return np.hstack( (r, np.zeros((nrows, kf), dtype=int)) )
 
 def regimeX_setup(x, regimes, cols2regi, constant=False):
@@ -284,6 +282,18 @@ def regimeX_setup(x, regimes, cols2regi, constant=False):
     xsp.cols2regi = cols2regi
     xsp.constant = constant
     return xsp
+
+def set_name_x_regimes(name_x, x, regimes, constant_regi):
+    regimes_set = list(set(regimes))
+    if not name_x:
+        name_x = ['var_'+str(i+1) for i in range(x.shape[1])]
+    if constant_regi == 'many':
+        name_x.insert(0, 'CONSTANT')
+    name_x_regi = []
+    for r in regimes_set:
+        rl = ['%s_%s'%(str(r), i) for i in name_x]
+        name_x_regi.extend(rl)
+    return name_x_regi
 
 def x2xsp(x, regimes):
     '''
@@ -361,6 +371,7 @@ def x2xsp_pandas(x, regimes):
     return SP.csr_matrix(a)
 
 if __name__ == '__main__':
+    np.random.seed(123)
     # Data Setup
     #n, kr, kf, r, constant = (1500000, 8, 1, 50, 'many')
     #n, kr, kf, r, constant = (50000, 16, 15, 359, 'many')
@@ -390,7 +401,9 @@ if __name__ == '__main__':
     R = buildR(kr+1, kf, r)
 
     # Regression and Chow test
-    ols = BaseOLS_sp(y, xsp, constant=False)
+    ols = BaseOLS(y, xsp, constant=True)
+    print ols.betas
+    '''
     ols.kr = kr
     ols.kf = kf
     if constant == 'many':
@@ -411,4 +424,5 @@ if __name__ == '__main__':
     lm = ps.spreg.OLS(y, x, name_x=name_x)
     R = np.array([[1, 0, 0]])
     wald = Wald(lm, R)
+    '''
 
