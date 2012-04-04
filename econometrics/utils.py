@@ -538,6 +538,33 @@ def sp_att(w,y,predy,w_y,rho):
     else:
         return None, None
 
+def spdot(a,b):
+    """
+    Matrix multiplication function to deal with sparse and dense objects
+
+    Parameters
+    ----------
+
+    a : array
+        first multiplication factor. Can either be sparse or dense.
+    b : array
+        second multiplication factor. Can either be sparse or dense.
+
+    Returns
+    -------
+
+    ab : array
+         product of a times b. Sparse if a and b are sparse. Dense otherwise.
+    """  
+    if type(a).__name__ == 'ndarray' and type(b).__name__ == 'ndarray':
+        ab = np.dot(a,b)
+    elif type(a).__name__ == 'csr_matrix' or type(b).__name__ == 'csr_matrix':
+        ab = a*b
+    else:
+        raise Exception, "Invalid format for 'spdot' argument: %s and %s"%(type(a).__name__, type(b).__name__)
+    return ab
+
+
 def _test():
     import doctest
     doctest.testmod()
