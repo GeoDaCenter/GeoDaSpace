@@ -64,4 +64,57 @@
  
  
 \par \b\f1\fs20
+\par }{\rtf1\ansi\deff0{\fonttbl{\f0\fnil\fprq12\fcharset0 Courier New;}{\f1\fswiss\fprq2\fcharset0 System;}}
+\viewkind4\uc1\pard\lang1033\f0\fs24 
+\par \b \ul Regression\ulnone \b0 
+\par \b \ul SUMMARY OF OUTPUT: ORDINARY LEAST SQUARES ESTIMATION \ulnone \b0 
+\par Data set            : \b columbus \b0 
+\par Dependent Variable  :\b        HOVAL \b0  Number of Observations:   49
+\par Mean dependent var  :     38.4362  Number of Variables   :    3
+\par S.D. dependent var  :     18.2767  Degrees of Freedom    :   46 
+ 
+ 
+\par 
+ 
+\par R-squared           :    0.349514  F-statistic           :     12.3582
+\par Adjusted R-squared  :    0.321232  Prob(F-statistic)     : 5.06369e-05
+\par Sum squared residual:       10647  Log likelihood        :    -201.368
+\par Sigma-square        :     231.457  Akaike info criterion :     408.735
+\par S.E. of regression  :     15.2137  Schwarz criterion     :     414.411
+\par Sigma-square ML     :     217.286
+\par S.E of regression ML:     14.7406
+
+ 
+ 
+\par -----------------------------------------------------------------------
+\par \b     Variable    Coefficient     Std.Error    t-Statistic   Probability \b0 
+\par -----------------------------------------------------------------------
+\par     CONSTANT      46.42818       13.19176       3.519484    0.0009867
+\par          INC      0.628984      0.5359104       1.173674    0.2465665
+\par        CRIME    -0.4848885      0.1826729      -2.654409    0.0108745
+\par -----------------------------------------------------------------------
+\par 
+ 
+\par 
+\par \bREGRESSION DIAGNOSTICS \b0 
+\par MULTICOLLINEARITY CONDITION NUMBER   12.537555
+\par TEST ON NORMALITY OF ERRORS
+\par TEST                  DF          VALUE            PROB
+\par Jarque-Bera            2           39.70616        0.0000000
+\par 
+ 
+ 
+\par \b DIAGNOSTICS FOR HETEROSKEDASTICITY \b0 
+\par RANDOM COEFFICIENTS
+\par TEST                  DF          VALUE            PROB
+\par Breusch-Pagan test     2           5.766791        0.0559445
+\par Koenker-Bassett test   2           2.270038        0.3214160
+\par SPECIFICATION ROBUST TEST
+\par TEST                  DF          VALUE            PROB
+\par White                  5           2.906067        0.7144648
+\par ========================= END OF REPORT ==============================
+\par 
+ 
+ 
+\par \b\f1\fs20
 \par }

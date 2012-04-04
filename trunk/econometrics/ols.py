@@ -481,9 +481,9 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
             self.regimes = regimes
             self.constant_regi = constant_regi
             if cols2regi == 'all':
-                self.cols2regi = cols2regi
                 cols2regi = [True] * x.shape[1]
-            name_x = REGI.set_name_x_regimes(name_x, x, regimes, constant_regi)
+            self.cols2regi = cols2regi
+            name_x = REGI.set_name_x_regimes(name_x, x, regimes, constant_regi, cols2regi)
             x = REGI.regimeX_setup(x, regimes, cols2regi, constant=constant_regi)
         BaseOLS.__init__(self, y=y, x=x, robust=robust,\
                          gwk=gwk, sig2n_k=sig2n_k) 

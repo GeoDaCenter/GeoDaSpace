@@ -6,6 +6,7 @@ import scipy.sparse as SP
 import itertools as iter
 from scipy.stats import f, chisqprob
 # For OLS
+from pysal.spreg import diagnostics
 from pysal.spreg.utils import RegressionPropsY, RegressionPropsVM
 import pysal.spreg.robust as ROBUST
 import numpy.linalg as la
@@ -283,17 +284,54 @@ def regimeX_setup(x, regimes, cols2regi, constant=False):
     xsp.constant = constant
     return xsp
 
-def set_name_x_regimes(name_x, x, regimes, constant_regi):
+def set_name_x_regimes(name_x, x, regimes, constant_regi, cols2regi):
     regimes_set = list(set(regimes))
     if not name_x:
         name_x = ['var_'+str(i+1) for i in range(x.shape[1])]
-    if constant_regi == 'many':
-        name_x.insert(0, 'CONSTANT')
+    if constant_regi:
+        name_x.insert(0, 'CONSTANT')    
+        if constant_regi == 'many':
+            cols2regi.insert(0, True)
+        if constant_regi == 'one':
+            cols2regi.insert(0, False)
+    vars_regi = [name_x[i] for i in cols2regi if i==True]
+    vars_glob = [name_x[i] for i in cols2regi if i==False]
+
     name_x_regi = []
     for r in regimes_set:
-        rl = ['%s_%s'%(str(r), i) for i in name_x]
+        rl = ['%s_-_%s'%(str(r), i) for i in vars_regi]
         name_x_regi.extend(rl)
+    name_x_regi.extend(['Global_-_%s'%i for i in vars_glob])
     return name_x_regi
+
+def regimes_printout(model):
+    stds = diagnostics.se_betas(model)
+    tp = np.array(diagnostics.t_stat(model))
+    res = pd.DataFrame({'Coefficient': pd.Series(model.betas.flatten()), \
+            'Std. Error': pd.Series(stds) , \
+            'T-Stat': pd.Series(tp[:, 0].flatten()), \
+            'P-value': pd.Series(tp[:, 1].flatten())})
+    res = res.reindex(columns = ['Coefficient', 'Std. Error', 'T-Stat', 'P-value'])
+    inds = []
+    for lbl in model.name_x:
+        r, v = lbl.split('_-_')
+        inds.append((r, v))
+    inds = np.array(inds)
+    res['Regime'] = inds[:, 0]
+    res['Variable'] = inds[:, 1]
+    res = res.set_index(['Regime', 'Variable'])
+    res[''] = res['P-value'].apply(star_significance)
+    return res
+
+def star_significance(p):
+    if p < 0.001:
+        return '***'
+    elif p > 0.001 and p <= 0.005:
+        return '** '
+    elif p > 0.005 and p <= 0.1:
+        return '*  '
+    else:
+        return ''
 
 def x2xsp(x, regimes):
     '''
@@ -369,6 +407,7 @@ def x2xsp_pandas(x, regimes):
             i in range(k)])
     a = df.unstack().fillna(0).as_matrix()
     return SP.csr_matrix(a)
+
 
 if __name__ == '__main__':
     np.random.seed(123)
