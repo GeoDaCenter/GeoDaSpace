@@ -11,34 +11,6 @@ from pysal.spreg.utils import RegressionPropsY, RegressionPropsVM
 import pysal.spreg.robust as ROBUST
 import numpy.linalg as la
 
-class BaseOLS_sp(RegressionPropsY, RegressionPropsVM):
-    def __init__(self, y, xsp, constant=True,\
-                 robust=None, gwk=None, sig2n_k=True):
-
-        if constant:
-            self.xsp = SP.hstack((SP.csr_matrix(np.ones(y.shape)), xsp), format='csr')
-        else:
-            self.xsp = xsp
-        self.xtx = (self.xsp.T * self.xsp).toarray()
-        self.xtxi = la.inv(self.xtx)
-        xty = self.xsp.T * y
-        self.betas = np.dot(self.xtxi, xty)
-        predy = self.xsp * self.betas
-        u = y-predy
-        self.u = u
-        self.predy = predy
-        self.y = y
-        self.n, self.k = self.xsp.shape
-
-        if robust:
-            self.vm = ROBUST.robust_vm(reg=self, gwk=gwk)
-
-        self._cache = {}
-        if sig2n_k:
-            self.sig2 = self.sig2n_k
-        else:
-            self.sig2 = self.sig2n
-
 class Chow_sp:
     '''
     Spatial Chow test of coefficient stability across regimes. The test is a
@@ -71,6 +43,7 @@ class Chow_sp:
               same parameter) of the beta.
     '''
     def __init__(self, reg):
+        self.reg = reg
         kr, kf, nr, betas, vm = reg.kr, reg.kf, reg.nr, reg.betas, reg.vm
         r_global = []
         regi = np.zeros((reg.kr, 2))
@@ -84,6 +57,20 @@ class Chow_sp:
         joint = wald_test(betas, r_global, q, vm)
         self.joint = joint
         self.regi = regi
+
+    def summary_regi(self):
+        names = []
+        names_all = [i.split('_-_')[-1] for i in self.reg.name_x \
+                if i[: 6] != 'Global']
+        for var in names_all:
+            if var not in names:
+                names.append(var)
+        res = pd.DataFrame(
+                {'Statistic': self.regi[:, 0],
+                'P-values': self.regi[:, 1]},
+                index = names)
+        res[''] = res['P-values'].apply(star_significance)
+        return res
 
 class Wald:
     '''
@@ -312,6 +299,7 @@ def set_name_x_regimes(name_x, regimes, constant_regi, cols2regi):
     if constant_regi:
         k -= 1
     regimes_set = list(set(regimes))
+    regimes_set.sort()
     if not name_x:
         name_x = ['var_'+str(i+1) for i in range(k)]
     if constant_regi:
