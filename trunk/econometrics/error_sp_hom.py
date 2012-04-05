@@ -143,8 +143,6 @@ class BaseGM_Error_Hom(RegressionPropsY):
             w.A1 = get_A1_het(w.sparse)
 
         w.A2 = get_A2_hom(w.sparse)
-        x = x*1
-        y = y*1
 
         # 1a. OLS --> \tilde{\delta}
         ols = OLS.BaseOLS(y=y, x=x)
