@@ -483,8 +483,19 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
             if cols2regi == 'all':
                 cols2regi = [True] * x.shape[1]
             self.cols2regi = cols2regi
-            name_x = REGI.set_name_x_regimes(name_x, x, regimes, constant_regi, cols2regi)
+            if constant_regi:
+                x = np.hstack((np.ones((y.shape[0], 1)), x))
+                if constant_regi == 'one':
+                    cols2regi.insert(0, False)
+                elif constant_regi == 'many':
+                    cols2regi.insert(0, True)
+                else:
+                    raise Exception, "Invalid argument (%s) passed for 'constant_regi'. Please secify a valid term."%str(constant)
+            name_x = REGI.set_name_x_regimes(name_x, regimes, constant_regi, cols2regi)
             x = REGI.regimeX_setup(x, regimes, cols2regi, constant=constant_regi)
+            self.kr = len(np.where(np.array(cols2regi)==True)[0])
+            self.kf = len(cols2regi) - self.kr
+            self.nr = len(set(regimes))
         BaseOLS.__init__(self, y=y, x=x, robust=robust,\
                          gwk=gwk, sig2n_k=sig2n_k) 
         self.title = "ORDINARY LEAST SQUARES"
