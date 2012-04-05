@@ -278,7 +278,6 @@ class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
     although you get a value for it (there are for coefficients under
     model.betas), you cannot perform inference on it (there are only three
     values in model.se_betas).
-
     >>> print model.name_x
     ['CONSTANT', 'income', 'crime', 'lambda']
     >>> np.around(model.betas, decimals=6)
@@ -289,9 +288,9 @@ class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
     >>> np.around(model.std_err, decimals=6)
     array([ 12.412038,   0.504443,   0.178496])
     >>> np.around(model.z_stat, decimals=6)
-    array([[  3.84261100e+00,   1.22000000e-04],
-           [  1.40839200e+00,   1.59015000e-01],
-           [ -3.08424700e+00,   2.04100000e-03]])
+    array([[ 3.842611,  0.000122],
+           [ 1.408392,  0.159015],
+           [-3.084247,  0.002041]])
     >>> np.around(model.sig2, decimals=6)
     198.55957900000001
 
@@ -1098,7 +1097,10 @@ def _momentsGM_Error(w, u):
 
 def _test():
     import doctest
+    start_suppress = np.get_printoptions()['suppress']
+    np.set_printoptions(suppress=True)    
     doctest.testmod()
+    np.set_printoptions(suppress=start_suppress)
 
 if __name__ == '__main__':
 
