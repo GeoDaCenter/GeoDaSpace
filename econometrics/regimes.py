@@ -16,7 +16,7 @@ class BaseOLS_sp(RegressionPropsY, RegressionPropsVM):
                  robust=None, gwk=None, sig2n_k=True):
 
         if constant:
-            self.xsp = SP.hstack((SP.csr_matrix(np.ones(y.shape)), xsp))
+            self.xsp = SP.hstack((SP.csr_matrix(np.ones(y.shape)), xsp), format='csr')
         else:
             self.xsp = xsp
         self.xtx = (self.xsp.T * self.xsp).toarray()
@@ -221,12 +221,17 @@ def buildR1var(vari, kr, kf, nr):
 def regimeX_setup(x, regimes, cols2regi, constant=False):
     '''
     Flexible full setup of a regime structure
+
+    NOTE: constant term, if desired in the model, should be included in the x
+    already
     ...
 
     Arguments
     =========
     x           : np.array
                   Dense array of dimension (n, k) with values for all observations
+                  IMPORTANT: constant term (if desired in the model) should be
+                  included
     regimes     : list
                   list of n values with the mapping of each observation to a
                   regime. Assumed to be aligned with 'x'.
@@ -255,22 +260,8 @@ def regimeX_setup(x, regimes, cols2regi, constant=False):
                   Structure of the output matrix (assuming X1, X2 to vary
                   across regimes and constant term, X3 and X4 to be global):
                     X1r1, X2r1, ... , X1r2, X2r2, ... , constant, X3, X4
-                  Besides the normal attributes of a csr sparse matrix, xsp
-                  has the following appended as meta-data:
-                    
-                    * regimes
-                    * cols2regi
-                    * constant
     '''
     n, k = x.shape
-    if constant:
-        x = np.hstack((np.ones((n, 1)), x))
-        if constant == 'one':
-            cols2regi.insert(0, False)
-        elif constant == 'many':
-            cols2regi.insert(0, True)
-        else:
-            raise Exception, "Invalid argument (%s) passed for 'constant'. Please secify a valid term."%str(constant)
     cols2regi = np.array(cols2regi)
     if len(set(cols2regi))==1:
         xsp = x2xsp(x, regimes)
@@ -278,24 +269,57 @@ def regimeX_setup(x, regimes, cols2regi, constant=False):
         not_regi = x[:, np.where(cols2regi==False)[0]]
         regi_subset = x[:, np.where(cols2regi)[0]]
         regi_subset = x2xsp(regi_subset, regimes)
-        xsp = SP.hstack( (regi_subset, SP.csr_matrix(not_regi)) )
-    xsp.regimes = regimes
-    xsp.cols2regi = cols2regi
-    xsp.constant = constant
+        xsp = SP.hstack( (regi_subset, SP.csr_matrix(not_regi)) , format='csr')
     return xsp
 
-def set_name_x_regimes(name_x, x, regimes, constant_regi, cols2regi):
+def set_name_x_regimes(name_x, regimes, constant_regi, cols2regi):
+    '''
+    Generate the set of variable names in a regimes setup, according to the
+    order of the betas
+
+    NOTE: constant term, if desired in the model, should be included in the x
+    already
+    ...
+
+    Arguments
+    =========
+    name_x          : list/None
+                      If passed, list of strings with the names of the
+                      variables aligned with the original dense array x
+                      IMPORTANT: constant term (if desired in the model) should be
+                      included
+    regimes         : list
+                      list of n values with the mapping of each observation to a
+                      regime. Assumed to be aligned with 'x'.
+    constant_regi   : [False, 'one', 'many']
+                      Switcher controlling the constant term setup. It may take
+                      the following values:
+                    
+                         *  False: no constant term is appended in any way
+                         *  'one': a vector of ones is appended to x and held
+                                   constant across regimes
+                         * 'many': a vector of ones is appended to x and considered
+                                   different per regime
+    cols2regi       : list
+                      List of k booleans indicating whether each column should be
+                      considered as different per regime (True) or held constant
+                      across regimes (False)
+    Returns
+    =======
+    name_x_regi
+    '''
+    k = len(cols2regi)
+    if constant_regi:
+        k -= 1
     regimes_set = list(set(regimes))
     if not name_x:
-        name_x = ['var_'+str(i+1) for i in range(x.shape[1])]
+        name_x = ['var_'+str(i+1) for i in range(k)]
     if constant_regi:
-        name_x.insert(0, 'CONSTANT')    
-        if constant_regi == 'many':
-            cols2regi.insert(0, True)
-        if constant_regi == 'one':
-            cols2regi.insert(0, False)
-    vars_regi = [name_x[i] for i in cols2regi if i==True]
-    vars_glob = [name_x[i] for i in cols2regi if i==False]
+        name_x.insert(0, 'CONSTANT')
+    nxa = np.array(name_x)
+    c2ra = np.array(cols2regi)
+    vars_regi = nxa[np.where(c2ra==True)]
+    vars_glob = nxa[np.where(c2ra==False)]
 
     name_x_regi = []
     for r in regimes_set:
