@@ -127,10 +127,10 @@ class BaseGM_Error_Hom(RegressionPropsY):
      [ -0.556    0.179 ]
      [  0.4129   0.1835]]
     >>> print np.around(reg.vm, 4)
-    [[  1.51340700e+02  -5.29060000e+00  -1.85650000e+00  -2.40000000e-03]
-     [ -5.29060000e+00   2.46700000e-01   5.14000000e-02   3.00000000e-04]
-     [ -1.85650000e+00   5.14000000e-02   3.21000000e-02  -1.00000000e-04]
-     [ -2.40000000e-03   3.00000000e-04  -1.00000000e-04   3.37000000e-02]]
+    [[ 151.3407   -5.2906   -1.8565   -0.0024]
+     [  -5.2906    0.2467    0.0514    0.0003]
+     [  -1.8565    0.0514    0.0321   -0.0001]
+     [  -0.0024    0.0003   -0.0001    0.0337]]
     '''
 
     def __init__(self, y, x, w,\
@@ -143,6 +143,8 @@ class BaseGM_Error_Hom(RegressionPropsY):
             w.A1 = get_A1_het(w.sparse)
 
         w.A2 = get_A2_hom(w.sparse)
+        x = x*1
+        y = y*1
 
         # 1a. OLS --> \tilde{\delta}
         ols = OLS.BaseOLS(y=y, x=x)
@@ -1498,8 +1500,10 @@ def get_omega_hom_ols(w, reg, lamb, G):
 
 def _test():
     import doctest
+    start_suppress = np.get_printoptions()['suppress']
+    np.set_printoptions(suppress=True)    
     doctest.testmod()
-   
+    np.set_printoptions(suppress=start_suppress)
 
 if __name__ == '__main__':
 
