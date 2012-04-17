@@ -8,6 +8,8 @@ import diagnostics as diagnostics
 import diagnostics_tsls as diagnostics_tsls
 import diagnostics_sp as diagnostics_sp
 import pysal
+import scipy
+from scipy.sparse.csr import csr_matrix
 
 __all__ = []
 
@@ -372,14 +374,20 @@ def check_arrays(*arrays):
     >>> # should not raise an exception
 
     """
+    allowed = ['ndarray', 'csr_matrix']
     rows = []
     for i in arrays:
-        if not issubclass(type(i), np.ndarray):
-            if i == None:
-                break
-            else:
-                raise Exception, "all input data must be numpy arrays"
         shape = i.shape
+        # y can only be an array; other matrices may be an array or a sparse matrix
+        if shape[1] > 1:
+            if i.__class__.__name__ not in allowed:
+                if i == None:
+                    break
+                else:
+                    raise Exception, "all input data must be either numpy arrays or sparse csr matrices"
+        else:
+            if not issubclass(type(i), np.ndarray):
+                raise Exception, "y must be a numpy array"
         if len(shape) > 2:
             raise Exception, "all input arrays must have exactly two dimensions"
         if len(shape) == 1:
