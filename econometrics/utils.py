@@ -558,7 +558,8 @@ def spdot(a,b):
     """  
     if type(a).__name__ == 'ndarray' and type(b).__name__ == 'ndarray':
         ab = np.dot(a,b)
-    elif type(a).__name__ == 'csr_matrix' or type(b).__name__ == 'csr_matrix':
+    elif type(a).__name__ == 'csr_matrix' or type(b).__name__ == 'csr_matrix' \
+            or type(a).__name__ == 'csc_matrix' or type(b).__name__ == 'csc_matrix':
         ab = a*b
     else:
         raise Exception, "Invalid format for 'spdot' argument: %s and %s"%(type(a).__name__, type(b).__name__)
