@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 import pysal
 import econometrics as EC
+from scipy import sparse
 
 PEGP = pysal.examples.get_path
 
@@ -13,7 +14,9 @@ class TestBaseOLS(unittest.TestCase):
         X = []
         X.append(db.by_col("INC"))
         X.append(db.by_col("CRIME"))
-        self.X = np.array(X).T
+        x = np.array(X).T
+        x = np.hstack((np.ones(self.y.shape), x))
+        self.X = sparse.csr_matrix(x)
         self.w = pysal.weights.rook_from_shapefile(PEGP("columbus.shp"))
 
     def test_ols(self):

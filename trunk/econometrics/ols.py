@@ -7,7 +7,7 @@ import numpy.linalg as la
 import user_output as USER
 import robust as ROBUST
 import regimes as REGI
-from utils import RegressionPropsY, RegressionPropsVM
+from utils import spdot, RegressionPropsY, RegressionPropsVM
 
 __all__ = ["OLS"]
 
@@ -100,26 +100,19 @@ class BaseOLS(RegressionPropsY, RegressionPropsVM):
                  robust=None, gwk=None, sig2n_k=True):
 
         self.x = x
-        spar = False
         if type(x).__name__ == 'ndarray':
             if constant:
                 self.x = np.hstack((np.ones(y.shape), x))
-            self.xtx = np.dot(self.x.T, self.x)
-            xty = np.dot(self.x.T, y)
+            self.xtx = spdot(self.x.T, self.x)
         elif type(x).__name__ == 'csr_matrix':
-            self.xtx = (self.x.T * self.x).toarray()
-            xty = self.x.T * y
-            spar = True
+            self.xtx = spdot(self.x.T, self.x).toarray()
         else:
             raise Exception, "Invalid format for 'x' argument: %s"%type(x).__name__
+        xty = spdot(self.x.T, y)
 
         self.xtxi = la.inv(self.xtx)
         self.betas = np.dot(self.xtxi, xty)
-        predy = np.dot(self.x, self.betas)
-        if not spar:
-            predy = np.dot(self.x, self.betas)
-        else:
-            predy = self.x * self.betas
+        predy = spdot(self.x, self.betas)
 
         u = y-predy
         self.u = u
