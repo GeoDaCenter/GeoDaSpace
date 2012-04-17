@@ -178,12 +178,12 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.YE_ListBox.SetDropTarget(ListBoxDropTarget(self.YE_ListBox))
         self.H_ListBox.SetDropTarget(ListBoxDropTarget(self.H_ListBox))
 
-        #self.R_TextCtrl.SetDropTarget(TextCtrlDropTarget(self.R_TextCtrl))
-        self.R_TextCtrl.SetDropTarget(NullDropTarget(self.R_TextCtrl))
+        self.R_TextCtrl.SetDropTarget(TextCtrlDropTarget(self.R_TextCtrl))
+        #self.R_TextCtrl.SetDropTarget(NullDropTarget(self.R_TextCtrl))
         #self.S_TextCtrl.SetDropTarget(TextCtrlDropTarget(self.S_TextCtrl))
         self.S_TextCtrl.SetDropTarget(NullDropTarget(self.S_TextCtrl))
-        #self.T_TextCtrl.SetDropTarget(TextCtrlDropTarget(self.T_TextCtrl))
-        self.T_TextCtrl.SetDropTarget(NullDropTarget(self.T_TextCtrl))
+        self.T_TextCtrl.SetDropTarget(TextCtrlDropTarget(self.T_TextCtrl))
+        #self.T_TextCtrl.SetDropTarget(NullDropTarget(self.T_TextCtrl))
 
         self.X_ListBox.SetDropTarget(ListBoxDropTarget(self.X_ListBox))
         # The Model
@@ -215,12 +215,12 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.H_ListBox.Bind(wx.EVT_LISTBOX_DCLICK, self.removeSelected)
         self.H_ListBox.Bind(wx.EVT_CHAR, self.removeSelected)
         self.H_ListBox.Bind(wx.EVT_MOUSE_EVENTS, self._startDrag)
-        #self.R_TextCtrl.Bind(wx.EVT_TEXT, self.updateSpec)
-        #self.R_TextCtrl.Bind(wx.EVT_LEFT_DCLICK,self.clearTextBox)
+        self.R_TextCtrl.Bind(wx.EVT_TEXT, self.updateSpec)
+        self.R_TextCtrl.Bind(wx.EVT_LEFT_DCLICK,self.clearTextBox)
         #self.S_TextCtrl.Bind(wx.EVT_TEXT, self.updateSpec)
         #self.S_TextCtrl.Bind(wx.EVT_LEFT_DCLICK,self.clearTextBox)
-        #self.T_TextCtrl.Bind(wx.EVT_TEXT, self.updateSpec)
-        #self.T_TextCtrl.Bind(wx.EVT_LEFT_DCLICK,self.clearTextBox)
+        self.T_TextCtrl.Bind(wx.EVT_TEXT, self.updateSpec)
+        self.T_TextCtrl.Bind(wx.EVT_LEFT_DCLICK,self.clearTextBox)
         self.X_ListBox.Bind(EVT_LIST_BOX_UPDATE, self.updateSpec)
         self.X_ListBox.Bind(wx.EVT_LISTBOX_DCLICK, self.removeSelected)
         self.X_ListBox.Bind(wx.EVT_CHAR, self.removeSelected)
@@ -321,9 +321,9 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             self.RegressionToolBar.EnableTool(wx.xrc.XRCID("ToolSaveModelAs"),True)
             # Not implemented yet
             #self.ModelTypeRadioBox.EnableItem(4,False) #Regimes.Disable()
-            self.R_TextCtrl.Disable()
+            #self.R_TextCtrl.Disable()
             self.S_TextCtrl.Disable()
-            self.T_TextCtrl.Disable()
+            #self.T_TextCtrl.Disable()
 
             # Fixed, always on.
             #self.SEClassicCheckBox.Disable()
@@ -561,9 +561,9 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                 H.append(var)
         spec['H'] = H
 
-        #spec['R'] = self.R_TextCtrl.GetValue()
+        spec['R'] = self.R_TextCtrl.GetValue()
         #spec['S'] = self.S_TextCtrl.GetValue()
-        #spec['T'] = self.T_TextCtrl.GetValue()
+        spec['T'] = self.T_TextCtrl.GetValue()
 
         ## X
         X = []
@@ -606,12 +606,12 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             self.YE_ListBox.SetItems(spec['YE'])
         if not spec['H'] == self.H_ListBox.GetItems():
             self.H_ListBox.SetItems(spec['H'])
-        #if not spec['R'] == self.R_TextCtrl.GetValue():
-        #    self.R_TextCtrl.SetValue(spec['R'])
+        if not spec['R'] == self.R_TextCtrl.GetValue():
+            self.R_TextCtrl.SetValue(spec['R'])
         #if not spec['S'] == self.S_TextCtrl.GetValue():
         #    self.S_TextCtrl.SetValue(spec['S'])
-        #if not spec['T'] == self.T_TextCtrl.GetValue():
-        #    self.T_TextCtrl.SetValue(spec['T'])
+        if not spec['T'] == self.T_TextCtrl.GetValue():
+            self.T_TextCtrl.SetValue(spec['T'])
         if not spec['X'] == self.X_ListBox.GetItems():
             self.X_ListBox.SetItems(spec['X'])
 

@@ -451,7 +451,6 @@ def __init_resources():
                                 <object class="sizeritem">
                                   <object class="wxStaticText">
                                     <label>R</label>
-                                    <hidden>1</hidden>
                                     <tooltip>Regime (Coming Soon)</tooltip>
                                   </object>
                                   <flag>wxALL|wxALIGN_CENTRE|wxALIGN_CENTRE_VERTICAL|wxADJUST_MINSIZE</flag>
@@ -459,7 +458,6 @@ def __init_resources():
                                 <object class="sizeritem">
                                   <object class="wxTextCtrl" name="R_TextCtrl">
                                     <tooltip>Regime (Coming Soon)</tooltip>
-                                    <hidden>1</hidden>
                                     <XRCED>
                                       <assign_var>1</assign_var>
                                     </XRCED>
@@ -487,7 +485,6 @@ def __init_resources():
                                 <object class="sizeritem">
                                   <object class="wxStaticText">
                                     <label>T</label>
-                                    <hidden>1</hidden>
                                     <tooltip>Time (Coming Soon)</tooltip>
                                   </object>
                                   <flag>wxALL|wxALIGN_CENTRE|wxALIGN_CENTRE_VERTICAL|wxADJUST_MINSIZE</flag>
@@ -495,7 +492,6 @@ def __init_resources():
                                 <object class="sizeritem">
                                   <object class="wxTextCtrl" name="T_TextCtrl">
                                     <tooltip>Time (Coming Soon)</tooltip>
-                                    <hidden>1</hidden>
                                     <XRCED>
                                       <assign_var>1</assign_var>
                                     </XRCED>
