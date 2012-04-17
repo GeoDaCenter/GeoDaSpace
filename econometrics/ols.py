@@ -498,10 +498,9 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
         self.robust = USER.set_robust(robust)
         self.name_w = USER.set_name_w(name_w, w)
         self.name_gwk = USER.set_name_w(name_gwk, gwk)
-        #self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=nonspat_diag,\
-        #                            spat_diag=spat_diag, vm=vm, moran=moran,
-        #                            std_err=self.robust)
-        #Turned off until agreement is made on how deal with sparse
+        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=nonspat_diag,\
+                                    spat_diag=spat_diag, vm=vm, moran=moran,
+                                    std_err=self.robust)
 
     def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
                               spat_diag=False, vm=False, moran=False,

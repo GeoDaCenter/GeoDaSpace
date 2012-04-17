@@ -41,6 +41,12 @@ class Chow_sp:
               for each beta that varies across regimes. The restrictions
               are setup to test for the global stability (all regimes have the
               same parameter) of the beta.
+    Methods
+    =======
+    summary    : method
+                 When called, creates a pandas.DataFrame object that
+                 contains the results of of the Spatial Chow. NOTE:
+                 requires a recent version of ``pandas``
     '''
     def __init__(self, reg):
         self.reg = reg
@@ -58,7 +64,10 @@ class Chow_sp:
         self.joint = joint
         self.regi = regi
 
-    def summary_regi(self):
+    def summary(self):
+        '''
+        Build a pandas.DataFrame that contains the output of Chow_sp
+        '''
         names = []
         names_all = [i.split('_-_')[-1] for i in self.reg.name_x \
                 if i[: 6] != 'Global']
@@ -68,7 +77,11 @@ class Chow_sp:
         res = pd.DataFrame(
                 {'Statistic': self.regi[:, 0],
                 'P-values': self.regi[:, 1]},
-                index = names)
+                index = pd.MultiIndex.from_tuples([('By variable', i) for i in names]))
+        res = res.T
+        res[('Global', '')] = self.joint
+        res = res.T
+        res = pd.DataFrame(res, columns=['Statistic', 'P-values'])
         res[''] = res['P-values'].apply(star_significance)
         return res
 
@@ -452,8 +465,11 @@ if __name__ == '__main__':
     R = buildR(kr+1, kf, r)
 
     # Regression and Chow test
-    ols = BaseOLS(y, xsp, constant=True)
-    print ols.betas
+    from ols import BaseOLS, OLS
+    w = ps.lat2W(250, 4)
+    ols = OLS(y, x, w=w, regimes=regimes, spat_diag=False, nonspat_diag=False)
+    chow = Chow_sp(ols)
+    print chow.summary()
     '''
     ols.kr = kr
     ols.kf = kf
@@ -464,7 +480,6 @@ if __name__ == '__main__':
     ols.nr = r
     t2 = time.time()
     print('OLS run in %.4f seconds'%(t2-t1))
-    chow = Chow_sp(ols)
 
     # columbus test (against R::aod wald.test)
     import pandas as pd
