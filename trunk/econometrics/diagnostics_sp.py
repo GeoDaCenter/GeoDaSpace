@@ -509,12 +509,12 @@ class spDcache:
         """
         if 'AB' not in self._cache:
             U = (self.w.sparse + self.w.sparse.T) / 2.
-            z = U * self.reg.x
-            c1 = np.dot(self.reg.x.T, z)
-            c2 = np.dot(z.T, z)
+            z = spdot(U, self.reg.x, array_out=False)
+            c1 = spdot(self.reg.x.T, z, array_out=False)
+            c2 = spdot(z.T, z, array_out=False)
             G = self.reg.xtxi
-            A = np.dot(G, c1)
-            B = np.dot(G, c2)
+            A = spdot(G, c1)
+            B = spdot(G, c2)
             self._cache['AB'] = [A, B]
         return self._cache['AB']
 
@@ -781,7 +781,7 @@ def akTest(iv, w, spDcache):
     """
     mi = get_mI(iv, w, spDcache)
     # Phi2
-    etwz = np.dot(iv.u.T, (w.sparse * iv.z))
+    etwz = np.dot(iv.u.T, spdot(w.sparse, iv.z))
     a = np.dot(etwz,np.dot(iv.varb,etwz.T))
     s12 = (w.s0 / w.n)**2
     phi2 = ( spDcache.t + (4.0 / iv.sig2n) * a ) / (s12 * w.n)

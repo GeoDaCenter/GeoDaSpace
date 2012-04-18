@@ -31,7 +31,7 @@ class TestBaseOLS(unittest.TestCase):
     def test_OLS(self):
         ols = EC.OLS(self.y, self.X, self.w, spat_diag=True, moran=True, \
                 name_y='home value', name_x=['income','crime'], \
-                name_ds='columbus')
+                name_ds='columbus', nonspat_diag=False)
         
         #np.testing.assert_array_almost_equal(ols.aic, \
         #        408.73548964604873 ,7)
@@ -52,22 +52,22 @@ class TestBaseOLS(unittest.TestCase):
         kb = {'df': 2, 'kb': 2.2700383871478675, 'pvalue': 0.32141595215434604}
         #for key in kb:
         #    self.assertAlmostEqual(ols.koenker_bassett[key],  kb[key], 7)
-        #np.testing.assert_array_almost_equal(ols.lm_error, \
-        #    (4.1508117035117893, 0.041614570655392716),7)
-        #np.testing.assert_array_almost_equal(ols.lm_lag, \
-        #    (0.98279980617162233, 0.32150855529063727), 7)
-        #np.testing.assert_array_almost_equal(ols.lm_sarma, \
-        #        (4.3222725729143736, 0.11519415308749938), 7)
+        np.testing.assert_array_almost_equal(ols.lm_error, \
+            (4.1508117035117893, 0.041614570655392716),7)
+        np.testing.assert_array_almost_equal(ols.lm_lag, \
+            (0.98279980617162233, 0.32150855529063727), 7)
+        np.testing.assert_array_almost_equal(ols.lm_sarma, \
+                (4.3222725729143736, 0.11519415308749938), 7)
         #np.testing.assert_array_almost_equal(ols.logll, \
         #        -201.3677448230244 ,7)
         np.testing.assert_array_almost_equal(ols.mean_y, \
             38.436224469387746,7)
         #np.testing.assert_array_almost_equal(ols.moran_res[0], \
         #    0.20373540938,7)
-        #np.testing.assert_array_almost_equal(ols.moran_res[1], \
-        #    2.59180452208,7)
-        #np.testing.assert_array_almost_equal(ols.moran_res[2], \
-        #    0.00954740031251,7)
+        np.testing.assert_array_almost_equal(ols.moran_res[1], \
+            2.59180452208,7)
+        np.testing.assert_array_almost_equal(ols.moran_res[2], \
+            0.00954740031251,7)
         #np.testing.assert_array_almost_equal(ols.mulColli, \
         #    12.537554873824675 ,7)
         np.testing.assert_equal(ols.n,  49)
@@ -80,10 +80,10 @@ class TestBaseOLS(unittest.TestCase):
             33.53969014]),7)
         #np.testing.assert_array_almost_equal(ols.r2, \
         #        0.34951437785126105 ,7)
-        #np.testing.assert_array_almost_equal(ols.rlm_error, \
-        #        (3.3394727667427513, 0.067636278225568919),7)
-        #np.testing.assert_array_almost_equal(ols.rlm_lag, \
-        #    (0.17146086940258459, 0.67881673703455414), 7)
+        np.testing.assert_array_almost_equal(ols.rlm_error, \
+                (3.3394727667427513, 0.067636278225568919),7)
+        np.testing.assert_array_almost_equal(ols.rlm_lag, \
+            (0.17146086940258459, 0.67881673703455414), 7)
         np.testing.assert_equal(ols.robust,  'unadjusted')
         #np.testing.assert_array_almost_equal(ols.schwarz, \
         #    414.41095054038061,7 )
