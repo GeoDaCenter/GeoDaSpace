@@ -377,14 +377,13 @@ def check_arrays(*arrays):
     allowed = ['ndarray', 'csr_matrix']
     rows = []
     for i in arrays:
+        if i == None:
+            break
         shape = i.shape
         # y can only be an array; other matrices may be an array or a sparse matrix
         if shape[1] > 1:
             if i.__class__.__name__ not in allowed:
-                if i == None:
-                    break
-                else:
-                    raise Exception, "all input data must be either numpy arrays or sparse csr matrices"
+                raise Exception, "all input data must be either numpy arrays or sparse csr matrices"
         else:
             if not issubclass(type(i), np.ndarray):
                 raise Exception, "y must be a numpy array"

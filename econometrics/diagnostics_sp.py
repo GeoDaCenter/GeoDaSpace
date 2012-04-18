@@ -3,6 +3,7 @@ Spatial diagnostics module
 """
 __author__ = "Luc Anselin luc.anselin@asu.edu, Daniel Arribas-Bel darribas@asu.edu"
 
+from utils import spdot
 from scipy.stats.stats import chisqprob
 from scipy.stats import norm
 import numpy as np
@@ -465,7 +466,7 @@ class spDcache:
         if 'j' not in self._cache:
             wxb = self.w.sparse * self.reg.predy
             wxb2 = np.dot(wxb.T, wxb)
-            xwxb = np.dot(self.reg.x.T, wxb)
+            xwxb = spdot(self.reg.x.T, wxb)
             num1 = wxb2 - np.dot(xwxb.T, np.dot(self.reg.xtxi, xwxb))
             num = num1 + (self.t * self.reg.sig2n)
             den = self.reg.n * self.reg.sig2n
@@ -497,7 +498,7 @@ class spDcache:
     @property
     def trA(self):
         if 'trA' not in self._cache:
-            xtwx = np.dot(self.reg.x.T, pysal.lag_spatial(self.w, self.reg.x))
+            xtwx = spdot(self.reg.x.T, spdot(self.w.sparse, self.reg.x))
             mw = np.dot(self.reg.xtxi, xtwx)
             self._cache['trA'] = np.sum(mw.diagonal())
         return self._cache['trA']
