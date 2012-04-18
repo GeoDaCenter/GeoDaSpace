@@ -103,11 +103,7 @@ class BaseOLS(RegressionPropsY, RegressionPropsVM):
         if type(x).__name__ == 'ndarray':
             if constant:
                 self.x = np.hstack((np.ones(y.shape), x))
-            self.xtx = spdot(self.x.T, self.x)
-        elif type(x).__name__ == 'csr_matrix':
-            self.xtx = spdot(self.x.T, self.x).toarray()
-        else:
-            raise Exception, "Invalid format for 'x' argument: %s"%type(x).__name__
+        self.xtx = spdot(self.x.T, self.x)
         xty = spdot(self.x.T, y)
 
         self.xtxi = la.inv(self.xtx)

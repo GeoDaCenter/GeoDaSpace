@@ -467,10 +467,10 @@ if __name__ == '__main__':
     # Regression and Chow test
     from ols import BaseOLS, OLS
     w = ps.lat2W(250, 4)
-    ols = OLS(y, x, w=w, regimes=regimes, spat_diag=False, nonspat_diag=False)
+    ols = OLS(y, x, w=w, regimes=regimes, spat_diag=True, moran=True, nonspat_diag=False)
+    '''
     chow = Chow_sp(ols)
     print chow.summary()
-    '''
     ols.kr = kr
     ols.kf = kf
     if constant == 'many':
