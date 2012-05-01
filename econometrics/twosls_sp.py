@@ -509,8 +509,13 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
 
 def _test():
     import doctest
+    start_suppress = np.get_printoptions()['suppress']
+    np.set_printoptions(suppress=True)    
     doctest.testmod()
+    np.set_printoptions(suppress=start_suppress)
+
 
 if __name__ == '__main__':
     _test()
+
 

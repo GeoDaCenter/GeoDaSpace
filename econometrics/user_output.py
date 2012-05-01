@@ -378,7 +378,7 @@ def check_arrays(*arrays):
     rows = []
     for i in arrays:
         if i == None:
-            break
+            continue
         shape = i.shape
         # y can only be an array; other matrices may be an array or a sparse matrix
         if shape[1] > 1:

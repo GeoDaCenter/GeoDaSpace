@@ -448,8 +448,14 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
                                             instruments=True,
                                             moran=False, std_err=std_err)
         
-
-                     
-if __name__ == '__main__':
+def _test():
     import doctest
+    start_suppress = np.get_printoptions()['suppress']
+    np.set_printoptions(suppress=True)    
     doctest.testmod()
+    np.set_printoptions(suppress=start_suppress)
+
+
+if __name__ == '__main__':
+    _test()
+
