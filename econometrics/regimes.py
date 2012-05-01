@@ -385,7 +385,7 @@ def x2xsp(x, regimes):
     data = x.flatten()
     R = len(regimes_set)
     regime_by_row = np.array([[r] * k for r in list(regimes_set)]).flatten() #X1r1 X2r1 ... X1r2 X2r2 ...
-    row_map = {r: np.where(regime_by_row == r)[0] for r in regimes_set}
+    row_map = dict((r, np.where(regime_by_row == r)[0]) for r in regimes_set)
     indices = np.array([row_map[row] for row in regimes]).flatten()
     indptr = np.zeros((n+1, ), dtype=int)
     indptr[:-1] = list(np.arange(n) * k)
@@ -406,7 +406,7 @@ def x2xsp_csc(x, regimes):
     regimes = np.array(regimes)
     data = x.flatten('F')
     R = len(regimes_set)
-    col_map = {r: np.where(regimes == regimes_set[r])[0] for r in np.arange(R)}
+    col_map = dict((r, np.where(regimes == regimes_set[r])[0]) for r in np.arange(R))
     reg_order = np.array([np.arange(R) for i in np.arange(k)]).flatten()
     indices = list(iter.chain(*[col_map[r] for r in reg_order]))
     indptr = np.zeros(reg_order.shape[0] + 1, dtype=int)
