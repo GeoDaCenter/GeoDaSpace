@@ -1,8 +1,10 @@
 import unittest
 import numpy as np
 import pysal
-import pysal.spreg.diagnostics as D
 import econometrics
+import pysal.spreg.diagnostics as D
+from scipy import sparse as SP
+
 
 class TestBaseGMLag(unittest.TestCase):
     def setUp(self):
@@ -17,12 +19,13 @@ class TestBaseGMLag(unittest.TestCase):
         X.append(self.db.by_col("INC"))
         X.append(self.db.by_col("CRIME"))
         self.X = np.array(X).T
+        self.X = SP.csr_matrix(self.X)
         reg = econometrics.twosls_sp.BaseGM_Lag(self.y, self.X, w=self.w, w_lags=2)
         betas = np.array([[  4.53017056e+01], [  6.20888617e-01], [ -4.80723451e-01], [  2.83622122e-02]])
         np.testing.assert_array_almost_equal(reg.betas, betas, 7)
         h_0 = np.array([  1.        ,  19.531     ,  15.72598   ,  18.594     ,
                             24.7142675 ,  13.72216667,  27.82929567])
-        np.testing.assert_array_almost_equal(reg.h[0], h_0)
+        np.testing.assert_array_almost_equal(reg.h.toarray()[0], h_0)
         hth = np.  array([   49.        ,   704.371999  ,  1721.312371  ,   724.7435916 ,
                              1707.35412945,   711.31248483,  1729.63201243])
         np.testing.assert_array_almost_equal(reg.hth[0], hth, 7)
@@ -39,7 +42,7 @@ class TestBaseGMLag(unittest.TestCase):
         predy_5 = np.array([[ 50.87411532],[ 50.76969931],[ 41.77223722],[ 33.44262382],[ 28.77418036]])
         np.testing.assert_array_almost_equal(reg.predy[0:5], predy_5, 7)
         q_5 = np.array([ 18.594     ,  24.7142675 ,  13.72216667,  27.82929567])
-        np.testing.assert_array_almost_equal(reg.q[0], q_5)
+        np.testing.assert_array_almost_equal(reg.q.toarray()[0], q_5)
         self.assertAlmostEqual(reg.sig2n_k, 234.54258763039289, 7)
         self.assertAlmostEqual(reg.sig2n, 215.39625394627919, 7)
         self.assertAlmostEqual(reg.sig2, 215.39625394627919, 7)
@@ -58,13 +61,13 @@ class TestBaseGMLag(unittest.TestCase):
                        [ -4.00127615e+00, -2.87549056e-02,  1.47945172e-02,  1.00743323e-01]])
         np.testing.assert_array_almost_equal(reg.vm, vm, 6)
         x_0 = np.array([  1.     ,  19.531  ,  15.72598])
-        np.testing.assert_array_almost_equal(reg.x[0], x_0, 7)
+        np.testing.assert_array_almost_equal(reg.x.toarray()[0], x_0, 7)
         y_5 = np.array( [[ 80.467003], [ 44.567001], [ 26.35    ], [ 33.200001], [ 23.225   ]])
         np.testing.assert_array_almost_equal(reg.y[0:5], y_5, 7)
         yend_5 = np.array( [[ 35.4585005 ], [ 46.67233467], [ 45.36475125], [ 32.81675025], [ 30.81785714]])
         np.testing.assert_array_almost_equal(reg.yend[0:5], yend_5, 7)
         z_0 = np.array([  1.       ,  19.531    ,  15.72598  ,  35.4585005]) 
-        np.testing.assert_array_almost_equal(reg.z[0], z_0, 7)
+        np.testing.assert_array_almost_equal(reg.z.toarray()[0], z_0, 7)
         zthhthi = np.array( [[  1.00000000e+00, -2.22044605e-16, -2.22044605e-16 , 2.22044605e-16,
                                 4.44089210e-16,  0.00000000e+00, -8.88178420e-16],
                              [  0.00000000e+00,  1.00000000e+00, -3.55271368e-15 , 3.55271368e-15,
@@ -80,6 +83,7 @@ class TestBaseGMLag(unittest.TestCase):
         X.append(self.db.by_col("INC"))
         X.append(self.db.by_col("CRIME"))
         self.X = np.array(X).T
+        self.X = SP.csr_matrix(self.X)
         base_gm_lag = econometrics.twosls_sp.BaseGM_Lag(self.y, self.X, w=self.w, w_lags=2, robust='white')
         tbetas = np.array([[  4.53017056e+01], [  6.20888617e-01], [ -4.80723451e-01], [  2.83622122e-02]])
         np.testing.assert_array_almost_equal(base_gm_lag.betas, tbetas) 
@@ -92,6 +96,7 @@ class TestBaseGMLag(unittest.TestCase):
         X.append(self.db.by_col("INC"))
         X.append(self.db.by_col("CRIME"))
         self.X = np.array(X).T
+        self.X = SP.csr_matrix(self.X)
         gwk = pysal.kernelW_from_shapefile(pysal.examples.get_path('columbus.shp'),k=15,function='triangular', fixed=False)        
         base_gm_lag = econometrics.twosls_sp.BaseGM_Lag(self.y, self.X, w=self.w, w_lags=2, robust='hac', gwk=gwk)
         tbetas = np.array([[  4.53017056e+01], [  6.20888617e-01], [ -4.80723451e-01], [  2.83622122e-02]])
@@ -119,6 +124,7 @@ class TestBaseGMLag(unittest.TestCase):
         X.append(self.db.by_col("INC"))
         X.append(self.db.by_col("CRIME"))
         self.X = np.array(X).T
+        self.X = SP.csr_matrix(self.X)
         reg = econometrics.twosls_sp.BaseGM_Lag(self.y, self.X, w=self.w, w_lags=2, sig2n_k=True)
         betas = np.  array([[  4.53017056e+01], [  6.20888617e-01], [ -4.80723451e-01], [  2.83622122e-02]])
         np.testing.assert_array_almost_equal(reg.betas, betas, 7)

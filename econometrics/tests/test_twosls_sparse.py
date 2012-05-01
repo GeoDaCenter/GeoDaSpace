@@ -2,6 +2,8 @@ import unittest
 import numpy as np
 import pysal
 import econometrics
+from scipy import sparse as SP
+
 
 class TestBaseTSLS(unittest.TestCase):
     def setUp(self):
@@ -11,6 +13,7 @@ class TestBaseTSLS(unittest.TestCase):
         self.X = []
         self.X.append(db.by_col("INC"))
         self.X = np.array(self.X).T
+        self.X = SP.csr_matrix(self.X)
         self.yd = []
         self.yd.append(db.by_col("HOVAL"))
         self.yd = np.array(self.yd).T
@@ -23,7 +26,7 @@ class TestBaseTSLS(unittest.TestCase):
         betas = np.array([[ 88.46579584], [  0.5200379 ], [ -1.58216593]])
         np.testing.assert_array_almost_equal(reg.betas, betas, 7)
         h_0 = np.array([  1.   ,  19.531,   5.03 ])
-        np.testing.assert_array_almost_equal(reg.h[0], h_0)
+        np.testing.assert_array_almost_equal(reg.h.toarray()[0], h_0)
         hth = np.array([[    49.        ,    704.371999  ,    139.75      ],
                         [   704.371999  ,  11686.67338121,   2246.12800625],
                         [   139.75      ,   2246.12800625,    498.5851    ]])
@@ -60,13 +63,13 @@ class TestBaseTSLS(unittest.TestCase):
                        [  -9.54463414,   -1.01826408,    0.62914915]]) 
         np.testing.assert_array_almost_equal(reg.vm, vm, 7)
         x_0 = np.array([  1.   ,  19.531])
-        np.testing.assert_array_almost_equal(reg.x[0], x_0, 7)
+        np.testing.assert_array_almost_equal(reg.x.toarray()[0], x_0, 7)
         y_5 = np.array([[ 15.72598 ], [ 18.801754], [ 30.626781], [ 32.38776 ], [ 50.73151 ]]) 
         np.testing.assert_array_almost_equal(reg.y[0:5], y_5, 7)
         yend_5 = np.array([[ 80.467003], [ 44.567001], [ 26.35    ], [ 33.200001], [ 23.225   ]]) 
         np.testing.assert_array_almost_equal(reg.yend[0:5], yend_5, 7)
         z_0 = np.array([  1.      ,  19.531   ,  80.467003]) 
-        np.testing.assert_array_almost_equal(reg.z[0], z_0, 7)
+        np.testing.assert_array_almost_equal(reg.z.toarray()[0], z_0, 7)
         zthhthi = np.array([[  1.00000000e+00,  -1.66533454e-16,   4.44089210e-16],
                             [  0.00000000e+00,   1.00000000e+00,   0.00000000e+00],
                             [  1.26978671e+01,   1.05598709e+00,   3.70212359e+00]]) 
