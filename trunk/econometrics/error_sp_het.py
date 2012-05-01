@@ -14,7 +14,7 @@ import ols as OLS
 import user_output as USER
 import twosls as TSLS
 import utils as UTILS
-from utils import RegressionPropsY
+from utils import RegressionPropsY, spdot
 from scipy import sparse as SP
 from pysal import lag_spatial
 
@@ -140,7 +140,7 @@ class BaseGM_Error_Het(RegressionPropsY):
             xs = UTILS.get_spFilter(w, lambda_old, self.x)
             ys = UTILS.get_spFilter(w, lambda_old, self.y)
             ols_s = OLS.BaseOLS(y=ys, x=xs, constant=False)
-            self.predy = np.dot(self.x, ols_s.betas)
+            self.predy = spdot(self.x, ols_s.betas)
             self.u = self.y - self.predy
 
             #2b. GMM --> \hat{\lambda}
@@ -523,7 +523,7 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
             ys = UTILS.get_spFilter(w, lambda_old, self.y)
             yend_s = UTILS.get_spFilter(w, lambda_old, self.yend)
             tsls_s = TSLS.BaseTSLS(ys, xs, yend_s, h=self.h, constant=False)
-            self.predy = np.dot(self.z, tsls_s.betas)
+            self.predy = spdot(self.z, tsls_s.betas)
             self.u = self.y - self.predy
 
             #2b. GMM --> \hat{\lambda}
@@ -1361,8 +1361,8 @@ def get_vm_het(G, lamb, reg, w, psi):
 
     J = np.dot(G, np.array([[1],[2 * lamb]]))
     Zs = UTILS.get_spFilter(w,lamb,reg.x)
-    ZstEZs = np.dot((Zs.T * get_psi_sigma(w, reg.u, lamb)), Zs)
-    ZsZsi = la.inv(np.dot(Zs.T,Zs))
+    ZstEZs = spdot((Zs.T * get_psi_sigma(w, reg.u, lamb)), Zs)
+    ZsZsi = la.inv(spdot(Zs.T,Zs))
     omega11 = w.n * np.dot(np.dot(ZsZsi,ZstEZs),ZsZsi)
     omega22 = la.inv(np.dot(np.dot(J.T,la.inv(psi)),J))
     zero = np.zeros((reg.k,1),float)
@@ -1373,9 +1373,9 @@ def get_P_hat(reg, hthi, zf):
     """
     P_hat from Appendix B, used for a1 a2, using filtered Z
     """
-    htzf = np.dot(reg.h.T, zf)
-    P1 = np.dot(hthi, htzf)
-    P2 = np.dot(htzf.T, P1)
+    htzf = spdot(reg.h.T, zf)
+    P1 = spdot(hthi, htzf)
+    P2 = spdot(htzf.T, P1)
     P2i = la.inv(P2)
     return reg.n*np.dot(P1, P2i)
 
@@ -1409,10 +1409,10 @@ def get_a1a2(w, reg, lambdapar, P, zs, inv_method, filt):
     
     """
     us = UTILS.get_spFilter(w, lambdapar, reg.u)
-    alpha1 = (-2.0/w.n) * (np.dot((zs.T * w.A1), us))
-    alpha2 = (-1.0/w.n) * (np.dot((zs.T * (w.sparse + w.sparse.T)), us))
-    a1 = np.dot(np.dot(reg.h, P), alpha1)
-    a2 = np.dot(np.dot(reg.h, P), alpha2)
+    alpha1 = (-2.0/w.n) * (np.dot(spdot(zs.T,w.A1), us))
+    alpha2 = (-1.0/w.n) * (np.dot(spdot(zs.T,(w.sparse + w.sparse.T)), us))
+    a1 = np.dot(spdot(reg.h, P), alpha1)
+    a2 = np.dot(spdot(reg.h, P), alpha2)
     if not filt:
         a1 = UTILS.inverse_prod(w, a1, lambdapar, post_multiply=True, inv_method=inv_method).T
         a2 = UTILS.inverse_prod(w, a2, lambdapar, post_multiply=True, inv_method=inv_method).T
@@ -1466,7 +1466,7 @@ def get_Omega_GS2SLS(w, lamb, reg, G, psi, P):
     psi, a1, a2 = psi
     sigma=get_psi_sigma(w, reg.u, lamb)
     psi_dd_1=(1.0/w.n) * reg.h.T * sigma 
-    psi_dd = np.dot(psi_dd_1, reg.h)
+    psi_dd = spdot(psi_dd_1, reg.h)
     psi_dl=np.dot(psi_dd_1,np.hstack((a1,a2)))
     psi_o=np.hstack((np.vstack((psi_dd, psi_dl.T)), np.vstack((psi_dl, psi))))
     psii=la.inv(psi)
