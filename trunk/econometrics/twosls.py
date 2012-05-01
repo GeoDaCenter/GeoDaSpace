@@ -3,7 +3,7 @@ import copy
 import numpy.linalg as la
 import robust as ROBUST
 import user_output as USER
-from utils import RegressionPropsY, RegressionPropsVM
+from utils import spdot, sphstack, RegressionPropsY, RegressionPropsVM
 
 __author__ = "Luc Anselin luc.anselin@asu.edu, David C. Folch david.folch@asu.edu, Jing Yao jingyao@asu.edu"
 __all__ = ["TSLS"]
@@ -138,14 +138,14 @@ class BaseTSLS(RegressionPropsY, RegressionPropsVM):
         self.n = y.shape[0]
 
         if constant:
-            self.x = np.hstack((np.ones(y.shape),x))
+            self.x = sphstack(np.ones(y.shape),x)
         else:
             self.x = x
 
         self.kstar = yend.shape[1]        
-        z = np.hstack((self.x,yend))  # including exogenous and endogenous variables   
+        z = sphstack(self.x,yend)  # including exogenous and endogenous variables   
         if type(h).__name__ != 'ndarray':
-            h = np.hstack((self.x,q))   # including exogenous variables and instrument
+            h = sphstack(self.x,q)   # including exogenous variables and instrument
 
         self.z = z
         self.h = h
@@ -153,22 +153,23 @@ class BaseTSLS(RegressionPropsY, RegressionPropsVM):
         self.yend = yend
         self.k = z.shape[1]    # k = number of exogenous variables and endogenous variables 
         
-        hth = np.dot(h.T,h)    
+        hth = spdot(h.T,h)    
         hthi = la.inv(hth)
-        zth = np.dot(z.T,h)    
-        hty = np.dot(h.T,y) 
+        zth = spdot(z.T,h)    
+        hty = spdot(h.T,y) 
         
         factor_1 = np.dot(zth,hthi)  
         factor_2 = np.dot(factor_1,zth.T)  
         varb = la.inv(factor_2)          # this one needs to be in cache to be used in AK
         factor_3 = np.dot(varb,factor_1)   
+        #print factor_3.shape, hty.shape
         betas = np.dot(factor_3,hty)  
         self.betas = betas
         self.varb = varb
         self.zthhthi = factor_1  
         
         # predicted values
-        self.predy = np.dot(z,betas)
+        self.predy = spdot(z,betas)
         
         # residuals
         u = y - self.predy

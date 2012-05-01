@@ -5,6 +5,7 @@ __author__ = "Luc Anselin luc.anselin@asu.edu, \
 import numpy as np
 import numpy.linalg as la
 from pysal import lag_spatial
+from utils import spdot, spbroadcast
 
 def robust_vm(reg, gwk=None):
     """
@@ -94,22 +95,22 @@ def robust_vm(reg, gwk=None):
     """
     if hasattr(reg, 'h'): #If reg has H, do 2SLS estimator. OLS otherwise.
         tsls = True
-        xu = reg.h * reg.u
+        xu = spbroadcast(reg.h, reg.u)
     else:
         tsls = False
-        xu = reg.x * reg.u
+        xu = spbroadcast(reg.x, reg.u)
         
     if gwk: #If gwk do HAC. White otherwise.
         gwkxu = lag_spatial(gwk,xu)
-        psi0 = np.dot(xu.T,gwkxu)
+        psi0 = spdot(xu.T,gwkxu)
     else:
-        psi0 = np.dot(xu.T,xu)
+        psi0 = spdot(xu.T,xu)
         
     if tsls:
-        psi1 = np.dot(reg.varb,reg.zthhthi)
-        psi = np.dot(psi1,np.dot(psi0,psi1.T))
+        psi1 = spdot(reg.varb,reg.zthhthi)
+        psi = spdot(psi1,np.dot(psi0,psi1.T))
     else:
-        psi = np.dot(reg.xtxi,np.dot(psi0,reg.xtxi))
+        psi = spdot(reg.xtxi,np.dot(psi0,reg.xtxi))
         
     return psi
     
