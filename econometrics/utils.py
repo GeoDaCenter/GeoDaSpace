@@ -84,7 +84,7 @@ class RegressionPropsVM:
     @property
     def vm(self):
         if 'vm' not in self._cache:
-            self._cache['vm'] = np.dot(self.sig2, self.xtxi) 
+            self._cache['vm'] = np.dot(self.sig2, self.xtxi)
         return self._cache['vm']    
     
 def get_A1_het(S):
@@ -117,7 +117,7 @@ def get_A1_het(S):
     Large Sample Results". Journal of Regional Science, Vol. 60, No. 2, pp.
     592-614.
     """
-    StS = S.T * S   #LA set diagonal of StS to zero, that's it
+    StS = S.T*S
     d = SP.spdiags([StS.diagonal()], [0], S.get_shape()[0], S.get_shape()[1])
     d = d.asformat('csr')
     return StS - d
@@ -155,7 +155,7 @@ def get_A1_hom(s, scalarKP=False):
     N. 1, pp. 1-13.      
     """
     n = float(s.shape[0])
-    wpw = s.T * s
+    wpw = s.T*s
     twpw = np.sum(wpw.diagonal()) 
     e = SP.eye(n, n, format='csr')
     e.data = np.ones(n) * (twpw / n)
@@ -228,16 +228,16 @@ def _moments2eqs(A1, s, u):
     N. 1, pp. 1-13.
     '''
     n = float(s.shape[0])
-    A1u = A1 * u
-    wu = s * u
+    A1u = A1*u
+    wu = s*u
     g1 = np.dot(u.T, A1u)
-    g2 = np.dot(u.T, wu)   #LA use 1/2 (W + W') for A2
+    g2 = np.dot(u.T, wu) 
     g = np.array([[g1][0][0],[g2][0][0]]) / n
 
-    G11 = np.dot(u.T, (A1 + A1.T) * wu) #LA use eqn (38) (39)
-    G12 = -np.dot(wu.T * A1, wu)
-    G21 = np.dot(u.T, (s + s.T) * wu)
-    G22 = -np.dot(wu.T, (s * wu))
+    G11 = np.dot(u.T, ((A1 + A1.T)*wu))
+    G12 = -np.dot((wu.T*A1), wu)
+    G21 = np.dot(u.T, ((s + s.T)*wu))
+    G22 = -np.dot(wu.T, (s*wu))
     G = np.array([[G11[0][0],G12[0][0]],[G21[0][0],G22[0][0]]]) / n
     return [G, g]
 
@@ -307,8 +307,8 @@ def foptim_par(par,moments):
                       sum of square residuals (e) of the equation system 
                       moments.g - moments.G * lambdapar = e
     """
-    vv=np.dot(moments[0],par)
-    vv2=vv-moments[1]             #LA - should be moments[1] - vv? doesn't matter in the end
+    vv = np.dot(moments[0],par)
+    vv2 = moments[1]-vv
     return sum(vv2**2)
 
 def get_spFilter(w,lamb,sf):
@@ -435,9 +435,9 @@ def inverse_prod(w, data, scalar, post_multiply=False, inv_method="power_exp", t
     elif inv_method=="true_inv":
         matrix = la.inv(np.eye(w.n) - (scalar * w.full()[0]))
         if post_multiply:
-            inv_prod = np.dot(data.T, matrix)
+            inv_prod = spdot(data.T, matrix)
         else:
-            inv_prod = np.dot(matrix, data)
+            inv_prod = spdot(matrix, data)
     else:
         raise Exception, "Invalid method selected for inversion."
     return inv_prod
