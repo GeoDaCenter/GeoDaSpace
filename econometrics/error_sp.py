@@ -12,7 +12,7 @@ import ols as OLS
 from pysal import lag_spatial
 from utils import power_expansion, set_endog, iter_msg, sp_att
 from utils import get_A1_hom, get_A2_hom, get_A1_het, optim_moments, get_spFilter, get_lags, _moments2eqs
-from utils import RegressionPropsY
+from utils import spdot, RegressionPropsY
 import twosls as TSLS
 import user_output as USER
 
@@ -111,7 +111,7 @@ class BaseGM_Error(RegressionPropsY):
         ols2 = OLS.BaseOLS(y=ys, x=xs, constant=False)
 
         #Output
-        self.predy = np.dot(self.x, ols2.betas)
+        self.predy = spdot(self.x, ols2.betas)
         self.u = y - self.predy
         self.betas = np.vstack((ols2.betas, np.array([[lambda1]])))
         self.sig2 = ols2.sig2n
@@ -429,7 +429,7 @@ class BaseGM_Endog_Error(RegressionPropsY):
 
         #Output
         self.betas = np.vstack((tsls2.betas, np.array([[lambda1]])))
-        self.predy = np.dot(tsls.z, tsls2.betas)
+        self.predy = spdot(tsls.z, tsls2.betas)
         self.u = y - self.predy
         self.sig2 = float(np.dot(tsls2.u.T,tsls2.u)) / self.n
         self.e_filtered = self.u - lambda1*lag_spatial(w,self.u)
