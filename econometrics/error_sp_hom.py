@@ -21,7 +21,7 @@ import ols as OLS
 from pysal import lag_spatial
 from utils import power_expansion, set_endog, iter_msg, sp_att
 from utils import get_A1_hom, get_A2_hom, get_A1_het, optim_moments, get_spFilter, get_lags, _moments2eqs
-from utils import RegressionPropsY
+from utils import spdot, RegressionPropsY
 import twosls as TSLS
 import user_output as USER
 
@@ -159,7 +159,7 @@ class BaseGM_Error_Hom(RegressionPropsY):
             x_s = get_spFilter(w,lambda_old,self.x)
             y_s = get_spFilter(w,lambda_old,self.y)
             ols_s = OLS.BaseOLS(y=y_s, x=x_s, constant=False)
-            self.predy = np.dot(self.x, ols_s.betas)
+            self.predy = spdot(self.x, ols_s.betas)
             self.u = self.y - self.predy
 
             # 2b. GM 2nd iteration --> \hat{\rho}
@@ -539,7 +539,7 @@ class BaseGM_Endog_Error_Hom(RegressionPropsY):
             y_s = get_spFilter(w,lambda_old,self.y)
             yend_s = get_spFilter(w, lambda_old, self.yend)
             tsls_s = TSLS.BaseTSLS(y=y_s, x=x_s, yend=yend_s, h=self.h, constant=False)
-            self.predy = np.dot(self.z, tsls_s.betas)
+            self.predy = spdot(self.z, tsls_s.betas)
             self.u = self.y - self.predy
 
             # 2b. GM 2nd iteration --> \hat{\rho}
@@ -1368,29 +1368,29 @@ def get_vc_hom(w, reg, lambdapar, z_s=None, for_omegaOLS=False):
 
     if for_omegaOLS:
         x_s = get_spFilter(w, lambdapar, reg.x)
-        p = la.inv(np.dot(x_s.T, x_s) / n)
+        p = la.inv(spdot(x_s.T, x_s) / n)
 
     if issubclass(type(z_s), np.ndarray):
-        alpha1 = (-2/n) * np.dot(z_s.T, w.A1 * u_s)
-        alpha2 = (-2/n) * np.dot(z_s.T, w.A2 * u_s)
+        alpha1 = (-2/n) * spdot(z_s.T, w.A1 * u_s)
+        alpha2 = (-2/n) * spdot(z_s.T, w.A2 * u_s)
 
-        hth = np.dot(reg.h.T, reg.h)
+        hth = spdot(reg.h.T, reg.h)
         hthni = la.inv(hth / n) 
-        htzsn = np.dot(reg.h.T, z_s) / n 
-        p = np.dot(hthni, htzsn)
-        p = np.dot(p, la.inv(np.dot(htzsn.T, p)))
-        hp = np.dot(reg.h, p)
-        a1 = np.dot(hp, alpha1)
-        a2 = np.dot(hp, alpha2)
+        htzsn = spdot(reg.h.T, z_s) / n 
+        p = spdot(hthni, htzsn)
+        p = spdot(p, la.inv(spdot(htzsn.T, p)))
+        hp = spdot(reg.h, p)
+        a1 = spdot(hp, alpha1)
+        a2 = spdot(hp, alpha2)
 
         psi11 = psi11 + \
-            sig2 * np.dot(a1.T, a1) + \
-            2 * mu3 * np.dot(a1.T, vecd1)
+            sig2 * spdot(a1.T, a1) + \
+            2 * mu3 * spdot(a1.T, vecd1)
         psi12 = psi12 + \
-            sig2 * np.dot(a1.T, a2) + \
-            mu3 * np.dot(a2.T, vecd1) # 3rd term=0
+            sig2 * spdot(a1.T, a2) + \
+            mu3 * spdot(a2.T, vecd1) # 3rd term=0
         psi22 = psi22 + \
-            sig2 * np.dot(a2.T, a2) # 3rd&4th terms=0 bc vecd2=0
+            sig2 * spdot(a2.T, a2) # 3rd&4th terms=0 bc vecd2=0
 
     psi = np.array([[psi11[0][0], psi12[0][0]], [psi12[0][0], psi22[0][0]]]) / n
     return psi, a1, a2, p
@@ -1434,13 +1434,13 @@ def get_omega_hom(w, reg, lamb, G):
     psi, a1, a2, p = get_vc_hom(w, reg, lamb, z_s)
     j = np.dot(G, np.array([[1.], [2*lamb]]))
     psii = la.inv(psi)
-    psiDL = (mu3 * np.dot(reg.h.T, np.hstack((vecdA1, np.zeros((n, 1))))) + \
-            sig2 * np.dot(reg.h.T, np.hstack((a1, a2)))) / n
+    psiDL = (mu3 * spdot(reg.h.T, np.hstack((vecdA1, np.zeros((n, 1))))) + \
+            sig2 * spdot(reg.h.T, np.hstack((a1, a2)))) / n
 
-    oDD = np.dot(la.inv(np.dot(reg.h.T, reg.h)), np.dot(reg.h.T, z_s))
-    oDD = sig2 * la.inv(np.dot(z_s.T, np.dot(reg.h, oDD)))
-    oLL = la.inv(np.dot(j.T, np.dot(psii, j))) / n
-    oDL = np.dot(np.dot(np.dot(p.T, psiDL), np.dot(psii, j)), oLL)
+    oDD = spdot(la.inv(spdot(reg.h.T, reg.h)), spdot(reg.h.T, z_s))
+    oDD = sig2 * la.inv(spdot(z_s.T, spdot(reg.h, oDD)))
+    oLL = la.inv(spdot(j.T, spdot(psii, j))) / n
+    oDL = spdot(spdot(spdot(p.T, psiDL), spdot(psii, j)), oLL)
 
     o_upper = np.hstack((oDD, oDL))
     o_lower = np.hstack((oDL.T, oLL))
@@ -1485,12 +1485,12 @@ def get_omega_hom_ols(w, reg, lamb, G):
     j = np.dot(G, np.array([[1.], [2*lamb]]))
     psii = la.inv(psi)
 
-    oDD = sig2 * la.inv(np.dot(x_s.T, x_s))
-    oLL = la.inv(np.dot(j.T, np.dot(psii, j))) / n
+    oDD = sig2 * la.inv(spdot(x_s.T, x_s))
+    oLL = la.inv(spdot(j.T, spdot(psii, j))) / n
     #oDL = np.zeros((oDD.shape[0], oLL.shape[1]))
     mu3 = np.sum(u_s**3) / n
-    psiDL = (mu3 * np.dot(reg.x.T, np.hstack((vecdA1, np.zeros((n, 1)))))) / n
-    oDL = np.dot(np.dot(np.dot(p.T, psiDL), np.dot(psii, j)), oLL)
+    psiDL = (mu3 * spdot(reg.x.T, np.hstack((vecdA1, np.zeros((n, 1)))))) / n
+    oDL = spdot(spdot(spdot(p.T, psiDL), spdot(psii, j)), oLL)
 
     o_upper = np.hstack((oDD, oDL))
     o_lower = np.hstack((oDL.T, oLL))
