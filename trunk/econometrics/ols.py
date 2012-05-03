@@ -7,7 +7,7 @@ import numpy.linalg as la
 import user_output as USER
 import robust as ROBUST
 import regimes as REGI
-from utils import spdot, RegressionPropsY, RegressionPropsVM
+from utils import spdot, sphstack, RegressionPropsY, RegressionPropsVM
 
 __all__ = ["OLS"]
 
@@ -99,10 +99,19 @@ class BaseOLS(RegressionPropsY, RegressionPropsVM):
     def __init__(self, y, x, constant=True,\
                  robust=None, gwk=None, sig2n_k=True):
 
+        '''
         self.x = x
         if type(x).__name__ == 'ndarray':
             if constant:
                 self.x = np.hstack((np.ones(y.shape), x))
+        '''
+        #################
+        # these lines allow us to test spdot throughout spreg
+        if constant:
+            self.x = sphstack(np.ones(y.shape),x)
+        else:
+            self.x = x
+        #################
         self.xtx = spdot(self.x.T, self.x)
         xty = spdot(self.x.T, y)
 
@@ -485,7 +494,10 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
             self.kr = len(np.where(np.array(cols2regi)==True)[0])
             self.kf = len(cols2regi) - self.kr
             self.nr = len(set(regimes))
-        BaseOLS.__init__(self, y=y, x=x, robust=robust,\
+            BaseOLS.__init__(self, y=y, x=x, robust=robust,\
+                         gwk=gwk, sig2n_k=sig2n_k, intercept=False) 
+        else:
+            BaseOLS.__init__(self, y=y, x=x, robust=robust,\
                          gwk=gwk, sig2n_k=sig2n_k) 
         self.title = "ORDINARY LEAST SQUARES"
         self.name_ds = USER.set_name_ds(name_ds)
