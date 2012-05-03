@@ -2,6 +2,7 @@ import unittest
 import pysal
 import numpy as np
 from econometrics import error_sp as SP
+from scipy import sparse
 
 class TestBaseGMError(unittest.TestCase):
     def setUp(self):
@@ -12,6 +13,7 @@ class TestBaseGMError(unittest.TestCase):
         X.append(db.by_col("INC"))
         X.append(db.by_col("CRIME"))
         self.X = np.array(X).T
+        self.X = sparse.csr_matrix(self.X)
         self.w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
         self.w.transform = 'r'
 
@@ -30,7 +32,7 @@ class TestBaseGMError(unittest.TestCase):
         y = np.array([ 80.467003])
         np.testing.assert_array_almost_equal(reg.y[0],y,6)
         x = np.array([  1.     ,  19.531  ,  15.72598])
-        np.testing.assert_array_almost_equal(reg.x[0],x,6)
+        np.testing.assert_array_almost_equal(reg.x.toarray()[0],x,6)
         e = np.array([ 31.89620319])
         np.testing.assert_array_almost_equal(reg.e_filtered[0],e,6)
         predy = np.array([ 52.9930255])

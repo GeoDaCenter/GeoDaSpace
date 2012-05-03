@@ -15,7 +15,7 @@ class TestBaseOLS(unittest.TestCase):
         X.append(db.by_col("INC"))
         X.append(db.by_col("CRIME"))
         x = np.array(X).T
-        x = np.hstack((np.ones(self.y.shape), x))
+        #x = np.hstack((np.ones(self.y.shape), x))
         self.X = sparse.csr_matrix(x)
         self.w = pysal.weights.rook_from_shapefile(PEGP("columbus.shp"))
 
