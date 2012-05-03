@@ -80,6 +80,8 @@ class Chow_sp:
                 index = pd.MultiIndex.from_tuples([('By variable', i) for i in names]))
         res = res.T
         res[('Global', '')] = self.joint
+        res[('Global', '')]['Statistic'] = self.joint[0]
+        res[('Global', '')]['P-values'] = self.joint[1]
         res = res.T
         res = pd.DataFrame(res, columns=['Statistic', 'P-values'])
         res[''] = res['P-values'].apply(star_significance)
@@ -435,6 +437,7 @@ def x2xsp_pandas(x, regimes):
 
 
 if __name__ == '__main__':
+    '''
     np.random.seed(123)
     # Data Setup
     #n, kr, kf, r, constant = (1500000, 8, 1, 50, 'many')
@@ -468,7 +471,6 @@ if __name__ == '__main__':
     from ols import BaseOLS, OLS
     w = ps.lat2W(250, 4)
     ols = OLS(y, x, w=w, regimes=regimes, spat_diag=True, moran=True, nonspat_diag=False)
-    '''
     chow = Chow_sp(ols)
     print chow.summary()
     ols.kr = kr
@@ -491,4 +493,14 @@ if __name__ == '__main__':
     R = np.array([[1, 0, 0]])
     wald = Wald(lm, R)
     '''
+    from pyGDsandbox.dataIO import dbf2df
+    from econometrics.ols import OLS
+    db = dbf2df('/Users/dani/Dropbox/spaceStat/columbus.dbf')
+    x = db[['INC', 'CRIME']].as_matrix()
+    y = db[['HOVAL']].values.reshape((49, 1))
+    reg = list(db['REGI'])
+    model = OLS(y, x, regimes=reg, nonspat_diag=False)
+    print regimes_printout(model).to_string()
+    chow = Chow_sp(model)
+    print chow.summary().to_string()
 
