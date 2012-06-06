@@ -11,19 +11,9 @@ import user_output as USER
 
 INV_METHODS = ("Power Expansion", "True Inverse",)
 
-def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
-                h, name_h, r, name_r, s, name_s, t, name_t,\
-                model_type,\
-                spat_diag,\
-                white, hac, kp_het,\
-                sig2n_k_ols, sig2n_k_tsls, sig2n_k_gmlag,\
-                max_iter, stop_crit, inf_lambda, comp_inverse, step1c,\
-                instrument_lags, lag_user_inst,\
-                vc_matrix, predy_resid,\
-                ols_diag, moran,\
-                ):
+class Spmodel:
     """
-    A single function to call all the econometric models in pysal.
+    A single class to call all the econometric models in pysal.
 
     Parameters
     ----------
@@ -144,7 +134,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
     
     No non-spatial endogenous variables
     
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', ols_diag=True, spat_diag=True, moran=True,\
@@ -154,9 +144,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[1].name_x
+    >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', ols_diag=True, spat_diag=True, moran=False,\
@@ -166,9 +156,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=True, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[1].name_x
+    >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[wk], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[wk], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', ols_diag=True, spat_diag=False, moran=False,\
@@ -178,9 +168,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=True, kp_het=False, inf_lambda=False)
-    >>> print reg[1].name_x
+    >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=True, moran=False,\
@@ -190,9 +180,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[1].name_z
+    >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=True, moran=False,\
@@ -202,9 +192,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=True, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[1].name_z
+    >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=True, moran=False,\
@@ -214,9 +204,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[1].name_z
+    >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', ols_diag=True, spat_diag=False, moran=False,\
@@ -226,9 +216,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[1].name_x
+    >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', ols_diag=True, spat_diag=True, moran=False,\
@@ -238,9 +228,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, inf_lambda=False)
-    >>> print reg[1].name_x
+    >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', ols_diag=True, spat_diag=False, moran=False,\
@@ -250,9 +240,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=True)
-    >>> print reg[1].name_x
+    >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', ols_diag=True, spat_diag=False, moran=False,\
@@ -262,9 +252,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, inf_lambda=True)
-    >>> print reg[1].name_x
+    >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', ols_diag=True, spat_diag=False, moran=False,\
@@ -274,9 +264,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[1].name_z
+    >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', ols_diag=True, spat_diag=False, moran=False,\
@@ -286,7 +276,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, inf_lambda=False)
-    >>> print reg[1].name_z
+    >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
     
     Add in non-spatial endogenous variables
@@ -297,7 +287,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
     >>> yd = np.reshape(yd, (49,1))
     >>> q = np.array(db.by_col("DISCBD"))
     >>> q = np.reshape(q, (49,1))
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', ols_diag=True, spat_diag=True, moran=False,\
@@ -307,9 +297,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[1].name_z
+    >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', ols_diag=True, spat_diag=False, moran=False,\
@@ -319,9 +309,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=True, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[1].name_z
+    >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[wk], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[wk], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', ols_diag=True, spat_diag=True, moran=False,\
@@ -331,9 +321,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=True, kp_het=False, inf_lambda=False)
-    >>> print reg[1].name_z
+    >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=False, moran=False,\
@@ -343,9 +333,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[1].name_z
+    >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=False, moran=False,\
@@ -355,9 +345,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=True, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[1].name_z
+    >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=False, moran=False,\
@@ -367,9 +357,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[1].name_z
+    >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', ols_diag=True, spat_diag=True, moran=False,\
@@ -379,9 +369,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[1].name_z
+    >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', ols_diag=True, spat_diag=True, moran=False,\
@@ -391,9 +381,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, inf_lambda=False)
-    >>> print reg[1].name_z
+    >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', ols_diag=True, spat_diag=False, moran=False,\
@@ -403,9 +393,9 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
-    >>> print reg[1].name_z
+    >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
-    >>> reg = spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
+    >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', ols_diag=True, spat_diag=False, moran=False,\
@@ -415,237 +405,154 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         white=False, hac=False, kp_het=True, inf_lambda=False)
-    >>> print reg[1].name_z
+    >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
 
     """
-    output = []
-    if predy_resid:
-        pred_res = y
-        pred_res.shape = (y.shape[0], 1)
-        header_pr = name_y
+    def __init__(self, name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
+                h, name_h, r, name_r, s, name_s, t, name_t,\
+                model_type,\
+                spat_diag,\
+                white, hac, kp_het,\
+                sig2n_k_ols, sig2n_k_tsls, sig2n_k_gmlag,\
+                max_iter, stop_crit, inf_lambda, comp_inverse, step1c,\
+                instrument_lags, lag_user_inst,\
+                vc_matrix, predy_resid,\
+                ols_diag, moran):
 
-    if comp_inverse == 'Power Expansion':
-        comp_inverse = 'power_exp'
-    elif comp_inverse == 'True Inverse':
-        comp_inverse = 'true_inv'
+        self.name_ds = name_ds
+        self.w_list = w_list
+        self.wk_list = wk_list
+        self.y = y
+        self.name_y = name_y
+        self.x = x
+        self.name_x = name_x
+        self.ye = ye
+        self.name_ye = name_ye
+        self.h = h
+        self.name_h = name_h
+        self.r = r
+        self.name_r = name_r
+        self.s = s
+        self.name_s = name_s
+        self.t = t
+        self.name_t = name_t
+        self.model_type = model_type
+        self.spat_diag = spat_diag
+        self.white = white
+        self.hac = hac
+        self.kp_het = kp_het
+        self.sig2n_k_ols = sig2n_k_ols
+        self.sig2n_k_tsls = sig2n_k_tsls
+        self.sig2n_k_gmlag = sig2n_k_gmlag
+        self.max_iter = max_iter
+        self.stop_crit = stop_crit
+        self.inf_lambda = inf_lambda
+        self.comp_inverse = comp_inverse
+        self.step1c = step1c
+        self.instrument_lags = instrument_lags
+        self.lag_user_inst = lag_user_inst
+        self.vc_matrix = vc_matrix
+        self.predy_resid = predy_resid
+        self.ols_diag = ols_diag
+        self.moran = moran
 
-    if model_type == 'Standard':
+        if predy_resid:
+            self.pred_res = y
+            self.pred_res.shape = (y.shape[0], 1)
+            self.header_pr = name_y
+
+        if comp_inverse == 'Power Expansion':
+            self.comp_inverse = 'power_exp'
+        elif comp_inverse == 'True Inverse':
+            self.comp_inverse = 'true_inv'
+
         if name_ye:
-            # run 2SLS regression; with or without nonspatial diagnostics
-            reg = TSLS(y=y, x=x, yend=ye, q=h,\
-                        spat_diag=False, vm=False,\
-                        name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                        name_q=name_h, name_ds=name_ds, sig2n_k=sig2n_k_tsls)
+            endog = True
         else:
-            # run OLS regression; with or without nonspatial diagnostics
-            reg = OLS(y=y, x=x,\
-                       nonspat_diag=ols_diag, spat_diag=False, vm=False,\
-                       name_y=name_y, name_x=name_x, name_ds=name_ds,
-                       sig2n_k=sig2n_k_ols)
-        if predy_resid:  # write out predicted values and residuals
-            pred_res = np.hstack((pred_res, reg.predy, reg.u))
-            header_pr += ',standard_predy,standard_resid'
-        if w_list and spat_diag:
-            for w in w_list:
-                # add spatial diagnostics for each W
-                reg_spat = COPY.copy(reg)
-                reg_spat.name_w = w.name
-                reg_spat._get_diagnostics(w=w, beta_diag=False, moran=moran,\
-                                          nonspat_diag=False, spat_diag=True,
-                                          vm=vc_matrix)
-                output.append(reg_spat)
-        else:
-            if vc_matrix:
-                reg._get_diagnostics(beta_diag=False,\
-                                          nonspat_diag=False, spat_diag=False,
-                                          vm=vc_matrix)
-            output.append(reg)
-        if white:
-            # compute White std errors
-            output.append(get_robust(reg, 'white'))
-        if hac:
-            if len(wk_list) == 0:
-                raise Exception, "must provide kernel weights matrix to use HAC"
-            for gwk in wk_list:
-                # compute HAC std errors
-                output.append(get_robust(reg, 'hac', gwk))
+            endog = False
 
+        r = False   # place holder until we setup regimes
 
+        self.output = model_getter[(model_type, endog, inf_lambda, r)](self)
 
-    elif model_type == 'Spatial Lag':
-        counter = 1
-        for w in w_list:
-            if name_ye:
-               #GM Spatial lag with non-spatial endog variables
-                reg = GM_Lag(y=y, x=x, w=w, yend=ye, q=h, vm=vc_matrix,\
-                      w_lags=instrument_lags, lag_q=lag_user_inst,\
-                      name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                      name_q=name_h, name_ds=name_ds, sig2n_k=sig2n_k_gmlag,\
-                      spat_diag=spat_diag, name_w=w.name)
-            else:
-               #GM Spatial lag
-                reg = GM_Lag(y=y, x=x, w=w, vm=vc_matrix,\
-                      w_lags=instrument_lags, lag_q=lag_user_inst,\
-                      name_y=name_y, name_x=name_x, name_ds=name_ds,\
-                      sig2n_k=sig2n_k_gmlag, spat_diag=spat_diag, name_w=w.name)
-            if predy_resid:  # write out predicted values and residuals
-                pred_res, header_pr, counter = collect_predy_resid(\
-                                       pred_res, header_pr, reg, '',\
-                                       True, len(w_list), counter)
-            output.append(reg)
-
-        white_regs = []
-        if white:
-            for reg in output:
-                # compute White std errors
-                white_regs.append(get_robust(reg, 'white'))
-        hac_regs = []
-        if hac:
-            if len(wk_list) == 0:
-                raise Exception, "must provide kernel weights matrix to use HAC"
-            for reg in output:
-                for gwk in wk_list:
-                    # compute HAC std errors
-                    hac_regs.append(get_robust(reg, 'hac', gwk))
-        output.extend(white_regs)
-        output.extend(hac_regs)
-
-
-
-    elif model_type == 'Spatial Error':
-        counter = 1
-        if inf_lambda:
-            for w in w_list:
-                if name_ye:
-                    #GM Spatial error (hom) with non-spatial endogenous variable
-                    reg = GM_Endog_Error_Hom(y=y, x=x, w=w, yend=ye, q=h, vm=vc_matrix,\
-                          max_iter=max_iter, epsilon=stop_crit,\
-                          name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                          name_q=name_h, name_ds=name_ds, name_w=w.name)
-                else:
-                    #GM Spatial error (hom) 
-                    reg = GM_Error_Hom(y=y, x=x, w=w, vm=vc_matrix,\
-                          max_iter=max_iter, epsilon=stop_crit,\
-                          name_y=name_y, name_x=name_x, name_ds=name_ds, name_w=w.name)
-                if predy_resid:  # write out predicted values and residuals
-                    pred_res, header_pr, counter = collect_predy_resid(\
-                                           pred_res, header_pr, reg, '',\
-                                           False, len(w_list), counter)
-                output.append(reg)
-        else:
-            for w in w_list:
-                if name_ye:
-                    #GM Spatial error with non-spatial endogenous variable (KP 98-99)
-                    reg = GM_Endog_Error(y=y, x=x, w=w, yend=ye, q=h, vm=vc_matrix,\
-                          name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                          name_q=name_h, name_ds=name_ds, name_w=w.name)
-                else:
-                    #GM Spatial error (KP 98-99)
-                    reg = GM_Error(y=y, x=x, w=w, vm=vc_matrix,\
-                          name_y=name_y, name_x=name_x, name_ds=name_ds, name_w=w.name)
-                if predy_resid:  # write out predicted values and residuals
-                    pred_res, header_pr, counter = collect_predy_resid(\
-                                           pred_res, header_pr, reg, '',\
-                                           False, len(w_list), counter)
-                output.append(reg)
-
-        counter = 1
-        if kp_het:
-            for w in w_list:
-                if name_ye:
-                    #GM Spatial error with het and with non-spatial endogenous variable
-                    reg = GM_Endog_Error_Het(y=y, x=x, w=w, yend=ye, q=h, vm=vc_matrix,\
-                          max_iter=max_iter, epsilon=stop_crit,\
-                          step1c=step1c, inv_method=comp_inverse,\
-                          name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                          name_q=name_h, name_ds=name_ds, name_w=w.name)
-                else:
-                    #GM Spatial error with het
-                    reg = GM_Error_Het(y=y, x=x, w=w, vm=vc_matrix,\
-                          max_iter=max_iter, epsilon=stop_crit,\
-                          step1c=step1c,\
-                          name_y=name_y, name_x=name_x, name_ds=name_ds, name_w=w.name)
-                if predy_resid:  # write out predicted values and residuals
-                    pred_res, header_pr, counter = collect_predy_resid(\
-                                           pred_res, header_pr, reg, 'het_',\
-                                           False, len(w_list), counter)
-                output.append(reg)
-
-
-
-    elif model_type == 'Spatial Lag+Error':
-        counter = 1
-        if inf_lambda:
-            for w in w_list:
-                if name_ye:
-                    #GM Spatial combo (hom) with non-spatial endogenous variables
-                    reg = GM_Combo_Hom(y=y, x=x, w=w, yend=ye, q=h, vm=vc_matrix,\
-                          w_lags=instrument_lags, lag_q=lag_user_inst,\
-                          max_iter=max_iter, epsilon=stop_crit,\
-                          name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                          name_q=name_h, name_ds=name_ds, name_w=w.name)
-                else:
-                    #GM Spatial combo (hom)
-                    reg = GM_Combo_Hom(y=y, x=x, w=w, vm=vc_matrix,\
-                          w_lags=instrument_lags, lag_q=lag_user_inst,\
-                          max_iter=max_iter, epsilon=stop_crit,\
-                          name_y=name_y, name_x=name_x, name_ds=name_ds, name_w=w.name)
-                if predy_resid:  # write out predicted values and residuals
-                    pred_res, header_pr, counter = collect_predy_resid(\
-                                           pred_res, header_pr, reg, '',\
-                                           True, len(w_list), counter)
-                output.append(reg)
-        else:
-            for w in w_list:
-                if name_ye:
-                    #GM Spatial combo with non-spatial endogenous variables (KP 98-99)
-                    reg = GM_Combo(y=y, x=x, w=w, yend=ye, q=h, vm=vc_matrix,\
-                          w_lags=instrument_lags, lag_q=lag_user_inst,\
-                          name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                          name_q=name_h, name_ds=name_ds, name_w=w.name)
-                else:
-                    #GM Spatial combo (KP 98-99)
-                    reg = GM_Combo(y=y, x=x, w=w, vm=vc_matrix,\
-                          w_lags=instrument_lags, lag_q=lag_user_inst,\
-                          name_y=name_y, name_x=name_x, name_ds=name_ds, name_w=w.name)
-                if predy_resid:  # write out predicted values and residuals
-                    pred_res, header_pr, counter = collect_predy_resid(\
-                                           pred_res, header_pr, reg, '',\
-                                           True, len(w_list), counter)
-                output.append(reg)
-
-        counter = 1
-        if kp_het:
-            for w in w_list:
-                if name_ye:
-                    #GM Spatial combo with het with non-spatial endogenous variables
-                    reg = GM_Combo_Het(y=y, x=x, w=w_list[0], yend=ye, q=h, vm=vc_matrix,\
-                          w_lags=instrument_lags, lag_q=lag_user_inst,\
-                          max_iter=max_iter, epsilon=stop_crit,\
-                          step1c=step1c, inv_method=comp_inverse,\
-                          name_y=name_y, name_x=name_x, name_yend=name_ye,\
-                          name_q=name_h, name_ds=name_ds, name_w=w.name)
-                else:
-                    #GM Spatial combo with het
-                    reg = GM_Combo_Het(y=y, x=x, w=w_list[0], vm=vc_matrix,\
-                          w_lags=instrument_lags, lag_q=lag_user_inst,\
-                          max_iter=max_iter, epsilon=stop_crit,\
-                          step1c=step1c, inv_method=comp_inverse,\
-                          name_y=name_y, name_x=name_x, name_ds=name_ds, name_w=w.name)
-                if predy_resid:  # write out predicted values and residuals
-                    pred_res, header_pr, counter = collect_predy_resid(\
-                                           pred_res, header_pr, reg, 'het',\
-                                           True, len(w_list), counter)
-                output.append(reg)
-
-
-    if predy_resid:
-        outfile = open(predy_resid, 'w')
-        outfile.write(header_pr+'\n')
-        np.savetxt(outfile, pred_res, delimiter=',')
-    return output
+        if predy_resid:
+            outfile = open(predy_resid, 'w')
+            outfile.write(self.header_pr+'\n')
+            np.savetxt(outfile, self.pred_res, delimiter=',')
     
+
+def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
+            h, name_h, r, name_r, s, name_s, t, name_t,\
+            model_type,\
+            spat_diag,\
+            white, hac, kp_het,\
+            sig2n_k_ols, sig2n_k_tsls, sig2n_k_gmlag,\
+            max_iter, stop_crit, inf_lambda, comp_inverse, step1c,\
+            instrument_lags, lag_user_inst,\
+            vc_matrix, predy_resid,\
+            ols_diag, moran):
+    """
+    spmodel originally ran the dispatcher. The class Spmodel now runs the
+    dispatcher, and was created when this module was refactored for ease of
+    maintenance.  The spmodel function is simply a little glue so that the old
+    GUI code did not need to change to accommodate the refactored dispatcher.
+    """
+    result = Spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
+                h, name_h, r, name_r, s, name_s, t, name_t,\
+                model_type,\
+                spat_diag,\
+                white, hac, kp_het,\
+                sig2n_k_ols, sig2n_k_tsls, sig2n_k_gmlag,\
+                max_iter, stop_crit, inf_lambda, comp_inverse, step1c,\
+                instrument_lags, lag_user_inst,\
+                vc_matrix, predy_resid,\
+                ols_diag, moran)
+    return result.output
+
+##############################################################################
+############### Helper functions for launching econometric models ############
+##############################################################################
+
+class Wildcard_Dict(dict):
+    """Modified dictionary that allows for wildcards. The key is assumed to be
+    a tuple. If '*' appears in the key tuple, then two keys are created where
+    the '*' is replaced by True in one and False in the other; both items have
+    the same value.
+
+    Example
+    -------
+    >>> d = Wildcard_Dict()
+    >>> d[('rrrr', True)] = 'Test Value 1'
+    >>> len(d)
+    1
+    >>> d[('tttt', '*')] = 'Test Value 2'
+    >>> len(d)
+    3
+    >>> d[('rrrr', True)]
+    'Test Value 1'
+    >>> d[('tttt', True)]
+    'Test Value 2'
+    >>> d[('tttt', False)]
+    'Test Value 2'
+    """
+
+    def __init__(self):
+        dict.__init__(self)
+
+    def __setitem__(self, key, value):
+        stars = key.count('*')
+        if stars:
+            new_keys = [list(COPY.copy(key)) for i in range(2**stars)]
+            for index, i in enumerate(key):
+                if i == '*':
+                    for keys in range(0,2**stars,2):
+                        new_keys[keys][index] = True
+                        new_keys[keys+1][index] = False
+            for new_key in new_keys:
+                dict.__setitem__(self, tuple(new_key), value)
+        else:
+            dict.__setitem__(self, key, value)
 
 def get_robust(reg, robust, gwk=None):
     """Creates a new regression object, computes the robust standard errors,
@@ -663,7 +570,6 @@ def get_robust(reg, robust, gwk=None):
     reg_robust._get_diagnostics(std_err=robust)
     return reg_robust
 
-
 def collect_predy_resid(pred_res, header_pr, reg, model, spatial, ws, counter):
     if ws > 1:
         lead = model+'W'+str(counter)+'_'
@@ -678,6 +584,350 @@ def collect_predy_resid(pred_res, header_pr, reg, model, spatial, ws, counter):
         header_pr += ','+lead+'predy,'+lead+'resid'
     return pred_res, header_pr, counter
     
+def get_white_hac_standard(reg, gui):    
+    """Test if user requested White and/or HAC standard errors. If yes then
+    compute the new standard errors using the information already computed in
+    the initial regression run. Standard models (OLS, TSLS).
+    """
+    robust_regs = []
+    if gui.white:
+        # compute White std errors
+        robust_regs.append(get_robust(reg, 'white'))
+    if gui.hac:
+        if len(gui.wk_list) == 0:
+            raise Exception, "must provide kernel weights matrix to use HAC"
+        for gwk in gui.wk_list:
+            # compute HAC std errors
+            robust_regs.append(get_robust(reg, 'hac', gwk))
+    return robust_regs
+
+def get_white_hac_lag(reg, gui, output):    
+    """Test if user requested White and/or HAC standard errors. If yes then
+    compute the new standard errors using the information already computed in
+    the initial regression run. GM_Lag models.
+    """
+    robust_regs = []
+    if gui.white:
+        for reg in output:
+            # compute White std errors
+            robust_regs.append(get_robust(reg, 'white'))
+    if gui.hac:
+        if len(gui.wk_list) == 0:
+            raise Exception, "must provide kernel weights matrix to use HAC"
+        for reg in output:
+            for gwk in gui.wk_list:
+                # compute HAC std errors
+                robust_regs.append(get_robust(reg, 'hac', gwk))
+    return robust_regs
+
+def get_spat_diag_vc(reg, gui):
+    """Test if user requested spatial diagnostics and/or the
+    variance-covariance matrix. If yes then compute the requested diagnostics
+    and/or return the VC matrix.
+    """
+    output = []
+    if gui.w_list and gui.spat_diag:
+        for w in gui.w_list:
+            # add spatial diagnostics and VC matrix for each W
+            reg_spat = COPY.copy(reg)
+            reg_spat.name_w = w.name
+            reg_spat._get_diagnostics(w=w, beta_diag=False, moran=gui.moran,\
+                                      nonspat_diag=False, spat_diag=True,
+                                      vm=gui.vc_matrix)
+            output.append(reg_spat)
+    else:
+        if gui.vc_matrix:
+            # add VC matrix for models without spatial diagnosics
+            reg._get_diagnostics(beta_diag=False,\
+                                      nonspat_diag=False, spat_diag=False,
+                                      vm=gui.vc_matrix)
+        output.append(reg)
+    return output
+
+def collect_predy_resid(pred_res, header_pr, reg, model, spatial, ws, counter):
+    if ws > 1:
+        lead = model+'W'+str(counter)+'_'
+        counter += 1
+    else:
+        lead = model
+    if spatial:
+        pred_res = np.hstack((pred_res, reg.predy, reg.u, reg.predy_sp, reg.resid_sp))
+        header_pr += ','+lead+'predy,'+lead+'resid,'+lead+'predy_sp,'+lead+'resid_sp'
+    else:
+        pred_res = np.hstack((pred_res, reg.predy, reg.u))
+        header_pr += ','+lead+'_predy,'+lead+'_resid'
+    return pred_res, header_pr, counter
+
+def run_predy_resid(gui, reg, model, spatial):
+    if gui.predy_resid:  # write out predicted values and residuals
+        gui.pred_res, gui.header_pr, counter = collect_predy_resid(\
+                               gui.pred_res, gui.header_pr, reg, model,\
+                               spatial, len(gui.w_list), counter)
+
+##############################################################################
+##############################################################################
+
+
+
+
+
+##############################################################################
+############### Main functions to run econometric models #####################
+##############################################################################
+
+"""
+This section contains one function for each econometric model available in the
+model_getter dictionary. Each function takes the relevant parameters passed
+from the GUI and passes them on to a pysal regression class. We make every
+effort to reuse previously computed results, so for example OLS will only
+compute the betas once even if the user asks for robust standard errors.
+"""
+
+def get_OLS(gui):
+    reg = OLS(y=gui.y, x=gui.x,\
+               nonspat_diag=gui.ols_diag, spat_diag=False, vm=False,\
+               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,
+               sig2n_k=gui.sig2n_k_ols)
+    if gui.predy_resid:  # write out predicted values and residuals
+        gui.pred_res, gui.header_pr, counter = collect_predy_resid(\
+                               gui.pred_res, gui.header_pr, reg, 'standard',\
+                               False, 0, 0)
+    output = get_spat_diag_vc(reg, gui)
+    output.extend(get_white_hac_standard(reg, gui))
+    return output
+
+def get_TSLS(gui):
+    reg = TSLS(y=gui.y, x=gui.x, yend=gui.ye, q=gui.h,\
+                spat_diag=False, vm=False,\
+                name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
+                name_q=gui.name_h, name_ds=gui.name_ds, sig2n_k=gui.sig2n_k_tsls)
+    if gui.predy_resid:  # write out predicted values and residuals
+        gui.pred_res, gui.header_pr, counter = collect_predy_resid(\
+                               gui.pred_res, gui.header_pr, reg, 'standard',\
+                               False, 0, 0)
+    output = get_spat_diag_vc(reg, gui)
+    output.extend(get_white_hac_standard(reg, gui))
+    return output
+    
+def get_GM_Lag_endog(gui):
+    output = []
+    counter = 1
+    for w in gui.w_list:
+        reg = GM_Lag(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
+              vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
+              name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
+              name_q=gui.name_h, name_ds=gui.name_ds, sig2n_k=gui.sig2n_k_gmlag,\
+              spat_diag=gui.spat_diag, name_w=w.name)
+        run_predy_resid(gui, reg, '', True)
+        output.append(reg)
+    output.extend(get_white_hac_lag(reg, gui, output))
+    return output
+
+def get_GM_Lag_noEndog(gui):
+    output = []
+    counter = 1
+    for w in gui.w_list:
+        reg = GM_Lag(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
+              w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
+              name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
+              sig2n_k=gui.sig2n_k_gmlag, spat_diag=gui.spat_diag, name_w=w.name)
+        run_predy_resid(gui, reg, '', True)
+        output.append(reg)
+    output.extend(get_white_hac_lag(reg, gui, output))
+    return output
+
+def get_GM_Endog_Error_Hom(gui):
+    output = []
+    counter = 1
+    for w in gui.w_list:
+        reg = GM_Endog_Error_Hom(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
+              vm=gui.vc_matrix, max_iter=gui.max_iter, epsilon=gui.stop_crit,\
+              name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
+              name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
+        run_predy_resid(gui, reg, '', False)
+        output.append(reg)
+    if gui.kp_het:
+        output.extend(get_GM_Endog_Error_Het(gui))
+    return output
+    
+def get_GM_Error_Hom(gui):
+    output = []
+    counter = 1
+    for w in gui.w_list:
+        reg = GM_Error_Hom(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
+              max_iter=gui.max_iter, epsilon=gui.stop_crit,\
+              name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
+              name_w=w.name)
+        run_predy_resid(gui, reg, '', False)
+        output.append(reg)
+    if gui.kp_het:
+        output.extend(get_GM_Error_Het(gui))
+    return output
+
+def get_GM_Endog_Error(gui):
+    output = []
+    counter = 1
+    for w in gui.w_list:
+        reg = GM_Endog_Error(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
+              vm=gui.vc_matrix,\
+              name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
+              name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
+        run_predy_resid(gui, reg, '', False)
+        output.append(reg)
+    if gui.kp_het:
+        output.extend(get_GM_Endog_Error_Het(gui))
+    return output
+
+def get_GM_Error(gui):
+    output = []
+    counter = 1
+    for w in gui.w_list:
+        reg = GM_Error(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
+              name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
+              name_w=w.name)
+        run_predy_resid(gui, reg, '', False)
+        output.append(reg)
+    if gui.kp_het:
+        output.extend(get_GM_Error_Het(gui))
+    return output
+
+def get_GM_Endog_Error_Het(gui):
+    output = []
+    counter = 1
+    for w in gui.w_list:
+        reg = GM_Endog_Error_Het(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
+              vm=gui.vc_matrix, max_iter=gui.max_iter, epsilon=gui.stop_crit,\
+              step1c=gui.step1c, inv_method=gui.comp_inverse,\
+              name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
+              name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
+        run_predy_resid(gui, reg, 'het_', False)
+        output.append(reg)
+    return output
+
+def get_GM_Error_Het(gui):
+    output = []
+    counter = 1
+    for w in gui.w_list:
+        reg = GM_Error_Het(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
+              max_iter=gui.max_iter, epsilon=gui.stop_crit,\
+              step1c=gui.step1c,\
+              name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
+              name_w=w.name)
+        run_predy_resid(gui, reg, 'het_', False)
+        output.append(reg)
+    return output
+
+def get_GM_Combo_Hom_endog(gui):
+    output = []
+    counter = 1
+    for w in gui.w_list:
+        reg = GM_Combo_Hom(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
+              vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
+              max_iter=gui.max_iter, epsilon=gui.stop_crit,\
+              name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
+              name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
+        run_predy_resid(gui, reg, '', True)
+        output.append(reg)
+    if gui.kp_het:
+        output.extend(get_GM_Combo_Het_endog(gui))
+    return output
+
+def get_GM_Combo_Hom_noEndog(gui):
+    output = []
+    counter = 1
+    for w in gui.w_list:
+        reg = GM_Combo_Hom(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
+              w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
+              max_iter=gui.max_iter, epsilon=gui.stop_crit,\
+              name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
+              name_w=w.name)
+        run_predy_resid(gui, reg, '', True)
+        output.append(reg)
+    if gui.kp_het:
+        output.extend(get_GM_Combo_Het_noEndog(gui))
+    return output
+
+def get_GM_Combo_endog(gui):
+    output = []
+    counter = 1
+    for w in gui.w_list:
+        reg = GM_Combo(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
+              vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
+              name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
+              name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
+        run_predy_resid(gui, reg, '', True)
+        output.append(reg)
+    if gui.kp_het:
+        output.extend(get_GM_Combo_Het_endog(gui))
+    return output
+
+def get_GM_Combo_noEndog(gui):
+    output = []
+    counter = 1
+    for w in gui.w_list:
+        reg = GM_Combo(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
+              w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
+              name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
+              name_w=w.name)
+        run_predy_resid(gui, reg, '', True)
+        output.append(reg)
+    if gui.kp_het:
+        output.extend(get_GM_Combo_Het_noEndog(gui))
+    return output
+
+def get_GM_Combo_Het_endog(gui):
+    output = []
+    counter = 1
+    for w in gui.w_list:
+        reg = GM_Combo_Het(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
+              vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
+              max_iter=gui.max_iter, epsilon=gui.stop_crit,\
+              step1c=gui.step1c, inv_method=gui.comp_inverse,\
+              name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
+              name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
+        run_predy_resid(gui, reg, 'het_', True)
+        output.append(reg)
+    return output
+
+def get_GM_Combo_Het_noEndog(gui):
+    output = []
+    counter = 1
+    for w in gui.w_list:
+        reg = GM_Combo_Het(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
+              w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
+              max_iter=gui.max_iter, epsilon=gui.stop_crit,\
+              step1c=gui.step1c, inv_method=gui.comp_inverse,\
+              name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
+              name_w=w.name)
+        run_predy_resid(gui, reg, 'het_', True)
+        output.append(reg)
+    return output
+
+
+##############################################################################
+##############################################################################
+
+"""Use the model_getter dictionary to link the user input to a specific model.
+This replaces a series of if-then statements that previously navigated through
+the various model choices. Use '*' as a boolean wildcard when you don't care
+if the item is True or False. Future additions to GeoDaSpace may require
+increasing the number of elements in the tuple key, this is not a problem as
+long as all the keys have the same number of elements.
+"""
+# model_getter[(model_type, endog, inf_lambda, regimes)] = model
+model_getter = Wildcard_Dict()
+model_getter[('Standard', True, '*', False)] = get_TSLS
+model_getter[('Standard', False, '*', False)] = get_OLS
+model_getter[('Spatial Lag', True, '*', False)] = get_GM_Lag_endog
+model_getter[('Spatial Lag', False, '*', False)] = get_GM_Lag_noEndog
+model_getter[('Spatial Error', True, True, False)] = get_GM_Endog_Error_Hom
+model_getter[('Spatial Error', False, True, False)] = get_GM_Error_Hom
+model_getter[('Spatial Error', True, False, False)] = get_GM_Endog_Error
+model_getter[('Spatial Error', False, False, False)] = get_GM_Error
+model_getter[('Spatial Lag+Error', True, True, False)] = get_GM_Combo_Hom_endog
+model_getter[('Spatial Lag+Error', False, True, False)] = get_GM_Combo_Hom_noEndog
+model_getter[('Spatial Lag+Error', True, False, False)] = get_GM_Combo_endog
+model_getter[('Spatial Lag+Error', False, False, False)] = get_GM_Combo_noEndog
 
 
 

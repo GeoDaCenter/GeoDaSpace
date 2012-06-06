@@ -379,20 +379,19 @@ def check_arrays(*arrays):
     for i in arrays:
         if i == None:
             continue
+        if i.__class__.__name__ not in allowed:
+            raise Exception, "all input data must be either numpy arrays or sparse csr matrices"
         shape = i.shape
-        # y can only be an array; other matrices may be an array or a sparse matrix
-        if shape[1] > 1:
-            if i.__class__.__name__ not in allowed:
-                raise Exception, "all input data must be either numpy arrays or sparse csr matrices"
-        else:
-            if not issubclass(type(i), np.ndarray):
-                raise Exception, "y must be a numpy array"
         if len(shape) > 2:
             raise Exception, "all input arrays must have exactly two dimensions"
         if len(shape) == 1:
             raise Exception, "all input arrays must have exactly two dimensions"
         if shape[0] < shape[1]:
             raise Exception, "one or more input arrays have more columns than rows"
+        # y can only be an array; other matrices may be an array or a sparse matrix
+        if shape[1] == 1:
+            if not issubclass(type(i), np.ndarray):
+                raise Exception, "y must be a numpy array"
         rows.append(shape[0])
     if len(set(rows)) > 1:
         raise Exception, "arrays not all of same length"
