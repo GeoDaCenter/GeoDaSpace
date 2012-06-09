@@ -11,6 +11,7 @@ import numpy.linalg as la
 import twosls as TSLS
 import robust as ROBUST
 import user_output as USER
+import summary_output as SUMMARY
 from utils import get_lags, set_endog, sp_att
 
 __all__ = ["GM_Lag"]
@@ -179,7 +180,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
             self.vm = ROBUST.robust_vm(self, gwk=gwk)
 
 
-class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
+class GM_Lag(BaseGM_Lag):
     """
     Spatial two stage least squares (S2SLS) with results and diagnostics; 
     Anselin (1988) [1]_
@@ -495,17 +496,8 @@ class GM_Lag(BaseGM_Lag, USER.DiagnosticBuilder):
         self.robust = USER.set_robust(robust)
         self.name_w = USER.set_name_w(name_w, w)
         self.name_gwk = USER.set_name_w(name_gwk, gwk)
-        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    vm=vm, spat_diag=spat_diag,
-                                    std_err=self.robust)
+        SUMMARY.GM_Lag(reg=self, w=w, vm=vm, spat_diag=spat_diag)
 
-    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              spat_diag=False, vm=False, std_err=None):
-        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=beta_diag,\
-                                            nonspat_diag=nonspat_diag,\
-                                            spat_diag=spat_diag, vm=vm,\
-                                            instruments=True, std_err=std_err,\
-                                            spatial_lag=True)
 
 def _test():
     import doctest

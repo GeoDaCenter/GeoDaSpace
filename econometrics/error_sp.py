@@ -15,6 +15,7 @@ from utils import get_A1_hom, get_A2_hom, get_A1_het, optim_moments, get_spFilte
 from utils import spdot, RegressionPropsY
 import twosls as TSLS
 import user_output as USER
+import summary_output as SUMMARY
 
 __all__ = ["GM_Error", "GM_Endog_Error", "GM_Combo"]
 
@@ -121,7 +122,7 @@ class BaseGM_Error(RegressionPropsY):
         se_betas = np.sqrt(self.vm.diagonal())
         self._cache = {}
 
-class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
+class GM_Error(BaseGM_Error):
     """
     GMM method for a spatial error model, with results and diagnostics; based
     on Kelejian and Prucha (1998, 1999)[1]_ [2]_.
@@ -309,12 +310,7 @@ class GM_Error(BaseGM_Error, USER.DiagnosticBuilder):
         self.name_x = USER.set_name_x(name_x, x)
         self.name_x.append('lambda')
         self.name_w = USER.set_name_w(name_w, w)
-        self._get_diagnostics(w=w, beta_diag=True, vm=vm)
-
-    def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
-        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
-                                            nonspat_diag=False, lamb=True,\
-                                            vm=vm, instruments=False)
+        SUMMARY.GM_Error(reg=self, w=w, vm=vm)
 
 
 class BaseGM_Endog_Error(RegressionPropsY):
@@ -436,7 +432,7 @@ class BaseGM_Endog_Error(RegressionPropsY):
         self.vm = self.sig2 * tsls2.varb 
         self._cache = {}
 
-class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
+class GM_Endog_Error(BaseGM_Endog_Error):
     '''
     GMM method for a spatial error model with endogenous variables, with
     results and diagnostics; based on Kelejian and Prucha (1998, 1999)[1]_[2]_.
@@ -662,12 +658,7 @@ class GM_Endog_Error(BaseGM_Endog_Error, USER.DiagnosticBuilder):
         self.name_q = USER.set_name_q(name_q, q)
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         self.name_w = USER.set_name_w(name_w, w)
-        self._get_diagnostics(w=w, beta_diag=True, vm=vm)
-     
-    def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
-        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
-                                            nonspat_diag=False, lamb=True,\
-                                            vm=vm, instruments=True)        
+        SUMMARY.GM_Endog_Error(reg=self, w=w, vm=vm)
 
 
 class BaseGM_Combo(BaseGM_Endog_Error):
@@ -802,7 +793,7 @@ class BaseGM_Combo(BaseGM_Endog_Error):
         yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
         BaseGM_Endog_Error.__init__(self, y=y, x=x, w=w, yend=yend2, q=q2)
 
-class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
+class GM_Combo(BaseGM_Combo):
     """
     GMM method for a spatial lag and error model with endogenous variables,
     with results and diagnostics; based on Kelejian and Prucha (1998,
@@ -1070,13 +1061,7 @@ class GM_Combo(BaseGM_Combo, USER.DiagnosticBuilder):
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags, self.name_q, lag_q))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         self.name_w = USER.set_name_w(name_w, w)
-        self._get_diagnostics(w=w, beta_diag=True, vm=vm)
-     
-    def _get_diagnostics(self, beta_diag=True, w=None, vm=False):
-        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
-                                            nonspat_diag=False, lamb=True,\
-                                            vm=vm, instruments=True,\
-                                            spatial_lag=True)        
+        SUMMARY.GM_Combo(reg=self, w=w, vm=vm)
 
    
 

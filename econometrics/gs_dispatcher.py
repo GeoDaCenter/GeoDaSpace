@@ -7,6 +7,7 @@ from error_sp_het import GM_Error_Het, GM_Endog_Error_Het, GM_Combo_Het
 from error_sp import GM_Endog_Error, GM_Error, GM_Combo
 from error_sp_hom import GM_Endog_Error_Hom, GM_Error_Hom, GM_Combo_Hom
 import robust as ROBUST
+import summary_output as SUMMARY
 import user_output as USER
 
 INV_METHODS = ("Power Expansion", "True Inverse",)
@@ -565,9 +566,7 @@ def get_robust(reg, robust, gwk=None):
     reg_robust.robust = robust
     if gwk != None:
         reg_robust.name_gwk = gwk.name
-    delattr(reg_robust, 'summary')
     reg_robust.vm = ROBUST.robust_vm(reg=reg_robust, gwk=gwk)
-    reg_robust._get_diagnostics(std_err=robust)
     return reg_robust
 
 def collect_predy_resid(pred_res, header_pr, reg, model, spatial, ws, counter):
@@ -620,30 +619,6 @@ def get_white_hac_lag(reg, gui, output):
                 robust_regs.append(get_robust(reg, 'hac', gwk))
     return robust_regs
 
-def get_spat_diag_vc(reg, gui):
-    """Test if user requested spatial diagnostics and/or the
-    variance-covariance matrix. If yes then compute the requested diagnostics
-    and/or return the VC matrix.
-    """
-    output = []
-    if gui.w_list and gui.spat_diag:
-        for w in gui.w_list:
-            # add spatial diagnostics and VC matrix for each W
-            reg_spat = COPY.copy(reg)
-            reg_spat.name_w = w.name
-            reg_spat._get_diagnostics(w=w, beta_diag=False, moran=gui.moran,\
-                                      nonspat_diag=False, spat_diag=True,
-                                      vm=gui.vc_matrix)
-            output.append(reg_spat)
-    else:
-        if gui.vc_matrix:
-            # add VC matrix for models without spatial diagnosics
-            reg._get_diagnostics(beta_diag=False,\
-                                      nonspat_diag=False, spat_diag=False,
-                                      vm=gui.vc_matrix)
-        output.append(reg)
-    return output
-
 def collect_predy_resid(pred_res, header_pr, reg, model, spatial, ws, counter):
     if ws > 1:
         lead = model+'W'+str(counter)+'_'
@@ -685,28 +660,61 @@ compute the betas once even if the user asks for robust standard errors.
 
 def get_OLS(gui):
     reg = OLS(y=gui.y, x=gui.x,\
-               nonspat_diag=gui.ols_diag, spat_diag=False, vm=False,\
+               nonspat_diag=gui.ols_diag, spat_diag=False, vm=gui.vc_matrix,\
                name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,
                sig2n_k=gui.sig2n_k_ols)
     if gui.predy_resid:  # write out predicted values and residuals
         gui.pred_res, gui.header_pr, counter = collect_predy_resid(\
                                gui.pred_res, gui.header_pr, reg, 'standard',\
                                False, 0, 0)
-    output = get_spat_diag_vc(reg, gui)
-    output.extend(get_white_hac_standard(reg, gui))
+    if gui.w_list and gui.spat_diag:
+        output = []
+        for w in gui.w_list:
+            # add spatial diagnostics for each W
+            reg_spat = COPY.copy(reg)
+            reg_spat.name_w = w.name
+            SUMMARY.spat_diag_ols(reg=reg_spat, w=w, moran=gui.moran)
+            SUMMARY.summary(reg=reg_spat, vm=gui.vc_matrix, instruments=False,\
+                            nonspat_diag=gui.ols_diag, spat_diag=True)
+            output.append(reg_spat)
+    else:
+        output = [reg]
+    robust_regs = get_white_hac_standard(reg, gui)
+    for rob_reg in robust_regs:
+        SUMMARY.beta_diag_ols(rob_reg, rob_reg.robust)
+        SUMMARY.summary(reg=rob_reg, vm=gui.vc_matrix, instruments=False,\
+                        nonspat_diag=gui.ols_diag, spat_diag=gui.spat_diag)
+    output.extend(robust_regs)
     return output
 
 def get_TSLS(gui):
     reg = TSLS(y=gui.y, x=gui.x, yend=gui.ye, q=gui.h,\
-                spat_diag=False, vm=False,\
+                spat_diag=False, vm=gui.vc_matrix,\
                 name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
                 name_q=gui.name_h, name_ds=gui.name_ds, sig2n_k=gui.sig2n_k_tsls)
     if gui.predy_resid:  # write out predicted values and residuals
         gui.pred_res, gui.header_pr, counter = collect_predy_resid(\
                                gui.pred_res, gui.header_pr, reg, 'standard',\
                                False, 0, 0)
-    output = get_spat_diag_vc(reg, gui)
-    output.extend(get_white_hac_standard(reg, gui))
+    if gui.w_list and gui.spat_diag:
+        output = []
+        for w in gui.w_list:
+            # add spatial diagnostics for each W
+            reg_spat = COPY.copy(reg)
+            reg_spat.name_w = w.name
+            SUMMARY.spat_diag_instruments(reg=reg_spat, w=w)
+            SUMMARY.summary(reg=reg_spat, vm=gui.vc_matrix, instruments=True,\
+                            nonspat_diag=False, spat_diag=True)
+            output.append(reg_spat)
+    else:
+        output = [reg]
+    robust_regs = get_white_hac_standard(reg, gui)
+    for rob_reg in robust_regs:
+        SUMMARY.beta_diag(rob_reg, rob_reg.robust)
+        SUMMARY.build_coefs_body_instruments(rob_reg)
+        SUMMARY.summary(reg=rob_reg, vm=gui.vc_matrix, instruments=True,\
+                        nonspat_diag=False, spat_diag=gui.spat_diag)
+    output.extend(robust_regs)
     return output
     
 def get_GM_Lag_endog(gui):
@@ -720,7 +728,13 @@ def get_GM_Lag_endog(gui):
               spat_diag=gui.spat_diag, name_w=w.name)
         run_predy_resid(gui, reg, '', True)
         output.append(reg)
-    output.extend(get_white_hac_lag(reg, gui, output))
+    robust_regs = get_white_hac_lag(reg, gui, output)
+    for rob_reg in robust_regs:
+        SUMMARY.beta_diag_lag(rob_reg, rob_reg.robust)
+        SUMMARY.build_coefs_body_instruments(rob_reg)
+        SUMMARY.summary(reg=rob_reg, vm=gui.vc_matrix, instruments=True,\
+                        nonspat_diag=False, spat_diag=False)
+    output.extend(robust_regs)
     return output
 
 def get_GM_Lag_noEndog(gui):
@@ -733,7 +747,13 @@ def get_GM_Lag_noEndog(gui):
               sig2n_k=gui.sig2n_k_gmlag, spat_diag=gui.spat_diag, name_w=w.name)
         run_predy_resid(gui, reg, '', True)
         output.append(reg)
-    output.extend(get_white_hac_lag(reg, gui, output))
+    robust_regs = get_white_hac_lag(reg, gui, output)
+    for rob_reg in robust_regs:
+        SUMMARY.beta_diag_lag(rob_reg, rob_reg.robust)
+        SUMMARY.build_coefs_body_instruments(rob_reg)
+        SUMMARY.summary(reg=rob_reg, vm=gui.vc_matrix, instruments=True,\
+                        nonspat_diag=False, spat_diag=False)
+    output.extend(robust_regs)
     return output
 
 def get_GM_Endog_Error_Hom(gui):

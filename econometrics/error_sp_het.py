@@ -12,6 +12,7 @@ import numpy as np
 import numpy.linalg as la
 import ols as OLS
 import user_output as USER
+import summary_output as SUMMARY
 import twosls as TSLS
 import utils as UTILS
 from utils import RegressionPropsY, spdot
@@ -161,7 +162,7 @@ class BaseGM_Error_Het(RegressionPropsY):
         self.e_filtered = self.u - lambda3*lag_spatial(w,self.u)
         self._cache = {}
 
-class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
+class GM_Error_Het(BaseGM_Error_Het):
     """
     GMM method for a spatial error model with heteroskedasticity, with results
     and diagnostics; based on Arraiz et al [1]_, following Anselin [2]_.
@@ -361,14 +362,7 @@ class GM_Error_Het(BaseGM_Error_Het, USER.DiagnosticBuilder):
         self.name_x = USER.set_name_x(name_x, x)
         self.name_x.append('lambda')
         self.name_w = USER.set_name_w(name_w, w)
-        self._get_diagnostics(w=w, beta_diag=True, vm=vm, std_err='het')
-
-    def _get_diagnostics(self, beta_diag=True, w=None, vm=False, std_err=None):
-        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
-                                            nonspat_diag=False,\
-                                            vm=vm, instruments=False,
-                                            std_err=std_err)
-
+        SUMMARY.GM_Error_Het(reg=self, w=w, vm=vm)
 
 class BaseGM_Endog_Error_Het(RegressionPropsY):
     """
@@ -544,7 +538,7 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
         self.e_filtered = self.u - lambda3*lag_spatial(w,self.u)
         self._cache = {}
 
-class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
+class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
     """
     GMM method for a spatial error model with heteroskedasticity and
     endogenous variables, with results and diagnostics; based on Arraiz et al
@@ -796,13 +790,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het, USER.DiagnosticBuilder):
         self.name_q = USER.set_name_q(name_q, q)
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         self.name_w = USER.set_name_w(name_w, w)
-        self._get_diagnostics(w=w, beta_diag=True, vm=vm, std_err='het')
-        
-    def _get_diagnostics(self, beta_diag=True, w=None, vm=False, std_err=None):
-        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
-                                            nonspat_diag=False, lamb=True,\
-                                            vm=vm, instruments=True,
-                                            std_err=std_err)        
+        SUMMARY.GM_Endog_Error_Het(reg=self, w=w, vm=vm)
 
 
 class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
@@ -953,7 +941,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
         BaseGM_Endog_Error_Het.__init__(self, y=y, x=x, w=w, yend=yend2, q=q2, max_iter=max_iter,\
                                         step1c=step1c, epsilon=epsilon, inv_method=inv_method)
 
-class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
+class GM_Combo_Het(BaseGM_Combo_Het):
     """
     GMM method for a spatial lag and error model with heteroskedasticity and
     endogenous variables, with results and diagnostics; based on Arraiz et al
@@ -1237,13 +1225,7 @@ class GM_Combo_Het(BaseGM_Combo_Het, USER.DiagnosticBuilder):
         self.name_q.extend(USER.set_name_q_sp(self.name_x, w_lags, self.name_q, lag_q))
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         self.name_w = USER.set_name_w(name_w, w)
-        self._get_diagnostics(w=w, beta_diag=True, vm=vm, std_err='het')
-     
-    def _get_diagnostics(self, beta_diag=True, w=None, vm=False, std_err=None):
-        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=True,\
-                                            nonspat_diag=False, lamb=True,\
-                                            vm=vm, instruments=True,
-                                            std_err=std_err, spatial_lag=True)        
+        SUMMARY.GM_Combo_Het(reg=self, w=w, vm=vm)
 
 
 # Functions
