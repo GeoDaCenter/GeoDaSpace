@@ -5,6 +5,7 @@ import numpy as np
 import copy as COPY
 import numpy.linalg as la
 import user_output as USER
+import summary_output as SUMMARY
 import robust as ROBUST
 import regimes as REGI
 from utils import spdot, sphstack, RegressionPropsY, RegressionPropsVM
@@ -135,7 +136,7 @@ class BaseOLS(RegressionPropsY, RegressionPropsVM):
             self.sig2 = self.sig2n
 
 
-class OLS(BaseOLS, USER.DiagnosticBuilder):
+class OLS(BaseOLS):
     """
     Ordinary least squares with results and diagnostics.
     
@@ -506,18 +507,9 @@ class OLS(BaseOLS, USER.DiagnosticBuilder):
         self.robust = USER.set_robust(robust)
         self.name_w = USER.set_name_w(name_w, w)
         self.name_gwk = USER.set_name_w(name_gwk, gwk)
-        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=nonspat_diag,\
-                                    spat_diag=spat_diag, vm=vm, moran=moran,
-                                    std_err=self.robust)
+        SUMMARY.OLS(reg=self, vm=vm, w=w, nonspat_diag=nonspat_diag,\
+                    spat_diag=spat_diag, moran=moran)
 
-    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              spat_diag=False, vm=False, moran=False,
-                              std_err=None):
-        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=beta_diag,\
-                                            nonspat_diag=nonspat_diag,\
-                                            spat_diag=spat_diag, vm=vm,\
-                                            moran=moran, std_err=std_err,\
-                                            ols=True)
 
 def _test():
     import doctest

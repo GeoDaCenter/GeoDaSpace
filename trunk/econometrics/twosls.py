@@ -1,6 +1,7 @@
 import numpy as np
 import copy
 import numpy.linalg as la
+import summary_output as SUMMARY
 import robust as ROBUST
 import user_output as USER
 from utils import spdot, sphstack, RegressionPropsY, RegressionPropsVM
@@ -200,7 +201,7 @@ class BaseTSLS(RegressionPropsY, RegressionPropsVM):
             self._cache['vm'] = np.dot(self.sig2, self.varb)
         return self._cache['vm']
 
-class TSLS(BaseTSLS, USER.DiagnosticBuilder):
+class TSLS(BaseTSLS):
     """
     Two stage least squares with results and diagnostics.
 
@@ -435,19 +436,9 @@ class TSLS(BaseTSLS, USER.DiagnosticBuilder):
         self.robust = USER.set_robust(robust)
         self.name_w = USER.set_name_w(name_w, w)
         self.name_gwk = USER.set_name_w(name_gwk, gwk)
-        self._get_diagnostics(w=w, beta_diag=True, nonspat_diag=False,\
-                                    spat_diag=spat_diag, vm=vm,
-                                    std_err=self.robust)
-
-    def _get_diagnostics(self, beta_diag=True, w=None, nonspat_diag=True,\
-                              spat_diag=False, vm=False, moran=False,
-                              std_err=None):
-        USER.DiagnosticBuilder.__init__(self, w=w, beta_diag=beta_diag,\
-                                            nonspat_diag=nonspat_diag,\
-                                            spat_diag=spat_diag, vm=vm,\
-                                            instruments=True,
-                                            moran=False, std_err=std_err)
+        SUMMARY.TSLS(reg=self, vm=vm, w=w, spat_diag=spat_diag)
         
+
 def _test():
     import doctest
     start_suppress = np.get_printoptions()['suppress']
