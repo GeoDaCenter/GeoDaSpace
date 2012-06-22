@@ -13,6 +13,7 @@ class TestBaseGMError(unittest.TestCase):
         X.append(db.by_col("INC"))
         X.append(db.by_col("CRIME"))
         self.X = np.array(X).T
+        self.X = np.hstack((np.ones(self.y.shape),self.X))
         self.X = sparse.csr_matrix(self.X)
         self.w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
         self.w.transform = 'r'
@@ -101,6 +102,8 @@ class TestBaseGMEndogError(unittest.TestCase):
         X = []
         X.append(db.by_col("INC"))
         self.X = np.array(X).T
+        self.X = np.hstack((np.ones(self.y.shape),self.X))
+        #self.X = sparse.csr_matrix(self.X)
         yd = []
         yd.append(db.by_col("CRIME"))
         self.yd = np.array(yd).T
@@ -211,7 +214,10 @@ class TestBaseGMCombo(unittest.TestCase):
 
     def test_model(self):
         # Only spatial lag
-        reg = SP.BaseGM_Combo(self.y, self.X, w=self.w)
+        yd2, q2 = pysal.spreg.utils.set_endog(self.y, self.X, self.w, None, None, 1, True)
+        self.X = np.hstack((np.ones(self.y.shape),self.X))
+        #self.X = sparse.csr_matrix(self.X)
+        reg = SP.BaseGM_Combo(self.y, self.X, yend=yd2, q=q2, w=self.w)
         betas = np.array([[ 57.61123461],[  0.73441314], [ -0.59459416], [ -0.21762921], [  0.54732051]])
         np.testing.assert_array_almost_equal(reg.betas,betas,5)
         u = np.array([ 25.57932637])

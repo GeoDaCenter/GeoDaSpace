@@ -498,8 +498,9 @@ def check_constant(x):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("HOVAL"))
     >>> X = np.array(X).T
-    >>> check_constant(X)
-    >>> # should not raise an exception
+    >>> x_constant = check_constant(X)
+    >>> x_constant.shape
+    (49, 3)
 
     """
     if not diagnostics.constant_check:

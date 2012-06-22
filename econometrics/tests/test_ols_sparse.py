@@ -14,12 +14,12 @@ class TestBaseOLS(unittest.TestCase):
         X = []
         X.append(db.by_col("INC"))
         X.append(db.by_col("CRIME"))
-        x = np.array(X).T
-        #x = np.hstack((np.ones(self.y.shape), x))
-        self.X = sparse.csr_matrix(x)
+        self.X = np.array(X).T
         self.w = pysal.weights.rook_from_shapefile(PEGP("columbus.shp"))
 
     def test_ols(self):
+        self.X = np.hstack((np.ones(self.y.shape),self.X))
+        self.X = sparse.csr_matrix(self.X)
         ols = EC.ols.BaseOLS(self.y,self.X)
         np.testing.assert_array_almost_equal(ols.betas, np.array([[
             46.42818268], [  0.62898397], [ -0.48488854]]))
@@ -29,6 +29,7 @@ class TestBaseOLS(unittest.TestCase):
         np.testing.assert_array_almost_equal(ols.vm, vm,6)
 
     def test_OLS(self):
+        self.X = sparse.csr_matrix(self.X)
         ols = EC.OLS(self.y, self.X, self.w, spat_diag=True, moran=True, \
                 name_y='home value', name_x=['income','crime'], \
                 name_ds='columbus', nonspat_diag=False)
