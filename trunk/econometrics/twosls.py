@@ -142,7 +142,7 @@ class BaseTSLS(RegressionPropsY, RegressionPropsVM):
 
         self.kstar = yend.shape[1]        
         z = sphstack(self.x,yend)  # including exogenous and endogenous variables   
-        if type(h).__name__ != 'ndarray':
+        if type(h).__name__ not in ['ndarray', 'csr_matrix']:
             h = sphstack(self.x,q)   # including exogenous variables and instrument
 
         self.z = z
@@ -414,7 +414,8 @@ class TSLS(BaseTSLS):
                  name_yend=None, name_q=None,\
                  name_w=None, name_gwk=None, name_ds=None):
 
-        USER.check_arrays(y, x, yend, q)
+        n = USER.check_arrays(y, x, yend, q)
+        USER.check_y(y, n)
         USER.check_weights(w, y)
         USER.check_robust(robust, gwk)
         USER.check_spat_diag(spat_diag, w)

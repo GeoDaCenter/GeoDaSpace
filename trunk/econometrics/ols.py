@@ -473,7 +473,8 @@ class OLS(BaseOLS):
                  cols2regi='all', name_y=None, name_x=None,\
                  name_w=None, name_gwk=None, name_ds=None):
 
-        USER.check_arrays(y, x)
+        n = USER.check_arrays(y, x)
+        USER.check_y(y, n)
         USER.check_weights(w, y)
         USER.check_robust(robust, gwk)
         USER.check_spat_diag(spat_diag, w)

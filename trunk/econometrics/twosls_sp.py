@@ -476,7 +476,8 @@ class GM_Lag(BaseGM_Lag):
                  name_yend=None, name_q=None,\
                  name_w=None, name_gwk=None, name_ds=None):
 
-        USER.check_arrays(y, x, yend, q)
+        n = USER.check_arrays(x, yend, q)
+        USER.check_y(y, n)
         USER.check_weights(w, y)
         USER.check_robust(robust, gwk)
         yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
@@ -485,7 +486,7 @@ class GM_Lag(BaseGM_Lag):
                             w_lags=w_lags, robust=robust, gwk=gwk,\
                             lag_q=lag_q, sig2n_k=sig2n_k)
         self.predy_e, self.e_pred = sp_att(w,self.y,self.predy,\
-                      self.z[:,-1].reshape(self.n,1),self.betas[-1])
+                      yend2[:,-1].reshape(self.n,1),self.betas[-1])
         self.title = "SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
