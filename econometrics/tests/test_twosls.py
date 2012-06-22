@@ -11,6 +11,7 @@ class TestBaseTSLS(unittest.TestCase):
         self.X = []
         self.X.append(db.by_col("INC"))
         self.X = np.array(self.X).T
+        self.X = np.hstack((np.ones(self.y.shape),self.X))
         self.yd = []
         self.yd.append(db.by_col("HOVAL"))
         self.yd = np.array(self.yd).T

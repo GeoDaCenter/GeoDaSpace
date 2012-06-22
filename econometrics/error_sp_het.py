@@ -15,7 +15,7 @@ import user_output as USER
 import summary_output as SUMMARY
 import twosls as TSLS
 import utils as UTILS
-from utils import RegressionPropsY, spdot
+from utils import RegressionPropsY, spdot, set_endog
 from scipy import sparse as SP
 from pysal import lag_spatial
 
@@ -24,8 +24,8 @@ __all__ = ["GM_Error_Het", "GM_Endog_Error_Het", "GM_Combo_Het"]
 class BaseGM_Error_Het(RegressionPropsY):
     """
     GMM method for a spatial error model with heteroskedasticity (note: no
-    consistency checks or diagnostics); based on Arraiz et al [1]_, following
-    Anselin [2]_.
+    consistency checks, diagnostics or constant added); based on Arraiz
+    et al [1]_, following Anselin [2]_.
 
     Parameters
     ----------
@@ -104,6 +104,7 @@ class BaseGM_Error_Het(RegressionPropsY):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("CRIME"))
     >>> X = np.array(X).T
+    >>> X = np.hstack((np.ones(y.shape),X))
     >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     >>> w.transform = 'r'
     >>> reg = BaseGM_Error_Het(y, X, w, step1c=True)
@@ -132,7 +133,7 @@ class BaseGM_Error_Het(RegressionPropsY):
             vc1 = get_vc_het(w, sigma)
             lambda2 = UTILS.optim_moments(moments,vc1)
         else:
-            lambda2 = lambda1 #Required to match Stata.
+            lambda2 = lambda1 
         lambda_old = lambda2
         
         self.iteration, eps = 0, 1
@@ -140,7 +141,7 @@ class BaseGM_Error_Het(RegressionPropsY):
             #2a. reg -->\hat{betas}
             xs = UTILS.get_spFilter(w, lambda_old, self.x)
             ys = UTILS.get_spFilter(w, lambda_old, self.y)
-            ols_s = OLS.BaseOLS(y=ys, x=xs, constant=False)
+            ols_s = OLS.BaseOLS(y=ys, x=xs)
             self.predy = spdot(self.x, ols_s.betas)
             self.u = self.y - self.predy
 
@@ -294,8 +295,7 @@ class GM_Error_Het(BaseGM_Error_Het):
     independent variables in the regression.  Note that PySAL requires this to
     be an nxj numpy array, where j is the number of independent variables (not
     including a constant). By default this class adds a vector of ones to the
-    independent variables passed in, this can be overridden by passing
-    constant=False.
+    independent variables passed in.
 
     >>> X = []
     >>> X.append(db.by_col("INC"))
@@ -353,8 +353,8 @@ class GM_Error_Het(BaseGM_Error_Het):
 
         USER.check_arrays(y, x)
         USER.check_weights(w, y)
-        USER.check_constant(x)
-        BaseGM_Error_Het.__init__(self, y, x, w, max_iter=max_iter,\
+        x_constant = USER.check_constant(x)
+        BaseGM_Error_Het.__init__(self, y, x_constant, w, max_iter=max_iter,\
                 step1c=step1c, epsilon=epsilon)
         self.title = "SPATIALLY WEIGHTED LEAST SQUARES (HET)"        
         self.name_ds = USER.set_name_ds(name_ds)
@@ -367,8 +367,8 @@ class GM_Error_Het(BaseGM_Error_Het):
 class BaseGM_Endog_Error_Het(RegressionPropsY):
     """
     GMM method for a spatial error model with heteroskedasticity and
-    endogenous variables (note: no consistency checks or diagnostics); based
-    on Arraiz et al [1]_, following Anselin [2]_.
+    endogenous variables (note: no consistency checks, diagnostics or constant
+    added); based on Arraiz et al [1]_, following Anselin [2]_.
 
     Parameters
     ----------
@@ -387,9 +387,6 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
     w            : pysal W object
                    Spatial weights object (note: if provided then spatial
                    diagnostics are computed)   
-    constant     : boolean
-                   If True, then add a constant term to the array of
-                   independent variables
     max_iter     : int
                    Maximum number of iterations of steps 2a and 2b from Arraiz
                    et al. Note: epsilon provides an additional stop condition.
@@ -470,6 +467,7 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X = np.array(X).T
+    >>> X = np.hstack((np.ones(y.shape),X))
     >>> yd = []
     >>> yd.append(db.by_col("CRIME"))
     >>> yd = np.array(yd).T
@@ -486,12 +484,12 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
      [  0.4114   0.1777]]
     """
 
-    def __init__(self, y, x, yend, q, w, constant=True,\
+    def __init__(self, y, x, yend, q, w,\
                  max_iter=1, epsilon=0.00001,
                  step1c=False, inv_method='power_exp'):
     
         #1a. reg --> \tilde{betas} 
-        tsls = TSLS.BaseTSLS(y=y, x=x, yend=yend, q=q, constant=constant)
+        tsls = TSLS.BaseTSLS(y=y, x=x, yend=yend, q=q)
         self.x, self.z, self.h, self.y = tsls.x, tsls.z, tsls.h, tsls.y
         self.yend, self.q, self.n, self.k, self.hth = tsls.yend, tsls.q, tsls.n, tsls.k, tsls.hth
         w.A1 = UTILS.get_A1_het(w.sparse)
@@ -507,7 +505,7 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
             vc1 = get_vc_het_tsls(w, self, lambda1, tsls.pfora1a2, zs, inv_method, filt=False)
             lambda2 = UTILS.optim_moments(moments,vc1)
         else:
-            lambda2 = lambda1 #Required to match Stata.
+            lambda2 = lambda1
         lambda_old = lambda2
         
         self.iteration, eps = 0, 1
@@ -516,7 +514,7 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
             xs = UTILS.get_spFilter(w, lambda_old, self.x)
             ys = UTILS.get_spFilter(w, lambda_old, self.y)
             yend_s = UTILS.get_spFilter(w, lambda_old, self.yend)
-            tsls_s = TSLS.BaseTSLS(ys, xs, yend_s, h=self.h, constant=False)
+            tsls_s = TSLS.BaseTSLS(ys, xs, yend_s, h=self.h)
             self.predy = spdot(self.z, tsls_s.betas)
             self.u = self.y - self.predy
 
@@ -703,8 +701,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
     independent variables in the regression.  Note that PySAL requires this to
     be an nxj numpy array, where j is the number of independent variables (not
     including a constant). By default this class adds a vector of ones to the
-    independent variables passed in, this can be overridden by passing
-    constant=False.
+    independent variables passed in.
 
     >>> X = []
     >>> X.append(db.by_col("INC"))
@@ -777,8 +774,9 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
     
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
-        USER.check_constant(x)
-        BaseGM_Endog_Error_Het.__init__(self, y=y, x=x, yend=yend, q=q, w=w, max_iter=max_iter,\
+        x_constant = USER.check_constant(x)
+        BaseGM_Endog_Error_Het.__init__(self, y=y, x=x_constant, yend=yend,\
+                                        q=q, w=w, max_iter=max_iter,\
                                         step1c=step1c, epsilon=epsilon, inv_method=inv_method)
         self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HET)"
         self.name_ds = USER.set_name_ds(name_ds)
@@ -796,8 +794,8 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
 class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     """
     GMM method for a spatial lag and error model with heteroskedasticity and
-    endogenous variables (note: no consistency checks or diagnostics); based
-    on Arraiz et al [1]_, following Anselin [2]_.
+    endogenous variables (note: no consistency checks, diagnostics or constant
+    added); based on Arraiz et al [1]_, following Anselin [2]_.
 
     Parameters
     ----------
@@ -904,10 +902,13 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     >>> X = np.array(X).T
     >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     >>> w.transform = 'r'
+    >>> w_lags = 1
+    >>> yd2, q2 = pysal.spreg.utils.set_endog(y, X, w, None, None, w_lags, True)
+    >>> X = np.hstack((np.ones(y.shape),X))
 
     Example only with spatial lag
 
-    >>> reg = BaseGM_Combo_Het(y, X, w=w, step1c=True)
+    >>> reg = BaseGM_Combo_Het(y, X, yend=yd2, q=q2, w=w, step1c=True)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[  9.9753  14.1435]
      [  1.5742   0.374 ]
@@ -916,13 +917,18 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
 
     Example with both spatial lag and other endogenous variables
 
+    >>> X = []
+    >>> X.append(db.by_col("INC"))
+    >>> X = np.array(X).T
     >>> yd = []
     >>> yd.append(db.by_col("CRIME"))
     >>> yd = np.array(yd).T
     >>> q = []
     >>> q.append(db.by_col("DISCBD"))
     >>> q = np.array(q).T
-    >>> reg = BaseGM_Combo_Het(y, X, yd, q, w, step1c=True)
+    >>> yd2, q2 = pysal.spreg.utils.set_endog(y, X, w, yd, q, w_lags, True)
+    >>> X = np.hstack((np.ones(y.shape),X))
+    >>> reg = BaseGM_Combo_Het(y, X, yd2, q2, w, step1c=True)
     >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['lag_hoval'],['lambda']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
     [['CONSTANT' '113.91292' '64.38815']
@@ -937,8 +943,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
                  max_iter=1, epsilon=0.00001,\
                  step1c=False, inv_method='power_exp'):
 
-        yend2, q2 = UTILS.set_endog(y, x, w, yend, q, w_lags, lag_q)
-        BaseGM_Endog_Error_Het.__init__(self, y=y, x=x, w=w, yend=yend2, q=q2, max_iter=max_iter,\
+        BaseGM_Endog_Error_Het.__init__(self, y=y, x=x, w=w, yend=yend, q=q, max_iter=max_iter,\
                                         step1c=step1c, epsilon=epsilon, inv_method=inv_method)
 
 class GM_Combo_Het(BaseGM_Combo_Het):
@@ -1120,8 +1125,7 @@ class GM_Combo_Het(BaseGM_Combo_Het):
     independent variables in the regression.  Note that PySAL requires this to
     be an nxj numpy array, where j is the number of independent variables (not
     including a constant). By default this class adds a vector of ones to the
-    independent variables passed in, this can be overridden by passing
-    constant=False.
+    independent variables passed in.
 
     >>> X = []
     >>> X.append(db.by_col("INC"))
@@ -1207,10 +1211,12 @@ class GM_Combo_Het(BaseGM_Combo_Het):
     
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
-        USER.check_constant(x)
-        BaseGM_Combo_Het.__init__(self, y=y, x=x, yend=yend, q=q, w=w, w_lags=w_lags,\
-              max_iter=max_iter, step1c=step1c, lag_q=lag_q,\
-              epsilon=epsilon, inv_method=inv_method)
+        yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
+        x_constant = USER.check_constant(x)
+        BaseGM_Combo_Het.__init__(self, y=y, x=x_constant, yend=yend2, q=q2,\
+                                w=w, w_lags=w_lags,\
+                                max_iter=max_iter, step1c=step1c, lag_q=lag_q,\
+                                epsilon=epsilon, inv_method=inv_method)
         self.predy_e, self.e_pred = UTILS.sp_att(w,self.y,self.predy,\
                             self.z[:,-1].reshape(self.n,1),self.betas[-2])        
         self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HET)"        

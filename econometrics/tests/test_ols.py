@@ -17,6 +17,7 @@ class TestBaseOLS(unittest.TestCase):
         self.w = pysal.weights.rook_from_shapefile(PEGP("columbus.shp"))
 
     def test_ols(self):
+        self.X = np.hstack((np.ones(self.y.shape),self.X))
         ols = EC.ols.BaseOLS(self.y,self.X)
         np.testing.assert_array_almost_equal(ols.betas, np.array([[
             46.42818268], [  0.62898397], [ -0.48488854]]))
