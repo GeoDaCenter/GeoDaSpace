@@ -1,7 +1,7 @@
 import unittest
 import pysal
 import numpy as np
-from pysal.spreg import error_sp_het as HET
+from econometrics import error_sp_het as HET
 
 class TestBaseGMErrorHet(unittest.TestCase):
     def setUp(self):
@@ -12,6 +12,7 @@ class TestBaseGMErrorHet(unittest.TestCase):
         X.append(db.by_col("INC"))
         X.append(db.by_col("CRIME"))
         self.X = np.array(X).T
+        self.X = np.hstack((np.ones(self.y.shape),self.X))
         self.w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
         self.w.transform = 'r'
 
@@ -124,6 +125,7 @@ class TestBaseGMEndogErrorHet(unittest.TestCase):
         X = []
         X.append(db.by_col("INC"))
         self.X = np.array(X).T
+        self.X = np.hstack((np.ones(self.y.shape),self.X))
         yd = []
         yd.append(db.by_col("CRIME"))
         self.yd = np.array(yd).T
@@ -265,7 +267,9 @@ class TestBaseGMComboHet(unittest.TestCase):
 
     def test_model(self):
         # Only spatial lag
-        reg = HET.BaseGM_Combo_Het(self.y, self.X, w=self.w, step1c=True)
+        yd2, q2 = pysal.spreg.utils.set_endog(self.y, self.X, self.w, None, None, 1, True)
+        self.X = np.hstack((np.ones(self.y.shape),self.X))
+        reg = HET.BaseGM_Combo_Het(self.y, self.X, yend=yd2, q=q2, w=self.w, step1c=True)
         betas = np.array([[ 57.7778574 ], [  0.73034922], [ -0.59257362], [ -0.2230231 ], [  0.56636724]])
         np.testing.assert_array_almost_equal(reg.betas,betas,7)
         u = np.array([ 25.65156033])

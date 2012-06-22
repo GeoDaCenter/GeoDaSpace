@@ -18,8 +18,8 @@ __all__ = ["GM_Lag"]
 
 class BaseGM_Lag(TSLS.BaseTSLS):
     """
-    Spatial two stage least squares (S2SLS) (note: no consistency checks or
-    diagnostics); Anselin (1988) [1]_
+    Spatial two stage least squares (S2SLS) (note: no consistency checks,
+    diagnostics or constant added); Anselin (1988) [1]_
 
     Parameters
     ----------
@@ -135,7 +135,10 @@ class BaseGM_Lag(TSLS.BaseTSLS):
     >>> X.append(db.by_col("INC"))
     >>> X.append(db.by_col("CRIME"))
     >>> X = np.array(X).T
-    >>> reg=BaseGM_Lag(y, X, w=w, w_lags=2)
+    >>> w_lags = 2
+    >>> yd2, q2 = pysal.spreg.utils.set_endog(y, X, w, None, None, w_lags, True)
+    >>> X = np.hstack((np.ones(y.shape),X))
+    >>> reg=BaseGM_Lag(y, X, yend=yd2, q=q2, w=w, w_lags=w_lags)
     >>> reg.betas
     array([[ 45.30170561],
            [  0.62088862],
@@ -143,7 +146,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
            [  0.02836221]])
     >>> D.se_betas(reg)
     array([ 17.91278862,   0.52486082,   0.1822815 ,   0.31740089])
-    >>> reg=BaseGM_Lag(y, X, w=w, w_lags=2, robust='white')
+    >>> reg=BaseGM_Lag(y, X, yend=yd2, q=q2, w=w, w_lags=w_lags, robust='white')
     >>> reg.betas
     array([[ 45.30170561],
            [  0.62088862],
@@ -158,7 +161,9 @@ class BaseGM_Lag(TSLS.BaseTSLS):
     >>> yd = np.reshape(yd, (49,1))
     >>> q = np.array(db.by_col("DISCBD"))
     >>> q = np.reshape(q, (49,1))
-    >>> reg=BaseGM_Lag(y, X, w=w, yend=yd, q=q, w_lags=2)
+    >>> yd2, q2 = pysal.spreg.utils.set_endog(y, X, w, yd, q, w_lags, True)
+    >>> X = np.hstack((np.ones(y.shape),X))
+    >>> reg=BaseGM_Lag(y, X, w=w, yend=yd2, q=q2, w_lags=w_lags)
     >>> reg.betas
     array([[ 100.79359082],
            [  -0.50215501],
@@ -173,11 +178,8 @@ class BaseGM_Lag(TSLS.BaseTSLS):
                  w=None, w_lags=1, lag_q=True,\
                  robust=None, gwk=None, sig2n_k=False):
 
-        yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
-        TSLS.BaseTSLS.__init__(self, y=y, x=x, yend=yend2, q=q2,\
-                               sig2n_k=sig2n_k)        
-        if robust:
-            self.vm = ROBUST.robust_vm(self, gwk=gwk)
+        TSLS.BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q,\
+                               robust=robust, gwk=gwk, sig2n_k=sig2n_k)        
 
 
 class GM_Lag(BaseGM_Lag):
@@ -477,8 +479,9 @@ class GM_Lag(BaseGM_Lag):
         USER.check_arrays(y, x, yend, q)
         USER.check_weights(w, y)
         USER.check_robust(robust, gwk)
-        USER.check_constant(x)
-        BaseGM_Lag.__init__(self, y=y, x=x, w=w, yend=yend, q=q,\
+        yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
+        x_constant = USER.check_constant(x)
+        BaseGM_Lag.__init__(self, y=y, x=x_constant, w=w, yend=yend2, q=q2,\
                             w_lags=w_lags, robust=robust, gwk=gwk,\
                             lag_q=lag_q, sig2n_k=sig2n_k)
         self.predy_e, self.e_pred = sp_att(w,self.y,self.predy,\

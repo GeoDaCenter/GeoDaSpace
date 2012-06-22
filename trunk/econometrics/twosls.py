@@ -11,8 +11,8 @@ __all__ = ["TSLS"]
 
 class BaseTSLS(RegressionPropsY, RegressionPropsVM):
     """
-    Two stage least squares (2SLS) (note: no consistency checks or
-    diagnostics)
+    Two stage least squares (2SLS) (note: no consistency checks,
+    diagnostics or constant added)
 
     Parameters
     ----------
@@ -113,6 +113,7 @@ class BaseTSLS(RegressionPropsY, RegressionPropsVM):
     >>> X = []
     >>> X.append(db.by_col("INC"))
     >>> X = np.array(X).T
+    >>> X = np.hstack((np.ones(y.shape),X))
     >>> yd = []
     >>> yd.append(db.by_col("HOVAL"))
     >>> yd = np.array(yd).T
@@ -127,7 +128,7 @@ class BaseTSLS(RegressionPropsY, RegressionPropsVM):
     >>> reg = BaseTSLS(y, X, yd, q=q, robust="white")
     
     """
-    def __init__(self, y, x, yend, q=None, h=None, constant=True,\
+    def __init__(self, y, x, yend, q=None, h=None,\
                  robust=None, gwk=None, sig2n_k=False):
 
         if issubclass(type(q), np.ndarray) and issubclass(type(h), np.ndarray):  
@@ -137,11 +138,7 @@ class BaseTSLS(RegressionPropsY, RegressionPropsVM):
         
         self.y = y  
         self.n = y.shape[0]
-
-        if constant:
-            self.x = sphstack(np.ones(y.shape),x)
-        else:
-            self.x = x
+        self.x = x
 
         self.kstar = yend.shape[1]        
         z = sphstack(self.x,yend)  # including exogenous and endogenous variables   
@@ -163,7 +160,6 @@ class BaseTSLS(RegressionPropsY, RegressionPropsVM):
         factor_2 = np.dot(factor_1,zth.T)  
         varb = la.inv(factor_2)          # this one needs to be in cache to be used in AK
         factor_3 = np.dot(varb,factor_1)   
-        #print factor_3.shape, hty.shape
         betas = np.dot(factor_3,hty)  
         self.betas = betas
         self.varb = varb
@@ -422,8 +418,8 @@ class TSLS(BaseTSLS):
         USER.check_weights(w, y)
         USER.check_robust(robust, gwk)
         USER.check_spat_diag(spat_diag, w)
-        USER.check_constant(x)
-        BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q,\
+        x_constant = USER.check_constant(x)
+        BaseTSLS.__init__(self, y=y, x=x_constant, yend=yend, q=q,\
                               robust=robust, gwk=gwk, sig2n_k=sig2n_k)
         self.title = "TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)

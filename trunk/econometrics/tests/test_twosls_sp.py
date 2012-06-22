@@ -13,11 +13,14 @@ class TestBaseGMLag(unittest.TestCase):
         self.y = np.reshape(y, (49,1))
         
     def test___init__(self):
+        w_lags = 2
         X = []
         X.append(self.db.by_col("INC"))
         X.append(self.db.by_col("CRIME"))
         self.X = np.array(X).T
-        reg = econometrics.twosls_sp.BaseGM_Lag(self.y, self.X, w=self.w, w_lags=2)
+        yd2, q2 = pysal.spreg.utils.set_endog(self.y, self.X, self.w, None, None, w_lags, True)
+        self.X = np.hstack((np.ones(self.y.shape),self.X))
+        reg = econometrics.twosls_sp.BaseGM_Lag(self.y, self.X, yend=yd2, q=q2, w=self.w, w_lags=w_lags)
         betas = np.array([[  4.53017056e+01], [  6.20888617e-01], [ -4.80723451e-01], [  2.83622122e-02]])
         np.testing.assert_array_almost_equal(reg.betas, betas, 7)
         h_0 = np.array([  1.        ,  19.531     ,  15.72598   ,  18.594     ,
@@ -76,11 +79,14 @@ class TestBaseGMLag(unittest.TestCase):
         np.testing.assert_array_almost_equal(reg.zthhthi, zthhthi, 7)
 
     def test_init_white_(self):
+        w_lags = 2
         X = []
         X.append(self.db.by_col("INC"))
         X.append(self.db.by_col("CRIME"))
         self.X = np.array(X).T
-        base_gm_lag = econometrics.twosls_sp.BaseGM_Lag(self.y, self.X, w=self.w, w_lags=2, robust='white')
+        yd2, q2 = pysal.spreg.utils.set_endog(self.y, self.X, self.w, None, None, w_lags, True)
+        self.X = np.hstack((np.ones(self.y.shape),self.X))
+        base_gm_lag = econometrics.twosls_sp.BaseGM_Lag(self.y, self.X,  yend=yd2, q=q2, w=self.w, w_lags=w_lags, robust='white')
         tbetas = np.array([[  4.53017056e+01], [  6.20888617e-01], [ -4.80723451e-01], [  2.83622122e-02]])
         np.testing.assert_array_almost_equal(base_gm_lag.betas, tbetas) 
         dbetas = D.se_betas(base_gm_lag)
@@ -88,12 +94,15 @@ class TestBaseGMLag(unittest.TestCase):
         np.testing.assert_array_almost_equal(dbetas, se_betas)
 
     def test_init_hac_(self):
+        w_lags = 2
         X = []
         X.append(self.db.by_col("INC"))
         X.append(self.db.by_col("CRIME"))
         self.X = np.array(X).T
+        yd2, q2 = pysal.spreg.utils.set_endog(self.y, self.X, self.w, None, None, w_lags, True)
+        self.X = np.hstack((np.ones(self.y.shape),self.X))
         gwk = pysal.kernelW_from_shapefile(pysal.examples.get_path('columbus.shp'),k=15,function='triangular', fixed=False)        
-        base_gm_lag = econometrics.twosls_sp.BaseGM_Lag(self.y, self.X, w=self.w, w_lags=2, robust='hac', gwk=gwk)
+        base_gm_lag = econometrics.twosls_sp.BaseGM_Lag(self.y, self.X, yend=yd2, q=q2, w=self.w, w_lags=w_lags, robust='hac', gwk=gwk)
         tbetas = np.array([[  4.53017056e+01], [  6.20888617e-01], [ -4.80723451e-01], [  2.83622122e-02]])
         np.testing.assert_array_almost_equal(base_gm_lag.betas, tbetas) 
         dbetas = D.se_betas(base_gm_lag)
@@ -101,13 +110,16 @@ class TestBaseGMLag(unittest.TestCase):
         np.testing.assert_array_almost_equal(dbetas, se_betas)
 
     def test_init_discbd(self):
+        w_lags = 2
         X = np.array(self.db.by_col("INC"))
-        X = np.reshape(X, (49,1))
+        self.X = np.reshape(X, (49,1))
         yd = np.array(self.db.by_col("CRIME"))
         yd = np.reshape(yd, (49,1))
         q = np.array(self.db.by_col("DISCBD"))
         q = np.reshape(q, (49,1))
-        reg = econometrics.twosls_sp.BaseGM_Lag(self.y, X, w=self.w, yend=yd, q=q, w_lags=2)
+        yd2, q2 = pysal.spreg.utils.set_endog(self.y, self.X, self.w, yd, q, w_lags, True)
+        self.X = np.hstack((np.ones(self.y.shape),self.X))
+        reg = econometrics.twosls_sp.BaseGM_Lag(self.y, self.X, w=self.w, yend=yd2, q=q2, w_lags=w_lags)
         tbetas = np.array([[ 100.79359082], [  -0.50215501], [  -1.14881711], [  -0.38235022]])
         np.testing.assert_array_almost_equal(tbetas, reg.betas)
         dbetas = D.se_betas(reg)
@@ -115,11 +127,14 @@ class TestBaseGMLag(unittest.TestCase):
         np.testing.assert_array_almost_equal(dbetas, se_betas)
 
     def test_n_k(self):
+        w_lags = 2
         X = []
         X.append(self.db.by_col("INC"))
         X.append(self.db.by_col("CRIME"))
         self.X = np.array(X).T
-        reg = econometrics.twosls_sp.BaseGM_Lag(self.y, self.X, w=self.w, w_lags=2, sig2n_k=True)
+        yd2, q2 = pysal.spreg.utils.set_endog(self.y, self.X, self.w, None, None, w_lags, True)
+        self.X = np.hstack((np.ones(self.y.shape),self.X))
+        reg = econometrics.twosls_sp.BaseGM_Lag(self.y, self.X, yend=yd2, q=q2, w=self.w, w_lags=w_lags, sig2n_k=True)
         betas = np.  array([[  4.53017056e+01], [  6.20888617e-01], [ -4.80723451e-01], [  2.83622122e-02]])
         np.testing.assert_array_almost_equal(reg.betas, betas, 7)
         vm = np.array( [[  3.49389596e+02, -5.36394351e+00, -2.81960968e+00, -4.35694515e+00],
@@ -129,13 +144,16 @@ class TestBaseGMLag(unittest.TestCase):
         np.testing.assert_array_almost_equal(reg.vm, vm, 7)
 
     def test_lag_q(self):
+        w_lags = 2
         X = np.array(self.db.by_col("INC"))
-        X = np.reshape(X, (49,1))
+        self.X = np.reshape(X, (49,1))
         yd = np.array(self.db.by_col("CRIME"))
         yd = np.reshape(yd, (49,1))
         q = np.array(self.db.by_col("DISCBD"))
         q = np.reshape(q, (49,1))
-        reg = econometrics.twosls_sp.BaseGM_Lag(self.y, X, w=self.w, yend=yd, q=q, w_lags=2, lag_q=False)
+        yd2, q2 = pysal.spreg.utils.set_endog(self.y, self.X, self.w, yd, q, w_lags, False)
+        self.X = np.hstack((np.ones(self.y.shape),self.X))
+        reg = econometrics.twosls_sp.BaseGM_Lag(self.y, self.X, w=self.w, yend=yd2, q=q2, w_lags=w_lags, lag_q=False)
         tbetas = np.array( [[ 108.83261383], [  -0.48041099], [  -1.18950006], [  -0.56140186]])
         np.testing.assert_array_almost_equal(tbetas, reg.betas)
         dbetas = D.se_betas(reg)

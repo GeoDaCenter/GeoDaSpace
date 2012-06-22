@@ -39,7 +39,7 @@ def f_stat(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import BaseOLS as OLS
+    >>> from ols import OLS
 
     Read the DBF associated with the Columbus data. 
 
@@ -113,7 +113,7 @@ def t_stat(reg, z_stat=False):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import BaseOLS as OLS
+    >>> from ols import OLS
 
     Read the DBF associated with the Columbus data. 
 
@@ -187,7 +187,7 @@ def r2(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import BaseOLS as OLS
+    >>> from ols import OLS
 
     Read the DBF associated with the Columbus data.
     
@@ -254,7 +254,7 @@ def ar2(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import BaseOLS as OLS
+    >>> from ols import OLS
 
     Read the DBF associated with the Columbus data.
 
@@ -316,7 +316,7 @@ def se_betas(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import BaseOLS as OLS
+    >>> from ols import OLS
 
     Read the DBF associated with the Columbus data. 
 
@@ -379,7 +379,7 @@ def log_likelihood(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import BaseOLS as OLS
+    >>> from ols import OLS
 
     Read the DBF associated with the Columbus data. 
     
@@ -443,7 +443,7 @@ def akaike(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import BaseOLS as OLS
+    >>> from ols import OLS
 
     Read the DBF associated with the Columbus data.
 
@@ -508,7 +508,7 @@ def schwarz(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import BaseOLS as OLS
+    >>> from ols import OLS
 
     Read the DBF associated with the Columbus data.
 
@@ -574,7 +574,7 @@ def condition_index(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import BaseOLS as OLS
+    >>> from ols import OLS
 
     Read the DBF associated with the Columbus data.
 
@@ -653,7 +653,7 @@ def jarque_bera(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import BaseOLS as OLS
+    >>> from ols import OLS
 
     Read the DBF associated with the Columbus data.
 
@@ -755,7 +755,7 @@ def breusch_pagan(reg, z=None):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import BaseOLS as OLS
+    >>> from ols import OLS
 
     Read the DBF associated with the Columbus data.
 
@@ -901,7 +901,7 @@ def white(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import BaseOLS as OLS
+    >>> from ols import OLS
 
     Read the DBF associated with the Columbus data.
 
@@ -1002,7 +1002,7 @@ def white(reg):
 
     # Conduct the auxiliary regression and calculate the statistic
     import ols as OLS
-    aux_reg = OLS.BaseOLS(e,A,constant=False)
+    aux_reg = OLS.BaseOLS(e,A)
     aux_r2 = r2(aux_reg)
     wh = aux_r2*n
     df = k-1
@@ -1057,7 +1057,7 @@ def koenker_bassett(reg, z=None):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import BaseOLS as OLS
+    >>> from ols import OLS
 
     Read the DBF associated with the Columbus data.
 
@@ -1199,7 +1199,7 @@ def vif(reg):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import BaseOLS as OLS
+    >>> from ols import OLS
 
     Read the DBF associated with the Columbus data.
 
@@ -1256,7 +1256,7 @@ def vif(reg):
         Z = np.delete(Z,j,1)
         y  = X[:,j]
         import ols as OLS
-        aux = OLS.BaseOLS(y,Z,constant=False)
+        aux = OLS.BaseOLS(y,Z)
         mean_y = aux.mean_y
         utu = aux.utu
         ss_tot = sum((y-mean_y)**2)
@@ -1292,7 +1292,7 @@ def constant_check(array):
     >>> import numpy as np
     >>> import pysal
     >>> import diagnostics
-    >>> from ols import BaseOLS as OLS
+    >>> from ols import OLS
     >>> db = pysal.open(pysal.examples.get_path("columbus.dbf"),"r")
     >>> y = np.array(db.by_col("CRIME"))
     >>> y = np.reshape(y, (49,1))
