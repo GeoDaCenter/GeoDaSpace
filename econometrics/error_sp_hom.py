@@ -367,7 +367,8 @@ class GM_Error_Hom(BaseGM_Error_Hom):
                  vm=False, name_y=None, name_x=None,\
                  name_w=None, name_ds=None):
 
-        USER.check_arrays(y, x)
+        n = USER.check_arrays(y, x)
+        USER.check_y(y, n)
         USER.check_weights(w, y)
         x_constant = USER.check_constant(x)
         BaseGM_Error_Hom.__init__(self, y=y, x=x_constant, w=w, A1=A1,\
@@ -786,7 +787,8 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom):
                  name_yend=None, name_q=None,\
                  name_w=None, name_ds=None):
 
-        USER.check_arrays(y, x, yend, q)
+        n = USER.check_arrays(y, x, yend, q)
+        USER.check_y(y, n)
         USER.check_weights(w, y)
         x_constant = USER.check_constant(x)
         BaseGM_Endog_Error_Hom.__init__(self, y=y, x=x_constant, w=w, yend=yend, q=q,\
@@ -1220,7 +1222,8 @@ class GM_Combo_Hom(BaseGM_Combo_Hom):
                  name_yend=None, name_q=None,\
                  name_w=None, name_ds=None):
     
-        USER.check_arrays(y, x, yend, q)
+        n = USER.check_arrays(y, x, yend, q)
+        USER.check_y(y, n)
         USER.check_weights(w, y)
         yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
         x_constant = USER.check_constant(x)
@@ -1228,7 +1231,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom):
                     w_lags=w_lags, A1=A1, lag_q=lag_q,\
                     max_iter=max_iter, epsilon=epsilon)
         self.predy_e, self.e_pred = sp_att(w,self.y,self.predy,\
-                             self.z[:,-1].reshape(self.n,1),self.betas[-2])        
+                             yend2[:,-1].reshape(self.n,1),self.betas[-2])        
         self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HOM)"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
