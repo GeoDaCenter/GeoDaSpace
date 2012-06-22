@@ -8,7 +8,6 @@ from scipy.stats.stats import chisqprob
 from scipy.stats import norm
 import numpy as np
 import numpy.linalg as la
-import pysal
 
 __all__ = ['LMtests', 'MoranRes', 'AKtest'] 
 
@@ -295,7 +294,7 @@ class AKtest:
 
     >>> import numpy as np
     >>> import pysal
-    >>> from twosls import BaseTSLS as TSLS
+    >>> from twosls import TSLS
     >>> from twosls_sp import GM_Lag
 
     Open data on Columbus neighborhood crime (49 areas) using pysal.open().

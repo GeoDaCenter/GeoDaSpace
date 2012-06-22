@@ -1,12 +1,9 @@
 from scipy.stats.stats import chisqprob
 from scipy.stats import norm
-from pysal.spreg.diagnostics_sp import lmErr
+from diagnostics_sp import lmErr
 import numpy as np
 import numpy.linalg as la
-import pysal
-
-
-from pysal.spreg.diagnostics_sp import spDcache, get_mI
+from diagnostics_sp import spDcache, get_mI
 
 class AKtest:
     """
@@ -65,7 +62,7 @@ class AKtest:
 
     >>> import numpy as np
     >>> import pysal
-    >>> from twosls import BaseTSLS as TSLS
+    >>> from twosls import TSLS
     >>> from twosls_sp import GM_Lag
 
     Open data on Columbus neighborhood crime (49 areas) using pysal.open().
