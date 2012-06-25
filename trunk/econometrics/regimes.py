@@ -121,6 +121,88 @@ class Wald:
             q = np.zeros((r.shape[0], 1))
         self.w, self.pvalue = wald_test(reg.betas, r, q, reg.vm)
 
+class Regimes_Frame:
+    '''
+    Setup framework to work with regimes. Basically it involves:
+        * Dealing with the constant in a regimes world
+        * Creating a sparse representation of X 
+        * Generating a list of names of X taking into account regimes
+    ...
+
+    Arguments
+    =========
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, excluding the constant
+    name_x       : None, list of strings
+                   Names of independent variables for use in output
+    regimes      : list
+                   List of n values with the mapping of each
+                   observation to a regime. Assumed to be aligned with 'x'.
+    constant_regi: [False, 'one', 'many']
+                   Switcher controlling the constant term setup. It may take
+                   the following values:
+                    
+                     *  False: no constant term is appended in any way
+                     *  'one': a vector of ones is appended to x and held
+                               constant across regimes
+                     * 'many': a vector of ones is appended to x and considered
+                               different per regime (default)
+    cols2regi    : list, 'all'
+                   Argument indicating whether each
+                   column of x should be considered as different per regime
+                   or held constant across regimes (False).
+                   If a list, k booleans indicating for each variable the
+                   option (True if one per regime, False to be held constant).
+                   If 'all' (default), all the variables vary by regime.
+
+    Returns
+    =======
+    x            : csr sparse matrix
+                   Sparse matrix containing X variables properly aligned for
+                   regimes regression. 'xsp' is of dimension (n, k*r) where 'r'
+                   is the number of different regimes
+                   The structure of the alignent is X1r1 X2r1 ... X1r2 X2r2 ...
+    name_x       : None, list of strings
+                   Names of independent variables for use in output
+                   conveniently arranged by regimes. The structure of the name
+                   is "regimeName_-_varName"
+    kr           : int
+                   Number of variables/columns to be "regimized" or subject
+                   to change by regime. These will result in one parameter
+                   estimate by regime for each variable (i.e. nr parameters per
+                   variable)
+    kf           : int
+                   Number of variables/columns to be considered fixed or
+                   global across regimes and hence only obtain one parameter
+                   estimate
+    nr           : int
+                   Number of different regimes in the 'regimes' list
+
+    Appends to self
+    ===============
+    '''
+    def __init__(self, x, name_x, regimes, constant_regi, cols2regi):
+        self.regimes = regimes
+        self.constant_regi = constant_regi
+        if cols2regi == 'all':
+            cols2regi = [True] * x.shape[1]
+        self.cols2regi = cols2regi
+        if constant_regi:
+            x = np.hstack((np.ones((x.shape[0], 1)), x))
+            if constant_regi == 'one':
+                cols2regi.insert(0, False)
+            elif constant_regi == 'many':
+                cols2regi.insert(0, True)
+            else:
+                raise Exception, "Invalid argument (%s) passed for 'constant_regi'. Please secify a valid term."%str(constant)
+        name_x = set_name_x_regimes(name_x, regimes, constant_regi, cols2regi)
+        x = regimeX_setup(x, regimes, cols2regi, constant=constant_regi)
+        self.kr = len(np.where(np.array(cols2regi)==True)[0])
+        self.kf = len(cols2regi) - self.kr
+        self.nr = len(set(regimes))
+        return x, name_x
+
 def wald_test(betas, r, q, vm):
     '''
     Chi sq. Wald statistic to test for restriction of coefficients.
