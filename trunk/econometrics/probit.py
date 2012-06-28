@@ -1,11 +1,14 @@
+"""Probit regression class and diagnostics."""
+
+__author__ = "Luc Anselin luc.anselin@asu.edu, Pedro V. Amaral pedro.amaral@asu.edu"
+
 import numpy as np
 import numpy.linalg as la
 import scipy.optimize as op
 from scipy.stats import norm, chisqprob
 import scipy.sparse as SP
 
-class probit: #DEV class required.
-    # Must add doc on slope_graph()
+class probit: 
     """
     Probit class to do all the computations
 
@@ -29,20 +32,21 @@ class probit: #DEV class required.
                   Method to calculate the scale of the marginal effects.
                   Default: 'phimean' (Mean of individual marginal effects)
                   Alternative: 'xmean' (Marginal effects at variables mean)
-    maxiter     : integer
+    maxiter     : int
                   Maximum number of iterations until optimizer stops                  
               
     Attributes
     ----------
 
     x           : array
-                  nxk array of independent variables (assumed to be aligned with y)
+                  Two dimensional array with n rows and one column for each
+                  independent (exogenous) variable, including the constant
     y           : array
                   nx1 array of dependent variable
     betas       : array
                   kx1 array with estimated coefficients
     predy       : array
-                  nx1 array of predicted values
+                  nx1 array of predicted y values
     n           : int
                   Number of observations
     k           : int
@@ -51,15 +55,15 @@ class probit: #DEV class required.
                   Denotes if a constant is included in the regression
     vm          : array
                   Variance-covariance matrix (kxk)
+    z_stat      : list of tuples
+                  z statistic; each tuple contains the pair (statistic,
+                  p-value), where each is a float                  
     xmean       : array
                   Mean of the independent variables (kx1)
     predpc      : float
                   Percent of y correctly predicted
     logl        : float
                   Log-Likelihhod of the estimation
-    *Tstat       : dictionary
-                  key: name of variables, constant & independent variables (Yet to be coded!)
-                  value: tuple of t statistic and p-value
     scalem      : string
                   Method to calculate the scale of the marginal effects.
     scale       : float
@@ -74,6 +78,9 @@ class probit: #DEV class required.
     Pinkse_error: float
                   Lagrange Multiplier test against spatial error correlation.
                   Implemented as presented in Pinkse (2009)
+    Pinkse_lag  : float
+                  Lagrange Multiplier test against spatial lag correlation.
+                  Implemented as presented in Pinkse (2009)                  
     KP_error    : float
                   Moran's I type test against spatial error correlation.
                   Implemented as presented in Kelejian and Prucha (2001)
@@ -94,7 +101,7 @@ class probit: #DEV class required.
     --------
     >>> import numpy as np
     >>> import pysal
-    >>> db = pysal.open("examples/greene21_1.csv",'r')
+    >>> db = pysal.open(pysal.examples.get_path('greene21_1.csv'),'r')
     >>> y = np.array(db.by_col("GRADE"))
     >>> y = np.reshape(y, (y.shape[0],1))
     >>> X = []
@@ -102,7 +109,7 @@ class probit: #DEV class required.
     >>> X.append(db.by_col("TUCE"))
     >>> X.append(db.by_col("PSI"))
     >>> X = np.array(X).T
-    >>> w = pysal.lat2W(8,4) #Optional spatial weights to run spatial tests 
+    >>> w = pysal.lat2W(8,4) #Optional spatial weights to run spatial tests (artificial)
     >>> w.transform='r'    
     >>> probit1=probit(y,X,scalem='xmean',w=w)
     >>> np.around(probit1.betas, decimals=3)
@@ -149,15 +156,15 @@ class probit: #DEV class required.
             self._cache['vm'] = -la.inv(H)
         return self._cache['vm']
     @property
-    def Zstat(self):
-        if 'Zstat' not in self._cache:
+    def z_stat(self):
+        if 'z_stat' not in self._cache:
             variance = self.vm.diagonal()
             zStat = self.betas.reshape(len(self.betas),)/ np.sqrt(variance)
             rs = {}
             for i in range(len(self.betas)):
                 rs[i] = (zStat[i],norm.sf(abs(zStat[i]))*2)
-            self._cache['Zstat'] = rs.values()
-        return self._cache['Zstat']
+            self._cache['z_stat'] = rs.values()
+        return self._cache['z_stat']
     @property
     def xmean(self):
         if 'xmean' not in self._cache:
@@ -232,7 +239,7 @@ class probit: #DEV class required.
             self._cache['u_gen'] = u_gen
         return self._cache['u_gen']
     @property
-    def Pinkse_error(self): #LM error and Moran's I tests are calculated together.
+    def Pinkse_error(self):
         if 'Pinkse_error' not in self._cache: 
             if self.w:
                 w = self.w.sparse
@@ -338,30 +345,24 @@ class probit: #DEV class required.
         hessian = np.dot((self.x.T),(-lamb * (lamb + xb) * self.x ))
         return hessian
 
-    def slope_graph(self,pos,k,sample='actual',std=2):
-        if sample=='actual':
-            assert k<=self.n, "k must not be more than the number of observations."            
-            nk = 1.0*(self.n-1) / (k-1)
-            x = sorted(self.x[:,pos])
-        if sample=='input':
-            nk = 1.0 / (k-1)
-            xave = np.mean(self.x[:,pos])
-            xstd = np.std(self.x[:,pos])
-        pred = self.xmean*self.betas
-        pred = sum(np.vstack((pred[0:pos],pred[(pos+1):])))
-        curves = []
-        for i in range(k):
-            if sample=='actual':
-                x0 = x[int(round(i*nk))]
-            if sample=='input':
-                x0 = xave + (i*nk - 0.5)*std*2*xstd
-            marg = self.betas[pos]*norm.pdf(float(x0*self.betas[pos] + pred))
-            cumu = norm.cdf(float(x0*self.betas[pos] + pred))
-            curves.append([x0,marg,cumu])
-        return curves
-
-#The following functions are to be moved to utils:
 def newton(flogl,start,fgrad,fhess,maxiter):
+    """
+    Calculates the Newton-Raphson method
+
+    Parameters
+    ----------
+
+    flogl       : lambda
+                  Function to calculate the log-likelihood
+    start       : array
+                  kx1 array of starting values
+    fgrad       : lambda
+                  Function to calculate the gradient
+    fhess       : lambda
+                  Function to calculate the hessian
+    maxiter     : int
+                  Maximum number of iterations until optimizer stops                
+    """
     warn = 0
     iteration = 0
     par_hat0 = start
@@ -379,6 +380,19 @@ def newton(flogl,start,fgrad,fhess,maxiter):
     return (par_hat0, logl, warn)
 
 def moran_KP(w,u,sig2i):
+    """
+    Calculates Moran-flavoured tests 
+
+    Parameters
+    ----------
+
+    w           : W
+                  PySAL weights instance aligned with y
+    u           : array
+                  nx1 array of naive residuals
+    sig2i       : array
+                  nx1 array of individual variance               
+    """
     w = w.sparse
     moran_num = np.dot(u.T, (w * u))
     E = SP.lil_matrix(w.get_shape())
@@ -392,38 +406,37 @@ def moran_KP(w,u,sig2i):
 
 def _test():
     import doctest
+    start_suppress = np.get_printoptions()['suppress']
+    np.set_printoptions(suppress=True)
     doctest.testmod()
+    np.set_printoptions(suppress=start_suppress)
 
 if __name__ == '__main__':
     _test()
-    #Extended example:
     import numpy as np
     import pysal
-    db = pysal.open("examples/greene21_1.csv",'r')
-    var = {}
-    var['y']="GRADE"
-    var['x']=("GPA","TUCE","PSI")
-    y = np.array(db.by_col(var['y']))
+    db = pysal.open(pysal.examples.get_path('greene21_1.csv'),'r')
+    var_x = ["GPA","TUCE","PSI"]
+    y = np.array(db.by_col("GRADE"))
     y = np.reshape(y, (y.shape[0],1))
     X = []
-    for i in var['x']:
+    for i in var_x:
         X.append(db.by_col(i))
-
     X = np.array(X).T
-    w = pysal.lat2W(8,4) #Optional fictional weights matrix to run spatial tests
+    w = pysal.lat2W(8,4) #Optional artificial weights matrix to run spatial tests
     w.transform='r'
     probit1=probit(y,X,scalem='xmean',w=w)
     if probit1.warning:
         print "Maximum number of iterations exceeded or gradient and/or function calls not changing."
     print "Dependent variable: GRADE"
     print "Variable  Coef.  S.E.  Z-Stat. p-Value Slope Slope_SD"
-    print "Constant %5.4f %5.4f %5.4f %5.4f" % (probit1.betas[0],np.sqrt(probit1.vm.diagonal())[0],probit1.Zstat[0][0],probit1.Zstat[0][1])
-    for i in range(len(var['x'])):
-        print "%-9s %5.4f %5.4f %5.4f %5.4f %5.4f %5.4f" % (var['x'][i],probit1.betas[i+1],np.sqrt(probit1.vm.diagonal())[i+1],probit1.Zstat[i+1][0],probit1.Zstat[i+1][1],probit1.slopes[i],np.sqrt(probit1.slopes_vm.diagonal())[i])
+    print "Constant %5.4f %5.4f %5.4f %5.4f" % (probit1.betas[0],np.sqrt(probit1.vm.diagonal())[0],probit1.z_stat[0][0],probit1.z_stat[0][1])
+    for i in range(len(var_x)):
+        print "%-9s %5.4f %5.4f %5.4f %5.4f %5.4f %5.4f" % (var_x[i],probit1.betas[i+1],np.sqrt(probit1.vm.diagonal())[i+1],probit1.z_stat[i+1][0],probit1.z_stat[i+1][1],probit1.slopes[i],np.sqrt(probit1.slopes_vm.diagonal())[i])
     print "Log-Likelihood:", round(probit1.logl,4)
     print "LR test:", round(probit1.LR[0],3), "; pvalue:", round(probit1.LR[1],4)
-    print "% correctly predicted:", round(probit1.predpc,2),"%"
-    print "Spatial tests use fictional weights matrix:"
+    print "% correctly predicted:", round(probit1.predpc,2),"%\n"
+    print "Spatial tests (using artificial weights matrix):"
     print "Pinkse Spatial Error:", round(probit1.Pinkse_error[0],3), "; pvalue:", round(probit1.Pinkse_error[1],4)
     print "Pinkse Spatial Lag:", round(probit1.Pinkse_lag[0],3), "; pvalue:", round(probit1.Pinkse_lag[1],4)
     print "KP Spatial Error:", round(probit1.KP_error[0],3), "; pvalue:", round(probit1.KP_error[1],4)
