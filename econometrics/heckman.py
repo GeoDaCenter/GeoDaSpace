@@ -5,7 +5,7 @@ from scipy.stats import norm
 #import scipy.sparse as SP
 #from math import pi
 import time
-from probit import probit, newton, moran_KP
+from probit import BaseProbit, newton, moran_KP
 from pysal.spreg.ols import BaseOLS
 
 class heckman:
