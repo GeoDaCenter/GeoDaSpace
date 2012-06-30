@@ -88,7 +88,8 @@ class BaseProbit:
 
     References
     ----------
-    .. [1] Pinkse, J. (2004). Moran-flavored tests with nuisance parameter. In: Anselin,
+    .. [1] Pinkse, J. (2004). Moran-
+flavored tests with nuisance parameter. In: Anselin,
     L., Florax, R. J., Rey, S. J. (editors) Advances in Spatial Econometrics,
     pages 67-77. Springer-Verlag, Heidelberg.
     .. [2] Kelejian, H., Prucha, I. (2001) "On the asymptotic distribution of the
@@ -154,6 +155,21 @@ class BaseProbit:
                 rs[i] = (zStat[i],norm.sf(abs(zStat[i]))*2)
             self._cache['z_stat'] = rs.values()
         return self._cache['z_stat']
+    @property
+    def slopes_std_err(self):
+        if 'slopes_std_err' not in self._cache:
+            variance = self.slopes_vm.diagonal() 
+            self._cache['slopes_std_err'] = np.sqrt(variance)
+        return self._cache['slopes_std_err'] 
+    @property
+    def slopes_z_stat(self):
+        if 'slopes_z_stat' not in self._cache:
+            zStat = self.slopes.reshape(len(self.slopes),)/self.slopes_std_err
+            rs = {}
+            for i in range(len(self.slopes)):
+                rs[i] = (zStat[i],norm.sf(abs(zStat[i]))*2)
+            self._cache['slopes_z_stat'] = rs.values()
+        return self._cache['slopes_z_stat']    
     @property
     def xmean(self):
         if 'xmean' not in self._cache:
@@ -385,7 +401,8 @@ class Probit(BaseProbit):
                    
     References
     ----------
-    .. [1] Pinkse, J. (2004). Moran-flavored tests with nuisance parameter. In: Anselin,
+    .. [1] Pinkse, J. (2004). Moran-
+flavored tests with nuisance parameter. In: Anselin,
     L., Florax, R. J., Rey, S. J. (editors) Advances in Spatial Econometrics,
     pages 67-77. Springer-Verlag, Heidelberg.
     .. [2] Kelejian, H., Prucha, I. (2001) "On the asymptotic distribution of the
@@ -480,12 +497,14 @@ class Probit(BaseProbit):
      ['PS_error' '2.419385' '0.119842']]
     """
     def __init__(self, y, x, w=None, optim='newton',scalem='phimean',maxiter=100,\
-                 vm=False, name_y=None, name_x=None, name_w=None, name_ds=None):
+                 vm=False, name_y=None, name_x=None, name_w=None, name_ds=None, \
+                 spat_diag=False):
 
         n = USER.check_arrays(y, x)
         USER.check_y(y, n)
         if w:
             USER.check_weights(w, y)
+            spat_diag = True
         x_constant = USER.check_constant(x)
         BaseProbit.__init__(self, y=y, x=x_constant, w=w) 
         self.title = "CLASSIC PROBIT ESTIMATOR"        
@@ -493,7 +512,7 @@ class Probit(BaseProbit):
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x)
         self.name_w = USER.set_name_w(name_w, w)
-        #SUMMARY.Probit(reg=self, w=w, vm=vm)    
+        SUMMARY.Probit(reg=self, w=w, vm=vm, spat_diag=spat_diag)    
 
 def newton(flogl,start,fgrad,fhess,maxiter):
     """
@@ -603,21 +622,10 @@ if __name__ == '__main__':
     import pysal
     dbf = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
     y = np.array([dbf.by_col('CRIME')]).T
-    x = np.array([dbf.by_col('INC'), dbf.by_col('HOVAL')]).T
+    var_x = ['INC', 'HOVAL']
+    x = np.array([dbf.by_col(name) for name in var_x]).T    
     w = pysal.open(pysal.examples.get_path("columbus.gal"), 'r').read()
     w.transform='r'
-    probit1 = Probit((y>35).astype(float), x, w=w)    
-    if probit1.warning:
-        print "Maximum number of iterations exceeded or gradient and/or function calls not changing."
-    print "Dependent variable: CRIME"
-    print "Variable  Coef.  S.E.  Z-Stat. p-Value Slope Slope_SD"
-    print "%-9s %5.4f %5.4f %5.4f %5.4f" % ("Constant",probit1.betas[0],np.sqrt(probit1.vm.diagonal())[0],probit1.z_stat[0][0],probit1.z_stat[0][1])
-    for i in range(x.shape[1]-1):
-        print "%-9s %5.4f %5.4f %5.4f %5.4f %5.4f %5.4f" % (var_x[i],probit1.betas[i+1],np.sqrt(probit1.vm.diagonal())[i+1],probit1.z_stat[i+1][0],probit1.z_stat[i+1][1],probit1.slopes[i],np.sqrt(probit1.slopes_vm.diagonal())[i])
-    print "Log-Likelihood:", round(probit1.logl,4)
-    print "LR test:", round(probit1.LR[0],3), "; pvalue:", round(probit1.LR[1],4)
-    print "% correctly predicted:", round(probit1.predpc,2),"%\n"
-    print "Spatial tests:"
-    print "Pinkse Spatial Error:", round(probit1.Pinkse_error[0],3), "; pvalue:", round(probit1.Pinkse_error[1],4)
-    print "KP Spatial Error:", round(probit1.KP_error[0],3), "; pvalue:", round(probit1.KP_error[1],4)
-    print "PS Spatial Error:", round(probit1.PS_error[0],3), "; pvalue:", round(probit1.PS_error[1],4)    
+    probit1 = Probit((y>35).astype(float), x, w=w, name_x=var_x, name_y="CRIME",\
+                     name_ds="Columbus", name_w="columbus.dbf")    
+    print probit1.summary
