@@ -15,7 +15,7 @@ import user_output as USER
 import summary_output as SUMMARY
 import twosls as TSLS
 import utils as UTILS
-from utils import RegressionPropsY, spdot, set_endog
+from utils import RegressionPropsY, spdot, set_endog, sphstack
 from scipy import sparse as SP
 from pysal import lag_spatial
 
@@ -520,7 +520,7 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
             self.u = self.y - self.predy
 
             #2b. GMM --> \hat{\lambda}
-            vc2 = get_vc_het_tsls(w, self, lambda_old, tsls_s.pfora1a2, np.hstack((xs,yend_s)), inv_method)
+            vc2 = get_vc_het_tsls(w, self, lambda_old, tsls_s.pfora1a2, sphstack(xs,yend_s), inv_method)
             moments_i = UTILS._moments2eqs(w.A1, w.sparse, self.u)
             lambda3 = UTILS.optim_moments(moments_i, vc2)
             eps = abs(lambda3 - lambda_old)
@@ -1458,7 +1458,7 @@ def get_Omega_GS2SLS(w, lamb, reg, G, psi, P):
     sigma=get_psi_sigma(w, reg.u, lamb)
     psi_dd_1=(1.0/w.n) * reg.h.T * sigma 
     psi_dd = spdot(psi_dd_1, reg.h)
-    psi_dl=np.dot(psi_dd_1,np.hstack((a1,a2)))
+    psi_dl=spdot(psi_dd_1,np.hstack((a1,a2)))
     psi_o=np.hstack((np.vstack((psi_dd, psi_dl.T)), np.vstack((psi_dl, psi))))
     psii=la.inv(psi)
    
