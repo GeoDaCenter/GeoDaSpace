@@ -97,25 +97,6 @@ class BaseOLS(RegressionPropsY, RegressionPropsVM):
            [  -2.15109867,    0.06809568,    0.03336939]])
     """
     def __init__(self, y, x, robust=None, gwk=None, sig2n_k=True):
-
-        ##################################################################
-        # All this can be deleted after regimes are moved to a new file ##
-        ##################################################################
-        '''
-        self.x = x
-        if type(x).__name__ == 'ndarray':
-            if constant:
-                self.x = np.hstack((np.ones(y.shape), x))
-        '''
-        #################
-        # these lines allow us to test spdot throughout spreg
-        #if constant:
-        #    self.x = sphstack(np.ones(y.shape),x)
-        #else:
-        #    self.x = x
-        #################
-        ##################################################################
-        ##################################################################
         self.x = x
         self.xtx = spdot(self.x.T, self.x)
         xty = spdot(self.x.T, y)
@@ -754,10 +735,18 @@ if __name__ == '__main__':
     X.append(db.by_col("CRIME"))
     X = np.array(X).T
     regimes = db.by_col("NSA")
+    brk = int(y.shape[0]/2)
+    regimes = [1] * y.shape[0]; regimes[:brk] = [0]*brk
     olsr = OLS_Regimes(y, X, regimes, nonspat_diag=False)
     olsr.betas
     olsr.std_err
     olsr.cols2regi
 
+    x1 = X[:brk, :]
+    y1 = y[:brk, :]
+    ols1 = OLS(y1, x1)
 
+    x2 = X[brk:, :]
+    y2 = y[brk:, :]
+    ols2 = OLS(y2, x2)
 
