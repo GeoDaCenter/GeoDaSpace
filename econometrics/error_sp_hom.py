@@ -1360,7 +1360,9 @@ def get_vc_hom(w, reg, lambdapar, z_s=None, for_omegaOLS=False):
         x_s = get_spFilter(w, lambdapar, reg.x)
         p = la.inv(spdot(x_s.T, x_s) / n)
 
-    if issubclass(type(z_s), np.ndarray):
+    if issubclass(type(z_s), np.ndarray) or \
+            issubclass(type(z_s), SP.csr.csr_matrix) or \
+            issubclass(type(z_s), SP.csc.csc_matrix):
         alpha1 = (-2/n) * spdot(z_s.T, w.A1 * u_s)
         alpha2 = (-2/n) * spdot(z_s.T, w.A2 * u_s)
 
@@ -1424,6 +1426,7 @@ def get_omega_hom(w, reg, lamb, G):
     psi, a1, a2, p = get_vc_hom(w, reg, lamb, z_s)
     j = np.dot(G, np.array([[1.], [2*lamb]]))
     psii = la.inv(psi)
+    t2 = spdot(reg.h.T, np.hstack((a1, a2)))
     psiDL = (mu3 * spdot(reg.h.T, np.hstack((vecdA1, np.zeros((n, 1))))) + \
             sig2 * spdot(reg.h.T, np.hstack((a1, a2)))) / n
 
