@@ -107,24 +107,24 @@ flavored tests with nuisance parameter. In: Anselin,
     >>> x = np.hstack((np.ones(y.shape),x))
     >>> w = pysal.open(pysal.examples.get_path("columbus.gal"), 'r').read()
     >>> w.transform='r'
-    >>> model = BaseProbit((y>35).astype(float), x, w=w)    
+    >>> model = BaseProbit((y>40).astype(float), x, w=w)    
     >>> np.around(model.betas, decimals=6)
-    array([[ 3.68175 ],
-           [-0.208836],
-           [-0.023729]])
+    array([[ 3.353811],
+           [-0.199653],
+           [-0.029514]])
            
     >>> np.around(model.vm, decimals=6)
-    array([[ 0.805214, -0.040256, -0.006573],
-           [-0.040256,  0.003529, -0.000145],
-           [-0.006573, -0.000145,  0.000235]])
+    array([[ 0.852814, -0.043627, -0.008052],
+           [-0.043627,  0.004114, -0.000193],
+           [-0.008052, -0.000193,  0.00031 ]])
 
     >>> tests = np.array([['Pinkse_error','KP_error','PS_error']])
     >>> stats = np.array([[model.Pinkse_error[0],model.KP_error[0],model.PS_error[0]]])
     >>> pvalue = np.array([[model.Pinkse_error[1],model.KP_error[1],model.PS_error[1]]])
     >>> print np.hstack((tests.T,np.around(np.hstack((stats.T,pvalue.T)),6)))
-    [['Pinkse_error' '3.184893' '0.074322']
-     ['KP_error' '1.797088' '0.072322']
-     ['PS_error' '2.419385' '0.119842']]
+    [['Pinkse_error' '3.131719' '0.076783']
+     ['KP_error' '1.721312' '0.085194']
+     ['PS_error' '2.558166' '0.109726']]
     """
     def __init__(self,y,x,w=None,optim='newton',scalem='phimean',maxiter=100):
         self.y = y        
@@ -433,10 +433,12 @@ flavored tests with nuisance parameter. In: Anselin,
     an numpy array of shape (n, 1) as opposed to the also common shape of (n, )
     that other packages accept. Since we want to run a probit model and for this
     example we use the Columbus data, we also need to transform the continuous
-    CRIME variable into a binary variable.
+    CRIME variable into a binary variable. As in McMillen, D. (1992) "Probit with
+    spatial autocorrelation". Journal of Regional Science 32(3):335-48, we define
+    y = 1 if CRIME > 40.
 
     >>> y = np.array([dbf.by_col('CRIME')]).T
-    >>> y = (y>35).astype(float)
+    >>> y = (y>40).astype(float)
 
     Extract HOVAL (home values) and INC (income) vectors from the DBF to be used as
     independent variables in the regression.  Note that PySAL requires this to
@@ -476,14 +478,14 @@ flavored tests with nuisance parameter. In: Anselin,
     discover them.
     
     >>> np.around(model.betas, decimals=6)
-    array([[ 3.68175 ],
-           [-0.208836],
-           [-0.023729]])
+    array([[ 3.353811],
+           [-0.199653],
+           [-0.029514]])
            
     >>> np.around(model.vm, decimals=6)
-    array([[ 0.805214, -0.040256, -0.006573],
-           [-0.040256,  0.003529, -0.000145],
-           [-0.006573, -0.000145,  0.000235]])
+    array([[ 0.852814, -0.043627, -0.008052],
+           [-0.043627,  0.004114, -0.000193],
+           [-0.008052, -0.000193,  0.00031 ]])
 
     Since we have provided a spatial weigths matrix, we can also check the
     results of the tests for spatial dependence:
@@ -492,9 +494,9 @@ flavored tests with nuisance parameter. In: Anselin,
     >>> stats = np.array([[model.Pinkse_error[0],model.KP_error[0],model.PS_error[0]]])
     >>> pvalue = np.array([[model.Pinkse_error[1],model.KP_error[1],model.PS_error[1]]])
     >>> print np.hstack((tests.T,np.around(np.hstack((stats.T,pvalue.T)),6)))
-    [['Pinkse_error' '3.184893' '0.074322']
-     ['KP_error' '1.797088' '0.072322']
-     ['PS_error' '2.419385' '0.119842']]
+    [['Pinkse_error' '3.131719' '0.076783']
+     ['KP_error' '1.721312' '0.085194']
+     ['PS_error' '2.558166' '0.109726']]
     """
     def __init__(self, y, x, w=None, optim='newton',scalem='phimean',maxiter=100,\
                  vm=False, name_y=None, name_x=None, name_w=None, name_ds=None, \
@@ -626,6 +628,6 @@ if __name__ == '__main__':
     x = np.array([dbf.by_col(name) for name in var_x]).T    
     w = pysal.open(pysal.examples.get_path("columbus.gal"), 'r').read()
     w.transform='r'
-    probit1 = Probit((y>35).astype(float), x, w=w, name_x=var_x, name_y="CRIME",\
+    probit1 = Probit((y>40).astype(float), x, w=w, name_x=var_x, name_y="CRIME",\
                      name_ds="Columbus", name_w="columbus.dbf")    
     print probit1.summary
