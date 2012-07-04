@@ -466,7 +466,7 @@ flavored tests with nuisance parameter. In: Anselin,
 
     >>> w.transform='r'
 
-    We are all set with the preliminars, we are good to run the model. In this
+    We are all set with the preliminaries, we are good to run the model. In this
     case, we will need the variables and the weights matrix. If we want to
     have the names of the variables printed in the output summary, we will
     have to pass them in as well, although this is optional. 
