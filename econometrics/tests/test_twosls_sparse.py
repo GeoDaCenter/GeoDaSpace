@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import pysal
-import econometrics
+from econometrics.twosls import TSLS, BaseTSLS
 from scipy import sparse as SP
 
 
@@ -23,7 +23,7 @@ class TestBaseTSLS(unittest.TestCase):
         self.q = np.array(self.q).T
 
     def test_basic(self):
-        reg = econometrics.twosls.BaseTSLS(self.y, self.X, self.yd, self.q)
+        reg = BaseTSLS(self.y, self.X, self.yd, self.q)
         betas = np.array([[ 88.46579584], [  0.5200379 ], [ -1.58216593]])
         np.testing.assert_array_almost_equal(reg.betas, betas, 7)
         h_0 = np.array([  1.   ,  19.531,   5.03 ])
@@ -77,7 +77,7 @@ class TestBaseTSLS(unittest.TestCase):
         np.testing.assert_array_almost_equal(reg.zthhthi, zthhthi, 7)
         
     def test_n_k(self):
-        reg = econometrics.twosls.BaseTSLS(self.y, self.X, self.yd, self.q, sig2n_k=True)
+        reg = BaseTSLS(self.y, self.X, self.yd, self.q, sig2n_k=True)
         betas = np.array([[ 88.46579584], [  0.5200379 ], [ -1.58216593]])
         np.testing.assert_array_almost_equal(reg.betas, betas, 7)
         vm = np.array([[ 243.99486949,   11.04572682,  -10.16711028],
@@ -86,7 +86,7 @@ class TestBaseTSLS(unittest.TestCase):
         np.testing.assert_array_almost_equal(reg.vm, vm, 7)
 
     def test_white(self):
-        reg = econometrics.twosls.BaseTSLS(self.y, self.X, self.yd, self.q, robust='white')
+        reg = BaseTSLS(self.y, self.X, self.yd, self.q, robust='white')
         betas = np.array([[ 88.46579584], [  0.5200379 ], [ -1.58216593]])
         np.testing.assert_array_almost_equal(reg.betas, betas, 7)
         vm = np.array([[ 208.27139316,   15.6687805 ,  -11.53686154],
@@ -96,7 +96,7 @@ class TestBaseTSLS(unittest.TestCase):
 
     def test_hac(self):
         gwk = pysal.kernelW_from_shapefile(pysal.examples.get_path('columbus.shp'),k=15,function='triangular', fixed=False)
-        reg = econometrics.twosls.BaseTSLS(self.y, self.X, self.yd, self.q, robust='hac', gwk=gwk)
+        reg = BaseTSLS(self.y, self.X, self.yd, self.q, robust='hac', gwk=gwk)
         betas = np.array([[ 88.46579584], [  0.5200379 ], [ -1.58216593]])
         np.testing.assert_array_almost_equal(reg.betas, betas, 7)
         vm = np.array([[ 231.07254978,   15.42050291,  -11.3941033 ],
@@ -121,7 +121,7 @@ class TestTSLS(unittest.TestCase):
         self.q = np.array(self.q).T
 
     def test_basic(self):
-        reg = econometrics.twosls.TSLS(self.y, self.X, self.yd, self.q)
+        reg = TSLS(self.y, self.X, self.yd, self.q)
         betas = np.array([[ 88.46579584], [  0.5200379 ], [ -1.58216593]])
         np.testing.assert_array_almost_equal(reg.betas, betas, 7)
         h_0 = np.array([  1.   ,  19.531,   5.03 ])
@@ -182,7 +182,7 @@ class TestTSLS(unittest.TestCase):
         self.assertEqual(reg.title, title)
         
     def test_n_k(self):
-        reg = econometrics.twosls.TSLS(self.y, self.X, self.yd, self.q, sig2n_k=True)
+        reg = TSLS(self.y, self.X, self.yd, self.q, sig2n_k=True)
         betas = np.array([[ 88.46579584], [  0.5200379 ], [ -1.58216593]])
         np.testing.assert_array_almost_equal(reg.betas, betas, 7)
         vm = np.array([[ 243.99486949,   11.04572682,  -10.16711028],
@@ -191,7 +191,7 @@ class TestTSLS(unittest.TestCase):
         np.testing.assert_array_almost_equal(reg.vm, vm, 7)
 
     def test_white(self):
-        reg = econometrics.twosls.TSLS(self.y, self.X, self.yd, self.q, robust='white')
+        reg = TSLS(self.y, self.X, self.yd, self.q, robust='white')
         betas = np.array([[ 88.46579584], [  0.5200379 ], [ -1.58216593]])
         np.testing.assert_array_almost_equal(reg.betas, betas, 7)
         vm = np.array([[ 208.27139316,   15.6687805 ,  -11.53686154],
@@ -202,7 +202,7 @@ class TestTSLS(unittest.TestCase):
 
     def test_hac(self):
         gwk = pysal.kernelW_from_shapefile(pysal.examples.get_path('columbus.shp'),k=5,function='triangular', fixed=False)
-        reg = econometrics.twosls.TSLS(self.y, self.X, self.yd, self.q, robust='hac', gwk=gwk)
+        reg = TSLS(self.y, self.X, self.yd, self.q, robust='hac', gwk=gwk)
         betas = np.array([[ 88.46579584], [  0.5200379 ], [ -1.58216593]])
         np.testing.assert_array_almost_equal(reg.betas, betas, 7)
         vm = np.array([[ 225.0795089 ,   17.11660041,  -12.22448566],
@@ -213,7 +213,7 @@ class TestTSLS(unittest.TestCase):
 
     def test_spatial(self):
         w = pysal.queen_from_shapefile(pysal.examples.get_path('columbus.shp'))
-        reg = econometrics.twosls.TSLS(self.y, self.X, self.yd, self.q, spat_diag=True, w=w)
+        reg = TSLS(self.y, self.X, self.yd, self.q, spat_diag=True, w=w)
         betas = np.array([[ 88.46579584], [  0.5200379 ], [ -1.58216593]])
         np.testing.assert_array_almost_equal(reg.betas, betas, 7)
         vm = np.array([[ 229.05640809,   10.36945783,   -9.54463414],
@@ -233,7 +233,7 @@ class TestTSLS(unittest.TestCase):
         name_w = 'queen'
         name_gwk = 'k=5'
         name_ds = 'columbus'
-        reg = econometrics.twosls.TSLS(self.y, self.X, self.yd, self.q,
+        reg = TSLS(self.y, self.X, self.yd, self.q,
                 spat_diag=True, w=w, robust='hac', gwk=gwk,
                 name_x=name_x, name_y=name_y, name_q=name_q, name_w=name_w,
                 name_yend=name_yend, name_gwk=name_gwk, name_ds=name_ds)
