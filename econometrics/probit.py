@@ -10,6 +10,9 @@ import scipy.sparse as SP
 import user_output as USER
 import summary_output as SUMMARY
 
+__all__ = ["Probit"]
+
+
 class BaseProbit: 
     """
     Probit class to do all the computations
@@ -308,7 +311,7 @@ flavored tests with nuisance parameter. In: Anselin,
 
 class Probit(BaseProbit): 
     """
-    Probit class to do all the computations
+    Probit with results and diagnostics.
 
     Parameters
     ----------
@@ -401,8 +404,7 @@ class Probit(BaseProbit):
                    
     References
     ----------
-    .. [1] Pinkse, J. (2004). Moran-
-flavored tests with nuisance parameter. In: Anselin,
+    .. [1] Pinkse, J. (2004). Moran-flavored tests with nuisance parameter. In: Anselin,
     L., Florax, R. J., Rey, S. J. (editors) Advances in Spatial Econometrics,
     pages 67-77. Springer-Verlag, Heidelberg.
     .. [2] Kelejian, H., Prucha, I. (2001) "On the asymptotic distribution of the
