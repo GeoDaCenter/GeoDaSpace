@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import pysal
-import pysal.spreg.diagnostics as D
+import econometrics.diagnostics as D
 import econometrics
 
 class TestBaseGMLag(unittest.TestCase):
