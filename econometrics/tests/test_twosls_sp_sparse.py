@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import pysal
 import econometrics
-import pysal.spreg.diagnostics as D
+import econometrics.diagnostics as D
 from scipy import sparse as SP
 
 

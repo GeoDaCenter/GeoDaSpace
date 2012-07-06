@@ -7,7 +7,6 @@ import numpy.linalg as la
 import user_output as USER
 import summary_output as SUMMARY
 import robust as ROBUST
-import regimes as REGI
 from utils import spdot, sphstack, RegressionPropsY, RegressionPropsVM
 
 __all__ = ["OLS"]
