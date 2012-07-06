@@ -564,10 +564,44 @@ def spdot(a,b, array_out=True):
             or type(a).__name__ == 'csc_matrix' or type(b).__name__ == 'csc_matrix':
         ab = a*b
         if array_out:
-            if type(ab).__name__ == 'csc_matrix' or type(ab).__name__ == 'csc_matrix':
+            if type(ab).__name__ == 'csc_matrix' or type(ab).__name__ == 'csr_matrix':
                 ab = ab.toarray()
     else:
         raise Exception, "Invalid format for 'spdot' argument: %s and %s"%(type(a).__name__, type(b).__name__)
+    return ab
+
+def spmultiply(a, b, array_out=True):
+    """
+    Element-wise multiplication function to deal with sparse and dense
+    objects. Both objects must be of the same type.
+
+    Parameters
+    ----------
+
+    a           : array
+                  first multiplication factor. Can either be sparse or dense.
+    b           : array
+                  second multiplication factor. Can either be sparse or dense.
+                  integer.
+    array_out   : boolean
+                  If True (default) the output object is always a np.array
+
+    Returns
+    -------
+
+    ab : array
+         elementwise multiplied object. Sparse if a is sparse. Dense otherwise.
+    """  
+    if type(a).__name__ == 'ndarray' and type(b).__name__ == 'ndarray':
+        ab = a*b
+    elif (type(a).__name__ == 'csr_matrix' or type(a).__name__ == 'csc_matrix') \
+         and (type(b).__name__ == 'csr_matrix' or type(b).__name__ == 'csc_matrix'):
+        ab = a.multiply(b)
+        if array_out:
+            if type(ab).__name__ == 'csc_matrix' or type(ab).__name__ == 'csr_matrix':
+                ab = ab.toarray()
+    else:
+        raise Exception, "Invalid format for 'spmultiply' argument: %s and %s"%(type(a).__name__, type(b).__name__)
     return ab
 
 def sphstack(a,b, array_out=False):

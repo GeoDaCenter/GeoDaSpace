@@ -14,13 +14,13 @@ from scipy.sparse.csr import csr_matrix
 __all__ = []
 
 
-##############################################################################
-############### Helper functions for running summary diagnostics #############
-##############################################################################
+###############################################################################
+############### Primary functions for running summary diagnostics #############
+###############################################################################
 
 """
 This section contains one function for each user level regression class. These
-are called directly from the user class. Each one mix and matches smaller
+are called directly from the user class. Each one mixes and matches smaller
 functions located later in this module.
 """
 
