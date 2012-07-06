@@ -2,6 +2,8 @@
 test_ols.py related to regimes."""
 
 
+'''
+commenting out entire code so the testing module doesn't find it :)
 
 
 import regimes as REGI
@@ -397,4 +399,4 @@ if __name__ == '__main__':
                 0.0022611435827165284,7)
 
 
-
+'''
