@@ -311,7 +311,14 @@ flavored tests with nuisance parameter. In: Anselin,
 
 class Probit(BaseProbit): 
     """
-    Probit with results and diagnostics.
+    Classic non-spatial Probit and spatial diagnostics. The class includes a
+    printout that formats all the results and tests in a nice format.
+
+    The diagnostics for spatial dependence currently implemented are:
+
+        * Pinkse Error [1]_
+        * Kelejian and Prucha Moran's I [2]_
+        * Pinkse & Slade Error [3]_
 
     Parameters
     ----------
@@ -489,8 +496,9 @@ class Probit(BaseProbit):
            [-0.043627,  0.004114, -0.000193],
            [-0.008052, -0.000193,  0.00031 ]])
 
-    Since we have provided a spatial weigths matrix, we can also check the
-    results of the tests for spatial dependence:
+    Since we have provided a spatial weigths matrix, the diagnostics for
+    spatial dependence have also been computed. We can access them and their
+    p-values individually:
 
     >>> tests = np.array([['Pinkse_error','KP_error','PS_error']])
     >>> stats = np.array([[model.Pinkse_error[0],model.KP_error[0],model.PS_error[0]]])
@@ -499,6 +507,50 @@ class Probit(BaseProbit):
     [['Pinkse_error' '3.131719' '0.076783']
      ['KP_error' '1.721312' '0.085194']
      ['PS_error' '2.558166' '0.109726']]
+
+    Or we can easily obtain a full summary of all the results nicely formatted and
+    ready to be printed simply by typing:
+
+    >>> print model.summary
+    REGRESSION
+    ----------
+    SUMMARY OF OUTPUT: CLASSIC PROBIT ESTIMATOR ESTIMATION
+    ------------------------------------------------------
+    Data set            :      unknown
+    Weights matrix      :      unknown
+    Dependent Variable  :     dep_var  Number of Observations:          49
+    <BLANKLINE>
+    % correctly predicted: 85.71
+    Log-Likelihood       : -20.0601
+    LR test              : 25.3177
+    LR test (p-value)    : 0.0000
+    <BLANKLINE>
+    ----------------------------------------------------------------------------
+        Variable     Coefficient       Std.Error     z-Statistic     Probability
+    ----------------------------------------------------------------------------
+        CONSTANT       3.3538108       0.9234792       3.6317122     0.000281547
+           var_1      -0.1996531       0.0641390      -3.1128178     0.001853104
+           var_2      -0.0295137       0.0175972      -1.6771855      0.09350621
+    ----------------------------------------------------------------------------
+    <BLANKLINE>
+    DIAGNOSTICS FOR SPATIAL DEPENDENCE
+    TEST                      MI/DF      VALUE          PROB
+    Kelejian-Prucha (error)     1        1.721312       0.0851942
+    Pinkse (error)              1        3.131719       0.0767828
+    Pinkse-Slade (error)        1        2.558166       0.1097258
+    <BLANKLINE>
+    <BLANKLINE>
+    MARGINAL EFFECTS
+    Method: Mean of individual marginal effects
+    ----------------------------------------------------------------------------
+        Variable           Slope       Std.Error     z-Statistic     Probability
+    ----------------------------------------------------------------------------
+           var_1      -0.0465378       0.0133080      -3.4969848    0.0004705486
+           var_2      -0.0068794       0.0040072      -1.7167785      0.08601965
+    <BLANKLINE>
+    <BLANKLINE>
+    ========================= END OF REPORT ==============================
+
     """
     def __init__(self, y, x, w=None, optim='newton',scalem='phimean',maxiter=100,\
                  vm=False, name_y=None, name_x=None, name_w=None, name_ds=None, \
@@ -632,4 +684,4 @@ if __name__ == '__main__':
     w.transform='r'
     probit1 = Probit((y>40).astype(float), x, w=w, name_x=var_x, name_y="CRIME",\
                      name_ds="Columbus", name_w="columbus.dbf")    
-    print probit1.summary
+    #print probit1.summary
