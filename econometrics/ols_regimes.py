@@ -2,12 +2,13 @@
 test_ols.py related to regimes."""
 
 
-'''
-commenting out entire code so the testing module doesn't find it :)
-
+#'''
+#commenting out entire code so the testing module doesn't find it :)
 
 import regimes as REGI
-
+import user_output as USER
+from ols import BaseOLS
+import summary_output as SUMMARY
 
 
 class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
@@ -399,4 +400,4 @@ if __name__ == '__main__':
                 0.0022611435827165284,7)
 
 
-'''
+#'''
