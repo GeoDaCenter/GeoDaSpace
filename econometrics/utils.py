@@ -673,6 +673,56 @@ def spbroadcast(a,b, array_out=False):
         raise Exception, "Invalid format for 'spbroadcast' argument: %s and %s"%(type(a).__name__, type(b).__name__)
     return ab
 
+def spmin(a):
+    """
+    Minimum value in a matrix or vector to deal with sparse and dense objects
+
+    Parameters
+    ----------
+
+    a           : array or sparse matrix
+                  Object with one or more columns.
+
+    Returns
+    -------
+
+    min a       : int or float
+                  minimum value in a
+    """  
+
+
+    if type(a).__name__ == 'ndarray':
+        return a.min()
+    elif type(a).__name__ == 'csr_matrix' or type(a).__name__ == 'csc_matrix':
+        return min(a.data)
+    else:
+        raise Exception, "Invalid format for 'spmultiply' argument: %s and %s"%(type(a).__name__, type(b).__name__)
+
+def spmax(a):
+    """
+    Maximum value in a matrix or vector to deal with sparse and dense objects
+
+    Parameters
+    ----------
+
+    a           : array or sparse matrix
+                  Object with one or more columns.
+
+    Returns
+    -------
+
+    max a       : int or float
+                  maximum value in a
+    """  
+
+
+    if type(a).__name__ == 'ndarray':
+        return a.max()
+    elif type(a).__name__ == 'csr_matrix' or type(a).__name__ == 'csc_matrix':
+        return max(a.data)
+    else:
+        raise Exception, "Invalid format for 'spmultiply' argument: %s and %s"%(type(a).__name__, type(b).__name__)
+
 
 
 

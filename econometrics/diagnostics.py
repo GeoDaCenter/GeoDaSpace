@@ -8,7 +8,7 @@ import pysal
 from pysal.common import *
 import scipy.sparse as SP
 from math import sqrt
-from utils import spmultiply, sphstack
+from utils import spmultiply, sphstack, spmin, spmax
 
 
 __all__ = [ "f_stat", "t_stat", "r2", "ar2", "se_betas", "log_likelihood", "akaike", "schwarz", "condition_index", "jarque_bera", "breusch_pagan", "white", "koenker_bassett", "vif" ]
@@ -985,14 +985,19 @@ def white(reg):
             A[:,counter] = v
             counter += 1
 
-    # Append the original non-binary variables
+    # Append the original variables
     A = sphstack(X,A)   # note: this also converts a LIL to CSR
     n,k = A.shape
 
-    # Check to identify any duplicate columns in A
+    # Check to identify any duplicate or constant columns in A
     omitcolumn = []
     for i in range(k):
         current = A[:,i]
+        # remove all constant terms (will add a constant back later)
+        if spmax(current) == spmin(current):
+            omitcolumn.append(i)
+            pass
+        # do not allow duplicates
         for j in range(k):
             check = A[:,j]
             if i < j:
@@ -1013,6 +1018,7 @@ def white(reg):
         A = A[:,keepcolumn]
     else:
         raise Exception, "unknown A type, %s" %type(X).__name__
+    A = sphstack(np.ones((A.shape[0],1)), A)   # add a constant back in
     n,k = A.shape
 
     # Conduct the auxiliary regression and calculate the statistic
