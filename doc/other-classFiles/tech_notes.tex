@@ -149,7 +149,6 @@ Once again, PySAL offers the possibility of matching Stata. As shown in Listing 
 \begin{code}
 \begin{lstlisting}[label=lt:hom_end_stata,caption=Using PySAL to match the results of spatial error models with endogenous variables or spatial lag from Stata,language=Python]
 
-#Continuing from Listing \ref{lt:hom_stata}
 #Spatial error model with spatial lag:
 model = pysal.spreg.GM_Combo_Hom(hr90, np.hstack((rd90,
         ue90)), w=w, A1='hom_sc', w_lags=2)
@@ -297,9 +296,8 @@ In PySAL, these models could be estimated using the code shown in Listing \ref{l
 \begin{code}
 \begin{lstlisting}[label=lt:het_endog_stata,caption=Using PySAL to match the results of spatial error models with heteroskedasticity and endogenous variables or spatial lag from Stata,language=Python]
 
-#Continuing from Listing \ref{lt:het_stata}
 #Spatial error model with spatial lag and
-    heteroskedasticity:
+#    heteroskedasticity:
 model = pysal.spreg.GM_Combo_Het(hr90,
         np.hstack((rd90,ue90)), w=w, w_lags=2)
 print model.summary
@@ -334,9 +332,8 @@ In addition to the number of lags of the exogenouns variables to be used as inst
 \begin{code}
 \begin{lstlisting}[label=lt:het_endog_stata,caption=Using PySAL to match the results of spatial error models with heteroskedasticity and endogenous variables or spatial lag from Stata,language=Python]
 
-#Continuing from Listing \ref{lt:het_stata}
 #Spatial error model with heteroskedasticity
-    (running Step1c):
+#    (running Step1c):
 model = pysal.spreg.GM_Error_Het(hr90,
         np.hstack((rd90,ue90)), w=w, step1c=True)
 print model.summary
