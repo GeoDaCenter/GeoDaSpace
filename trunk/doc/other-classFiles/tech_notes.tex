@@ -39,7 +39,7 @@ The following spatial error models (SEM) are discussed in this document:
 
 \section{Spatial Error Models without Heteroskedasticity}
 
-To estimate the spatial error model without heteroskedasticity (the K-P-D model) in GeoDaSpace, we need only to check the box ``Spatial Error", as shown in Figure \ref{f:GS_hom}. Given the particular specification of the model since all variables as exogenous, as presented in \citet{Anselin11}, the results from GeoDaSpace do not match those from Stata or the package sphet in R. This discrepancy is due to an error in Stata for the case of a spatial error model with exogenous variables only. In Stata, the exogeneity is ignored and a two-stage least squares estimation is performed instead of the OLS. Table \ref{t:res_hom} compares the results from GeoDaSpace, Stata and R when only exogenous variables are considered.
+To estimate the spatial error model without heteroskedasticity (the K-P-D model) in GeoDaSpace, we need only to check the box ``Spatial Error", as shown in Figure \ref{f:GS_hom}. Given the particular specification of the model since all variables as exogenous, as presented in \citet{Anselin11}, the results from GeoDaSpace do not match those from Stata or the package sphet in R. This discrepancy is due to an error in Stata for the case of a spatial error model with exogenous variables only. In Stata, the exogeneity is ignored and a two-stage least squares estimation is performed instead of the OLS. Table \ref{t:res_hom} compares the results from GeoDaSpace, Stata and R (package sphet). The K-P-D method is not available in the released version of sphet (v. 1.1-12, published on CRAN on 2012-04-13). In this document, we call this version sphet1. Nonetheless, the results presented here can be obtained using the alpha version from R-Forge, revision 56, published on 2012-07-22. This newer version of the code is henceforth referred as sphet2\footnote{Given that it is an alpha version, the code is subject to change.}. when only exogenous variables are considered. The results from GeoDaSpace are also different than sphet's. 
 
 \begin{figure}[htb]
 \caption{Estimation of spatial error models using GeoDaSpace}
@@ -56,15 +56,15 @@ To estimate the spatial error model without heteroskedasticity (the K-P-D model)
 \centering
 \begin{small}
 \begin{tabular}{l|cccc} \hline
-\textbf{Variable}&\textbf{GeoDaSpace}&\textbf{sphet}&\textbf{Stata}&\textbf{PySAL$^1$}\\ \hline
-CONSTANT&62.5281&62.9096&65.1324&65.1324\\
-&(5.3748)&(5.2519)&(5.3781)&(5.3781)\\
-INC&-1.1209&-1.1494&-1.3450&-1.3450\\
-&(0.3352)&(0.3354)&(0.3549)&(0.3549)\\
-HOVAL&-0.2993&-0.2983&-0.2840&-0.2840\\
-&(0.0923)&(0.0930)&(0.0968)&(0.0968)\\
-lambda&0.5450&0.5029&0.4542&0.4542\\
-&(0.1546)&(0.1665)&(0.1821)&(0.1821)\\
+\textbf{Variable}&\textbf{GeoDaSpace}&\textbf{sphet2}&\textbf{Stata}&\textbf{PySAL$^1$}\\ \hline
+CONSTANT&8.0259&6.6762&6.9884&6.9884\\
+&(0.3601)&(0.3498)&(0.3605)&(0.3605)\\
+RD90&4.3228&3.9450&3.9945&3.9945\\
+&(0.1596)&(0.1553)&(0.1612)&(0.1612)\\
+UE90&-0.2753&-0.0770&-0.1240&-0.1240\\
+&(0.0479)&(0.0471)&(0.0490)&(0.0490)\\
+lambda&0.4572&0.4149&0.4124&0.4124\\
+&(0.0189)&(0.0194)&(0.0194)&(0.0194)\\
 \hline
 \multicolumn{5}{l}{\scriptsize{$^1$PySAL using the code to match Stata as in Listing \ref{lt:hom_stata}.}} \\
 \end{tabular}
@@ -79,15 +79,16 @@ Despite the problems with Stata's estimator, PySAL allows us to match its result
 
 import pysal
 import numpy as np
-w = pysal.open('columbus.gal').read()
+
+w = pysal.open('NAT_queen.gal').read()
 w.transform = 'r'
-db = pysal.open('columbus.dbf')
-crime = np.array([db.by_col('CRIME')]).T
-inc = np.array([db.by_col('INC')]).T
-hoval = np.array([db.by_col('HOVAL')]).T
+db = pysal.open('NAT.dbf')
+hr90 = np.array([db.by_col('HR90')]).T
+rd90 = np.array([db.by_col('RD90')]).T
+ue90 = np.array([db.by_col('UE90')]).T
 
 ones = np.ones(crime.shape)
-model = pysal.spreg.BaseGM_Endog_Error_Hom(crime, ones,
+model = pysal.spreg.BaseGM_Endog_Error_Hom(hr90, ones,
         yend=x, q=x, w=w, A1='hom_sc')
 
 print model.betas
@@ -113,7 +114,7 @@ If we have endogenous variables, or a spatial lag, the problem in Stata's code n
 \begin{small}
 \begin{tabular}{l|cccc} \hline
 \multicolumn{5}{c}{\textbf{Spatial error with HOVAL as endogenous variable}} \\ \hline
-\textbf{Variable}&\textbf{GeoDaSpace}&\textbf{sphet}&\textbf{Stata}&\textbf{PySAL$^1$}\\ \hline
+\textbf{Variable}&\textbf{GeoDaSpace}&\textbf{sphet2}&\textbf{Stata}&\textbf{PySAL$^1$}\\ \hline
 CONSTANT&82.2068&&82.5747&\\
 &(16.3992)&&(16.3797)&\\
 INC&0.5785&&0.5810&\\
@@ -124,20 +125,21 @@ lambda&0.3910&&0.3765&\\
 &(0.1962)&&(0.1921)&\\
 \hline
 \multicolumn{5}{c}{\textbf{Spatial error with spatial lag}} \\ \hline
-\textbf{Variable}&\textbf{GeoDaSpace}&\textbf{sphet}&\textbf{Stata}&\textbf{PySAL$^1$}\\ \hline
-CONSTANT&43.9183&43.5383&43.5383&43.5383\\
-&(10.6318)&(10.4946)&(10.4946)&(10.4946)\\
-INC&-0.9949&-1.0040&-1.0040&-1.0040\\
-&(0.3672)&(0.3650)&(0.3650)&(0.3650)\\
-HOVAL&-0.2695&-0.2644&-0.2644&-0.2644\\
-&(0.0892)&(0.0892)&(0.0892)&(0.0892)\\
-W\_CRIME&0.4528&0.4617&0.4617&0.4617\\
-&(0.1857)&(0.1832)&(0.1832)&(0.1832)\\
-lambda&0.0720&0.0768&0.0767&0.0767\\
-&(0.3387)&(0.3427)&(0.3427)&(0.3427)\\
+\textbf{Variable}&\textbf{GeoDaSpace$^3$}&\textbf{sphet2}&\textbf{Stata}&\textbf{PySAL$^1$}\\ \hline
+CONSTANT&6.9406&6.9362&6.9362&6.9362\\
+&(0.5327)&(0.5120)&(0.5120)&(0.5120)\\
+RD90&4.0074&4.0061&4.0061&4.0061\\
+&(0.1758)&(0.1764)&(0.1764)&(0.1764)\\
+UE90&-0.0957&-0.0978&-0.0978&-0.0978\\
+&(0.0490)&(0.0481)&(0.0481)&(0.0481)\\
+W\_HR90&-0.0220&-0.0190&-0.0190&-0.0190\\
+&(0.0543)&(0.0513)&(0.0513)&(0.0513)\\
+lambda&0.5098&0.4364&0.4364&0.4364\\
+&(0.0376)&(0.0421)&(0.0421)&(0.0421)\\
 \hline
 \multicolumn{5}{l}{\scriptsize{$^1$PySAL using the code to match Stata as in Listing \ref{lt:hom_end_stata}.}} \\
 \multicolumn{5}{l}{\scriptsize{$^2$DISCBD is used to instrument HOVAL.}} \\
+\multicolumn{5}{l}{\scriptsize{$^3$GeoDaSpace using 2 spatial lags for the instruments.}} \\
 \end{tabular}
 \end{small}
 \end{table}
@@ -147,17 +149,18 @@ Once again, PySAL offers the possibility of matching Stata. As shown in Listing 
 \begin{code}
 \begin{lstlisting}[label=lt:hom_end_stata,caption=Using PySAL to match the results of spatial error models with endogenous variables or spatial lag from Stata,language=Python]
 
+#Continuing from Listing \ref{lt:hom_stata}
 #Spatial error model with spatial lag:
-model = pysal.spreg.GM_Combo_Hom(crime, np.hstack((inc,
-        hoval)), w=w, A1='hom_sc', w_lags=2)
+model = pysal.spreg.GM_Combo_Hom(hr90, np.hstack((rd90,
+        ue90)), w=w, A1='hom_sc', w_lags=2)
 print model.summary
 
-#Adding instrument 'DISCBD':
-discbd = np.array([db.by_col('DISCBD')]).T
+#Adding instrument 'FP89':
+fp89 = np.array([db.by_col('FP89')]).T
 
-#Spatial error model with HOVAL as endogenous variable:
-model = pysal.spreg.GM_Endog_Error_Hom(crime, inc,
-        yend=hoval, q=discbd, w=w, A1='hom_sc')
+#Spatial error model with UE90 as endogenous variable:
+model = pysal.spreg.GM_Endog_Error_Hom(hr90, rd90,
+        yend=ue90, q=fp89, w=w, A1='hom_sc')
 print model.summary
 
 \end{lstlisting}
@@ -175,25 +178,25 @@ To estimate a spatial error model with heteroskedasticity in GeoDaSpace, we need
 \end{center}
 \end{figure}
 
-As in the case with no heteroskedasticity, Stata's code has an error in the estimation of the spatial error model with exogenous variables only. Therefore, it is not possible to match the results from Stata for this specification using GeoDaSpace. Table \ref{t:res_het} compares GeoDaSpace's results against Stata and the package sphet from R. 
+As in the case with no heteroskedasticity, Stata's code has an error in the estimation of the spatial error model with exogenous variables only. Therefore, it is not possible to match the results from Stata for this specification using GeoDaSpace. Table \ref{t:res_het} compares GeoDaSpace's results against Stata and the package sphet from R. As already stated, we refer to the released version 1.1-12 of sphet as sphet1 and the updated alpha version of spreg available from R-Forge (revision 56 published on 2012-07-22) is referred as sphet2. Differently than sphet2, the version sphet1 does not allow us to skip step1c in the estimation of the method. Please check Section \ref{s:step1c} for more details on this.
 
 \begin{table}[htpb]
-\caption{Comparison of the results of spatial error models with heteroskedasticity}
+\caption{Comparison of the results of spatial error models with exogenous variables and heteroskedasticity}
 \label{t:res_het}
 \centering
 \begin{small}
-\begin{tabular}{l|cccc} \hline
-\textbf{Variable}&\textbf{GeoDaSpace}&\textbf{sphet}&\textbf{Stata}&\textbf{PySAL$^1$}\\ \hline
-CONSTANT&62.5281&62.5281&64.8724&64.8724\\
-&(4.7655)&(4.6949)&(5.2057)&(5.2058)\\
-INC&-1.1209&-1.1209&-1.3267&-1.3267\\
-&(0.4533)&(0.4530)&(0.5208)&(0.5208)\\
-HOVAL&-0.2993&-0.2993&-0.2846&-0.2846\\
-&(0.1662)&(0.1660)&(0.1733)&(0.1733)\\
-lambda&0.5483&0.5290&0.4732&0.4732\\
-&(0.1432)&(0.1627)&(0.1853)&(0.1853)\\
+\begin{tabular}{l|ccccc} \hline
+\textbf{Variable}&\textbf{GeoDaSpace}&\textbf{sphet1}&\textbf{sphet2}&\textbf{Stata}&\textbf{PySAL$^1$}\\ \hline
+CONSTANT&6.6586&6.5782&6.6586&6.9777&6.9777\\
+&(0.4749)&(0.4594)&(0.4745)&(0.4622)&(0.4622)\\
+RD90&3.9417&3.9275&3.9417&3.9911&3.9911\\
+&(0.2602)&(0.2316)&(0.2599)&(0.2326)&(0.2325)\\
+UE90&-0.0745&-0.0630&-0.0745&-0.1225&-0.1225\\
+&(0.0611)&(0.0589)&(0.0611)&(0.0592)&(0.0592)\\
+lambda&0.4753&0.4756&0.4740&0.4721&0.4721\\
+&(0.0235)&(0.0237)&(0.0237)&(0.0236)&(0.0236)\\
 \hline
-\multicolumn{5}{l}{\scriptsize{$^1$PySAL using the code to match Stata as in Listing \ref{lt:het_stata}.}} \\
+\multicolumn{6}{l}{\scriptsize{$^1$PySAL using the code to match Stata as in Listing \ref{lt:het_stata}.}} \\
 \end{tabular}
 \end{small}
 \end{table}
@@ -205,14 +208,15 @@ In PySAL, it is possible to mimic the problem in Stata's code to estimate a mode
 
 import pysal
 import numpy as np
-w = pysal.open('columbus.gal').read()
-w.transform = 'r'
-db = pysal.open('columbus.dbf')
-crime = np.array([db.by_col('CRIME')]).T
-inc = np.array([db.by_col('INC')]).T
-hoval = np.array([db.by_col('HOVAL')]).T
 
-model = pysal.spreg.BaseGM_Endog_Error_Het(crime, ones,
+w = pysal.open('NAT_queen.gal').read()
+w.transform = 'r'
+db = pysal.open('NAT.dbf')
+hr90 = np.array([db.by_col('HR90')]).T
+rd90 = np.array([db.by_col('RD90')]).T
+ue90 = np.array([db.by_col('UE90')]).T
+
+model = pysal.spreg.BaseGM_Endog_Error_Het(hr90, ones,
         yend=x, q=x, w=w)
 
 print model.summary
@@ -227,21 +231,21 @@ When the spatial error model with heteroskedasticity contains a spatial lag, the
 \label{t:res_het_combo}
 \centering
 \begin{small}
-\begin{tabular}{l|cccc} \hline
-\textbf{Variable}&\textbf{GeoDaSpace$^1$}&\textbf{Stata}&\textbf{sphet}&\textbf{PySAL$^2$}\\ \hline
-CONSTANT&43.5091&43.5091&43.5091&43.5091\\
-&(7.6312)&(7.6312)&(7.6312)&(7.6312)\\
-INC&-0.9885&-0.9885&-0.9885&-0.9885\\
-&(0.4600)&(0.4600)&(0.4600)&(0.4600)\\
-HOVAL&-0.2686&-0.2686&-0.2686&-0.2686\\
-&(0.1788)&(0.1788)&(0.1788)&(0.1788)\\
-W\_CRIME&0.4608&0.4608&0.4608&0.4608\\
-&(0.1483)&(0.1484)&(0.1483)&(0.1483)\\
-lambda&0.1014&0.1015&0.1014&0.1014\\
-&(0.3116)&(0.3116)&(0.3116)&(0.3116)\\
+\begin{tabular}{l|ccccc} \hline
+\textbf{Variable}&\textbf{GeoDaSpace$^1$}&\textbf{sphet1}&\textbf{sphet2}&\textbf{Stata}&\textbf{PySAL$^2$}\\ \hline
+CONSTANT&6.9406&7.0196&6.9406&6.9406&6.9406\\
+&(0.8600)&(0.8251)&(0.8600)&(0.8600)&(0.8600)\\
+RD90&4.0074&4.0057&4.0074&4.0074&4.0074\\
+&(0.3261)&(0.3212)&(0.3261)&(0.3261)&(0.3261)\\
+UE90&-0.0957&-0.0643&-0.0957&-0.0957&-0.0957\\
+&(0.0664)&(0.0640)&(0.0664)&(0.0664)&(0.0664)\\
+W\_HR90&-0.0220&-0.0702&-0.0220&-0.0220&-0.0220\\
+&(0.0876)&(0.0839)&(0.0876)&(0.0876)&(0.0876)\\
+lambda&0.5584&0.6399&0.5584&0.5584&0.5584\\
+&(0.0507)&(0.0460)&(0.0507)&(0.0507)&(0.0507)\\
 \hline
-\multicolumn{5}{l}{\scriptsize{$^1$GeoDaSpace using 2 spatial lags for the instruments.}} \\
-\multicolumn{5}{l}{\scriptsize{$^2$PySAL using the code to match Stata as in Listing \ref{het_endog_stata}.}} \\
+\multicolumn{6}{l}{\scriptsize{$^1$GeoDaSpace using 2 spatial lags for the instruments.}} \\
+\multicolumn{6}{l}{\scriptsize{$^2$PySAL using the code to match Stata as in Listing \ref{het_endog_stata}.}} \\
 \end{tabular}
 \end{small}
 \end{table}
@@ -293,24 +297,27 @@ In PySAL, these models could be estimated using the code shown in Listing \ref{l
 \begin{code}
 \begin{lstlisting}[label=lt:het_endog_stata,caption=Using PySAL to match the results of spatial error models with heteroskedasticity and endogenous variables or spatial lag from Stata,language=Python]
 
+#Continuing from Listing \ref{lt:het_stata}
 #Spatial error model with spatial lag and
     heteroskedasticity:
-model = pysal.spreg.GM_Combo_Het(crime,
-        np.hstack((inc,hoval)), w=w, w_lags=2)
+model = pysal.spreg.GM_Combo_Het(hr90,
+        np.hstack((rd90,ue90)), w=w, w_lags=2)
 print model.summary
 
-#Adding instrument 'DISCBD':
-discbd = np.array([db.by_col('DISCBD')]).T
+#Adding instrument 'FP89':
+fp89 = np.array([db.by_col('FP89')]).T
 
-#Spatial error model with HOVAL as endogenous variable
+#Spatial error model with UE90 as endogenous variable
     and heteroskedasticity:
-model = pysal.spreg.GM_Endog_Error_Het(crime, inc,
-        yend=hoval, q=discbd, w=w)
+model = pysal.spreg.GM_Endog_Error_Het(hr90, rd90,
+        yend=ue90, q=fp89, w=w)
 print model.summary
 
 \end{lstlisting}
 \end{code}
 
+\subsection{Step1c}
+\label{s:step1c}
 In addition to the number of lags of the exogenouns variables to be used as instruments, both GeoDaSpace and PySAL also offer the possibility to add the Step 1c in the estimation of the model as proposed by \citet{Arraiz10}. Step 1c updates the initial consistent estimation of lambda using a weighted nonlinear least squares solution to the moments equations. This results in a consistent and efficient intermediate estimation of lambda. Note however that a consistent estimation at this stage is already sufficient to obtain a consistent estimation of all parameters in the model. The option to run Step 1c can be found in the preferences panel in GeoDaSpace, as shown in Figure \ref{f:GS_pref_step1c}. In PySAL, all we have to do to select this option is add `step1c=True' to the arguments of the model.
 
 
@@ -327,22 +334,23 @@ In addition to the number of lags of the exogenouns variables to be used as inst
 \begin{code}
 \begin{lstlisting}[label=lt:het_endog_stata,caption=Using PySAL to match the results of spatial error models with heteroskedasticity and endogenous variables or spatial lag from Stata,language=Python]
 
+#Continuing from Listing \ref{lt:het_stata}
 #Spatial error model with heteroskedasticity
     (running Step1c):
-model = pysal.spreg.GM_Error_Het(crime,
-        np.hstack((inc,hoval)), w=w, step1c=True)
+model = pysal.spreg.GM_Error_Het(hr90,
+        np.hstack((rd90,ue90)), w=w, step1c=True)
 print model.summary
 
 #Spatial error model with spatial lag and
     heteroskedasticity (running Step1c):
-model = pysal.spreg.GM_Combo_Het(crime,
-        np.hstack((inc,hoval)), w=w, step1c=True)
+model = pysal.spreg.GM_Combo_Het(hr90,
+        np.hstack((rd90,ue90)), w=w, step1c=True)
 print model.summary
 
 #Spatial error model with HOVAL as endogenous variable
     and heteroskedasticity (running Step1c):
-model = pysal.spreg.GM_Endog_Error_Het(crime, inc,
-        yend=hoval, q=discbd, w=w, step1c=True)
+model = pysal.spreg.GM_Endog_Error_Het(hr90, rd90,
+        yend=ue90, q=fp89, w=w, step1c=True)
 print model.summary
 
 \end{lstlisting}
