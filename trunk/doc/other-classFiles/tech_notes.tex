@@ -1,11 +1,13 @@
 \documentclass{article}
-\title{Comparing estimation results from GeoDaSpace, Stata and R: reasons for difference and pathway for matching}
+\title{Introduction to GeoDaSpace\footnote{First published: August/2012. Last revision: August/2012.}}
 \author{}
+\date{}
 \usepackage{amsmath}
 \usepackage{natbib}
 \bibpunct{(}{)}{,}{a}{}{,}
 \usepackage{float}
 \usepackage{xcolor}
+\usepackage{amssymb} 
 \usepackage{listings}
 \usepackage{caption}
 \usepackage{hyperref}
@@ -23,32 +25,279 @@
 
 \begin{document}
 \maketitle
-\section{Introduction}
-In this document we compare the results of models with spatial error from 3 different programs: GeoDaSpace, R and Stata. Despite all the methods available in GeoDaSpace, here we show only those which yield discrepant results in GeoDaSpace in comparison with Stata. An explanation for the differences is provided. In addition, we show how to set the preferences in GeoDaSpace in order to get the same results from Stata. When this option is not available, we show how PySAL, a Python library on which GeoDaSpace is based, can be used to match Stata.
 
-The following spatial error models (SEM) are discussed in this document:
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=0.5\linewidth]{geodaspace.png}\\
+\end{center}
+\end{figure}
+
+\setcounter{secnumdepth}{3} 
+\setcounter{tocdepth}{2}   
+\tableofcontents
+\newpage
+%\listoffigures	
+%\newpage
+%\listoftables 
+
+\section{Introduction}
+\label{s:intro}
+
+GeoDaSpace is a free software to estimate spatial regressions developed by the GeoDa Center for Geostatistical Analysis and Computation\footnote{For information on the GeoDa Center, please check \url{https://geodacenter.asu.edu}}. The software provides a graphical user interface (GUI) to the spatial regression module of PySAL (spreg)\footnote{More information on PySAL can be found at \url{http://pysal.geodacenter.org/}} \citep{Rey07}, an open source library for spatial analysis written in the object oriented language Python. The main estimation methods provided by GeoDaSpace are listed in Table \ref{t:methods}. As shown in the table, GeoDaSpace is a tool for the estimation of models of Ordinary Least Squares (OLS), Two-Stage Least Squares (TSLS), GMM spatial lag, GMM spatial error and GMM spatial lag and error, including both the method proposed by \citet{Kelejian98,Kelejian99} (KP98/99) and \citet{Drukker10} (KPD). All these estimation methods provide options for spatial and non-spatial diagnostics, non-spatial endogenous variables and the treatment of heteroskedasticity using HAC or White corrections, when applicable. In addition to these, GeoDaSpace offers a wide range of utilities to create and manipulate weights matrices, including contiguity, distance (bands, knn, inverse distance) and kernel.
+
+Table \ref{t:methods} also shows the methods provided in GeoDaSpace that can be found in Stata and R. For this document we consider two different versions of the R package sphet. The first one, henceforth sphet1, is the released version of sphet (v. 1.1-12, published on CRAN on 2012-04-13). In addition to this version of sphet, we also use the alpha version from R-Forge, revision 56, published on 2012-07-22. This newer version of the code, which contains many additional methods and enhancements to sphet1, is henceforth referred as sphet2\footnote{Given that it is an alpha version, the code is subject to change.}.
+
+
+\begin{table}[htpb]
+\caption{Methods provided by GeoDaSpace and their availability in Stata or R}
+\label{t:methods}
+\centering
+\begin{small}
+\begin{tabular}{l|cccc} \hline
+\textbf{Method}&\textbf{GeoDaSpace}&\textbf{Stata}&\textbf{R$^1$}&\textbf{R$^2$}\\ \hline
+OLS&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+OLS with heteroskedasticity (White)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+OLS with heteroskedasticity (HAC)&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+TSLS&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+TSLS with heteroskedasticity (White)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+TSLS with heteroskedasticity (HAC)&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial lag&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial lag with het. (White)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial lag with het. (HAC)&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial lag with endogenous var.&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial lag with endog. var. and het. (White)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial lag with endog. var. and het. (HAC) &{\LARGE$\textcolor{blue}\bullet$}&&&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial error (KP98/99)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial error with endogenous var. (KP98/99)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&\\
+Spatial error and lag (KP98/99)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial error and lag w/ endog. var. (KP98/99)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&\\
+Spatial error (KPD)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial error with endogenous var. (KPD)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial error and lag (KPD)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial error and lag with endog. var. (KPD)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial error with heteroskedasticity&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial error with endog. var. and het.&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial error and lag with het.&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial error and lag w/ endog. var. and het.&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
+\hline
+\multicolumn{5}{l}{\scriptsize{$^1$Considering the packages spdep and sphet (v. 1.1-12, published on CRAN on 2012-04-13).}} \\
+\multicolumn{5}{l}{\scriptsize{$^2$Considering the packages spdep and sphet (revision 56, published on R-Forge on 2012-07-22).}} \\
+\end{tabular}
+\end{small}
+\end{table}
+
+The remainder of this document provides a basic introduction to the use of GeoDaSpace (Section \ref{s:GS}) . In addition to this, Section \ref{s:comparisons} presents a comparison of the estimation results using GeoDaSpace, Stata and R and explains the differences, when they occur. 
+
+\newpage
+\section{Using GeoDaSpace}
+\label{s:GS}
+\subsection{Opening a data file and specifying a model}
+
+GeoDaSpace is a stand-alone software that provides a graphical user interface (GUI) to the spatial regression module of PySAL (spreg). It is available in Windows and Mac OSx versions.  The executable file can be downloaded for free from GeoDaCenter's website: \url{https://geodacenter.asu.edu/software}. 
+
+The main GUI window is shown in Figure \ref{f:gui}. It can be divided in four sections: the menu icons (top), data and weights utilities (left), model specification (right) and model estimation (bottom). 
+
+\begin{figure}[htb]
+\caption{GeoDaSpace -- Main window}
+\label{f:gui}
+\begin{center}
+\includegraphics[width=0.8\linewidth]{GUI.png}\\
+\end{center}
+\end{figure}
+
+The menu icons on the top of the window, from left to right, are:
+\begin{itemize}
+\item Create new model
+\item Open existing model
+\item Save model
+\item Save model as...
+\item Open the variable list
+\item Show results window
+\item Show advanced settings
+\end{itemize}
+
+To start the specification of a new model, we need first to open the file containing the data. This can be done wither by clicking on the first menu icon `Create new model' or by clicking on the open folder icon within the data file section, as shown in Figure \ref{f:opendb}.
+
+\begin{figure}[htb]
+\caption{GeoDaSpace -- Open data file}
+\label{f:opendb}
+\begin{center}
+\includegraphics[width=0.7\linewidth]{opendb.png}\\
+\end{center}
+\end{figure}
+
+Currently, GeoDaSpace can open data files in DBF, CSV and TXT formats. For the examples in this document, we use the NAT.dbf file\footnote{The data used in this document is available from PySAL's example data sets. It can be downloaded at \url{http://code.google.com/p/pysal/source/browse/\#svn\%2Ftrunk\%2Fpysal\%2Fexamples}}. Once we open the data file, its variables are listed in a side window. This window can be retrieved at any time by clicking on the fifth menu icon `Open the variable list'. To specify the model, click and drag the variables’ name from the list to the respective boxes in the Specification section of the main window (Figure \ref{f:spec}). The biggest box to the right, `X' (required), must contain all independent variables of the model, or the right-hand side variables. The other boxes are `Y' (required), for the dependent or left-hand side variable, `YE' (optional), which should be used in case there are endogenous explanatory variables, and `H' (optional), where the instruments for these endogenous explanatory variables should be specified.
+
+\begin{figure}[htb]
+\caption{GeoDaSpace -- Model specification}
+\label{f:spec}
+\begin{center}
+\includegraphics[width=0.9\linewidth]{spec.png}\\
+\end{center}
+\end{figure}
+
+\subsection{Weights creation}
+
+In the weights section, it is possible to create a new weights matrix or open an existing one. GeoDaSpace supports most of the common weights formats, including GAL, GWT and KWT (GeoDa weights), MAT (MatLab), TXT (Stata Text files), among others. To create a new weights matrix we need to select the respective shapefile (SHP)\footnote{NAT.shp is available from PySAL's example data sets. It can be downloaded at \url{http://code.google.com/p/pysal/source/browse/\#svn\%2Ftrunk\%2Fpysal\%2Fexamples}} as `Input File' (Figure \ref{f:weights}). An ID variable for the weights matrix can either be selected from the database or added to it by clicking on the `plus' sign. GeoDaSpace can create standard model weights or kernel weights, each type with their respective boxes in the Weights section of the main window. Within standard model weights, GeoDaSpace can create contiguity weights matrices of the Queen and Rook types, for any given order of contiguity, according to the spatial structure of the shapefile. Distance weights are also available (Figure \ref{f:weights}a). Euclidean and Arc distances can be used as distance metrics. The types of distance weights available are: k-nearest neighbors, binary distance band and inverse distance. For the last two it is possible to select the cut-off point and, in the case of inverse distance, the power. If, for example, we want to create distance weights based on the inverse of the quadratic distance, all we have to do is choose `Distance' when creating a new weights matrix, then check the `Inverse Distance' bullet and set the power to 2 (Figure \ref{f:weights}a). The cut-off points establish the maximum distance between neighbors. If the metric is `Arc distance (miles)’ and the cut-off is 100, no spatial unit farther than 100 miles from each other will be considered neighbors. The default cut-off point is calculated to ensure that all spatial units have at least 1 neighbor, thus preventing the creation of units with no neighbors, i.e. islands.
+
+\begin{figure}[htb]
+\centering
+\caption{GeoDaSpace -- Weights creation}
+\label{f:weights}
+\subfloat[Model weights]{\includegraphics[width=0.5\textwidth]{distw.png}} 
+\subfloat[Kernel weights]{\includegraphics[width=0.5\textwidth]{kernel.png}} \\
+\end{figure}
+
+In addition to standard model weights, kernel weights can also be created (Figure \ref{f:weights}b). In GeoDaSpace, these are mainly used for the estimation of HAC models. Once again, Euclidean and Arc distances can be used as distance metrics. Currently, five Kernel functions are available: Uniform, Triangular, Epanechnikov, Quartic and Gaussian. It is also possible to specify the number of neighbors of each spatial unit.
+
+The gear icon on the weights section opens a window showing the properties of the selected weights matrix. In this window, it is possible to transform the weights matrix into binary, row-standardized (each row summing 1), double-standardized (all row summing 1) and variance stabilized. The properties also include a list of the spatial units that have no neighbors, i.e. the islands, a list of the neighbors of any selected unit, the number of neighbors of each unit, i.e. the cardinalities, the unit's IDs and a histogram of units according to number of neighbors. As an experimental feature, it is also possible to launch an interactive viewer displaying the neighborhood structure. Within the viewer, we can pass the mouse arrow over any spatial unit of the shapefile and its neighbors are instantly highlighted. Also, their IDs are listed along with their weights (Figure \ref{f:viewer}).
+
+\begin{figure}[htb]
+\caption{GeoDaSpace -- Weights viewer}
+\label{f:viewer}
+\begin{center}
+\includegraphics[width=\linewidth]{viewer.png}\\
+\end{center}
+\end{figure}
+
+\subsection{Model estimation}
+The estimation methods available in GeoDaSpace can be selected from the `Model Estimation' section of the main window. There are four main model types: i) standard, ii) spatial lag, iii) spatial error and iv) spatial lag and error.
+
+\subsubsection*{Standard}
+\begin{itemize}
+\item Ordinary least squares (OLS)
+\item OLS with heteroskedasticity -- White
+\item OLS with heteroskedasticity -- HAC
+\item Two-stage least squares (TSLS)
+\item TSLS with heteroskedasticity -- White
+\item TSLS with heteroskedasticity -- HAC
+\end{itemize}
+
+\begin{figure}[htb]
+\caption{Estimation of a TSLS model}
+\label{f:tsls}
+\begin{center}
+\includegraphics[width=0.7\linewidth]{tsls.png}\\
+\end{center}
+\end{figure}
+
+The standard model types are OLS and TSLS models. These methods provide non-spatial diagnostics and spatial diagnostics, if a spatial weights matrix has been selected. In case there is no variable in the box `YE', implying the absence of any explanatory endogenous variable, an OLS model is estimated. If instead there is any variable in the box `YE', a TSLS is estimated. In this case, it is also required to provide in the box `H' the instruments for the endogenous variable (Figure \ref{f:tsls}). White and HAC (requires kernel weights) corrections for heteroskedasticity are available for these methods. The `KP HET' robust estimator assumes a spatial error structure, and therefore is not available for standard model types. Please see Section \ref{s:adv} for details on advanced settings for these methods.
+
+\subsubsection*{Spatial lag}
+\begin{itemize}
+\item Spatial lag
+\item Spatial lag with heteroskedasticity -- White
+\item Spatial lag with heteroskedasticity -- HAC
+\item Spatial lag with additional endogenous variables
+\item Spatial lag with additional endogenous variables and heteroskedasticity -- White
+\item Spatial lag with additional endogenous variables and heteroskedasticity -- HAC
+\end{itemize}
+
+\begin{figure}[htb]
+\caption{Estimation of a spatial lag model with heteroskedasticity -- HAC}
+\label{f:haclag}
+\begin{center}
+\includegraphics[width=0.7\linewidth]{haclag.png}\\
+\end{center}
+\end{figure}
+
+The spatial lag type of model includes a lag of the dependent variable `Y' on the right side of the equation:
+\begin{equation}
+\mathbf{y} =  \rho \mathbf{W} \mathbf{y} + \mathbf{X}\beta + \varepsilon,
+\end{equation}
+or, alternatively:
+\begin{equation}
+\mathbf{y} =  (I - \rho \mathbf{W})^{-1} (\mathbf{X}\beta + \varepsilon),
+\end{equation}
+in which $\mathbf{y}$ is a $n \times 1$ vector containing the dependent variable `Y', $\mathbf{W}$ is the $n \times n$ spatial weights matrix, $\rho$ is the spatial autoregressive scalar parameter, $\mathbf{X}$ is a $n \times k$ matrix of observations on the explanatory variables `X', $\beta$ is a $k \times 1$ vector of coefficients, and $\varepsilon$ is a $n \times 1$ vector of random errors.
+
+As with the standard methods, White and HAC (requires kernel weights) corrections for heteroskedasticity are available for spatial lag models. Figure \ref{f:haclag} shows an example of the estimation of a spatial lag model using HAC to correct the heteroskedasticity. The `KP HET' robust estimator is not available for models with spatial lag and no spatial errors, since it assumes a spatial error structure. Please see Section \ref{s:adv} for details on advanced settings for these methods.
+
+\subsubsection*{Spatial error}
+\begin{itemize}
+\item Spatial error (KPD)
+\item Spatial error with endogenous variables (KPD)
+\item Spatial error (KP98/99)
+\item Spatial error with endogenous variables (KP98/99)
+\item Spatial error with heteroskedasticity
+\item Spatial error with endogenous variables and heteroskedasticity
+\end{itemize}
+
+\begin{figure}[htb]
+\caption{Estimation of spatial error models with heteroskedasticity}
+\label{f:GS_het}
+\begin{center}
+\includegraphics[width=0.7\linewidth]{GS_het.png}\\
+\end{center}
+\end{figure}
+
+The spatial error type of model estimates a spatial autoregressive parameter in the errors ($\lambda$):
+\begin{equation}
+\mathbf{y} =  \mathbf{X}\beta + \mathbf{u},
+\end{equation}
+\begin{equation}
+\mathbf{u} =  \lambda \mathbf{W} \mathbf{u} + \varepsilon,
+\end{equation}
+or, alternatively:
+\begin{equation}
+\mathbf{y} =  \mathbf{X}\beta + (I - \lambda \mathbf{W})^{-1} \varepsilon.
+\end{equation}
+
+GeoDaSpace provides two different estimators for spatial error models without heteroskedasticity. The default is the estimator proposed by \citet{Drukker10}, which we refer to as `KPD'. The second option is the estimator proposed by \citet{Kelejian98,Kelejian99}, here referred as `KP98/99'. The choice of the estimator to be used can be changed in the Advanced Settings Panel (Section \ref{s:adv}). Given the spatial structure of the error term, it is not possible to use White or HAC corrections for heteroskedasticity. Instead, GeoDaSpace can estimate the method proposed by \citet{Arraiz10}, which is robust to heteroskedasticity. To estimate this method, all we need to do is check both `Spatial Error' model type and `KP HET' standard errors (Figure \ref{f:GS_het}) Please see Section \ref{s:adv} for details on advanced settings for these methods.
+
+\subsubsection*{Spatial lag and error}
+\begin{itemize}
+\item Spatial lag and error (KPD)
+\item Spatial lag and error with additional endogenous variables (KPD)
+\item Spatial lag and error (KP98/99)
+\item Spatial lag and error with additional endogenous variables (KP98/99)
+\item Spatial lag and error with heteroskedasticity
+\item Spatial lag and error with additional endogenous variables and heteroskedasticity
+\end{itemize}
+
+\begin{figure}[htb]
+\centering
+\caption{Estimation of spatial lag and error model with heteroskedasticity}
+\label{f:GS_het_combo}
+\includegraphics[width=0.7\textwidth]{GS_het_combo.png}
+\end{figure}
+
+All estimation methods for spatial error are also available in the presence of both spatial lag and spatial error. Once again, the default is the `KPD', but the `KP98/99' can be selected from the Advanced Settings Panel (Section \ref{s:adv}). In the presence of heteroskedasticity, it is possible to estimate the method proposed by \citet{Arraiz10} by checking both `Spatial Lag+Error' model type and `KP HET' standard errors. Figure \ref{f:GS_het_combo} shows how to estimate a spatial error model with spatial lag and heteroskedasticity in GeoDaSpace.
+
+
+\subsection{Advanced settings}
+\label{s:adv}
+%\subfloat[Preferences panel]{\includegraphics[width=0.7\textwidth]{GS_pref_lag.png}} \\
+
+
+
+
+\newpage
+\section{Comparing estimation results from GeoDaSpace, Stata and R: reasons for difference and pathway for matching}
+\label{s:comparisons}
+
+\subsection{Introduction}
+In this section we compare the results of models with spatial error from 3 different programs: GeoDaSpace, R and Stata. Despite all the methods available in GeoDaSpace (see Section \ref{s:intro}), here we show only those which yield discrepant results in GeoDaSpace in comparison with Stata. An explanation for the differences is provided. In addition, we show how to set the preferences in GeoDaSpace in order to get the same results from Stata. When this option is not available, we show how PySAL\footnote{More information on PySAL can be found at \url{http://pysal.geodacenter.org/}} \citep{Rey07}, a Python library on which GeoDaSpace is based, can be used to match Stata.
+
+For this document we use two different versions of the R package sphet. The first one, henceforth sphet1, is the released version of sphet (v. 1.1-12, published on CRAN on 2012-04-13). In addition to this version of sphet, we also use the alpha version from R-Forge, revision 56, published on 2012-07-22. This newer version of the code, which contains many additional methods and enhancements to sphet1, is henceforth referred as sphet2\footnote{Given that it is an alpha version, the code is subject to change.}.
+
+
+The following spatial error models (SEM) are discussed in this section:
 
 \begin{itemize}
-\item SEM with exogenous variables and no heteroskedasticity
-\item SEM with endogenous variables and no heteroskedasticity
-\item SEM with spatial lag and no heteroskedasticity
+\item SEM with exogenous variables and no heteroskedasticity (KPD)
+\item SEM with endogenous variables and no heteroskedasticity (KPD)
+\item SEM with spatial lag and no heteroskedasticity (KPD)
 \item SEM with exogenous variables and heteroskedasticity
 \item SEM with endogenous variables and heteroskedasticity
 \item SEM with spatial lag and heteroskedasticity
 \end{itemize}
 
-\section{Spatial Error Models without Heteroskedasticity}
+\subsection{Spatial Error Models without Heteroskedasticity}
 
-To estimate the spatial error model without heteroskedasticity (the K-P-D model) in GeoDaSpace, we need only to check the box ``Spatial Error", as shown in Figure \ref{f:GS_hom}. Given the particular specification of the model since all variables as exogenous, as presented in \citet{Anselin11}, the results from GeoDaSpace do not match those from Stata or the package sphet in R. This discrepancy is due to an error in Stata for the case of a spatial error model with exogenous variables only. In Stata, the exogeneity is ignored and a two-stage least squares estimation is performed instead of the OLS. Table \ref{t:res_hom} compares the results from GeoDaSpace, Stata and R (package sphet). The K-P-D method is not available in the released version of sphet (v. 1.1-12, published on CRAN on 2012-04-13). In this document, we call this version sphet1. Nonetheless, the results presented here can be obtained using the alpha version from R-Forge, revision 56, published on 2012-07-22. This newer version of the code is henceforth referred as sphet2\footnote{Given that it is an alpha version, the code is subject to change.}. when only exogenous variables are considered. The results from GeoDaSpace are also different than sphet's. 
+The default spatial error model without heteroskedasticity in GeoDaSpace is the KPD model \citep{Drukker10}. Given the particular specification of the model when all variables as exogenous, as presented in \citet{Anselin11}, the results from GeoDaSpace do not match those from Stata when this method is used. This discrepancy is due to an error in Stata for the case of a spatial error model with exogenous variables only. In Stata, the exogeneity is ignored and a two-stage least squares estimation is performed instead of the OLS.
 
-\begin{figure}[htb]
-\caption{Estimation of spatial error models using GeoDaSpace}
-\label{f:GS_hom}
-\begin{center}
-\includegraphics[width=0.7\linewidth]{GS_hom.png}\\
-%\scriptsize{}
-\end{center}
-\end{figure}
+Table \ref{t:res_hom} compares the results from GeoDaSpace, Stata and R. The KPD method is not available in the currently released version of sphet1 (v. 1.1-12). Nonetheless, the results presented here can be obtained using sphet2, the alpha version from R-Forge. As Table \ref{t:res_hom} shows, the results from GeoDaSpace differ from those from sphet2. 
 
 \begin{table}[htpb]
 \caption{Comparison of the results of spatial error models with exogenous variables and no heteroskedasticity}
@@ -86,6 +335,7 @@ db = pysal.open('NAT.dbf')
 hr90 = np.array([db.by_col('HR90')]).T
 rd90 = np.array([db.by_col('RD90')]).T
 ue90 = np.array([db.by_col('UE90')]).T
+x = np.hstack((rd90,ue90))
 
 ones = np.ones(crime.shape)
 model = pysal.spreg.BaseGM_Endog_Error_Hom(hr90, ones,
@@ -97,15 +347,7 @@ print map(np.sqrt, model.vm.diagonal())
 \end{lstlisting}
 \end{code}
 
-If we have endogenous variables, or a spatial lag, the problem in Stata's code no longer exists, since we now do have to run a 2SLS estimator. Nonetheless, the results from GeoDaSpace remain different from those from Stata and R, as shown in Table \ref{t:res_hom_endog}. The diffence is due to the choice of the A1 matrix used in the estimations and, for the spatial lag, the number of lags of the exogenous variables used as instruments. Figure \ref{f:GS_hom_endog} shows how to estimate the spatial error model with endogenous variables or with a spatial lag. Of course, the combination of the two, i.e. spaital lag and other endogenous variables, is also possible.
-
-\begin{figure}[htb]
-\centering
-\caption{Estimation of spatial error models with endogenous variables or spatial lag using GeoDaSpace}
-\label{f:GS_hom_endog}
-\subfloat[Spatial error with endogenous variable]{\includegraphics[width=0.5\textwidth]{GS_hom_endog.png}}
-\subfloat[Spatial error and lag]{\includegraphics[width=0.5\textwidth]{GS_hom_combo.png}} \\
-\end{figure}
+If we have endogenous variables, or a spatial lag, the problem in Stata's code no longer exists, since we now do have to run a 2SLS estimator. Nonetheless, the results from GeoDaSpace remain different from those from Stata and R, as shown in Table \ref{t:res_hom_endog}. The diffence is due to the choice of the A1 matrix used in the estimations and, for the spatial lag, the number of lags of the exogenous variables used as instruments.  
 
 \begin{table}[htpb]
 \caption{Comparison of the results of spatial error models with endogenous variables or spatial lag}
@@ -113,16 +355,16 @@ If we have endogenous variables, or a spatial lag, the problem in Stata's code n
 \centering
 \begin{small}
 \begin{tabular}{l|cccc} \hline
-\multicolumn{5}{c}{\textbf{Spatial error with HOVAL as endogenous variable}} \\ \hline
+\multicolumn{5}{c}{\textbf{Spatial error with UE90 as endogenous variable}} \\ \hline
 \textbf{Variable}&\textbf{GeoDaSpace}&\textbf{sphet2}&\textbf{Stata}&\textbf{PySAL$^1$}\\ \hline
-CONSTANT&82.2068&&82.5747&\\
-&(16.3992)&&(16.3797)&\\
-INC&0.5785&&0.5810&\\
-&(1.3543)&&(1.3606)&\\
-HOVAL$^2$&-1.4374&&-1.4481&\\
-&(0.7904)&&(0.7925)&\\
-lambda&0.3910&&0.3765&\\
-&(0.1962)&&(0.1921)&\\
+CONSTANT&21.0288&19.7052&21.0606&21.0606\\
+&(1.5362)&(1.4194)&(1.5385)&(1.5385)\\
+RD90&8.2376&8.0369&8.2420&8.2420\\
+&(0.4881)&(0.4634)&(0.4888)&(0.4888)\\
+UE90$^2$&-2.2392&-2.0396&-2.2438&-2.2438\\
+&(0.2286)&(0.2111)&(0.2290)&(0.2290)\\
+lambda&0.4934&0.4856&0.4944&0.4944\\
+&(0.0216)&(0.0220)&(0.0217)&(0.0217)\\
 \hline
 \multicolumn{5}{c}{\textbf{Spatial error with spatial lag}} \\ \hline
 \textbf{Variable}&\textbf{GeoDaSpace$^3$}&\textbf{sphet2}&\textbf{Stata}&\textbf{PySAL$^1$}\\ \hline
@@ -138,8 +380,10 @@ lambda&0.5098&0.4364&0.4364&0.4364\\
 &(0.0376)&(0.0421)&(0.0421)&(0.0421)\\
 \hline
 \multicolumn{5}{l}{\scriptsize{$^1$PySAL using the code to match Stata as in Listing \ref{lt:hom_end_stata}.}} \\
-\multicolumn{5}{l}{\scriptsize{$^2$DISCBD is used to instrument HOVAL.}} \\
+\multicolumn{5}{l}{\scriptsize{$^2$UE90 instrumented by FP89 and all other exogenous variables.}} \\
 \multicolumn{5}{l}{\scriptsize{$^3$GeoDaSpace using 2 spatial lags for the instruments.}} \\
+\multicolumn{5}{l}{\scriptsize{\hl{Note:I'm still not convinced I'm doing the endog model in R right.}}} \\
+\multicolumn{5}{l}{\scriptsize{\hl{I'll have to check with Gianfranco. He says he's results match Stata's.}}} \\
 \end{tabular}
 \end{small}
 \end{table}
@@ -150,8 +394,8 @@ Once again, PySAL offers the possibility of matching Stata. As shown in Listing 
 \begin{lstlisting}[label=lt:hom_end_stata,caption=Using PySAL to match the results of spatial error models with endogenous variables or spatial lag from Stata,language=Python]
 
 #Spatial error model with spatial lag:
-model = pysal.spreg.GM_Combo_Hom(hr90, np.hstack((rd90,
-        ue90)), w=w, A1='hom_sc', w_lags=2)
+model = pysal.spreg.GM_Combo_Hom(hr90, x, w=w, 
+        A1='hom_sc', w_lags=2)
 print model.summary
 
 #Adding instrument 'FP89':
@@ -165,19 +409,9 @@ print model.summary
 \end{lstlisting}
 \end{code}
 
-\section{Spatial Error Models with Heteroskedasticity}
-To estimate a spatial error model with heteroskedasticity in GeoDaSpace, we need to check the boxes "Spatial Error" for model type and `KP-Het' for standard errors, as shown in Figure \ref{f:GS_het}.
+\subsection{Spatial Error Models with Heteroskedasticity}
 
-\begin{figure}[htb]
-\caption{Estimation of spatial error models with heteroskedasticity using GeoDaSpace}
-\label{f:GS_het}
-\begin{center}
-\includegraphics[width=0.7\linewidth]{GS_het.png}\\
-%\scriptsize{}
-\end{center}
-\end{figure}
-
-As in the case with no heteroskedasticity, Stata's code has an error in the estimation of the spatial error model with exogenous variables only. Therefore, it is not possible to match the results from Stata for this specification using GeoDaSpace. Table \ref{t:res_het} compares GeoDaSpace's results against Stata and the package sphet from R. As already stated, we refer to the released version 1.1-12 of sphet as sphet1 and the updated alpha version of spreg available from R-Forge (revision 56 published on 2012-07-22) is referred as sphet2. Differently than sphet2, the version sphet1 does not allow us to skip step1c in the estimation of the method. Please check Section \ref{s:step1c} for more details on this.
+As in the case with no heteroskedasticity, Stata's code has an error in the estimation of the spatial error model with exogenous variables only. Therefore, it is not possible to match the results from Stata for this specification using GeoDaSpace. Table \ref{t:res_het} compares GeoDaSpace's results against Stata and the package sphet from R. As already stated, we refer to the released version 1.1-12 of sphet as sphet1 and the updated alpha version of spreg available from R-Forge (revision 56 published on 2012-07-22) is referred as sphet2. Differently than sphet2, the version sphet1 does not allow us to skip one step in the estimation of the method (step1c), which is done by default in GeoDaSpace, Stata and sphet2. Please check Section \ref{s:step1c} for more details on this.
 
 \begin{table}[htpb]
 \caption{Comparison of the results of spatial error models with exogenous variables and heteroskedasticity}
@@ -200,7 +434,7 @@ lambda&0.4753&0.4756&0.4740&0.4721&0.4721\\
 \end{small}
 \end{table}
 
-In PySAL, it is possible to mimic the problem in Stata's code to estimate a model that yields the same results. The code is shown in Listing \ref{lt:het_stata}.
+In PySAL, it is possible to mimic the problem in Stata's code to estimate a model that yields the same results\footnote{A walkthrough for the estimation of spatial error models with heteroskedasticity using PySAL can be found at \url{http://pysal.geodacenter.org/dev/library/spreg/error_sp_het.html}}. The code is shown in Listing \ref{lt:het_stata}.
 
 \begin{code}
 \begin{lstlisting}[label=lt:het_stata,caption=Using PySAL to match the results of spatial error models with heteroskedasticity from Stata,language=Python]
@@ -214,6 +448,7 @@ db = pysal.open('NAT.dbf')
 hr90 = np.array([db.by_col('HR90')]).T
 rd90 = np.array([db.by_col('RD90')]).T
 ue90 = np.array([db.by_col('UE90')]).T
+x = np.hstack((rd90,ue90))
 
 model = pysal.spreg.BaseGM_Endog_Error_Het(hr90, ones,
         yend=x, q=x, w=w)
@@ -223,8 +458,7 @@ print model.summary
 \end{lstlisting}
 \end{code}
 
-When the spatial error model with heteroskedasticity contains a spatial lag, the default specification in GeoDaSpace does match the results from Stata. This is due to the order of the spatial lags of the exogenous variables used as instruments of the spatial lag of the dependent variable. The default in GeoDaSpace is a single lag. In Stata however the model is run lagging the exogenous variables twice. This option cannot be changed in Stata. In GeoDaSpace, we can choose the number of lags desired from the Preferences Panel. If we select `2' as the order of spatial lags for instruments, the results from GeoDaSpace match Stata's, as shown in Table \ref{t:res_het_combo}. Figure \ref{f:GS_het_combo} shows how to estimate a spatial error model with spatial lag and heteroskedasticity in GeoDaSpace, in addition to the preference panel where it is possible to define the order of the spatial lags for the instruments. The button that allows the access to the preference panel is highlighted in the figure.
-
+When the spatial error model with heteroskedasticity contains a spatial lag, the default specification in GeoDaSpace does match the results from Stata. This is due to the order of the spatial lags of the exogenous variables used as instruments of the spatial lag of the dependent variable. The default in GeoDaSpace is a single lag. In Stata however the model is run lagging the exogenous variables twice. This option cannot be changed in Stata. In GeoDaSpace, we can choose the number of lags desired from the Preferences Panel (see Section \ref{s:adv}). If we select `2' as the order of spatial lags for instruments, the results from GeoDaSpace match Stata's, as shown in Table \ref{t:res_het_combo}. 
 \begin{table}[htpb]
 \caption{Comparison of the results of spatial error models with spatial lag and heteroskedasticity}
 \label{t:res_het_combo}
@@ -244,38 +478,34 @@ lambda&0.5584&0.6399&0.5584&0.5584&0.5584\\
 &(0.0507)&(0.0460)&(0.0507)&(0.0507)&(0.0507)\\
 \hline
 \multicolumn{6}{l}{\scriptsize{$^1$GeoDaSpace using 2 spatial lags for the instruments.}} \\
-\multicolumn{6}{l}{\scriptsize{$^2$PySAL using the code to match Stata as in Listing \ref{het_endog_stata}.}} \\
+\multicolumn{6}{l}{\scriptsize{$^2$PySAL using the code to match Stata as in Listing \ref{lt:het_endog_stata}.}} \\
 \end{tabular}
 \end{small}
 \end{table}
 
-
-\begin{figure}[htb]
-\centering
-\caption{Estimation of spatial error models with heteroskedasticity and spatial lag using GeoDaSpace}
-\label{f:GS_het_combo}
-\subfloat[Spatial error and lag]{\includegraphics[width=0.7\textwidth]{GS_het_combo_pref.png}} \\
-\subfloat[Preferences panel]{\includegraphics[width=0.7\textwidth]{GS_pref_lag.png}} \\
-\end{figure}
-
-Figure \ref{f:GS_het_endog} shows how to estimate spatial error models with endogenous variables and heteroskedasticity in GeoDaSpace. If the model contains other type of endogenous variables, but not a spatial lag, the results from GeoDaSpace match those from Stata without the need of any change (Table \ref{t:res_het_endog}).  
+If the spatial error model with heteroskedasticity contains other type of endogenous variables, but not a spatial lag, the results from GeoDaSpace match those from Stata without the need of any change (Table \ref{t:res_het_endog}).
 
 \begin{table}[htpb]
-\caption{Comparison of the results of spatial error models with endogenous variables and heteroskedasticity}
+\caption{Comparison of the results of spatial error models with endogenous variable (UE90) and heteroskedasticity}
 \label{t:res_het_endog}
 \centering
 \begin{small}
 \begin{tabular}{l|cccc} \hline
-\textbf{Variable}&\textbf{GeoDaSpace}&\textbf{Stata}&\textbf{sphet}&\textbf{PySAL}\\ \hline
-CONSTANT&82.2068&82.2068&&82.2068\\
-&(15.2485)&(15.2485)&()&(15.2485)\\
-INC&0.5785&0.5785&&0.5785\\
-&(1.5024)&(1.5024)&()&(1.5024)\\
-HOVAL&-1.4374&-1.4374&&-1.4374\\
-&(0.9514)&(0.9514)&()&(0.9514)\\
-lambda&0.4189&0.4189&&0.4189\\
-&(0.1869)&(0.1869)&()&(0.1869)\\
+\textbf{Variable}&\textbf{GeoDaSpace}&\textbf{sphet2$^1$}&\textbf{Stata}&\textbf{PySAL$^2$}\\ \hline
+CONSTANT&21.0288&19.6812&21.0288&21.0288\\
+&(2.5629)&(2.2653)&(2.5629)&(2.5629)\\
+RD90&8.2376&8.0401&8.2376&8.2376\\
+&(0.7817)&(0.7161)&(0.7817)&(0.7817)\\
+UE90$^3$&-2.2392&-2.0361&-2.2392&-2.2392\\
+&(0.3902)&(0.3449)&(0.3902)&(0.3902)\\
+lambda&0.4667&0.4614&0.4667&0.4667\\
+&(0.0298)&(0.0295)&(0.0298)&(0.0298)\\
 \hline
+\multicolumn{5}{l}{\scriptsize{$^1$sphet1 does not allow for endogenous variables.}} \\
+\multicolumn{5}{l}{\scriptsize{$^2$PySAL using the code to match Stata as in Listing \ref{lt:het_endog_stata}.}} \\
+\multicolumn{5}{l}{\scriptsize{$^3$UE90 instrumented by FP89 and exogenous variables.}} \\
+\multicolumn{5}{l}{\scriptsize{\hl{Note:I'm still not convinced I'm doing the endog model in R right.}}} \\
+\multicolumn{5}{l}{\scriptsize{\hl{I'll have to check with Gianfranco. He says he's results match Stata's.}}} \\
 \end{tabular}
 \end{small}
 \end{table}
@@ -298,25 +528,27 @@ In PySAL, these models could be estimated using the code shown in Listing \ref{l
 
 #Spatial error model with spatial lag and
 #    heteroskedasticity:
-model = pysal.spreg.GM_Combo_Het(hr90,
-        np.hstack((rd90,ue90)), w=w, w_lags=2)
+model = pysal.spreg.GM_Combo_Het(hr90, x,
+        w=w, w_lags=2)
 print model.summary
 
 #Adding instrument 'FP89':
 fp89 = np.array([db.by_col('FP89')]).T
 
 #Spatial error model with UE90 as endogenous variable
-    and heteroskedasticity:
+#    and heteroskedasticity:
 model = pysal.spreg.GM_Endog_Error_Het(hr90, rd90,
         yend=ue90, q=fp89, w=w)
 print model.summary
 
 \end{lstlisting}
 \end{code}
+\FloatBarrier
 
-\subsection{Step1c}
+
+\subsubsection{Initial Efficient Estimation of Lambda (Step1c)}
 \label{s:step1c}
-In addition to the number of lags of the exogenouns variables to be used as instruments, both GeoDaSpace and PySAL also offer the possibility to add the Step 1c in the estimation of the model as proposed by \citet{Arraiz10}. Step 1c updates the initial consistent estimation of lambda using a weighted nonlinear least squares solution to the moments equations. This results in a consistent and efficient intermediate estimation of lambda. Note however that a consistent estimation at this stage is already sufficient to obtain a consistent estimation of all parameters in the model. The option to run Step 1c can be found in the preferences panel in GeoDaSpace, as shown in Figure \ref{f:GS_pref_step1c}. In PySAL, all we have to do to select this option is add `step1c=True' to the arguments of the model.
+In addition to the number of lags of the exogenous variables to be used as instruments, both GeoDaSpace and PySAL also offer the possibility to add the Step 1c in the estimation of the model as proposed by \citet{Arraiz10}. Step 1c updates the initial consistent estimation of lambda using a weighted nonlinear least squares solution to the moments equations. This results in a consistent and efficient intermediate estimation of lambda. Note however that a consistent estimation at this stage is already sufficient to obtain a consistent estimation of all parameters in the model. The option to run Step 1c can be found in the preferences panel in GeoDaSpace, as shown in Figure \ref{f:GS_pref_step1c}. In PySAL, all we have to do to select this option is add `step1c=True' to the arguments of the model (Listing \ref{lt:het_step1c}).
 
 
 
@@ -330,22 +562,22 @@ In addition to the number of lags of the exogenouns variables to be used as inst
 \end{figure}
 
 \begin{code}
-\begin{lstlisting}[label=lt:het_endog_stata,caption=Using PySAL to match the results of spatial error models with heteroskedasticity and endogenous variables or spatial lag from Stata,language=Python]
+\begin{lstlisting}[label=lt:het_step1c,caption=Using PySAL to match the results of spatial error models with heteroskedasticity and endogenous variables or spatial lag from Stata,language=Python]
 
 #Spatial error model with heteroskedasticity
 #    (running Step1c):
-model = pysal.spreg.GM_Error_Het(hr90,
-        np.hstack((rd90,ue90)), w=w, step1c=True)
+model = pysal.spreg.GM_Error_Het(hr90, x,
+        w=w, step1c=True)
 print model.summary
 
 #Spatial error model with spatial lag and
-    heteroskedasticity (running Step1c):
-model = pysal.spreg.GM_Combo_Het(hr90,
-        np.hstack((rd90,ue90)), w=w, step1c=True)
+#    heteroskedasticity (running Step1c):
+model = pysal.spreg.GM_Combo_Het(hr90, x,
+        w=w, step1c=True)
 print model.summary
 
 #Spatial error model with HOVAL as endogenous variable
-    and heteroskedasticity (running Step1c):
+#    and heteroskedasticity (running Step1c):
 model = pysal.spreg.GM_Endog_Error_Het(hr90, rd90,
         yend=ue90, q=fp89, w=w, step1c=True)
 print model.summary
@@ -358,5 +590,7 @@ print model.summary
 \bibliography{bib}
 \bibliographystyle{apalike}
 \end{document}
+
+
 
 
