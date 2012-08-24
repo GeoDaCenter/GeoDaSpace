@@ -111,9 +111,9 @@ The menu icons on the top of the window, from left to right, are:
 \item Open existing model
 \item Save model
 \item Save model as...
-\item Open the variable list
+\item Open the variables list
 \item Show results window
-\item Show advanced settings
+\item Show advanced settings (see Section \ref{s:adv})
 \end{itemize}
 
 To start the specification of a new model, we need first to open the file containing the data. This can be done wither by clicking on the first menu icon `Create new model' or by clicking on the open folder icon within the data file section, as shown in Figure \ref{f:opendb}.
@@ -122,7 +122,7 @@ To start the specification of a new model, we need first to open the file contai
 \caption{GeoDaSpace -- Open data file}
 \label{f:opendb}
 \begin{center}
-\includegraphics[width=0.7\linewidth]{opendb.png}\\
+\includegraphics[width=0.9\linewidth]{opendb.png}\\
 \end{center}
 \end{figure}
 
@@ -135,6 +135,7 @@ Currently, GeoDaSpace can open data files in DBF, CSV and TXT formats. For the e
 \includegraphics[width=0.9\linewidth]{spec.png}\\
 \end{center}
 \end{figure}
+\FloatBarrier
 
 \subsection{Weights creation}
 
@@ -159,6 +160,7 @@ The gear icon on the weights section opens a window showing the properties of th
 \includegraphics[width=\linewidth]{viewer.png}\\
 \end{center}
 \end{figure}
+\FloatBarrier
 
 \subsection{Model estimation}
 The estimation methods available in GeoDaSpace can be selected from the `Model Estimation' section of the main window. There are four main model types: i) standard, ii) spatial lag, iii) spatial error and iv) spatial lag and error.
@@ -182,6 +184,7 @@ The estimation methods available in GeoDaSpace can be selected from the `Model E
 \end{figure}
 
 The standard model types are OLS and TSLS models. These methods provide non-spatial diagnostics and spatial diagnostics, if a spatial weights matrix has been selected. In case there is no variable in the box `YE', implying the absence of any explanatory endogenous variable, an OLS model is estimated. If instead there is any variable in the box `YE', a TSLS is estimated. In this case, it is also required to provide in the box `H' the instruments for the endogenous variable (Figure \ref{f:tsls}). White and HAC (requires kernel weights) corrections for heteroskedasticity are available for these methods. The `KP HET' robust estimator assumes a spatial error structure, and therefore is not available for standard model types. Please see Section \ref{s:adv} for details on advanced settings for these methods.
+\FloatBarrier
 
 \subsubsection*{Spatial lag}
 \begin{itemize}
@@ -212,6 +215,7 @@ or, alternatively:
 in which $\mathbf{y}$ is a $n \times 1$ vector containing the dependent variable `Y', $\mathbf{W}$ is the $n \times n$ spatial weights matrix, $\rho$ is the spatial autoregressive scalar parameter, $\mathbf{X}$ is a $n \times k$ matrix of observations on the explanatory variables `X', $\beta$ is a $k \times 1$ vector of coefficients, and $\varepsilon$ is a $n \times 1$ vector of random errors.
 
 As with the standard methods, White and HAC (requires kernel weights) corrections for heteroskedasticity are available for spatial lag models. Figure \ref{f:haclag} shows an example of the estimation of a spatial lag model using HAC to correct the heteroskedasticity. The `KP HET' robust estimator is not available for models with spatial lag and no spatial errors, since it assumes a spatial error structure. Please see Section \ref{s:adv} for details on advanced settings for these methods.
+\FloatBarrier
 
 \subsubsection*{Spatial error}
 \begin{itemize}
@@ -244,6 +248,7 @@ or, alternatively:
 \end{equation}
 
 GeoDaSpace provides two different estimators for spatial error models without heteroskedasticity. The default is the estimator proposed by \citet{Drukker10}, which we refer to as `KPD'. The second option is the estimator proposed by \citet{Kelejian98,Kelejian99}, here referred as `KP98/99'. The choice of the estimator to be used can be changed in the Advanced Settings Panel (Section \ref{s:adv}). Given the spatial structure of the error term, it is not possible to use White or HAC corrections for heteroskedasticity. Instead, GeoDaSpace can estimate the method proposed by \citet{Arraiz10}, which is robust to heteroskedasticity. To estimate this method, all we need to do is check both `Spatial Error' model type and `KP HET' standard errors (Figure \ref{f:GS_het}) Please see Section \ref{s:adv} for details on advanced settings for these methods.
+\FloatBarrier
 
 \subsubsection*{Spatial lag and error}
 \begin{itemize}
@@ -255,6 +260,19 @@ GeoDaSpace provides two different estimators for spatial error models without he
 \item Spatial lag and error with additional endogenous variables and heteroskedasticity
 \end{itemize}
 
+The spatial lag and error type of model estimates spatial autoregressive parameters both in the errors ($\lambda$) and for the spatial lag of the dependent variable ($\rho$):
+\begin{equation}
+\mathbf{y} = \rho \mathbf{W} \mathbf{y} + \mathbf{X}\beta + \mathbf{u},
+\end{equation}
+\begin{equation}
+\mathbf{u} =  \lambda \mathbf{W} \mathbf{u} + \varepsilon,
+\end{equation}
+or, alternatively:
+\begin{equation}
+\mathbf{y} =  (I - \rho \mathbf{W})^{-1} \mathbf{X}\beta + (I - \rho \mathbf{W})^{-1}(I - \lambda \mathbf{W})^{-1} \varepsilon.
+\end{equation}
+
+
 \begin{figure}[htb]
 \centering
 \caption{Estimation of spatial lag and error model with heteroskedasticity}
@@ -263,16 +281,88 @@ GeoDaSpace provides two different estimators for spatial error models without he
 \end{figure}
 
 All estimation methods for spatial error are also available in the presence of both spatial lag and spatial error. Once again, the default is the `KPD', but the `KP98/99' can be selected from the Advanced Settings Panel (Section \ref{s:adv}). In the presence of heteroskedasticity, it is possible to estimate the method proposed by \citet{Arraiz10} by checking both `Spatial Lag+Error' model type and `KP HET' standard errors. Figure \ref{f:GS_het_combo} shows how to estimate a spatial error model with spatial lag and heteroskedasticity in GeoDaSpace.
+\FloatBarrier
 
 
 \subsection{Advanced settings}
 \label{s:adv}
-%\subfloat[Preferences panel]{\includegraphics[width=0.7\textwidth]{GS_pref_lag.png}} \\
 
 
+The advanced contains several preferences that affect the way the methods implemented in GeoDaSpace are estimated. To access this panel, click on the gear icon on the top menu. (Figure \ref{f:gui_adv}).
+ 
+\begin{figure}[htb]
+\centering
+\caption{Advanced settings panel}
+\label{f:gui_adv}
+\includegraphics[width=0.9\textwidth]{GUI_adv.png}
+\end{figure}
+\FloatBarrier
 
+\begin{figure}[htb]
+\centering
+\caption{Advanced settings panel -- Standard Deviations}
+\label{f:adv_std}
+\includegraphics[width=0.7\textwidth]{adv_std.png}
+\end{figure}
+
+The first tab of the advanced settings panel is related to the way GeoDaSpace computes the standard deviation for all methods (Figure \ref{f:adv_std}). The formula for the normalization used in the calculation of the standard deviations can be selected for the OLS, TSLS, spatial lag and all other models. By default, only in the OLS case the denominator is $(N-k)$. Fall all others, the default is $N$. Of course, if $N$ is very large, the difference between both choices is insignificant. However, the results for small samples will vary according to the methodology selected.
+\FloatBarrier
+
+\begin{figure}[htb]
+\centering
+\caption{Advanced settings panel -- GMM}
+\label{f:adv_gmm}
+\includegraphics[width=0.7\textwidth]{adv_gmm.png}
+\end{figure}
+
+The second tab is related to the estimation of the GMM methods (Figure \ref{f:adv_gmm}). Estimators such as the KPD spatial error model \citep{Drukker10} and spatial error with heteroskedasticity KP-HET \citep{Arraiz10} allow for several iterations to improve efficiency (see \citet{Anselin11} for details). The maximum number of iterations can be selected in this tab, as well as the convergence criterion. When the difference between two subsequent estimations of $\lambda$ is less or equal than the value assigned in the box, no more iterations are performed. 
+
+The second item in this tab refers to the inference on $\lambda$ in spatial error or spatial lag and error models. When there is no heteroskedasticity, this box defines if the estimation method selected is the KP98/99 or the KPD. The default, when the box is checked, provides the inference on $\lambda$ by estimating the KPD model. As originally proposed by \citet{Kelejian98,Kelejian99}, the estimation of the KP98/99 does not provide this inference. The KP98/99 is the method used when the box is unchecked.
+
+The third and last item in the GMM tab is related to the estimation of spatial error models with heteroskedasticity. Here we can select the method for the computation of the inverse of the operations involving the $\mathbf{W}$ matrix. By default, a power expansion is performed in these cases, so that the computational time is decreased. If instead the true inverse is desired, this option is available from the drop-down list. In addition to this, we can also opt for having step 1c in the estimation of the spatial error model with heteroskedasticity, as proposed by \citet{Arraiz10}. Step 1c updates the initial consistent estimation of lambda using a weighted nonlinear least squares solution to the moments equations. This results in a consistent and efficient intermediate estimation of $\lambda$. Note however that a consistent estimation at this stage is already sufficient to obtain a consistent estimation of all parameters in the model. For this reason, the default in GeoDaSpace is to skip this step to save computational time.
+\FloatBarrier
+
+\begin{figure}[htb]
+\centering
+\caption{Advanced settings panel -- Instruments}
+\label{f:adv_inst}
+\includegraphics[width=0.7\textwidth]{adv_inst.png}
+\end{figure}
+
+The third tab is the Instruments tab (Figure \ref{f:adv_inst}). In this tab it is possible to change the way GeoDaSpace deals with instruments in case of a spatial lag or spatial lag and error models. The first item refers to the order of the spatial lags of the exogenous variables used as instruments of the spatial lag of the dependent variable. The default is to have first and second order lags of these variables, i.e. $\mathbf{WX} + \mathbf{W^2X}$, as instruments to $\mathbf{Wy}$. If instead we change the order of spatial for 1, we have that only $\mathbf{WX}$ will be used as instruments. 
+
+The second checkbox, checked by default, determines the inclusion of the spatial lag of the user-specified instruments in addition to the lag of the exogenous variables. Of course, this applies only if additional instruments are provided in the instruments box `H’ on the main GUI. The instruments in this case are $\mathbf{WX} + \mathbf{W^2X} + \mathbf{WH} + \mathbf{W^2H}$.
+\FloatBarrier
+
+\begin{figure}[htb]
+\centering
+\caption{Advanced settings panel -- Output}
+\label{f:adv_out}
+\includegraphics[width=0.7\textwidth]{adv_out.png}
+\end{figure}
+\FloatBarrier
+
+The fourth tab is related to the output that is printed by GeoDaSpace in the results window (Figure \ref{f:adv_out}).  The first checkbox controls the printing of the $k \times k$ variance-covariance matrix of the estimated parameters. When the box is checked (default), the variance-covariance matrix will be displayed below the estimation main results.
+
+The second item allows us to save the predicted values of the dependent variable and residuals in a spreadsheet. If this option is checked, GeoDaSpace creates a CSV files containing this information. Before the estimation is performed, a pop-up window allows us to choose the folder and filename.
+
+The last item in the Output box is ``Show Detailed Model Specification’’. This option is currently unavailable and checking it will not affect the output.
+
+The last tab contains other type of options. Its first item refers to the calculation of regression diagnostics. By default, non-spatial diagnostics are calculated when running an OLS model. These diagnostics include Jarque-Bera normality test, heteroskedasticity and multicollinearity diagnostics. Another item is related to the calculation of the Moran’s I test for spatial dependence. Whenever a spatial matrix is selected when running standard models, LM tests will be calculated and their results will be printed on the results window. When the box for the Moran’s I is check in the advanced settings panel, the Moran’s I is also included. By default this option is disabled since the calculation of the Moran’s I slows the computation time, especially for large samples.
+
+\begin{figure}[htb]
+\centering
+\caption{Advanced settings panel -- Other}
+\label{f:adv_other}
+\includegraphics[width=0.7\textwidth]{adv_other.png}
+\end{figure}
+
+The second group of items in this tab refers to data manipulation. Currently GeoDaSpace cannot deal with missing values in the data. When these exist, this option allows us to replace all missing values by a given value (zero by default).
+
+It is possible to save all options in the advanced settings panel. By clicking on the `Save’ button, these chosen options will be saved for future sessions of GeoDaSpace, not only for the model currently being estimated. It is also possible to restore the default values at any time by clicking on the respective button and then saving these changes.
 
 \newpage
+
 \section{Comparing estimation results from GeoDaSpace, Stata and R: reasons for difference and pathway for matching}
 \label{s:comparisons}
 
@@ -511,16 +601,6 @@ lambda&0.4667&0.4614&0.4667&0.4667\\
 \end{table}
 
 
-\begin{figure}[htb]
-\caption{Estimation of spatial error models with heteroskedasticity and endogenous variables using GeoDaSpace}
-\label{f:GS_het_endog}
-\begin{center}
-\includegraphics[width=0.7\linewidth]{GS_het_endog.png}\\
-%\scriptsize{}
-\end{center}
-\end{figure}
-
-
 In PySAL, these models could be estimated using the code shown in Listing \ref{lt:het_endog_stata}. This code is a continuation of Listing \ref{lt:het_stata}.
 
 \begin{code}
@@ -548,18 +628,7 @@ print model.summary
 
 \subsubsection{Initial Efficient Estimation of Lambda (Step1c)}
 \label{s:step1c}
-In addition to the number of lags of the exogenous variables to be used as instruments, both GeoDaSpace and PySAL also offer the possibility to add the Step 1c in the estimation of the model as proposed by \citet{Arraiz10}. Step 1c updates the initial consistent estimation of lambda using a weighted nonlinear least squares solution to the moments equations. This results in a consistent and efficient intermediate estimation of lambda. Note however that a consistent estimation at this stage is already sufficient to obtain a consistent estimation of all parameters in the model. The option to run Step 1c can be found in the preferences panel in GeoDaSpace, as shown in Figure \ref{f:GS_pref_step1c}. In PySAL, all we have to do to select this option is add `step1c=True' to the arguments of the model (Listing \ref{lt:het_step1c}).
-
-
-
-\begin{figure}[htb]
-\caption{Option to run Step1c from \citet{Arraiz10} for estimating spatial error models with heteroskedasticity using GeoDaSpace}
-\label{f:GS_pref_step1c}
-\begin{center}
-\includegraphics[width=0.7\linewidth]{GS_pref_step1c.png}\\
-%\scriptsize{}
-\end{center}
-\end{figure}
+In addition to the number of lags of the exogenous variables to be used as instruments, both GeoDaSpace and PySAL also offer the possibility to add the Step 1c in the estimation of the model as proposed by \citet{Arraiz10}. Step 1c updates the initial consistent estimation of lambda using a weighted nonlinear least squares solution to the moments equations. This results in a consistent and efficient intermediate estimation of lambda. Note however that a consistent estimation at this stage is already sufficient to obtain a consistent estimation of all parameters in the model. The option to run Step 1c can be found in the preferences panel in GeoDaSpace, as shown in Section \ref{s:adv}. In PySAL, all we have to do to select this option is add `step1c=True' to the arguments of the model (Listing \ref{lt:het_step1c}).
 
 \begin{code}
 \begin{lstlisting}[label=lt:het_step1c,caption=Using PySAL to match the results of spatial error models with heteroskedasticity and endogenous variables or spatial lag from Stata,language=Python]
