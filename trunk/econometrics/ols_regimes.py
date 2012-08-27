@@ -268,8 +268,7 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
     [True, True, True]
     """
     def __init__(self, y, x, regimes,\
-                 w=None,\
-                 robust=None, gwk=None, sig2n_k=True,\
+                 w=None, robust=None, gwk=None, sig2n_k=True,\
                  nonspat_diag=True, spat_diag=False, moran=False,\
                  vm=False, constant_regi='many',
                  cols2regi='all', name_y=None, name_x=None,\
@@ -284,7 +283,7 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
                 regimes, constant_regi, cols2regi)
         BaseOLS.__init__(self, y=y, x=x, robust=robust, gwk=gwk, \
                 sig2n_k=sig2n_k)
-        self.title = "ORDINARY LEAST SQUARES"
+        self.title = "ORDINARY LEAST SQUARES - REGIMES"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x, regi=True)
