@@ -98,10 +98,10 @@ GeoDaSpace is a stand-alone software that provides a graphical user interface (G
 The main GUI window is shown in Figure \ref{f:gui}. It can be divided in four sections: the menu icons (top), data and weights utilities (left), model specification (right) and model estimation (bottom). 
 
 \begin{figure}[htb]
-\caption{GeoDaSpace -- Main window}
-\label{f:gui}
 \begin{center}
 \includegraphics[width=0.8\linewidth]{GUI.png}\\
+\caption{GeoDaSpace -- Main window}
+\label{f:gui}
 \end{center}
 \end{figure}
 
@@ -116,37 +116,37 @@ The menu icons on the top of the window, from left to right, are:
 \item Show advanced settings (see Section \ref{s:adv})
 \end{itemize}
 
-To start the specification of a new model, we need first to open the file containing the data. This can be done wither by clicking on the first menu icon `Create new model' or by clicking on the open folder icon within the data file section, as shown in Figure \ref{f:opendb}.
+To start the specification of a new model, we need first to open the file containing the data. This can be done either by clicking on the first menu icon `Create new model' or by clicking on the open folder icon within the data file section, as shown in Figure \ref{f:opendb}.
 
 \begin{figure}[htb]
-\caption{GeoDaSpace -- Open data file}
-\label{f:opendb}
 \begin{center}
 \includegraphics[width=0.9\linewidth]{opendb.png}\\
+\caption{GeoDaSpace -- Open data file}
+\label{f:opendb}
 \end{center}
 \end{figure}
 
-Currently, GeoDaSpace can open data files in DBF, CSV and TXT formats. For the examples in this document, we use the NAT.dbf file\footnote{The data used in this document is available from PySAL's example data sets. It can be downloaded at \url{http://code.google.com/p/pysal/source/browse/\#svn\%2Ftrunk\%2Fpysal\%2Fexamples}}. Once we open the data file, its variables are listed in a side window. This window can be retrieved at any time by clicking on the fifth menu icon `Open the variable list'. To specify the model, click and drag the variables’ name from the list to the respective boxes in the Specification section of the main window (Figure \ref{f:spec}). The biggest box to the right, `X' (required), must contain all independent variables of the model, or the right-hand side variables. The other boxes are `Y' (required), for the dependent or left-hand side variable, `YE' (optional), which should be used in case there are endogenous explanatory variables, and `H' (optional), where the instruments for these endogenous explanatory variables should be specified.
+Currently, GeoDaSpace can open data files in DBF, CSV and TXT formats. For the examples in this document, we use the NAT.dbf file\footnote{The data used in this document is available from PySAL's example data sets. It can be downloaded at \url{http://code.google.com/p/pysal/source/browse/\#svn\%2Ftrunk\%2Fpysal\%2Fexamples}}. Once we open the data file, its variables are listed in a side window. This window can be retrieved at any time by clicking on the fifth menu icon `Open the variable list'. To specify the model, click and drag the variables' name from the list to the respective boxes in the Specification section of the main window (Figure \ref{f:spec}). The biggest box to the right, `X' (required), must contain all independent variables of the model, or the right-hand side variables. The other boxes are `Y' (required), for the dependent or left-hand side variable, `YE' (optional), which should be used in case there are endogenous explanatory variables, and `H' (optional), where the instruments for these endogenous explanatory variables should be specified.
 
 \begin{figure}[htb]
-\caption{GeoDaSpace -- Model specification}
-\label{f:spec}
 \begin{center}
 \includegraphics[width=0.9\linewidth]{spec.png}\\
+\caption{GeoDaSpace -- Model specification}
+\label{f:spec}
 \end{center}
 \end{figure}
 \FloatBarrier
 
 \subsection{Weights creation}
 
-In the weights section, it is possible to create a new weights matrix or open an existing one. GeoDaSpace supports most of the common weights formats, including GAL, GWT and KWT (GeoDa weights), MAT (MatLab), TXT (Stata Text files), among others. To create a new weights matrix we need to select the respective shapefile (SHP)\footnote{NAT.shp is available from PySAL's example data sets. It can be downloaded at \url{http://code.google.com/p/pysal/source/browse/\#svn\%2Ftrunk\%2Fpysal\%2Fexamples}} as `Input File' (Figure \ref{f:weights}). An ID variable for the weights matrix can either be selected from the database or added to it by clicking on the `plus' sign. GeoDaSpace can create standard model weights or kernel weights, each type with their respective boxes in the Weights section of the main window. Within standard model weights, GeoDaSpace can create contiguity weights matrices of the Queen and Rook types, for any given order of contiguity, according to the spatial structure of the shapefile. Distance weights are also available (Figure \ref{f:weights}a). Euclidean and Arc distances can be used as distance metrics. The types of distance weights available are: k-nearest neighbors, binary distance band and inverse distance. For the last two it is possible to select the cut-off point and, in the case of inverse distance, the power. If, for example, we want to create distance weights based on the inverse of the quadratic distance, all we have to do is choose `Distance' when creating a new weights matrix, then check the `Inverse Distance' bullet and set the power to 2 (Figure \ref{f:weights}a). The cut-off points establish the maximum distance between neighbors. If the metric is `Arc distance (miles)’ and the cut-off is 100, no spatial unit farther than 100 miles from each other will be considered neighbors. The default cut-off point is calculated to ensure that all spatial units have at least 1 neighbor, thus preventing the creation of units with no neighbors, i.e. islands.
+In the weights section, it is possible to create a new weights matrix or open an existing one. GeoDaSpace supports most of the common weights formats, including GAL, GWT and KWT (GeoDa weights), MAT (MatLab), TXT (Stata Text files), among others (clicking on the expandable menu of file type shows all options currently available). To create a new weights matrix we need to select the respective shapefile (SHP)\footnote{NAT.shp is available from PySAL's example data sets. It can be downloaded at \url{http://code.google.com/p/pysal/source/browse/\#svn\%2Ftrunk\%2Fpysal\%2Fexamples}} as `Input File' (Figure \ref{f:weights}). An ID variable for the weights matrix can either be selected from the database or added to it by clicking on the `plus' sign. GeoDaSpace can create standard model weights or kernel weights, each type with their respective boxes in the Weights section of the main window. Within standard model weights, GeoDaSpace can create contiguity weights matrices of the Queen and Rook types, for any given order of contiguity, according to the spatial structure of the shapefile. Distance weights are also available (Figure \ref{f:weights}a). Euclidean and Arc distances can be used as distance metrics. The types of distance weights available are: k-nearest neighbors, binary distance band and inverse distance. For the last two it is possible to select the cut-off point and, in the case of inverse distance, the power. If, for example, we want to create distance weights based on the inverse of the quadratic distance, all we have to do is choose `Distance' when creating a new weights matrix, then check the `Inverse Distance' bullet and set the power to 2 (Figure \ref{f:weights}a). The cut-off points establish the maximum distance between neighbors. If the metric is `Arc distance (miles)' and the cut-off is 100, no spatial unit farther than 100 miles from each other will be considered neighbors. The default cut-off point is calculated to ensure that all spatial units have at least 1 neighbor, thus preventing the creation of units with no neighbors, i.e. islands.
 
 \begin{figure}[htb]
 \centering
-\caption{GeoDaSpace -- Weights creation}
-\label{f:weights}
 \subfloat[Model weights]{\includegraphics[width=0.5\textwidth]{distw.png}} 
 \subfloat[Kernel weights]{\includegraphics[width=0.5\textwidth]{kernel.png}} \\
+\caption{GeoDaSpace -- Weights creation}
+\label{f:weights}
 \end{figure}
 
 In addition to standard model weights, kernel weights can also be created (Figure \ref{f:weights}b). In GeoDaSpace, these are mainly used for the estimation of HAC models. Once again, Euclidean and Arc distances can be used as distance metrics. Currently, five Kernel functions are available: Uniform, Triangular, Epanechnikov, Quartic and Gaussian. It is also possible to specify the number of neighbors of each spatial unit.
@@ -154,10 +154,10 @@ In addition to standard model weights, kernel weights can also be created (Figur
 The gear icon on the weights section opens a window showing the properties of the selected weights matrix. In this window, it is possible to transform the weights matrix into binary, row-standardized (each row summing 1), double-standardized (all row summing 1) and variance stabilized. The properties also include a list of the spatial units that have no neighbors, i.e. the islands, a list of the neighbors of any selected unit, the number of neighbors of each unit, i.e. the cardinalities, the unit's IDs and a histogram of units according to number of neighbors. As an experimental feature, it is also possible to launch an interactive viewer displaying the neighborhood structure. Within the viewer, we can pass the mouse arrow over any spatial unit of the shapefile and its neighbors are instantly highlighted. Also, their IDs are listed along with their weights (Figure \ref{f:viewer}).
 
 \begin{figure}[htb]
-\caption{GeoDaSpace -- Weights viewer}
-\label{f:viewer}
 \begin{center}
 \includegraphics[width=\linewidth]{viewer.png}\\
+\caption{GeoDaSpace -- Weights viewer}
+\label{f:viewer}
 \end{center}
 \end{figure}
 \FloatBarrier
@@ -176,14 +176,20 @@ The estimation methods available in GeoDaSpace can be selected from the `Model E
 \end{itemize}
 
 \begin{figure}[htb]
-\caption{Estimation of a TSLS model}
-\label{f:tsls}
 \begin{center}
 \includegraphics[width=0.7\linewidth]{tsls.png}\\
+\caption{Estimation of a TSLS model}
+\label{f:tsls}
 \end{center}
 \end{figure}
 
-The standard model types are OLS and TSLS models. These methods provide non-spatial diagnostics and spatial diagnostics, if a spatial weights matrix has been selected. In case there is no variable in the box `YE', implying the absence of any explanatory endogenous variable, an OLS model is estimated. If instead there is any variable in the box `YE', a TSLS is estimated. In this case, it is also required to provide in the box `H' the instruments for the endogenous variable (Figure \ref{f:tsls}). White and HAC (requires kernel weights) corrections for heteroskedasticity are available for these methods. The `KP HET' robust estimator assumes a spatial error structure, and therefore is not available for standard model types. Please see Section \ref{s:adv} for details on advanced settings for these methods.
+The standard model types are OLS and TSLS models:
+\begin{equation}
+\mathbf{y} =  \mathbf{X}\beta + \varepsilon,
+\end{equation}
+in which $\mathbf{y}$ is a $n \times 1$ vector containing the dependent variable `Y', $\mathbf{X}$ is a $n \times k$ matrix of observations on the explanatory variables `X', $\beta$ is a $k \times 1$ vector of coefficients, and $\varepsilon$ is a $n \times 1$ vector of random errors.
+
+These methods provide non-spatial diagnostics and spatial diagnostics, if a spatial weights matrix has been selected. In case there is no variable in the box `YE', implying the absence of any explanatory endogenous variable, an OLS model is estimated. If instead there is any variable in the box `YE', a TSLS is estimated. In this case, it is also required to provide in the box `H' the instruments for the endogenous variable (Figure \ref{f:tsls}). White and HAC (requires kernel weights) corrections for heteroskedasticity are available for these methods. The `KP HET' robust estimator assumes a spatial error structure, and therefore is not available for standard model types. Please see Section \ref{s:adv} for details on advanced settings for these methods.
 \FloatBarrier
 
 \subsubsection*{Spatial lag}
@@ -197,10 +203,10 @@ The standard model types are OLS and TSLS models. These methods provide non-spat
 \end{itemize}
 
 \begin{figure}[htb]
-\caption{Estimation of a spatial lag model with heteroskedasticity -- HAC}
-\label{f:haclag}
 \begin{center}
 \includegraphics[width=0.7\linewidth]{haclag.png}\\
+\caption{Estimation of a spatial lag model with heteroskedasticity -- HAC}
+\label{f:haclag}
 \end{center}
 \end{figure}
 
@@ -212,7 +218,7 @@ or, alternatively:
 \begin{equation}
 \mathbf{y} =  (I - \rho \mathbf{W})^{-1} (\mathbf{X}\beta + \varepsilon),
 \end{equation}
-in which $\mathbf{y}$ is a $n \times 1$ vector containing the dependent variable `Y', $\mathbf{W}$ is the $n \times n$ spatial weights matrix, $\rho$ is the spatial autoregressive scalar parameter, $\mathbf{X}$ is a $n \times k$ matrix of observations on the explanatory variables `X', $\beta$ is a $k \times 1$ vector of coefficients, and $\varepsilon$ is a $n \times 1$ vector of random errors.
+in which $\mathbf{W}$ is the $n \times n$ spatial weights matrix and $\rho$ is the spatial autoregressive scalar parameter.
 
 As with the standard methods, White and HAC (requires kernel weights) corrections for heteroskedasticity are available for spatial lag models. Figure \ref{f:haclag} shows an example of the estimation of a spatial lag model using HAC to correct the heteroskedasticity. The `KP HET' robust estimator is not available for models with spatial lag and no spatial errors, since it assumes a spatial error structure. Please see Section \ref{s:adv} for details on advanced settings for these methods.
 \FloatBarrier
@@ -228,10 +234,10 @@ As with the standard methods, White and HAC (requires kernel weights) correction
 \end{itemize}
 
 \begin{figure}[htb]
-\caption{Estimation of spatial error models with heteroskedasticity}
-\label{f:GS_het}
 \begin{center}
 \includegraphics[width=0.7\linewidth]{GS_het.png}\\
+\caption{Estimation of spatial error models with heteroskedasticity}
+\label{f:GS_het}
 \end{center}
 \end{figure}
 
@@ -275,9 +281,9 @@ or, alternatively:
 
 \begin{figure}[htb]
 \centering
+\includegraphics[width=0.7\textwidth]{GS_het_combo.png}
 \caption{Estimation of spatial lag and error model with heteroskedasticity}
 \label{f:GS_het_combo}
-\includegraphics[width=0.7\textwidth]{GS_het_combo.png}
 \end{figure}
 
 All estimation methods for spatial error are also available in the presence of both spatial lag and spatial error. Once again, the default is the `KPD', but the `KP98/99' can be selected from the Advanced Settings Panel (Section \ref{s:adv}). In the presence of heteroskedasticity, it is possible to estimate the method proposed by \citet{Arraiz10} by checking both `Spatial Lag+Error' model type and `KP HET' standard errors. Figure \ref{f:GS_het_combo} shows how to estimate a spatial error model with spatial lag and heteroskedasticity in GeoDaSpace.
@@ -292,30 +298,30 @@ The advanced contains several preferences that affect the way the methods implem
  
 \begin{figure}[htb]
 \centering
+\includegraphics[width=0.9\textwidth]{GUI_adv.png}
 \caption{Advanced settings panel}
 \label{f:gui_adv}
-\includegraphics[width=0.9\textwidth]{GUI_adv.png}
 \end{figure}
 \FloatBarrier
 
 \begin{figure}[htb]
 \centering
+\includegraphics[width=0.7\textwidth]{adv_std.png}
 \caption{Advanced settings panel -- Standard Deviations}
 \label{f:adv_std}
-\includegraphics[width=0.7\textwidth]{adv_std.png}
 \end{figure}
 
-The first tab of the advanced settings panel is related to the way GeoDaSpace computes the standard deviation for all methods (Figure \ref{f:adv_std}). The formula for the normalization used in the calculation of the standard deviations can be selected for the OLS, TSLS, spatial lag and all other models. By default, only in the OLS case the denominator is $(N-k)$. Fall all others, the default is $N$. Of course, if $N$ is very large, the difference between both choices is insignificant. However, the results for small samples will vary according to the methodology selected.
+The first tab of the advanced settings panel is related to the way GeoDaSpace computes the standard deviation for all methods (Figure \ref{f:adv_std}). The formula for the normalization used in the calculation of the standard deviations can be selected for the OLS, TSLS, spatial lag and all other models. By default, only in the OLS case the denominator is $(N-k)$. For all others, the default is $N$. Of course, if $N$ is very large, the difference between both choices is insignificant. However, the results for small samples will vary according to the methodology selected.
 \FloatBarrier
 
 \begin{figure}[htb]
 \centering
+\includegraphics[width=0.7\textwidth]{adv_gmm.png}
 \caption{Advanced settings panel -- GMM}
 \label{f:adv_gmm}
-\includegraphics[width=0.7\textwidth]{adv_gmm.png}
 \end{figure}
 
-The second tab is related to the estimation of the GMM methods (Figure \ref{f:adv_gmm}). Estimators such as the KPD spatial error model \citep{Drukker10} and spatial error with heteroskedasticity KP-HET \citep{Arraiz10} allow for several iterations to improve efficiency (see \citet{Anselin11} for details). The maximum number of iterations can be selected in this tab, as well as the convergence criterion. When the difference between two subsequent estimations of $\lambda$ is less or equal than the value assigned in the box, no more iterations are performed. 
+The second tab is related to the estimation of the GMM methods (Figure \ref{f:adv_gmm}). Estimators such as the KPD spatial error model \citep{Drukker10} and spatial error with heteroskedasticity KP-HET \citep{Arraiz10} allow for several iterations to improve efficiency (see \citet{Anselin11} for details). The maximum number of iterations can be selected in this tab, as well as the convergence criterion. When any of these two criteria is achieved, the iteration process is finalized. In other words, when the difference between two subsequent estimations of $\lambda$ is less or equal than the value assigned in the convergence criterion box or when the maximum number of iterations is reached, no more iterations are performed.
 
 The second item in this tab refers to the inference on $\lambda$ in spatial error or spatial lag and error models. When there is no heteroskedasticity, this box defines if the estimation method selected is the KP98/99 or the KPD. The default, when the box is checked, provides the inference on $\lambda$ by estimating the KPD model. As originally proposed by \citet{Kelejian98,Kelejian99}, the estimation of the KP98/99 does not provide this inference. The KP98/99 is the method used when the box is unchecked.
 
@@ -324,21 +330,21 @@ The third and last item in the GMM tab is related to the estimation of spatial e
 
 \begin{figure}[htb]
 \centering
+\includegraphics[width=0.7\textwidth]{adv_inst.png}
 \caption{Advanced settings panel -- Instruments}
 \label{f:adv_inst}
-\includegraphics[width=0.7\textwidth]{adv_inst.png}
 \end{figure}
 
-The third tab is the Instruments tab (Figure \ref{f:adv_inst}). In this tab it is possible to change the way GeoDaSpace deals with instruments in case of a spatial lag or spatial lag and error models. The first item refers to the order of the spatial lags of the exogenous variables used as instruments of the spatial lag of the dependent variable. The default is to have first and second order lags of these variables, i.e. $\mathbf{WX} + \mathbf{W^2X}$, as instruments to $\mathbf{Wy}$. If instead we change the order of spatial for 1, we have that only $\mathbf{WX}$ will be used as instruments. 
+The third tab is the Instruments tab (Figure \ref{f:adv_inst}). In this tab it is possible to change the way GeoDaSpace deals with instruments in case of a spatial lag or spatial lag and error models. The first item refers to the order of the spatial lags of the exogenous variables used as instruments of the spatial lag of the dependent variable. The default is to have only the first order lags of these variables, i.e. $\mathbf{WX}$, as instruments to $\mathbf{Wy}$. If instead we change the order of spatial for 2, we have that only $\mathbf{WX}+ \mathbf{W^2X}$ will be used as instruments. 
 
-The second checkbox, checked by default, determines the inclusion of the spatial lag of the user-specified instruments in addition to the lag of the exogenous variables. Of course, this applies only if additional instruments are provided in the instruments box `H’ on the main GUI. The instruments in this case are $\mathbf{WX} + \mathbf{W^2X} + \mathbf{WH} + \mathbf{W^2H}$.
+The second checkbox, checked by default, determines the inclusion of the spatial lag of the user-specified instruments in addition to the lag of the exogenous variables. Of course, this applies only if additional instruments are provided in the instruments box `H' on the main GUI. The instruments in this case are $\mathbf{WX} + \mathbf{WH}$.
 \FloatBarrier
 
 \begin{figure}[htb]
 \centering
+\includegraphics[width=0.7\textwidth]{adv_out.png}
 \caption{Advanced settings panel -- Output}
 \label{f:adv_out}
-\includegraphics[width=0.7\textwidth]{adv_out.png}
 \end{figure}
 \FloatBarrier
 
@@ -346,20 +352,20 @@ The fourth tab is related to the output that is printed by GeoDaSpace in the res
 
 The second item allows us to save the predicted values of the dependent variable and residuals in a spreadsheet. If this option is checked, GeoDaSpace creates a CSV files containing this information. Before the estimation is performed, a pop-up window allows us to choose the folder and filename.
 
-The last item in the Output box is ``Show Detailed Model Specification’’. This option is currently unavailable and checking it will not affect the output.
+The last item in the Output box is ``Show Detailed Model Specification''. This option is currently unavailable and checking it will not affect the output.
 
-The last tab contains other type of options. Its first item refers to the calculation of regression diagnostics. By default, non-spatial diagnostics are calculated when running an OLS model. These diagnostics include Jarque-Bera normality test, heteroskedasticity and multicollinearity diagnostics. Another item is related to the calculation of the Moran’s I test for spatial dependence. Whenever a spatial matrix is selected when running standard models, LM tests will be calculated and their results will be printed on the results window. When the box for the Moran’s I is check in the advanced settings panel, the Moran’s I is also included. By default this option is disabled since the calculation of the Moran’s I slows the computation time, especially for large samples.
+The last tab contains other type of options. Its first item refers to the calculation of regression diagnostics. By default, non-spatial diagnostics are calculated when running an OLS model. These diagnostics include Jarque-Bera normality test, heteroskedasticity and multicollinearity diagnostics. Another item is related to the calculation of the Moran's I test for spatial dependence. Whenever a spatial matrix is selected when running standard models, LM tests will be calculated and their results will be printed on the results window. When the box for the Moran's I is check in the advanced settings panel, the Moran's I is also included. By default this option is disabled since the calculation of the Moran's I slows the computation time, especially for large samples.
 
 \begin{figure}[htb]
 \centering
+\includegraphics[width=0.7\textwidth]{adv_other.png}
 \caption{Advanced settings panel -- Other}
 \label{f:adv_other}
-\includegraphics[width=0.7\textwidth]{adv_other.png}
 \end{figure}
 
 The second group of items in this tab refers to data manipulation. Currently GeoDaSpace cannot deal with missing values in the data. When these exist, this option allows us to replace all missing values by a given value (zero by default).
 
-It is possible to save all options in the advanced settings panel. By clicking on the `Save’ button, these chosen options will be saved for future sessions of GeoDaSpace, not only for the model currently being estimated. It is also possible to restore the default values at any time by clicking on the respective button and then saving these changes.
+It is possible to save all options in the advanced settings panel. By clicking on the `Save' button, these chosen options will be saved for future sessions of GeoDaSpace, not only for the model currently being estimated. It is also possible to restore the default values at any time by clicking on the respective button and then saving these changes.
 
 \newpage
 
