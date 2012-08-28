@@ -62,7 +62,8 @@ We first need to import the needed modules, namely numpy to convert the
     The different regimes in this data are given according to the North and 
     South dummy (NSA).
 
-    >>> regimes = db.by_col('NSA')
+    >>> r_var = 'NSA'
+    >>> regimes = db.by_col(r_var)
 
     Since we want to perform tests for spatial dependence, we need to specify
     the spatial weights matrix that includes the spatial configuration of the
@@ -80,16 +81,23 @@ We first need to import the needed modules, namely numpy to convert the
 
     >>> w.transform = 'r'
 
-    >>> tslsr = TSLS_Regimes(y, x, yd, q, regimes, w=w, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_ds='columbus', name_w='columbus.gal')
+    >>> tslsr = TSLS_Regimes(y, x, yd, q, regimes, w=w, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
 
-    >>> print tslsr.summary
+    >>> print tslsr.betas
+    [[ 80.23408166]
+     [  5.48218125]
+     [ 82.98396737]
+     [  0.49775429]
+     [ -3.72663211]
+     [ -1.27451485]]
+    
 
     """
     def __init__(self, y, x, yend, q, regimes,\
              w=None, robust=None, gwk=None, sig2n_k=True,\
              spat_diag=False, vm=False, constant_regi='many',\
              cols2regi='all', name_y=None, name_x=None,\
-             name_yend=None, name_q=None,\
+             name_yend=None, name_q=None, name_regimes=None,\
              name_w=None, name_gwk=None, name_ds=None):
 
         n = USER.check_arrays(y, x)
@@ -114,10 +122,13 @@ We first need to import the needed modules, namely numpy to convert the
         self.name_yend = USER.set_name_yend(name_yend, yend)
         self.name_z = self.name_x + self.name_yend
         self.name_q = USER.set_name_q(name_q, q)
-        #self.name_h = USER.set_name_h(self.name_x, self.name_q)
+        self.name_regimes = USER.set_name_ds(name_regimes)
+        self.name_h = USER.set_name_h(self.name_x, self.name_q)
         self.robust = USER.set_robust(robust)
         self.name_w = USER.set_name_w(name_w, w)
         self.name_gwk = USER.set_name_w(name_gwk, gwk)
+        SUMMARY.TSLS(reg=self, vm=vm, w=w, spat_diag=spat_diag, regimes=True)
+
         """
         ##### DELETE BEFORE ADDING TO PYSAL: #####
         h = sphstack(x,q)
@@ -146,7 +157,6 @@ We first need to import the needed modules, namely numpy to convert the
         SUMMARY.OLS(reg=self, vm=vm, w=w, nonspat_diag=False,\
                     spat_diag=spat_diag, moran=False)
         """
-        SUMMARY.TSLS(reg=self, vm=vm, w=w, spat_diag=spat_diag)
 
 
 def _test():
@@ -158,7 +168,7 @@ def _test():
 
 
 if __name__ == '__main__':
-    #_test()        
+    _test()        
     
     import numpy as np
     import pysal
@@ -171,9 +181,10 @@ if __name__ == '__main__':
     yd = np.array([db.by_col(name) for name in yd_var]).T
     q_var = ['DISCBD']
     q = np.array([db.by_col(name) for name in q_var]).T
-    regimes = db.by_col('NSA')
+    r_var = 'NSA'
+    regimes = db.by_col(r_var)
     w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    tslsr = TSLS_Regimes(y, x, yd, q, regimes, w=w, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_ds='columbus', name_w='columbus.gal')
+    tslsr = TSLS_Regimes(y, x, yd, q, regimes, w=w, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
     print tslsr.summary
 

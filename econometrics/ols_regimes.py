@@ -9,6 +9,7 @@ import regimes as REGI
 import user_output as USER
 from ols import BaseOLS
 import summary_output as SUMMARY
+import numpy as np
 
 
 class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
@@ -270,8 +271,8 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
     def __init__(self, y, x, regimes,\
                  w=None, robust=None, gwk=None, sig2n_k=True,\
                  nonspat_diag=True, spat_diag=False, moran=False,\
-                 vm=False, constant_regi='many',
-                 cols2regi='all', name_y=None, name_x=None,\
+                 vm=False, constant_regi='many', cols2regi='all',\
+                 name_y=None, name_x=None, name_regimes=None,\
                  name_w=None, name_gwk=None, name_ds=None):
 
         n = USER.check_arrays(y, x)
@@ -287,30 +288,36 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x, regi=True)
+        self.name_regimes = USER.set_name_ds(name_regimes)
         self.robust = USER.set_robust(robust)
         self.name_w = USER.set_name_w(name_w, w)
         self.name_gwk = USER.set_name_w(name_gwk, gwk)
         SUMMARY.OLS(reg=self, vm=vm, w=w, nonspat_diag=nonspat_diag,\
-                    spat_diag=spat_diag, moran=moran)
+                    spat_diag=spat_diag, moran=moran, regimes=True)
 
 
-
+def _test():
+    import doctest
+    start_suppress = np.get_printoptions()['suppress']
+    np.set_printoptions(suppress=True)    
+    doctest.testmod()
+    np.set_printoptions(suppress=start_suppress)
 
 if __name__ == '__main__':
     _test()
     import numpy as np
     import pysal
     db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
-    hoval = db.by_col("HOVAL")
-    y = np.array(hoval)
-    y.shape = (len(hoval), 1)
-    X = []
-    X.append(db.by_col("INC"))
-    X.append(db.by_col("CRIME"))
-    X = np.array(X).T
-    regimes = db.by_col("NSA")
-    brk = int(y.shape[0]/2)
-    regimes = [1] * y.shape[0]; regimes[:brk] = [0]*brk
+    y_var = 'CRIME'
+    y = np.array([db.by_col(y_var)]).reshape(49,1)
+    x_var = ['INC','HOVAL']
+    x = np.array([db.by_col(name) for name in x_var]).T
+    r_var = 'NSA'
+    regimes = db.by_col(r_var)
+    w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
+    w.transform = 'r'
+    olsr = OLS_Regimes(y, x, regimes, w=w, constant_regi='many', nonspat_diag=False, spat_diag=False, name_y=y_var, name_x=x_var, name_ds='columbus', name_regimes=r_var, name_w='columbus.gal')
+    print olsr.summary
 
 
 
