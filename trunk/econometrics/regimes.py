@@ -1,6 +1,6 @@
 import time
 import numpy as np
-import pandas as pd
+#import pandas as pd
 import pysal as ps
 import scipy.sparse as SP
 import itertools as iter

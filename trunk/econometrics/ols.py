@@ -342,25 +342,25 @@ class OLS(BaseOLS):
     SUMMARY OF OUTPUT: ORDINARY LEAST SQUARES ESTIMATION
     ----------------------------------------------------
     Data set            :     columbus
-    Dependent Variable  :  home value  Number of Observations:          49
-    Mean dependent var  :     38.4362  Number of Variables   :           3
-    S.D. dependent var  :     18.4661  Degrees of Freedom    :          46
+    Dependent Variable  :  home value               Number of Observations:          49
+    Mean dependent var  :     38.4362               Number of Variables   :           3
+    S.D. dependent var  :     18.4661               Degrees of Freedom    :          46
     <BLANKLINE>
     R-squared           :    0.349514
     Adjusted R-squared  :      0.3212
-    Sum squared residual:   10647.015  F-statistic           :     12.3582
-    Sigma-square        :     231.457  Prob(F-statistic)     : 5.06369e-05
-    S.E. of regression  :      15.214  Log likelihood        :    -201.368
-    Sigma-square ML     :     217.286  Akaike info criterion :     408.735
-    S.E of regression ML:     14.7406  Schwarz criterion     :     414.411
+    Sum squared residual:   10647.015               F-statistic           :     12.3582
+    Sigma-square        :     231.457               Prob(F-statistic)     : 5.06369e-05
+    S.E. of regression  :      15.214               Log likelihood        :    -201.368
+    Sigma-square ML     :     217.286               Akaike info criterion :     408.735
+    S.E of regression ML:     14.7406               Schwarz criterion     :     414.411
     <BLANKLINE>
-    ----------------------------------------------------------------------------
-        Variable     Coefficient       Std.Error     t-Statistic     Probability
-    ----------------------------------------------------------------------------
-        CONSTANT      46.4281827      13.1917570       3.5194844    0.0009866767
-          income       0.6289840       0.5359104       1.1736736       0.2465669
-           crime      -0.4848885       0.1826729      -2.6544086       0.0108745
-    ----------------------------------------------------------------------------
+    ------------------------------------------------------------------------------------
+                Variable     Coefficient       Std.Error     t-Statistic     Probability
+    ------------------------------------------------------------------------------------
+                CONSTANT      46.4281827      13.1917570       3.5194844    0.0009866767
+                   crime      -0.4848885       0.1826729      -2.6544086       0.0108745
+                  income       0.6289840       0.5359104       1.1736736       0.2465669
+    ------------------------------------------------------------------------------------
     <BLANKLINE>
     REGRESSION DIAGNOSTICS
     MULTICOLLINEARITY CONDITION NUMBER   12.537555
@@ -373,11 +373,11 @@ class OLS(BaseOLS):
     TEST                  DF          VALUE            PROB
     Breusch-Pagan test     2           5.766791        0.0559445
     Koenker-Bassett test   2           2.270038        0.3214160
-    <BLANKLINE>    
+    <BLANKLINE>
     SPECIFICATION ROBUST TEST
     TEST                  DF          VALUE            PROB
     White                  5           2.906067        0.7144648
-    ========================= END OF REPORT ==============================
+    ================================ END OF REPORT =====================================
 
     If the optional parameters w and spat_diag are passed to pysal.spreg.OLS,
     spatial diagnostics will also be computed for the regression.  These

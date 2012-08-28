@@ -24,7 +24,7 @@ are called directly from the user class. Each one mixes and matches smaller
 functions located later in this module.
 """
 
-def OLS(reg, vm, w, nonspat_diag, spat_diag, moran):
+def OLS(reg, vm, w, nonspat_diag, spat_diag, moran, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
     beta_diag_ols(reg, reg.robust)
@@ -46,9 +46,11 @@ def OLS(reg, vm, w, nonspat_diag, spat_diag, moran):
     if spat_diag:
         # compute diagnostics and organize summary output
         spat_diag_ols(reg, w, moran)
-    summary(reg=reg, vm=vm, instruments=False, nonspat_diag=nonspat_diag, spat_diag=spat_diag)
+    if regimes:
+        summary_regimes(reg)
+    summary(reg=reg, vm=vm, instruments=False, nonspat_diag=nonspat_diag, spat_diag=spat_diag, other=regimes)
 
-def TSLS(reg, vm, w, spat_diag):
+def TSLS(reg, vm, w, spat_diag, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
     beta_diag(reg, reg.robust)
@@ -57,7 +59,9 @@ def TSLS(reg, vm, w, spat_diag):
         spat_diag_instruments(reg, w)
     # build coefficients table body
     build_coefs_body_instruments(reg)
-    summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag)
+    if regimes:
+        summary_regimes(reg)
+    summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag, other=regimes)
 
 def GM_Lag(reg, vm, w, spat_diag):
     reg.__summary = {}
@@ -67,8 +71,7 @@ def GM_Lag(reg, vm, w, spat_diag):
         # compute diagnostics and organize summary output
         spat_diag_instruments(reg, w)
     # build coefficients table body
-    beta_position = summary_coefs_allx(reg, reg.z_stat)
-    summary_coefs_yend(reg, reg.z_stat, beta_position)
+    summary_coefs_yend(reg, reg.z_stat)
     summary_coefs_instruments(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag)
 
@@ -86,8 +89,7 @@ def GM_Endog_Error(reg, vm, w):
     # compute diagnostics and organize summary output
     beta_diag(reg, None)
     # build coefficients table body
-    beta_position = summary_coefs_allx(reg, reg.z_stat)
-    summary_coefs_yend(reg, reg.z_stat, beta_position)
+    summary_coefs_yend(reg, reg.z_stat, lambd=True)
     summary_coefs_lambda(reg, reg.z_stat)
     summary_coefs_instruments(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False)
@@ -106,8 +108,7 @@ def GM_Endog_Error_Hom(reg, vm, w):
     # compute diagnostics and organize summary output
     beta_diag(reg, None)
     # build coefficients table body
-    beta_position = summary_coefs_allx(reg, reg.z_stat)
-    summary_coefs_yend(reg, reg.z_stat, beta_position)
+    summary_coefs_yend(reg, reg.z_stat, lambd=True)
     summary_coefs_lambda(reg, reg.z_stat)
     summary_coefs_instruments(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False)
@@ -126,8 +127,7 @@ def GM_Endog_Error_Het(reg, vm, w):
     # compute diagnostics and organize summary output
     beta_diag(reg, 'het')
     # build coefficients table body
-    beta_position = summary_coefs_allx(reg, reg.z_stat)
-    summary_coefs_yend(reg, reg.z_stat, beta_position)
+    summary_coefs_yend(reg, reg.z_stat, lambd=True)
     summary_coefs_lambda(reg, reg.z_stat)
     summary_coefs_instruments(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False)
@@ -137,8 +137,7 @@ def GM_Combo(reg, vm, w):
     # compute diagnostics and organize summary output
     beta_diag_lag(reg, None)
     # build coefficients table body
-    beta_position = summary_coefs_allx(reg, reg.z_stat)
-    summary_coefs_yend(reg, reg.z_stat, beta_position)
+    summary_coefs_yend(reg, reg.z_stat, lambd=True)
     summary_coefs_lambda(reg, reg.z_stat)
     summary_coefs_instruments(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False)
@@ -148,8 +147,7 @@ def GM_Combo_Hom(reg, vm, w):
     # compute diagnostics and organize summary output
     beta_diag_lag(reg, None)
     # build coefficients table body
-    beta_position = summary_coefs_allx(reg, reg.z_stat)
-    summary_coefs_yend(reg, reg.z_stat, beta_position)
+    summary_coefs_yend(reg, reg.z_stat, lambd=True)
     summary_coefs_lambda(reg, reg.z_stat)
     summary_coefs_instruments(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False)
@@ -159,8 +157,7 @@ def GM_Combo_Het(reg, vm, w):
     # compute diagnostics and organize summary output
     beta_diag_lag(reg, 'het')
     # build coefficients table body
-    beta_position = summary_coefs_allx(reg, reg.z_stat)
-    summary_coefs_yend(reg, reg.z_stat, beta_position)
+    summary_coefs_yend(reg, reg.z_stat, lambd=True)
     summary_coefs_lambda(reg, reg.z_stat)
     summary_coefs_instruments(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False)
@@ -229,7 +226,7 @@ def beta_diag_lag(reg, robust):
 
 def build_coefs_body_instruments(reg):
     beta_position = summary_coefs_allx(reg, reg.z_stat)
-    summary_coefs_yend(reg, reg.z_stat, beta_position)
+    summary_coefs_yend(reg, reg.z_stat)
     summary_coefs_instruments(reg)
 
 def spat_diag_ols(reg, w, moran):
@@ -261,7 +258,7 @@ def summary(reg, vm, instruments, short_intro=False, nonspat_diag=False, spat_di
         summary += reg.__summary['summary_nonspat_diag_1']
     summary += summary_coefs_intro(reg)
     summary += reg.__summary['summary_coefs']
-    summary += "----------------------------------------------------------------------------\n"
+    summary += "------------------------------------------------------------------------------------\n"
     if instruments:
         summary += reg.__summary['summary_coefs_instruments']
     if nonspat_diag:
@@ -299,10 +296,10 @@ def summary_intro(reg,short):
     strSummary += "%-20s: %12s\n" % ('Data set',reg.name_ds)
     if reg.name_w:
         strSummary += "%-20s: %12s\n" % ('Weights matrix',reg.name_w)
-    strSummary += "%-20s:%12s  %-22s:%12d\n" % ('Dependent Variable',reg.name_y,'Number of Observations',reg.n)
+    strSummary += "%-20s:%12s               %-22s:%12d\n" % ('Dependent Variable',reg.name_y,'Number of Observations',reg.n)
     if not short:
-        strSummary += "%-20s:%12.4f  %-22s:%12d\n" % ('Mean dependent var',reg.mean_y,'Number of Variables',reg.k)
-        strSummary += "%-20s:%12.4f  %-22s:%12d\n" % ('S.D. dependent var',reg.std_y,'Degrees of Freedom',reg.n-reg.k)
+        strSummary += "%-20s:%12.4f               %-22s:%12d\n" % ('Mean dependent var',reg.mean_y,'Number of Variables',reg.k)
+        strSummary += "%-20s:%12.4f               %-22s:%12d\n" % ('S.D. dependent var',reg.std_y,'Degrees of Freedom',reg.n-reg.k)
     strSummary += '\n'
     return strSummary
 
@@ -315,15 +312,16 @@ def summary_coefs_intro(reg):
             strSummary += "HAC Standard Errors; Kernel Weights: " + reg.name_gwk +"\n"
         elif reg.__summary['summary_std_err'].lower() == 'het':
             strSummary += "Heteroskedastic Corrected Standard Errors\n"
-    strSummary += "----------------------------------------------------------------------------\n"
-    strSummary += "    Variable     Coefficient       Std.Error     %1s-Statistic     Probability\n" %(reg.__summary['summary_zt'])
-    strSummary += "----------------------------------------------------------------------------\n"
+    strSummary += "------------------------------------------------------------------------------------\n"
+    strSummary += "            Variable     Coefficient       Std.Error     %1s-Statistic     Probability\n" %(reg.__summary['summary_zt'])
+    strSummary += "------------------------------------------------------------------------------------\n"
     return strSummary
 
 def summary_coefs_allx(reg, zt_stat):
     strSummary = ""
-    for i in range(len(reg.name_x)):        
-        strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n"   \
+    indices = [0]+(np.argsort(reg.name_x[1:])+1).tolist()
+    for i in indices:        
+        strSummary += "%20s    %12.7f    %12.7f    %12.7f    %12.7g\n"   \
                      % (reg.name_x[i],reg.betas[i][0],reg.std_err[i],zt_stat[i][0],zt_stat[i][1])
     reg.__summary['summary_coefs'] = strSummary
     return i
@@ -333,36 +331,54 @@ def summary_coefs_somex(reg, zt_stat):
     the lambda term
     """
     strSummary = ""
-    for i in range(len(reg.name_x)-1):        
-        strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n"   \
+    indices = [0]+(np.argsort(reg.name_x[1:-1])+1).tolist()
+    for i in indices:        
+        strSummary += "%20s    %12.7f    %12.7f    %12.7f    %12.7g\n"   \
                      % (reg.name_x[i],reg.betas[i][0],reg.std_err[i],zt_stat[i][0],zt_stat[i][1])
     reg.__summary['summary_coefs'] = strSummary
     return i
 
-def summary_coefs_yend(reg, zt_stat, beta_position):
+
+def summary_coefs_yend(reg, zt_stat, lambd=False):
     strSummary = ""
-    for i in range(beta_position+1, beta_position+1+len(reg.name_yend)):        
-        strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n"   \
-                     % (reg.name_yend[i-beta_position-1],reg.betas[i][0],reg.std_err[i],zt_stat[i][0],zt_stat[i][1])
-    reg.__summary['summary_coefs'] += strSummary
+    if lambd:
+        indices = [0]+(np.argsort(reg.name_z[1:-1])+1).tolist()
+    else:
+        indices = [0]+(np.argsort(reg.name_z[1:])+1).tolist()    
+    for i in indices:
+        strSummary += "%20s    %12.7f    %12.7f    %12.7f    %12.7g\n"   \
+                     % (reg.name_z[i],reg.betas[i][0],reg.std_err[i],zt_stat[i][0],zt_stat[i][1])              
+    reg.__summary['summary_coefs'] = strSummary
     
 def summary_coefs_lambda(reg, zt_stat):
     if len(reg.betas) == len(zt_stat):
-        reg.__summary['summary_coefs'] += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n"   \
+        reg.__summary['summary_coefs'] += "%20s    %12.7f    %12.7f    %12.7f    %12.7g\n"   \
                            % ('lambda',reg.betas[-1][0],reg.std_err[-1],zt_stat[-1][0],zt_stat[-1][1])
     else:
-        reg.__summary['summary_coefs'] += "%12s    %12.7f    \n" % ('lambda',reg.betas[-1][0])
+        reg.__summary['summary_coefs'] += "%20s    %12.7f    \n" % ('lambda',reg.betas[-1][0])
 
 def summary_coefs_instruments(reg):
     """Generates a list of the instruments used.
     """
     insts = "Instruments: "
-    for name in reg.name_q:
+    for name in sorted(reg.name_q):
         insts += name + ", "
     text_wrapper = TW.TextWrapper(width=76, subsequent_indent="             ")
     insts = text_wrapper.fill(insts[:-2])
     insts += "\n"
-    reg.__summary['summary_coefs_instruments'] = insts
+    inst2 = "Instrumented: "
+    for name in sorted(reg.name_yend):
+        inst2 += name + ", "
+    text_wrapper = TW.TextWrapper(width=76, subsequent_indent="             ")
+    inst2 = text_wrapper.fill(inst2[:-2])    
+    inst2 += "\n"
+    inst2 += insts
+    reg.__summary['summary_coefs_instruments'] = inst2
+
+def summary_regimes(reg):
+    """Generates a list of the instruments used.
+    """
+    reg.__summary['summary_other'] = "Regimes variable: %s\n" %reg.name_regimes
 
 def summary_coefs_slopes(reg):
     strSummary = "\nMARGINAL EFFECTS\n"
@@ -370,11 +386,12 @@ def summary_coefs_slopes(reg):
         strSummary += "Method: Mean of individual marginal effects\n"        
     elif reg.scalem == 'xmean':
         strSummary += "Method: Marginal effects at variables mean\n"   
-    strSummary += "----------------------------------------------------------------------------\n"
-    strSummary += "    Variable           Slope       Std.Error     %1s-Statistic     Probability\n" %(reg.__summary['summary_zt'])
-    strSummary += "----------------------------------------------------------------------------\n"
-    for i in range(len(reg.name_x)-1):        
-        strSummary += "%12s    %12.7f    %12.7f    %12.7f    %12.7g\n"   \
+    strSummary += "------------------------------------------------------------------------------------\n"
+    strSummary += "            Variable           Slope       Std.Error     %1s-Statistic     Probability\n" %(reg.__summary['summary_zt'])
+    strSummary += "------------------------------------------------------------------------------------\n"
+    indices = np.argsort(reg.name_x[1:]).tolist()
+    for i in indices:        
+        strSummary += "%20s    %12.7f    %12.7f    %12.7f    %12.7g\n"   \
                      % (reg.name_x[i+1],reg.slopes[i][0],reg.slopes_std_err[i],reg.slopes_z_stat[i][0],reg.slopes_z_stat[i][1])
     return strSummary+"\n\n"
 
@@ -390,11 +407,11 @@ def summary_r2(reg, ols, spatial_lag):
 
 def summary_nonspat_diag_1(reg):
     strSummary = ""
-    strSummary += "%-20s:%12.3f  %-22s:%12.4f\n" % ('Sum squared residual',reg.utu,'F-statistic',reg.f_stat[0])
-    strSummary += "%-20s:%12.3f  %-22s:%12.7g\n" % ('Sigma-square',reg.sig2,'Prob(F-statistic)',reg.f_stat[1])
-    strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('S.E. of regression',np.sqrt(reg.sig2),'Log likelihood',reg.logll)
-    strSummary += "%-20s:%12.3f  %-22s:%12.3f\n" % ('Sigma-square ML',reg.sig2ML,'Akaike info criterion',reg.aic)
-    strSummary += "%-20s:%12.4f  %-22s:%12.3f\n" % ('S.E of regression ML',np.sqrt(reg.sig2ML),'Schwarz criterion',reg.schwarz)
+    strSummary += "%-20s:%12.3f               %-22s:%12.4f\n" % ('Sum squared residual',reg.utu,'F-statistic',reg.f_stat[0])
+    strSummary += "%-20s:%12.3f               %-22s:%12.7g\n" % ('Sigma-square',reg.sig2,'Prob(F-statistic)',reg.f_stat[1])
+    strSummary += "%-20s:%12.3f               %-22s:%12.3f\n" % ('S.E. of regression',np.sqrt(reg.sig2),'Log likelihood',reg.logll)
+    strSummary += "%-20s:%12.3f               %-22s:%12.3f\n" % ('Sigma-square ML',reg.sig2ML,'Akaike info criterion',reg.aic)
+    strSummary += "%-20s:%12.4f               %-22s:%12.3f\n" % ('S.E of regression ML',np.sqrt(reg.sig2ML),'Schwarz criterion',reg.schwarz)
     return strSummary
     
 def summary_nonspat_diag_2(reg):
@@ -470,7 +487,7 @@ def summary_pred(reg):
     return strPred
             
 def summary_close():
-    return "========================= END OF REPORT =============================="
+    return "================================ END OF REPORT ====================================="
     
 ##############################################################################
 

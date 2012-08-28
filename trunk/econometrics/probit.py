@@ -513,20 +513,20 @@ class Probit(BaseProbit):
     ------------------------------------------------------
     Data set            :     columbus
     Weights matrix      : columbus.gal
-    Dependent Variable  :       crime  Number of Observations:          49
+    Dependent Variable  :       crime               Number of Observations:          49
     <BLANKLINE>
     % correctly predicted: 85.71
     Log-Likelihood       : -20.0601
     LR test              : 25.3177
     LR test (p-value)    : 0.0000
     <BLANKLINE>
-    ----------------------------------------------------------------------------
-        Variable     Coefficient       Std.Error     z-Statistic     Probability
-    ----------------------------------------------------------------------------
-        CONSTANT       3.3538108       0.9234792       3.6317122     0.000281547
-          income      -0.1996531       0.0641390      -3.1128178     0.001853104
-      home value      -0.0295137       0.0175972      -1.6771855      0.09350621
-    ----------------------------------------------------------------------------
+    ------------------------------------------------------------------------------------
+                Variable     Coefficient       Std.Error     z-Statistic     Probability
+    ------------------------------------------------------------------------------------
+                CONSTANT       3.3538108       0.9234792       3.6317122     0.000281547
+              home value      -0.0295137       0.0175972      -1.6771855      0.09350621
+                  income      -0.1996531       0.0641390      -3.1128178     0.001853104
+    ------------------------------------------------------------------------------------
     <BLANKLINE>
     DIAGNOSTICS FOR SPATIAL DEPENDENCE
     TEST                      MI/DF      VALUE          PROB
@@ -537,14 +537,14 @@ class Probit(BaseProbit):
     <BLANKLINE>
     MARGINAL EFFECTS
     Method: Mean of individual marginal effects
-    ----------------------------------------------------------------------------
-        Variable           Slope       Std.Error     z-Statistic     Probability
-    ----------------------------------------------------------------------------
-          income      -0.0465378       0.0133080      -3.4969848    0.0004705486
-      home value      -0.0068794       0.0040072      -1.7167785      0.08601965
+    ------------------------------------------------------------------------------------
+                Variable           Slope       Std.Error     z-Statistic     Probability
+    ------------------------------------------------------------------------------------
+              home value      -0.0068794       0.0040072      -1.7167785      0.08601965
+                  income      -0.0465378       0.0133080      -3.4969848    0.0004705486
     <BLANKLINE>
     <BLANKLINE>
-    ========================= END OF REPORT ==============================
+    ================================ END OF REPORT =====================================
 
     """
     def __init__(self, y, x, w=None, optim='newton',scalem='phimean',maxiter=100,\
