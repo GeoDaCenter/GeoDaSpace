@@ -1,7 +1,9 @@
 \documentclass{article}
+
 \title{Introduction to GeoDaSpace: A Desktop Program for Spatial Regression and Diagnostics}
-\author{}
+\author{Luc Anselin, Pedro Amaral, Daniel Arribas-Bel and David Folch}
 %\date{}
+
 \usepackage{amsmath}
 \usepackage{natbib}
 \bibpunct{(}{)}{,}{a}{}{,}
@@ -27,6 +29,14 @@
 
 \maketitle
 \thispagestyle{empty}
+
+\vfill
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=0.5\linewidth]{geodaspace.png}\\
+\end{center}
+\end{figure}
 
 \vfill
 
@@ -58,46 +68,46 @@
 
 This document provides a first introduction to the use of GeoDaSpace (Section \ref{s:GS}) and compares estimation results using GeoDaSpace, Stata and R (Section \ref{s:comparisons}). In instances where results differ between the three programs, we document why this is the case.
 
-GeoDaSpace is a free desktop program to obtain results from spatial diagnostic tests and to estimate spatial regression parameters.\footnote{The alpha version of the program can be downloaded at https://geodacenter.asu.edu/software/downloads/geodaspace.} It is developed by Dr. Luc Anselin and his team at the GeoDa Center for Geospatial Analysis and Computation, which is part of the School of Geogaphical Sciences and Urban Planning at Arizona State University.\footnote{The team contributions of Dr. Daniel Arribas-Bel, Pedro V. Amaral, Dr. David Folch, Nick Malizia, Charles Schmidt, Ran Wei, Jing Yao, Phil Stephens, and Dr. Mark McCann are gratefully acknowledged. We also appreciate the valuable feedback from analysts who tested the alpha versions of GeoDaSpace. For information about the GeoDa Center, see  \url{https://geodacenter.asu.edu}} The software provides a graphical user interface (GUI) for the spatial regression module \emph{spreg} that was initially released as part of PySAL 1.3 on July 31, 2012 \citep{Rey07}. PySAL is an open source library for spatial analysis written in the programming language Python.\footnote{More information about PySAL can be found at \url{http://pysal.org/}}  The project is directed by Dr. Serge Rey at the GeoDa Center.
+GeoDaSpace is a free desktop program to obtain results from spatial diagnostic tests and to estimate spatial regression parameters.\footnote{The alpha version of the program can be downloaded at https://geodacenter.asu.edu/software/downloads/geodaspace.} It is developed by Dr. Luc Anselin and his team at the GeoDa Center for Geospatial Analysis and Computation, which is part of the School of Geogaphical Sciences and Urban Planning at Arizona State University.\footnote{The team contributions of Dr. Daniel Arribas-Bel, Pedro V. Amaral, Dr. David Folch, Nick Malizia, Charles Schmidt, Ran Wei, Jing Yao, Phil Stephens, Dr. Mark McCann, and Dr. Julia Koschinsky are gratefully acknowledged. We also appreciate the valuable feedback from analysts who tested the alpha versions of GeoDaSpace. For information about the GeoDa Center, see  \url{https://geodacenter.asu.edu}} The software provides a graphical user interface (GUI) for the spatial regression module \emph{spreg} that was initially released as part of PySAL 1.3 on July 31, 2012 \citep{Rey07}. PySAL is an open source library for spatial analysis written in the programming language Python.\footnote{More information about PySAL can be found at \url{http://pysal.org/}}  The project is directed by Dr. Serge Rey at the GeoDa Center.
 
-The main estimation methods in GeoDaSpace are listed in Table \ref{t:methods}. They include Ordinary Least Squares (OLS), Two-Stage Least Squares (TSLS), and General Methods of Moments (GMM) to estimate the spatial lag model (Spatial Two-Stage Least Squares - STSLS \citep{Anselin88}), the spatial error model and the spatial lag and error model. For the estimation of the spatial error and lag and error models the methods developed by \citet{Kelejian98,Kelejian99} (KP98/99) and \citet{Drukker10} (KPD) are available, in addition to the heteroskedasticity robust method proposed by \citet{Arraiz10} (KP-Het).  
+The main methods and models implemented in GeoDaSpace are listed in Table \ref{t:methods}. They include Ordinary Least Squares (OLS), Two-Stage Least Squares (TSLS), and General Methods of Moments (GMM) to estimate the spatial lag model, the spatial error model, and the spatial lag + error model.  The estimation of the spatial lag model is based on spatial two-stage least squares (STSLS) \citep{Anselin88}. For the estimation of the spatial error and lag and error models the methods developed by \citet{Kelejian98,Kelejian99} (KP98/99) and \citet{Drukker10} (KPD) are implemented, in addition to the heteroskedasticity robust method proposed by \citet{Arraiz10} (KP-Het).  
 
-Spatial and non-spatial diagnostics can be obtained for all of these estimation methods in GeoDaSpace. Further, non-spatial endogenous variables can be specified and heteroskedasticity corrections are available (heteroskedasticity and autocorrelation consistent (HAC) \citep{Kelejian07} and White heteroskedasticity consistent covariance matrix \citep{White80}). GeoDaSpace also offers utilities to create and manipulate weights matrices based on contiguity, distance (bands, KNN, inverse distance) and kernels.
+Spatial and non-spatial diagnostics can be obtained for all of these estimation methods in GeoDaSpace. Further, non-spatial endogenous variables can be specified and heteroskedasticity corrections are available (heteroskedasticity and autocorrelation consistent (HAC) \citep{Kelejian07} and White's heteroskedasticity consistent covariance matrix \citep{White80}). GeoDaSpace also offers utilities to create and manipulate weights matrices based on contiguity, distance (bands, KNN, inverse distance) and kernels.
 
-Table \ref{t:methods} also shows the methods provided in GeoDaSpace that can be found in Stata and R. For this document we consider two different versions of the R package \emph{sphet} developed by Dr. Gianfranco Piras. The first one, \emph{sphet1}, is the released version of \emph{sphet} (v. 1.1-12, published on CRAN on 2012-04-13). In addition, we also use the alpha version from R-Forge, revision 56, published on 2012-07-22. This newer version of the code, which contains many additional methods and enhancements to \emph{sphet1}, is subsequently referred to as \emph{sphet2}.\footnote{Please note that, as an alpha version, this code is subject to change.}
+Table \ref{t:methods} also shows the methods provided in GeoDaSpace that can be found in Stata and R. For this document we consider two different versions of the R package \emph{sphet} developed by Dr. Gianfranco Piras. The first one, \emph{sphet1}, is the released version of \emph{sphet} (v. 1.1-12, published on CRAN on 2012-04-13). In addition, we use the alpha version from R-Forge, revision 56, published on 2012-07-22. This newer version of the code, which contains additional methods and enhancements to \emph{sphet1}, is subsequently referred to as \emph{sphet2}.\footnote{Please note that, as an alpha version, this code is subject to change.}
 
 
 \begin{table}[htpb]
-\caption{Methods implemented in GeoDaSpace and their availability in Stata and R}
+\caption{Methods and models implemented in GeoDaSpace and their availability in Stata and R}
 \label{t:methods}
 \centering
 \begin{small}
 \begin{tabular}{l|cccc} \hline
 \textbf{Method}&\textbf{GeoDaSpace}&\textbf{Stata}&\textbf{R$^1$}&\textbf{R$^2$}\\ \hline
-OLS&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+Standard (OLS) &{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
 \textcolor{white}{XXX} with heteroskedasticity (White)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
 \textcolor{white}{XXX} with heteroskedasticity (HAC)&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
-TSLS&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
-\textcolor{white}{XXX} with het. (White)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
-\textcolor{white}{XXX} with het. (HAC)&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+Standard (TSLS)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+\textcolor{white}{XXX} with endogenous var and het. (White)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+\textcolor{white}{XXX} with endogenous var. and het. (HAC)&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
 Spatial lag (STSLS)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
 \textcolor{white}{XXX} with het. (White)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
 \textcolor{white}{XXX} with het. (HAC)&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
 \textcolor{white}{XXX} with endogenous var.&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
 \textcolor{white}{XXX} with endog. var. and het. (White)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
 \textcolor{white}{XXX} with endog. var. and het. (HAC) &{\LARGE$\textcolor{blue}\bullet$}&&&{\LARGE$\textcolor{blue}\bullet$}\\
-GM Spatial error (KP98/99)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
-\textcolor{white}{XXX} with endogenous var. (KP98/99)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&\\
-GM Spatial error and lag (KP98/99)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
-\textcolor{white} {XXX} with endog. var. (KP98/99)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&\\
-GMM Spatial error (KPD)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
-\textcolor{white}{XXX} with endogenous var. (KPD)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
-GMM Spatial error and lag (KPD)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
-\textcolor{white}{XXX} with endog. var. (KPD)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
-GMM Spatial error with heteroskedasticity (KP-Het)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
-\textcolor{white}{XXX} with endog. var. and het. (KP-Het)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
-GMM Spatial error and lag with het. (KP-Het)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
-\textcolor{white}{XXX} with endog. var. and het. (KP-Het)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial error (GM) (KP98/99)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+\textcolor{white}{XXX} with endogenous var. &{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&\\
+Spatial error and lag (GM) (KP98/99)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+\textcolor{white} {XXX} with endog. var. &{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&\\
+Spatial error (GMM)(KPD)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
+\textcolor{white}{XXX} with endogenous var. &{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial error and lag (GMM) (KPD)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
+\textcolor{white}{XXX} with endog. var. &{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial error with heteroskedasticity (GMM) (KP-Het)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+\textcolor{white}{XXX} with endog. var. and het. &{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
+Spatial error and lag with het. (GMM) (KP-Het)&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}\\
+\textcolor{white}{XXX} with endog. var. and het. &{\LARGE$\textcolor{blue}\bullet$}&{\LARGE$\textcolor{blue}\bullet$}&&{\LARGE$\textcolor{blue}\bullet$}\\
 \hline
 \multicolumn{5}{l}{\scriptsize{$^1$R packages spdep and sphet (v. 1.1-12, published on CRAN on 2012-04-13).}} \\
 \multicolumn{5}{l}{\scriptsize{$^2$R packages spdep and sphet (revision 56, published on R-Forge on 2012-07-22).}} \\
@@ -133,7 +143,7 @@ The menu icons on the top of the window, from left to right, allow users to:
 \item Save a model as...
 \item Open the list of variables
 \item Show the results window
-\item Show the advanced settings (see Section \ref{s:adv})
+\item Show advanced settings (see Section \ref{s:adv})
 \end{itemize}
 
 To start the specification of a new model, users need to first open a data file. This can be done either by selecting the first menu icon `Create new model' or by selecting the open folder icon within the data file section, as shown in Figure \ref{f:opendb}.
@@ -146,7 +156,7 @@ To start the specification of a new model, users need to first open a data file.
 \end{center}
 \end{figure}
 
-Currently, GeoDaSpace can open data files in DBF, CSV and TXT formats. The examples in this document are based on the NAT.dbf file\footnote{The data used in this document are available at \url{http://geodacenter.org/downloads/data-files/ncovr.zip}. They are also part of PySAL's example data sets at \url{http://code.google.com/p/pysal/source/browse/\#svn\%2Ftrunk\%2Fpysal\%2Fexamples}}. Once the data file is open, the associated variables are listed in their own window. This window can be retrieved any time by selecting the menu icon `Open the variable list' (second from right). To specify the model, click and drag the variables' name from the list to the respective boxes in the specification section of the main window (Figure \ref{f:spec}). The largest panel on the right, `X' (required), must contain all independent variables of the model, i.e. the explanatory or right-hand-side variables. The panel for `Y' is also required and is used for specifying the dependent or left-hand side variable. `YE'  is optional for endogenous explanatory variables; as is `H'  where the instruments for these endogenous explanatory variables can be specified.
+Currently, GeoDaSpace can open data files in DBF, CSV and TXT formats. The examples in this document are based on the NAT.dbf file\footnote{The data used in this document are available at \url{http://geodacenter.org/downloads/data-files/ncovr.zip}. They are also part of PySAL's example data sets at \url{http://code.google.com/p/pysal/source/browse/\#svn\%2Ftrunk\%2Fpysal\%2Fexamples}}. Once the data file is open, the associated variables are listed in a separate window. This window can be retrieved any time by selecting the menu icon `Open the variable list' (second from right). To specify the model, click and drag a variable's name from the list to the respective boxes in the specification section of the main window (Figure \ref{f:spec}). The largest panel on the right, `X' (required), must contain all independent variables of the model, i.e. the explanatory or right-hand-side variables. The panel for `Y' is also required and is used for specifying the dependent or left-hand side variable. `YE'  is optional for endogenous explanatory variables; as is `H'  where the instruments for these endogenous explanatory variables can be specified.
 
 \begin{figure}[htb]
 \begin{center}
@@ -173,9 +183,9 @@ For example, to create distance weights based on the inverse of the quadratic di
 \label{f:weights}
 \end{figure}
 
-In addition to these standard model weights, kernel weights can be created (Figure \ref{f:weights}b). In GeoDaSpace, these are mainly used for the estimation of heteroskedasticity and autocorrelation consistent (HAC) models \citet{Kelejian07}. Once again, Euclidean and Arc distances can be used as distance metrics. Currently, five Kernel functions are available: Uniform, Triangular, Epanechnikov, Quartic and Gaussian. It is also possible to specify the number of neighbors of each spatial unit.
+In addition to these standard model weights, kernel weights can be created (Figure \ref{f:weights}b). In GeoDaSpace, these are mainly used for heteroskedasticity and autocorrelation consistent (HAC) estimators \citet{Kelejian07}. Once again, Euclidean and Arc distances can be used as distance metrics. Currently, five Kernel functions are available: Uniform, Triangular, Epanechnikov, Quartic and Gaussian. It is also possible to specify the number of neighbors of each spatial unit.
 
-The gear icon in the weights section opens a window of the properties of the selected weights matrix. In this window, it is possible to transform the weights matrix into binary, row-standardized (i.e. each row sums to 1), double-standardized (all rows sum to 1) and variance stabilized weights. The properties also include a list of the spatial units that have no neighbors, i.e. the islands, a list of the neighbors of any selected unit, the number of neighbors of each unit, i.e. the cardinalities, the unit's IDs, and a histogram of units based on the number of neighbors. As an experimental feature, it is also possible to launch an interactive viewer to visualize the neighbors of a given unit based on the specified weights matrix: The mouse can be brushed over any spatial unit of the shapefile and its neighbors are instantly highlighted. Note that the IDs are listed along with those of the neighbors (Figure \ref{f:viewer}).
+The gear icon in the weights section opens a window of the properties of the selected weights matrix. In this window, it is possible to transform the weights matrix into binary, row-standardized (i.e. each row sums to 1), double-standardized (all rows sum to 1) and variance stabilized weights. The properties also include a list of the spatial units that have no neighbors, i.e. the islands, a list of the neighbors of any selected unit, the number of neighbors of each unit, i.e. the cardinalities, the unit's IDs, and a histogram of units based on the number of neighbors. As an experimental feature, it is also possible to launch an interactive viewer to visualize the neighbors of a given unit based on the specified weights matrix: The mouse can be brushed over any spatial unit of the shapefile and its neighbors are simultaneously highlighted. Note that the IDs are listed along with those of the neighbors (Figure \ref{f:viewer}).
 
 \begin{figure}[htb]
 \begin{center}
@@ -191,7 +201,7 @@ The estimation methods available in GeoDaSpace can be selected from the `Model E
 
 The \textbf{standard model options} include:
 
-%\subsubsection*{Standard}
+\subsubsection*{Standard Options}
 \begin{itemize}
       \item Ordinary least squares when no endogenous variable (YE) is specified (OLS)
      \begin{itemize}
@@ -300,7 +310,7 @@ GeoDaSpace provides two different estimators for spatial error models without he
 
 For the \textbf{spatial lag and error model} the following options are available:
 
-\subsubsection*{Spatial Lag and Error}
+\subsubsection*{Spatial Lag and Error Options}
 \begin{itemize}
 \item Spatial lag and error (KPD)
 	\begin{itemize}
@@ -433,11 +443,11 @@ For this comparison we use two different versions of the R package \emph{sphet}.
 The following spatial error models are discussed in this section:
 
 \begin{itemize}
-\item Spatial error models with 
+\item Spatial error models (KPD) with 
 	\begin{itemize}
-	\item exogenous variables and no heteroskedasticity (KPD)
-	\item endogenous variables and no heteroskedasticity (KPD)
-	\item spatial lag and no heteroskedasticity (KPD)
+	\item exogenous variables and no heteroskedasticity
+	\item endogenous variables and no heteroskedasticity
+	\item spatial lag and no heteroskedasticity
 	\item exogenous variables and heteroskedasticity
 	\item endogenous variables and heteroskedasticity
 	\item spatial lag and heteroskedasticity
@@ -537,8 +547,8 @@ lambda&0.5098&0.4364&0.4364&0.4364\\
 \multicolumn{5}{l}{\scriptsize{$^1$PySAL using the code to match Stata as in Listing \ref{lt:hom_end_stata}.}} \\
 \multicolumn{5}{l}{\scriptsize{$^2$UE90 instrumented by FP89 and all other exogenous variables.}} \\
 \multicolumn{5}{l}{\scriptsize{$^3$GeoDaSpace using 2 spatial lags for the instruments.}} \\
-\multicolumn{5}{l}{\scriptsize{\hl{Note:I'm still not convinced I'm doing the endog model in R right.}}} \\
-\multicolumn{5}{l}{\scriptsize{\hl{I'll have to check with Gianfranco. He says he's results match Stata's.}}} \\
+\multicolumn{5}{l}{\scriptsize{\hl{Note: I'm still not convinced I'm doing the endog model in R right.}}} \\
+\multicolumn{5}{l}{\scriptsize{\hl{I'll have to check with Gianfranco. He says his results match Stata's.}}} \\
 \end{tabular}
 \end{small}
 \end{table}
@@ -659,8 +669,8 @@ lambda&0.4667&0.4614&0.4667&0.4667\\
 \multicolumn{5}{l}{\scriptsize{$^1$sphet1 does not allow for endogenous variables.}} \\
 \multicolumn{5}{l}{\scriptsize{$^2$PySAL using the code to match Stata as in Listing \ref{lt:het_endog_stata}.}} \\
 \multicolumn{5}{l}{\scriptsize{$^3$UE90 instrumented by FP89 and exogenous variables.}} \\
-\multicolumn{5}{l}{\scriptsize{\hl{Note:I'm still not convinced I'm doing the endog model in R right.}}} \\
-\multicolumn{5}{l}{\scriptsize{\hl{I'll have to check with Gianfranco. He says he's results match Stata's.}}} \\
+\multicolumn{5}{l}{\scriptsize{\hl{Note: I'm still not convinced I'm doing the endog model in R right.}}} \\
+\multicolumn{5}{l}{\scriptsize{\hl{I'll have to check with Gianfranco. He says his results match Stata's.}}} \\
 \end{tabular}
 \end{small}
 \end{table}
