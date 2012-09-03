@@ -140,17 +140,15 @@ class BaseTSLS(RegressionPropsY, RegressionPropsVM):
         self.n = y.shape[0]
         self.x = x
 
-        self.kstar = yend.shape[1]        
+        self.kstar = yend.shape[1]
         z = sphstack(self.x,yend)  # including exogenous and endogenous variables   
         if type(h).__name__ not in ['ndarray', 'csr_matrix']:
             h = sphstack(self.x,q)   # including exogenous variables and instrument
-
         self.z = z
         self.h = h
         self.q = q
         self.yend = yend
-        self.k = z.shape[1]    # k = number of exogenous variables and endogenous variables 
-        
+        self.k = z.shape[1]    # k = number of exogenous variables and endogenous variables
         hth = spdot(h.T,h)    
         hthi = la.inv(hth)
         zth = spdot(z.T,h)    
@@ -446,4 +444,20 @@ def _test():
 
 if __name__ == '__main__':
     _test()
+
+    import numpy as np
+    import pysal
+    db = pysal.open(pysal.examples.get_path("columbus.dbf"),'r')
+    y_var = 'CRIME'
+    y = np.array([db.by_col(y_var)]).reshape(49,1)
+    x_var = ['INC']
+    x = np.array([db.by_col(name) for name in x_var]).T
+    yd_var = ['HOVAL']
+    yd = np.array([db.by_col(name) for name in yd_var]).T
+    q_var = ['DISCBD']
+    q = np.array([db.by_col(name) for name in q_var]).T
+    w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
+    w.transform = 'r'
+    tsls = TSLS(y, x, yd, q, w=w, spat_diag=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_ds='columbus', name_w='columbus.gal')
+    print tsls.summary
 

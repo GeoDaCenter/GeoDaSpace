@@ -504,47 +504,7 @@ class Probit(BaseProbit):
      ['PS_error' '2.558166' '0.109726']]
 
     Or we can easily obtain a full summary of all the results nicely formatted and
-    ready to be printed simply by typing:
-
-    >>> print model.summary
-    REGRESSION
-    ----------
-    SUMMARY OF OUTPUT: CLASSIC PROBIT ESTIMATOR ESTIMATION
-    ------------------------------------------------------
-    Data set            :     columbus
-    Weights matrix      : columbus.gal
-    Dependent Variable  :       crime               Number of Observations:          49
-    <BLANKLINE>
-    % correctly predicted: 85.71
-    Log-Likelihood       : -20.0601
-    LR test              : 25.3177
-    LR test (p-value)    : 0.0000
-    <BLANKLINE>
-    ------------------------------------------------------------------------------------
-                Variable     Coefficient       Std.Error     z-Statistic     Probability
-    ------------------------------------------------------------------------------------
-                CONSTANT       3.3538108       0.9234792       3.6317122     0.000281547
-              home value      -0.0295137       0.0175972      -1.6771855      0.09350621
-                  income      -0.1996531       0.0641390      -3.1128178     0.001853104
-    ------------------------------------------------------------------------------------
-    <BLANKLINE>
-    DIAGNOSTICS FOR SPATIAL DEPENDENCE
-    TEST                      MI/DF      VALUE          PROB
-    Kelejian-Prucha (error)     1        1.721312       0.0851942
-    Pinkse (error)              1        3.131719       0.0767828
-    Pinkse-Slade (error)        1        2.558166       0.1097258
-    <BLANKLINE>
-    <BLANKLINE>
-    MARGINAL EFFECTS
-    Method: Mean of individual marginal effects
-    ------------------------------------------------------------------------------------
-                Variable           Slope       Std.Error     z-Statistic     Probability
-    ------------------------------------------------------------------------------------
-              home value      -0.0068794       0.0040072      -1.7167785      0.08601965
-                  income      -0.0465378       0.0133080      -3.4969848    0.0004705486
-    <BLANKLINE>
-    <BLANKLINE>
-    ================================ END OF REPORT =====================================
+    ready to be printed simply by typing 'print model.summary'
 
     """
     def __init__(self, y, x, w=None, optim='newton',scalem='phimean',maxiter=100,\

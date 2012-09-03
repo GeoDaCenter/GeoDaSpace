@@ -266,7 +266,7 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
     array([ 21.29552114,   0.79528657,   0.28460755,  16.79327777,
              0.85352708,   0.22389296])
     >>> olsr.cols2regi
-    [True, True, True]
+    'all'
     """
     def __init__(self, y, x, regimes,\
                  w=None, robust=None, gwk=None, sig2n_k=True,\
@@ -280,21 +280,22 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
         USER.check_weights(w, y)
         USER.check_robust(robust, gwk)
         USER.check_spat_diag(spat_diag, w)
-        x, name_x = REGI.Regimes_Frame.__init__(self, x, name_x, \
+        self.name_x_r = USER.set_name_x(name_x, x)
+        self.cols2regi = cols2regi        
+        x, name_x2 = REGI.Regimes_Frame.__init__(self, x, name_x, \
                 regimes, constant_regi, cols2regi)
         BaseOLS.__init__(self, y=y, x=x, robust=robust, gwk=gwk, \
                 sig2n_k=sig2n_k)
         self.title = "ORDINARY LEAST SQUARES - REGIMES"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
-        self.name_x = USER.set_name_x(name_x, x, regi=True)
+        self.name_x = USER.set_name_x(name_x2, x, regi=True)
         self.name_regimes = USER.set_name_ds(name_regimes)
         self.robust = USER.set_robust(robust)
         self.name_w = USER.set_name_w(name_w, w)
         self.name_gwk = USER.set_name_w(name_gwk, gwk)
         SUMMARY.OLS(reg=self, vm=vm, w=w, nonspat_diag=nonspat_diag,\
                     spat_diag=spat_diag, moran=moran, regimes=True)
-
 
 def _test():
     import doctest
@@ -316,7 +317,7 @@ if __name__ == '__main__':
     regimes = db.by_col(r_var)
     w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    olsr = OLS_Regimes(y, x, regimes, w=w, constant_regi='many', nonspat_diag=False, spat_diag=False, name_y=y_var, name_x=x_var, name_ds='columbus', name_regimes=r_var, name_w='columbus.gal')
+    olsr = OLS_Regimes(y, x, regimes, w=w, constant_regi='many', nonspat_diag=False, spat_diag=True, name_y=y_var, name_x=x_var, name_ds='columbus', name_regimes=r_var, name_w='columbus.gal')
     print olsr.summary
 
 
