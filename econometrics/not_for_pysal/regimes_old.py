@@ -1,10 +1,15 @@
+import time
 import numpy as np
+#import pandas as pd
 import pysal as ps
 import scipy.sparse as SP
 import itertools as iter
 from scipy.stats import f, chisqprob
+# For OLS
+from pysal.spreg import diagnostics
+from pysal.spreg.utils import RegressionPropsY, RegressionPropsVM
+import pysal.spreg.robust as ROBUST
 import numpy.linalg as la
-
 
 class Chow_sp:
     '''
@@ -36,33 +41,13 @@ class Chow_sp:
               for each beta that varies across regimes. The restrictions
               are setup to test for the global stability (all regimes have the
               same parameter) of the beta.
-
-    Examples
-    ========
-    >>> import numpy as np
-    >>> import pysal
-    >>> from ols_regimes import OLS_Regimes
-    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
-    >>> y_var = 'CRIME'
-    >>> y = np.array([db.by_col(y_var)]).reshape(49,1)
-    >>> x_var = ['INC','HOVAL']
-    >>> x = np.array([db.by_col(name) for name in x_var]).T
-    >>> r_var = 'NSA'
-    >>> regimes = db.by_col(r_var)
-    >>> olsr = OLS_Regimes(y, x, regimes, constant_regi='many', nonspat_diag=False, spat_diag=False, name_y=y_var, name_x=x_var, name_ds='columbus', name_regimes=r_var, name_w='columbus.gal')
-    >>> chow = Chow_sp(olsr)
-    >>> print olsr.name_x #x_var
-    ['CONSTANT', 'INC', 'HOVAL']
-    >>> print chow.regi
-    [[ 0.01020844  0.91952121]
-     [ 0.46024939  0.49750745]
-     [ 0.55477371  0.45637369]]
-    >>> print 'Joint test:'
-    Joint test:
-    >>> print chow.joint
-    (0.6339319928978806, 0.8886223520178802)
+    Methods
+    =======
+    summary    : method
+                 When called, creates a pandas.DataFrame object that
+                 contains the results of of the Spatial Chow. NOTE:
+                 requires a recent version of ``pandas``
     '''
-
     def __init__(self, reg):
         self.reg = reg
         kr, kf, nr, betas, vm = reg.kr, reg.kf, reg.nr, reg.betas, reg.vm
@@ -78,6 +63,29 @@ class Chow_sp:
         joint = wald_test(betas, r_global, q, vm)
         self.joint = joint
         self.regi = regi
+
+    def summary(self):
+        '''
+        Build a pandas.DataFrame that contains the output of Chow_sp
+        '''
+        names = []
+        names_all = [i.split('_-_')[-1] for i in self.reg.name_x \
+                if i[: 6] != 'Global']
+        for var in names_all:
+            if var not in names:
+                names.append(var)
+        res = pd.DataFrame(
+                {'Statistic': self.regi[:, 0],
+                'P-values': self.regi[:, 1]},
+                index = pd.MultiIndex.from_tuples([('By variable', i) for i in names]))
+        res = res.T
+        res[('Global', '')] = self.joint
+        res[('Global', '')]['Statistic'] = self.joint[0]
+        res[('Global', '')]['P-values'] = self.joint[1]
+        res = res.T
+        res = pd.DataFrame(res, columns=['Statistic', 'P-values'])
+        res[''] = res['P-values'].apply(star_significance)
+        return res
 
 class Wald:
     '''
@@ -174,16 +182,12 @@ class Regimes_Frame:
     Appends to self
     ===============
     '''
-    def __init__(self, x, name_x, regimes, constant_regi, cols2regi, yend=False):
+    def __init__(self, x, name_x, regimes, constant_regi, cols2regi):
         self.regimes = regimes
         self.constant_regi = constant_regi
         if cols2regi == 'all':
             cols2regi = [True] * x.shape[1]
-        else:
-            if yend:
-                cols2regi = cols2regi[-x.shape[1]:]
-            else:
-                cols2regi = cols2regi[0:x.shape[1]]
+        self.cols2regi = cols2regi
         if constant_regi:
             x = np.hstack((np.ones((x.shape[0], 1)), x))
             if constant_regi == 'one':
@@ -194,13 +198,8 @@ class Regimes_Frame:
                 raise Exception, "Invalid argument (%s) passed for 'constant_regi'. Please secify a valid term."%str(constant)
         name_x = set_name_x_regimes(name_x, regimes, constant_regi, cols2regi)
         x = regimeX_setup(x, regimes, cols2regi, constant=constant_regi)
-        kr = len(np.where(np.array(cols2regi)==True)[0])
-        if yend:
-            self.kr += kr
-            self.kf += len(cols2regi) - kr
-        else:    
-            self.kr = kr
-            self.kf = len(cols2regi) - self.kr
+        self.kr = len(np.where(np.array(cols2regi)==True)[0])
+        self.kf = len(cols2regi) - self.kr
         self.nr = len(set(regimes))
         return x, name_x
 
@@ -348,10 +347,8 @@ def regimeX_setup(x, regimes, cols2regi, constant=False):
     '''
     n, k = x.shape
     cols2regi = np.array(cols2regi)
-    if set(cols2regi) == set([True]):
+    if len(set(cols2regi))==1:
         xsp = x2xsp(x, regimes)
-    elif set(cols2regi) == set([False]):
-        xsp = SP.csr_matrix(x)
     else:
         not_regi = x[:, np.where(cols2regi==False)[0]]
         regi_subset = x[:, np.where(cols2regi)[0]]
@@ -411,10 +408,39 @@ def set_name_x_regimes(name_x, regimes, constant_regi, cols2regi):
 
     name_x_regi = []
     for r in regimes_set:
-        rl = ['%s_%s'%(str(r), i) for i in vars_regi]
+        rl = ['%s_-_%s'%(str(r), i) for i in vars_regi]
         name_x_regi.extend(rl)
-    name_x_regi.extend(['Global_%s'%i for i in vars_glob])
+    name_x_regi.extend(['Global_-_%s'%i for i in vars_glob])
     return name_x_regi
+
+def regimes_printout(model):
+    stds = diagnostics.se_betas(model)
+    tp = np.array(diagnostics.t_stat(model))
+    res = pd.DataFrame({'Coefficient': pd.Series(model.betas.flatten()), \
+            'Std. Error': pd.Series(stds) , \
+            'T-Stat': pd.Series(tp[:, 0].flatten()), \
+            'P-value': pd.Series(tp[:, 1].flatten())})
+    res = res.reindex(columns = ['Coefficient', 'Std. Error', 'T-Stat', 'P-value'])
+    inds = []
+    for lbl in model.name_x:
+        r, v = lbl.split('_-_')
+        inds.append((r, v))
+    inds = np.array(inds)
+    res['Regime'] = inds[:, 0]
+    res['Variable'] = inds[:, 1]
+    res = res.set_index(['Regime', 'Variable'])
+    res[''] = res['P-value'].apply(star_significance)
+    return res
+
+def star_significance(p):
+    if p < 0.001:
+        return '***'
+    elif p > 0.001 and p <= 0.005:
+        return '** '
+    elif p > 0.005 and p <= 0.1:
+        return '*  '
+    else:
+        return ''
 
 def x2xsp(x, regimes):
     '''
@@ -450,33 +476,113 @@ def x2xsp(x, regimes):
     indptr[-1] = n*k
     return SP.csr_matrix((data, indices, indptr))
 
-def _test():
-    import doctest
-    start_suppress = np.get_printoptions()['suppress']
-    np.set_printoptions(suppress=True)    
-    doctest.testmod()
-    np.set_printoptions(suppress=start_suppress)
+def x2xsp_csc(x, regimes):
+    '''
+    Implementation of x2xsp based on csc sparse matrices
+
+    Slower as r grows
+
+    NOTE: for legacy purposes
+    '''
+    n, k = x.shape
+    regimes_set = list(set(regimes))
+    regimes_set.sort()
+    regimes = np.array(regimes)
+    data = x.flatten('F')
+    R = len(regimes_set)
+    col_map = dict((r, np.where(regimes == regimes_set[r])[0]) for r in np.arange(R))
+    reg_order = np.array([np.arange(R) for i in np.arange(k)]).flatten()
+    indices = list(iter.chain(*[col_map[r] for r in reg_order]))
+    indptr = np.zeros(reg_order.shape[0] + 1, dtype=int)
+    for i in np.arange(1, indptr.shape[0]):
+        indptr[i] = indptr[i-1] + len(col_map[reg_order[i-1]])
+    return SP.csc_matrix((data, indices, indptr)).tocsr()
+    #return data, indices, indptr
+
+def x2xsp_pandas(x, regimes):
+    '''
+    Similar functionality as x2xsp but using pandas as the core engine for
+    realigning. Two main cons:
+        * You have to build full XS before making it sparse
+        * You have to convert XS DataFrame to an np.array before going to csr
+    These make it slower and less memory efficient
+
+    NOTE: for legacy purposes
+    '''
+    n, k = x.shape
+    multiID = pd.MultiIndex.from_tuples(zip(np.arange(n), regimes), \
+            names=['id', 'regime'])
+    df = pd.DataFrame(x, index=multiID, columns=['x'+str(i) for \
+            i in range(k)])
+    a = df.unstack().fillna(0).as_matrix()
+    return SP.csr_matrix(a)
+
 
 if __name__ == '__main__':
-    _test()
-    import numpy as np
-    import pysal
-    from ols_regimes import OLS_Regimes
-    db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
-    y_var = 'CRIME'
-    y = np.array([db.by_col(y_var)]).reshape(49,1)
-    x_var = ['INC','HOVAL']
-    x = np.array([db.by_col(name) for name in x_var]).T
-    r_var = 'NSA'
-    regimes = db.by_col(r_var)
-    w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
-    w.transform = 'r'
-    olsr = OLS_Regimes(y, x, regimes, w=w, constant_regi='many', nonspat_diag=False, spat_diag=False, name_y=y_var, name_x=x_var, name_ds='columbus', name_regimes=r_var, name_w='columbus.gal')
-    print olsr.summary
-    """
-    chow = Chow_sp(olsr)
-    print x_var
-    print chow.regi
-    print 'Joint test:'
-    print chow.joint
-    """
+    '''
+    np.random.seed(123)
+    # Data Setup
+    #n, kr, kf, r, constant = (1500000, 8, 1, 50, 'many')
+    #n, kr, kf, r, constant = (50000, 16, 15, 359, 'many')
+    #n, kr, kf, r = (50000, 11, 0, 359)
+    n, kr, kf, r, constant = (1000, 3, 0, 2, 'many')
+    print('Using setup with n=%i, kr=%i, kf=%i, %i regimes and %s constant(s)' \
+            %(n, kr, kf, r, constant))
+    k = kr + kf
+    x = np.random.random((n, k))
+    #x[:50, :] = (x[:50, :] + 100) ** 2
+    x[:500, 2:] = np.random.normal(loc=10, size=(500, k-2)) + 10000
+    y = np.random.random((n, 1))
+    inR1 = n / 2
+    inR2 = n / 2
+    regimes = ['r1'] * inR1 + ['r2'] * inR2
+    nr = [int(np.round(n/r))] * (r-1)
+    regimes = list(iter.chain(*[['r'+str(i)]*j for i, j in enumerate(nr)]))
+    regimes = regimes + ['r'+str(r-1)] * (n-len(regimes)) 
+    #np.random.shuffle(regimes)
+
+    # Regime model setup
+    t0 = time.time()
+    cols2regi = [True] * kr + [False] * kf
+    xsp = regimeX_setup(x, regimes, cols2regi, constant=constant)
+    t1 = time.time()
+    #print('Full setup created in %.4f seconds'%(t1-t0))
+    R = buildR(kr+1, kf, r)
+
+    # Regression and Chow test
+    from ols import BaseOLS, OLS
+    w = ps.lat2W(250, 4)
+    ols = OLS(y, x, w=w, regimes=regimes, spat_diag=True, moran=True, nonspat_diag=False)
+    chow = Chow_sp(ols)
+    print chow.summary()
+    ols.kr = kr
+    ols.kf = kf
+    if constant == 'many':
+        ols.kr += 1
+    else:
+        ols.kf += 1
+    ols.nr = r
+    t2 = time.time()
+    print('OLS run in %.4f seconds'%(t2-t1))
+
+    # columbus test (against R::aod wald.test)
+    import pandas as pd
+    db = pd.read_csv('examples/columbus.csv')
+    y = db['HOVAL,N,9,6'].values.reshape((len(db), 1))
+    name_x = ['INC,N,9,6', 'DISCBD,N,8,6']
+    x = db[name_x].as_matrix()
+    lm = ps.spreg.OLS(y, x, name_x=name_x)
+    R = np.array([[1, 0, 0]])
+    wald = Wald(lm, R)
+    '''
+    from pyGDsandbox.dataIO import dbf2df
+    from econometrics.ols import OLS
+    db = dbf2df('/Users/dani/Dropbox/spaceStat/columbus.dbf')
+    x = db[['INC', 'CRIME']].as_matrix()
+    y = db[['HOVAL']].values.reshape((49, 1))
+    reg = list(db['REGI'])
+    model = OLS(y, x, regimes=reg, nonspat_diag=False)
+    print regimes_printout(model).to_string()
+    chow = Chow_sp(model)
+    print chow.summary().to_string()
+

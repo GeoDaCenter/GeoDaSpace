@@ -8,10 +8,149 @@ import summary_output as SUMMARY
 
 class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
     """
+    Two stage least squares (2SLS) with regimes
+
+    Parameters
+    ----------
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, excluding the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    q            : array
+                   Two dimensional array with n rows and one column for each
+                   external exogenous variable to use as instruments (note: 
+                   this should not contain any variables from x); cannot be
+                   used in combination with h
+    h            : array
+                   Two dimensional array with n rows and one column for each
+                   exogenous variable to use as instruments (note: this 
+                   can contain variables from x); cannot be used in 
+                   combination with q
+    regimes      : list
+                   List of n values with the mapping of each
+                   observation to a regime. Assumed to be aligned with 'x'.
+    constant_regi: [False, 'one', 'many']
+                   Switcher controlling the constant term setup. It may take
+                   the following values:
+                    
+                     *  False: no constant term is appended in any way
+                     *  'one': a vector of ones is appended to x and held
+                               constant across regimes
+                     * 'many': a vector of ones is appended to x and considered
+                               different per regime (default)
+    cols2regi    : list, 'all'
+                   Argument indicating whether each
+                   column of x should be considered as different per regime
+                   or held constant across regimes (False).
+                   If a list, k booleans indicating for each variable the
+                   option (True if one per regime, False to be held constant).
+                   If 'all' (default), all the variables vary by regime.
+    robust       : string
+                   If 'white', then a White consistent estimator of the
+                   variance-covariance matrix is given.  If 'hac', then a
+                   HAC consistent estimator of the variance-covariance
+                   matrix is given. Default set to None. 
+    gwk          : pysal W object
+                   Kernel spatial weights needed for HAC estimation. Note:
+                   matrix must have ones along the main diagonal.
+    sig2n_k      : boolean
+                   If True, then use n-k to estimate sigma^2. If False, use n.
+
+
+    Attributes
+    ----------
+    betas        : array
+                   kx1 array of estimated coefficients
+    u            : array
+                   nx1 array of residuals
+    predy        : array
+                   nx1 array of predicted y values
+    n            : integer
+                   Number of observations
+    k            : integer
+                   Number of variables for which coefficients are estimated
+                   (including the constant)
+    kstar        : integer
+                   Number of endogenous variables. 
+    y            : array
+                   nx1 array for dependent variable
+    x            : array
+                   Two dimensional array with n rows and one column for each
+                   independent (exogenous) variable, including the constant
+    yend         : array
+                   Two dimensional array with n rows and one column for each
+                   endogenous variable
+    q            : array
+                   Two dimensional array with n rows and one column for each
+                   external exogenous variable used as instruments 
+    z            : array
+                   nxk array of variables (combination of x and yend)
+    h            : array
+                   nxl array of instruments (combination of x and q)
+    mean_y       : float
+                   Mean of dependent variable
+    std_y        : float
+                   Standard deviation of dependent variable
+    vm           : array
+                   Variance covariance matrix (kxk)
+    utu          : float
+                   Sum of squared residuals
+    sig2         : float
+                   Sigma squared used in computations
+    sig2n        : float
+                   Sigma squared (computed with n in the denominator)
+    sig2n_k      : float
+                   Sigma squared (computed with n-k in the denominator)
+    hth          : float
+                   H'H
+    hthi         : float
+                   (H'H)^-1
+    varb         : array
+                   (Z'H (H'H)^-1 H'Z)^-1
+    zthhthi      : array
+                   Z'H(H'H)^-1
+    pfora1a2     : array
+                   n(zthhthi)'varb
+    regimes      : list
+                   List of n values with the mapping of each
+                   observation to a regime. Assumed to be aligned with 'x'.
+    constant_regi: [False, 'one', 'many']
+                   Ignored if regimes=False. Constant option for regimes.
+                   Switcher controlling the constant term setup. It may take
+                   the following values:
+                    
+                     *  False: no constant term is appended in any way
+                     *  'one': a vector of ones is appended to x and held
+                               constant across regimes
+                     * 'many': a vector of ones is appended to x and considered
+                               different per regime
+    cols2regi    : list, 'all'
+                   Ignored if regimes=False. Argument indicating whether each
+                   column of x should be considered as different per regime
+                   or held constant across regimes (False).
+                   If a list, k booleans indicating for each variable the
+                   option (True if one per regime, False to be held constant).
+                   If 'all', all the variables vary by regime.
+    kr           : int
+                   Number of variables/columns to be "regimized" or subject
+                   to change by regime. These will result in one parameter
+                   estimate by regime for each variable (i.e. nr parameters per
+                   variable)
+    kf           : int
+                   Number of variables/columns to be considered fixed or
+                   global across regimes and hence only obtain one parameter
+                   estimate
+    nr           : int
+                   Number of different regimes in the 'regimes' list
+
     Examples
     --------
 
-We first need to import the needed modules, namely numpy to convert the
+    We first need to import the needed modules, namely numpy to convert the
     data we read into arrays that ``spreg`` understands and ``pysal`` to
     perform all the analysis.
 
@@ -98,24 +237,24 @@ We first need to import the needed modules, namely numpy to convert the
              spat_diag=False, vm=False, constant_regi='many',\
              cols2regi='all', name_y=None, name_x=None,\
              name_yend=None, name_q=None, name_regimes=None,\
-             name_w=None, name_gwk=None, name_ds=None):
+             name_w=None, name_gwk=None, name_ds=None, summ=True):
 
         n = USER.check_arrays(y, x)
         USER.check_y(y, n)
         USER.check_weights(w, y)
         USER.check_robust(robust, gwk)
         USER.check_spat_diag(spat_diag, w)
-        x, name_x = REGI.Regimes_Frame.__init__(self, x, name_x, \
-                regimes, constant_regi, cols2regi)
-        yend, name_yend = REGI.Regimes_Frame.__init__(self, yend, \
-                name_yend, regimes, constant_regi=None, cols2regi=cols2regi)
+        self.name_x_r = USER.set_name_x(name_x, x) + USER.set_name_yend(name_yend, yend)
+        self.cols2regi = cols2regi
         q, name_q = REGI.Regimes_Frame.__init__(self, q, name_q, \
-                regimes, constant_regi=None, cols2regi=cols2regi)
+                regimes, constant_regi=None, cols2regi='all')
+        x, name_x = REGI.Regimes_Frame.__init__(self, x, name_x, \
+                regimes, constant_regi, cols2regi=cols2regi)
+        yend, name_yend = REGI.Regimes_Frame.__init__(self, yend, \
+                name_yend, regimes, constant_regi=None, \
+                cols2regi=cols2regi, yend=True)
         BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q, \
                 robust=robust, gwk=gwk, sig2n_k=sig2n_k)
-
-        self.title = "TWO STAGE LEAST SQUARES - REGIMES"
-        self.z = sphstack(x,yend)
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x, regi=True)
@@ -127,7 +266,9 @@ We first need to import the needed modules, namely numpy to convert the
         self.robust = USER.set_robust(robust)
         self.name_w = USER.set_name_w(name_w, w)
         self.name_gwk = USER.set_name_w(name_gwk, gwk)
-        SUMMARY.TSLS(reg=self, vm=vm, w=w, spat_diag=spat_diag, regimes=True)
+        if summ:
+            self.title = "TWO STAGE LEAST SQUARES - REGIMES"
+            SUMMARY.TSLS(reg=self, vm=vm, w=w, spat_diag=spat_diag, regimes=True)
 
         """
         ##### DELETE BEFORE ADDING TO PYSAL: #####
@@ -185,6 +326,6 @@ if __name__ == '__main__':
     regimes = db.by_col(r_var)
     w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    tslsr = TSLS_Regimes(y, x, yd, q, regimes, w=w, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
+    tslsr = TSLS_Regimes(y, x, yd, q, regimes, w=w, constant_regi='many', spat_diag=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
     print tslsr.summary
 

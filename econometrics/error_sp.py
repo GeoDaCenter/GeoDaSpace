@@ -1101,3 +1101,14 @@ def _test():
 if __name__ == '__main__':
 
     _test()
+    import pysal
+    import numpy as np
+    dbf = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
+    y = np.array([dbf.by_col('HOVAL')]).T
+    names_to_extract = ['INC', 'CRIME']
+    x = np.array([dbf.by_col(name) for name in names_to_extract]).T
+    w = pysal.open(pysal.examples.get_path("columbus.gal"), 'r').read() 
+    w.transform='r'
+    model = GM_Error(y, x, w, name_y='hoval', name_x=['income', 'crime'], name_ds='columbus')
+    print model.summary
+    

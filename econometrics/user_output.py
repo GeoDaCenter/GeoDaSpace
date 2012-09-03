@@ -153,7 +153,7 @@ def set_name_yend_sp(name_y):
     """
     return 'W_' + name_y
 
-def set_name_q_sp(name_x, w_lags, name_q, lag_q):
+def set_name_q_sp(name_x, w_lags, name_q, lag_q, force_all=False):
     """Set the spatial instrument names in regression; return generic name if user
     provides no explicit name."
 
@@ -172,10 +172,12 @@ def set_name_q_sp(name_x, w_lags, name_q, lag_q):
     name_q_sp   : list of strings
                   
     """
-    if lag_q:
-        names = name_x[1:] + name_q   # drop the constant
+    if force_all:
+        names = name_x
     else:
-        names = name_x[1:]   # drop the constant
+        names = name_x[1:] # drop the constant
+    if lag_q:
+        names = names + name_q   
     sp_inst_names = []
     for j in names:
         sp_inst_names.append('W_'+j)
