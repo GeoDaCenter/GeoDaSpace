@@ -25,7 +25,6 @@ class TestOLS_regimes(unittest.TestCase):
         np.testing.assert_array_almost_equal(ols.ar2,0.50761700679873101 ,7)
         np.testing.assert_array_almost_equal(ols.betas,np.array([[ 68.78670869],\
                 [ -1.9864167 ],[ -0.10887962],[ 67.73579559],[ -1.36937552],[ -0.31792362]])) 
-        np.testing.assert_equal(ols.k,  6)
         np.testing.assert_array_almost_equal(ols.lm_error, \
             (5.92970357,  0.01488775),7)
         np.testing.assert_array_almost_equal(ols.lm_lag, \
@@ -61,7 +60,11 @@ class TestOLS_regimes(unittest.TestCase):
         #    414.41095054038061,7 )
         #np.testing.assert_array_almost_equal(ols.sig2ML, \
         #    217.28602192257551,7 )
-        np.testing.assert_equal(ols.n,  49)
+        np.testing.assert_equal(ols.k, 6)
+        np.testing.assert_equal(ols.kf, 0)
+        np.testing.assert_equal(ols.kr, 3)
+        np.testing.assert_equal(ols.n, 49)
+        np.testing.assert_equal(ols.nr, 2)
         np.testing.assert_equal(ols.name_ds,  'columbus')
         np.testing.assert_equal(ols.name_gwk,  None)
         np.testing.assert_equal(ols.name_w,  'columbus.gal')
