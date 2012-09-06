@@ -1091,7 +1091,7 @@ def _momentsGM_Error(w, u):
     G = np.array([[2 * uwu[0][0], -wu2[0][0], w.n], [2 * wuwwu[0][0], -wwu2[0][0], trWtW], [uwwu[0][0] + wu2[0][0], -wuwwu[0][0], 0.]]) / w.n
     return [G, g]
 
-def test():
+def _test():
     import doctest
     start_suppress = np.get_printoptions()['suppress']
     np.set_printoptions(suppress=True)    
@@ -1100,7 +1100,7 @@ def test():
 
 if __name__ == '__main__':
 
-    test()
+    _test()
     import pysal
     import numpy as np
     dbf = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
