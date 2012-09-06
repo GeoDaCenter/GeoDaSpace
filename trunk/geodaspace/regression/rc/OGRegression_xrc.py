@@ -433,7 +433,7 @@ def __init_resources():
                                 </object>
                                 <object class="sizeritem">
                                   <object class="wxStaticText">
-                                    <label>H</label>
+                                    <label>Instruments</label>
                                     <tooltip>Instruments</tooltip>
                                   </object>
                                   <flag>wxALL|wxALIGN_CENTRE|wxALIGN_CENTRE_VERTICAL|wxADJUST_MINSIZE</flag>
