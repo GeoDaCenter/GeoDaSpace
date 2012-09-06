@@ -938,7 +938,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             #dialog.ShowModal()
         except KeyError:
             #commonly caused by no or incorrectly set ID Var.
-            dialog = wx.MessageDialog(self,"Please check that the ID variable of your weights file matches your dbf file or create a new weights file in GeoDaWeights.","The model failed to run. ",wx.OK|wx.ICON_ERROR)
+            dialog = wx.MessageDialog(self,"Please check that the ID variable of your weights file matches your data file or create a new weights file in GeoDaWeights.","The model failed to run. ",wx.OK|wx.ICON_ERROR)
             dialog.ShowModal()
             raise
         except AttributeError:
