@@ -2,8 +2,8 @@ import numpy as np
 import regimes as REGI
 import user_output as USER
 from utils import sphstack
-from ols import BaseOLS
 from twosls import BaseTSLS
+from regimes import Chow
 import summary_output as SUMMARY
 
 class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
@@ -237,14 +237,16 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
              spat_diag=False, vm=False, constant_regi='many',\
              cols2regi='all', name_y=None, name_x=None,\
              name_yend=None, name_q=None, name_regimes=None,\
-             name_w=None, name_gwk=None, name_ds=None, summ=True):
+             name_w=None, name_gwk=None, name_ds=None):
 
         n = USER.check_arrays(y, x)
         USER.check_y(y, n)
         USER.check_weights(w, y)
         USER.check_robust(robust, gwk)
         USER.check_spat_diag(spat_diag, w)
-        self.name_x_r = USER.set_name_x(name_x, x) + USER.set_name_yend(name_yend, yend)
+        name_yend = USER.set_name_yend(name_yend, yend)        
+        self.name_x_r = USER.set_name_x(name_x, x) + name_yend
+        name_q = USER.set_name_q(name_q, q)
         self.cols2regi = cols2regi
         q, name_q = REGI.Regimes_Frame.__init__(self, q, name_q, \
                 regimes, constant_regi=None, cols2regi='all')
@@ -266,9 +268,9 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         self.robust = USER.set_robust(robust)
         self.name_w = USER.set_name_w(name_w, w)
         self.name_gwk = USER.set_name_w(name_gwk, gwk)
-        if summ:
-            self.title = "TWO STAGE LEAST SQUARES - REGIMES"
-            SUMMARY.TSLS(reg=self, vm=vm, w=w, spat_diag=spat_diag, regimes=True)
+        self.chow = Chow(self)        
+        self.title = "TWO STAGE LEAST SQUARES - REGIMES"
+        SUMMARY.TSLS(reg=self, vm=vm, w=w, spat_diag=spat_diag, regimes=True)
 
         """
         ##### DELETE BEFORE ADDING TO PYSAL: #####
@@ -313,6 +315,7 @@ if __name__ == '__main__':
     
     import numpy as np
     import pysal
+    #"""
     db = pysal.open(pysal.examples.get_path("columbus.dbf"),'r')
     y_var = 'CRIME'
     y = np.array([db.by_col(y_var)]).reshape(49,1)
@@ -328,4 +331,21 @@ if __name__ == '__main__':
     w.transform = 'r'
     tslsr = TSLS_Regimes(y, x, yd, q, regimes, w=w, constant_regi='many', spat_diag=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
     print tslsr.summary
+
+    """
+    db = pysal.open(pysal.examples.get_path('NAT.dbf'),'r')
+    y_var = 'HR60'
+    y = np.array([db.by_col(y_var)]).T
+    x_var = ['PS60','MA60','DV60','UE60']
+    x = np.array([db.by_col(name) for name in x_var]).T
+    yd_var = ['RD60']
+    yd = np.array([db.by_col(name) for name in yd_var]).T
+    q_var = ['FP89']
+    q = np.array([db.by_col(name) for name in q_var]).T
+    r_var = 'SOUTH'
+    regimes = db.by_col(r_var)
+    tslsr = TSLS_Regimes(y, x, yd, q, regimes, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var)
+    print tslsr.summary
+    #"""
+
 

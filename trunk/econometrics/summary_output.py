@@ -7,7 +7,6 @@ import copy as COPY
 import diagnostics as diagnostics
 import diagnostics_tsls as diagnostics_tsls
 import diagnostics_sp as diagnostics_sp
-import regimes as regimes
 import pysal
 import scipy
 from scipy.sparse.csr import csr_matrix
@@ -384,17 +383,16 @@ def summary_regimes(reg):
     """Generates a list of the instruments used.
     """
     reg.__summary['summary_other_mid'] = "Regimes variable: %s\n" %reg.name_regimes
-    chow = regimes.Chow_sp(reg)
     reg.__summary['summary_other_mid'] += "\nREGIMES DIAGNOSTICS - CHOW TEST\n"
-    reg.__summary['summary_other_mid'] += "                 VARIABLE        DF        VALUE          PROB\n"
+    reg.__summary['summary_other_mid'] += "                 VARIABLE        DF        VALUE           PROB\n"
     if reg.cols2regi == 'all':
         names_chow = reg.name_x_r[1:]
     else:
         names_chow = [reg.name_x_r[1:][i] for i in np.where(reg.cols2regi)[0]]
     indices = [0]+(np.argsort(names_chow)+1).tolist()
     for i in indices:    
-        reg.__summary['summary_other_mid'] += "%25s        %2d    %12.6f       %9.7f\n" %(reg.name_x_r[i],reg.nr-1,chow.regi[i,0],chow.regi[i,1])
-    reg.__summary['summary_other_mid'] += "%25s        %2d    %12.6f       %9.7f\n" %('Global test',reg.kr*(reg.nr-1),chow.joint[0],chow.joint[1])
+        reg.__summary['summary_other_mid'] += "%25s        %2d    %12.6f        %9.7f\n" %(reg.name_x_r[i],reg.nr-1,reg.chow.regi[i,0],reg.chow.regi[i,1])
+    reg.__summary['summary_other_mid'] += "%25s        %2d    %12.6f        %9.7f\n" %('Global test',reg.kr*(reg.nr-1),reg.chow.joint[0],reg.chow.joint[1])
 
 def summary_coefs_slopes(reg):
     strSummary = "\nMARGINAL EFFECTS\n"
@@ -436,37 +434,37 @@ def summary_nonspat_diag_2(reg):
     if reg.mulColli:
         strSummary += "MULTICOLLINEARITY CONDITION NUMBER %16.6f\n\n" % (reg.mulColli)
     strSummary += "TEST ON NORMALITY OF ERRORS\n"
-    strSummary += "TEST                             DF        VALUE          PROB\n"
-    strSummary += "%-27s      %2d  %14.6f       %9.7f\n\n" % ('Jarque-Bera',reg.jarque_bera['df'],reg.jarque_bera['jb'],reg.jarque_bera['pvalue'])
+    strSummary += "TEST                             DF        VALUE           PROB\n"
+    strSummary += "%-27s      %2d  %14.6f        %9.7f\n\n" % ('Jarque-Bera',reg.jarque_bera['df'],reg.jarque_bera['jb'],reg.jarque_bera['pvalue'])
     strSummary += "DIAGNOSTICS FOR HETEROSKEDASTICITY\n"
     strSummary += "RANDOM COEFFICIENTS\n"
-    strSummary += "TEST                             DF        VALUE          PROB\n"
-    strSummary += "%-27s      %2d    %12.6f       %9.7f\n" % ('Breusch-Pagan test',reg.breusch_pagan['df'],reg.breusch_pagan['bp'],reg.breusch_pagan['pvalue'])
-    strSummary += "%-27s      %2d    %12.6f       %9.7f\n" % ('Koenker-Bassett test',reg.koenker_bassett['df'],reg.koenker_bassett['kb'],reg.koenker_bassett['pvalue'])
+    strSummary += "TEST                             DF        VALUE           PROB\n"
+    strSummary += "%-27s      %2d    %12.6f        %9.7f\n" % ('Breusch-Pagan test',reg.breusch_pagan['df'],reg.breusch_pagan['bp'],reg.breusch_pagan['pvalue'])
+    strSummary += "%-27s      %2d    %12.6f        %9.7f\n" % ('Koenker-Bassett test',reg.koenker_bassett['df'],reg.koenker_bassett['kb'],reg.koenker_bassett['pvalue'])
     if reg.white:
         strSummary += "\nSPECIFICATION ROBUST TEST\n"
         if len(reg.white)>3:
             strSummary += reg.white+'\n'
         else:
-            strSummary += "TEST                             DF        VALUE          PROB\n"
-            strSummary += "%-27s      %2d    %12.6f       %9.7f\n" %('White',reg.white['df'],reg.white['wh'],reg.white['pvalue'])
+            strSummary += "TEST                             DF        VALUE           PROB\n"
+            strSummary += "%-27s      %2d    %12.6f        %9.7f\n" %('White',reg.white['df'],reg.white['wh'],reg.white['pvalue'])
     return strSummary
 
 def summary_spat_diag_intro():
     strSummary = ""
     strSummary += "\nDIAGNOSTICS FOR SPATIAL DEPENDENCE\n"
-    strSummary += "TEST                           MI/DF       VALUE          PROB\n" 
+    strSummary += "TEST                           MI/DF       VALUE           PROB\n" 
     return strSummary
 
 def summary_spat_diag_ols(reg, moran):
     strSummary = ""
     if moran:
-        strSummary += "%-27s  %8.4f     %8.6f       %9.7f\n" % ("Moran's I (error)", reg.moran_res[0], reg.moran_res[1], reg.moran_res[2])
-    strSummary += "%-27s      %2d    %12.6f       %9.7f\n" % ("Lagrange Multiplier (lag)", 1, reg.lm_lag[0], reg.lm_lag[1])
-    strSummary += "%-27s      %2d    %12.6f       %9.7f\n" % ("Robust LM (lag)", 1, reg.rlm_lag[0], reg.rlm_lag[1])
-    strSummary += "%-27s      %2d    %12.6f       %9.7f\n" % ("Lagrange Multiplier (error)", 1, reg.lm_error[0], reg.lm_error[1])
-    strSummary += "%-27s      %2d    %12.6f       %9.7f\n" % ("Robust LM (error)", 1, reg.rlm_error[0], reg.rlm_error[1])
-    strSummary += "%-27s      %2d    %12.6f       %9.7f\n\n" % ("Lagrange Multiplier (SARMA)", 2, reg.lm_sarma[0], reg.lm_sarma[1])
+        strSummary += "%-27s  %8.4f     %8.6f        %9.7f\n" % ("Moran's I (error)", reg.moran_res[0], reg.moran_res[1], reg.moran_res[2])
+    strSummary += "%-27s      %2d    %12.6f        %9.7f\n" % ("Lagrange Multiplier (lag)", 1, reg.lm_lag[0], reg.lm_lag[1])
+    strSummary += "%-27s      %2d    %12.6f        %9.7f\n" % ("Robust LM (lag)", 1, reg.rlm_lag[0], reg.rlm_lag[1])
+    strSummary += "%-27s      %2d    %12.6f        %9.7f\n" % ("Lagrange Multiplier (error)", 1, reg.lm_error[0], reg.lm_error[1])
+    strSummary += "%-27s      %2d    %12.6f        %9.7f\n" % ("Robust LM (error)", 1, reg.rlm_error[0], reg.rlm_error[1])
+    strSummary += "%-27s      %2d    %12.6f        %9.7f\n\n" % ("Lagrange Multiplier (SARMA)", 2, reg.lm_sarma[0], reg.lm_sarma[1])
     return strSummary
 
 def summary_spat_diag_probit(reg):
