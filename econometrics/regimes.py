@@ -6,11 +6,11 @@ from scipy.stats import f, chisqprob
 import numpy.linalg as la
 
 
-class Chow_sp:
+class Chow:
     '''
-    Spatial Chow test of coefficient stability across regimes. The test is a
+    Chow test of coefficient stability across regimes. The test is a
     particular case of the Wald statistic in which the constraint are setup
-    according to the spatial regime structure
+    according to the spatial or other type of regime structure
     ...
 
     Arguments
@@ -29,7 +29,7 @@ class Chow_sp:
     ==========
     joint   : tuple
               Pair of Wald statistic and p-value for the setup of global
-              spatial stability, that is all betas are the same across
+              regime stability, that is all betas are the same across
               regimes.
     regi    : array
               kr x 2 array with Wald statistic (col 0) and its p-value (col 1)
@@ -49,7 +49,7 @@ class Chow_sp:
     >>> x = np.array([db.by_col(name) for name in x_var]).T
     >>> r_var = 'NSA'
     >>> regimes = db.by_col(r_var)
-    >>> olsr = OLS_Regimes(y, x, regimes, constant_regi='many', nonspat_diag=False, spat_diag=False, name_y=y_var, name_x=x_var, name_ds='columbus', name_regimes=r_var, name_w='columbus.gal')
+    >>> olsr = OLS_Regimes(y, x, regimes, constant_regi='many', nonspat_diag=False, spat_diag=False, name_y=y_var, name_x=x_var, name_ds='columbus', name_regimes=r_var)
     >>> chow = Chow_sp(olsr)
     >>> print olsr.name_x #x_var
     ['CONSTANT', 'INC', 'HOVAL']
