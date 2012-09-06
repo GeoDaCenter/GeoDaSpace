@@ -474,7 +474,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                             return False
                 for i,kw in enumerate(dataDict['kWeights']):
                     kw = os.path.normpath(os.path.join(location, kw))
-                    dataDict['mWeights'][i] = kw
+                    dataDict['kWeights'][i] = kw
                     if not os.path.exists(kw):
                         print "no such file!"
                         newPath = self.locateMissingFile(kw)
