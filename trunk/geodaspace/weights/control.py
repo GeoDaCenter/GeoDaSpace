@@ -314,7 +314,12 @@ class weightsDialog(xrcDIALOGWEIGHTS):
                 #filter = "Weights File (*.gal)|*.gal|Weights File (*.gwt)|*.gwt"
                 #exts = {0:'.gal',1:'.gwt'}
                 suggested = exts.index('*.gal')
-            pathHint,filename = os.path.split(self.model.inShps[self.model.inShp])
+            if hasattr(w,'meta') and 'shape file' in w.meta:
+                pathHint,filename = os.path.split(w.meta['shape file'])
+            elif self.model.inShp != '':
+                pathHint,filename = os.path.split(self.model.inShps[self.model.inShp])
+            else:
+                pathHint,filename = '',''
             filename = filename[:-4]
             
             fileDialog = wx.FileDialog(self,defaultDir=pathHint,defaultFile=filename,
@@ -332,7 +337,10 @@ class weightsDialog(xrcDIALOGWEIGHTS):
                 if ext in ['.gwt','.kwt']:
                     try:
                         o.shpName = filename+'.shp'
-                        o.varName = self.model.vars[self.model.idVar]
+                        if hasattr(w,'meta') and 'id variable' in w.meta:
+                            o.varName = w.meta['id variable']
+                        else:
+                            o.varName = self.model.vars[self.model.idVar]
                     except:
                         self.warn("Could not set meta data of the GWT file. Will continue without it.")
                         if DEBUG: raise
