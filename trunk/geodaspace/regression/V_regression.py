@@ -834,7 +834,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             
         
     def DataOpenButtonClick(self,evt):
-        filter = "dBase file (*.dbf)|*.dbf|Comma Seperated Values (*.csv)|*.csv"
+        filter = "dBase file (*.dbf)|*.dbf|Comma Separated Values (*.csv)|*.csv"
         fileDialog = wx.FileDialog(self,message="Choose File",wildcard=filter)
         result = fileDialog.ShowModal()
         if result == wx.ID_OK:
@@ -882,7 +882,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
     def run(self,evt):
         num_fixed = self.model.setMWeightsTransform('R')
         if num_fixed > 0:
-            dialog = wx.MessageDialog(self,"The tranform of %d model weights object(s) was set to \"R: Row-standardization (global sum=n)\""%num_fixed,"Model Weights Changed:",wx.OK|wx.ICON_INFORMATION).ShowModal()
+            dialog = wx.MessageDialog(self,"The transform of %d model weights object(s) was set to \"R: Row-standardization (global sum=n)\""%num_fixed,"Model Weights Changed:",wx.OK|wx.ICON_INFORMATION).ShowModal()
         #fname = self.model.data['fname']
         #suggestion = os.path.split(fname)[1].split('.')[0]+'.txt'
         #fileDialog = wx.FileDialog(self,defaultFile=suggestion,message="Save Results As...",wildcard="*.txt",style=wx.SAVE+wx.OVERWRITE_PROMPT)
