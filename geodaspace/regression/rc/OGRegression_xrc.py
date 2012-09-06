@@ -156,7 +156,7 @@ def __init_resources():
     <object class="wxToolBar" name="RegressionToolBar">
       <object class="tool" name="ToolNewModel">
         <bitmap stock_id="wxART_NEW"/>
-        <tooltip>Create New Model: Choose dbf File</tooltip>
+        <tooltip>Create New Model: Choose data file</tooltip>
         <longhelp>Click to create a new model.</longhelp>
       </object>
       <object class="tool" name="ToolOpenModel">
@@ -223,7 +223,7 @@ def __init_resources():
                                 <object class="wxBitmapButton" name="DATA_INPUTFILE">
                                   <size>15,13d</size>
                                   <bitmap stock_id="wxART_FILE_OPEN"/>
-                                  <tooltip>Open dbf File...</tooltip>
+                                  <tooltip>Open data file...</tooltip>
                                   <style>wxBU_AUTODRAW|wxBU_EXACTFIT</style>
                                   <XRCED>
                                     <assign_var>1</assign_var>
