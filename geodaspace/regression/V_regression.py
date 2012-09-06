@@ -834,7 +834,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             
         
     def DataOpenButtonClick(self,evt):
-        filter = "dBase file (*.dbf)|*.dbf|Comma Seperated Values (*.csv;*.txt)|*.csv;*.txt"
+        filter = "dBase file (*.dbf)|*.dbf|Comma Seperated Values (*.csv)|*.csv"
         fileDialog = wx.FileDialog(self,message="Choose File",wildcard=filter)
         result = fileDialog.ShowModal()
         if result == wx.ID_OK:
