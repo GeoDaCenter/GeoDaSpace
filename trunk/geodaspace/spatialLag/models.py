@@ -93,6 +93,7 @@ class M_CreateSpatialLag(AbstractModel):
     def loadWeights(self):
         wtFile = self.data['wtFiles'][self.data['wtFile']]
         W = pysal.open(wtFile,'r').read()
+        W.transform = 'r' #see issue #138
         return W
     def __dataFile(self,value=None):
         if value is not None:
