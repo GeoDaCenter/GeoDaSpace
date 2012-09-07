@@ -290,7 +290,7 @@ class GM_Combo_Hom_Tester(unittest.TestCase):
         self.assertAlmostEqual(reg.pr2,pr2)
         pr2_e = 0.25082892555141506
         self.assertAlmostEqual(reg.pr2_e,pr2_e)
-        sig2 = 232.22680644168395
+        sig2 = 232.22680651270042
         self.assertAlmostEqual(reg.sig2,sig2)
         std_err = np.array([ 15.28707761,   0.44072838,   0.40479714, 0.42263726])
         np.testing.assert_array_almost_equal(reg.std_err,std_err,6)

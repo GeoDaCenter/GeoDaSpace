@@ -370,18 +370,18 @@ class OLS(BaseOLS):
     MULTICOLLINEARITY CONDITION NUMBER        12.537555
     <BLANKLINE>
     TEST ON NORMALITY OF ERRORS
-    TEST                             DF        VALUE          PROB
-    Jarque-Bera                       2       39.706155       0.0000000
+    TEST                             DF        VALUE           PROB
+    Jarque-Bera                       2       39.706155        0.0000000
     <BLANKLINE>
     DIAGNOSTICS FOR HETEROSKEDASTICITY
     RANDOM COEFFICIENTS
-    TEST                             DF        VALUE          PROB
-    Breusch-Pagan test                2        5.766791       0.0559445
-    Koenker-Bassett test              2        2.270038       0.3214160
+    TEST                             DF        VALUE           PROB
+    Breusch-Pagan test                2        5.766791        0.0559445
+    Koenker-Bassett test              2        2.270038        0.3214160
     <BLANKLINE>
     SPECIFICATION ROBUST TEST
-    TEST                             DF        VALUE          PROB
-    White                             5        2.906067       0.7144648
+    TEST                             DF        VALUE           PROB
+    White                             5        2.906067        0.7144648
     ================================ END OF REPORT =====================================
 
     If the optional parameters w and spat_diag are passed to pysal.spreg.OLS,
