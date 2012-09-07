@@ -205,8 +205,13 @@ class C_CreateSpatialLag(SpatialLag_xrc.xrcCreateSpatialLag):
                 self.weights.Clear()
                 if '' in value:
                     value.remove('')
-                value = [os.path.basename(p) for p in value]
-                self.weights.AppendItems(value)
+                values = []
+                for p in value:
+                    if issubclass(type(p),basestring):
+                        values.append(os.path.basename(p))
+                    else:
+                        values.append(p.name)
+                self.weights.AppendItems(values)
     def __vars(self,evt=None,value=None):
         if value is not None:
             self.fakeVarsChoice.Clear()
