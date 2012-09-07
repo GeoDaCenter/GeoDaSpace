@@ -78,6 +78,8 @@ class M_CreateSpatialLag(AbstractModel):
 
             new_header = db.header+names
             new_spec = db.field_spec+[('N',20,10) for n in names]
+            data = db.read()
+            db.close()
             newdb = pysal.open(path,'w')
             newdb.header = new_header
             newdb.field_spec = new_spec
@@ -85,16 +87,22 @@ class M_CreateSpatialLag(AbstractModel):
             lag = [pysal.lag_spatial(W,y) for y in X]
             lag = zip(*lag) #transpose
             lag = map(list,lag)
-            for i,row in enumerate(db.read()):
+            for i,row in enumerate(data):
                 newdb.write(row+lag[i])
             newdb.close()
     def db(self):
         return pysal.open(self.data['dataFile'],'r')
     def loadWeights(self):
         wtFile = self.data['wtFiles'][self.data['wtFile']]
-        W = pysal.open(wtFile,'r').read()
-        W.transform = 'r' #see issue #138
-        return W
+        if issubclass(type(wtFile),basestring):
+            W = pysal.open(wtFile,'r').read()
+            W.transform = 'r' #see issue #138
+            return W
+        else:
+            W = wtFile.w
+            if W.transform != 'r':
+                W.transform = 'r'
+            return W
     def __dataFile(self,value=None):
         if value is not None:
             if os.path.exists(value) and not os.path.isdir(value):
