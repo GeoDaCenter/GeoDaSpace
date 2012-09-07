@@ -50,16 +50,15 @@ class Chow:
     >>> r_var = 'NSA'
     >>> regimes = db.by_col(r_var)
     >>> olsr = OLS_Regimes(y, x, regimes, constant_regi='many', nonspat_diag=False, spat_diag=False, name_y=y_var, name_x=x_var, name_ds='columbus', name_regimes=r_var)
-    >>> chow = Chow_sp(olsr)
-    >>> print olsr.name_x #x_var
+    >>> print olsr.name_x_r #x_var
     ['CONSTANT', 'INC', 'HOVAL']
-    >>> print chow.regi
+    >>> print olsr.chow.regi
     [[ 0.01020844  0.91952121]
      [ 0.46024939  0.49750745]
      [ 0.55477371  0.45637369]]
     >>> print 'Joint test:'
     Joint test:
-    >>> print chow.joint
+    >>> print olsr.chow.joint
     (0.6339319928978806, 0.8886223520178802)
     '''
 
@@ -473,10 +472,3 @@ if __name__ == '__main__':
     w.transform = 'r'
     olsr = OLS_Regimes(y, x, regimes, w=w, constant_regi='many', nonspat_diag=False, spat_diag=False, name_y=y_var, name_x=x_var, name_ds='columbus', name_regimes=r_var, name_w='columbus.gal')
     print olsr.summary
-    """
-    chow = Chow_sp(olsr)
-    print x_var
-    print chow.regi
-    print 'Joint test:'
-    print chow.joint
-    """
