@@ -1,5 +1,5 @@
 import numpy as np
-import pysal as ps
+import pysal
 import scipy.sparse as SP
 import itertools as iter
 from scipy.stats import f, chisqprob
@@ -191,8 +191,14 @@ class Regimes_Frame:
                 cols2regi.insert(0, True)
             else:
                 raise Exception, "Invalid argument (%s) passed for 'constant_regi'. Please secify a valid term."%str(constant)
-        name_x = set_name_x_regimes(name_x, regimes, constant_regi, cols2regi)
-        x = regimeX_setup(x, regimes, cols2regi, constant=constant_regi)
+        try:
+            name_x = set_name_x_regimes(name_x, regimes, constant_regi, cols2regi, self.regimes_set)
+        except AttributeError:
+            self.regimes_set = list(set(regimes))
+            self.regimes_set.sort()
+            name_x = set_name_x_regimes(name_x, regimes, constant_regi, cols2regi, self.regimes_set)
+
+        x = regimeX_setup(x, regimes, cols2regi, self.regimes_set, constant=constant_regi)
         kr = len(np.where(np.array(cols2regi)==True)[0])
         if yend:
             self.kr += kr
@@ -302,7 +308,7 @@ def buildR1var(vari, kr, kf, nr):
         r[rbeg+j, kr + cbeg + j*kr] = -1
     return np.hstack( (r, np.zeros((nrows, kf), dtype=int)) )
 
-def regimeX_setup(x, regimes, cols2regi, constant=False):
+def regimeX_setup(x, regimes, cols2regi, regimes_set, constant=False):
     '''
     Flexible full setup of a regime structure
 
@@ -323,6 +329,8 @@ def regimeX_setup(x, regimes, cols2regi, constant=False):
                   List of k booleans indicating whether each column should be
                   considered as different per regime (True) or held constant
                   across regimes (False)
+    regimes_set : list
+                  List of ordered regimes tags
     constant    : [False, 'one', 'many']
                   Switcher controlling the constant term setup. It may take
                   the following values:
@@ -345,20 +353,19 @@ def regimeX_setup(x, regimes, cols2regi, constant=False):
                   across regimes and constant term, X3 and X4 to be global):
                     X1r1, X2r1, ... , X1r2, X2r2, ... , constant, X3, X4
     '''
-    n, k = x.shape
     cols2regi = np.array(cols2regi)
     if set(cols2regi) == set([True]):
-        xsp = x2xsp(x, regimes)
+        xsp = x2xsp(x, regimes, regimes_set)
     elif set(cols2regi) == set([False]):
         xsp = SP.csr_matrix(x)
     else:
         not_regi = x[:, np.where(cols2regi==False)[0]]
         regi_subset = x[:, np.where(cols2regi)[0]]
-        regi_subset = x2xsp(regi_subset, regimes)
+        regi_subset = x2xsp(regi_subset, regimes, regimes_set)
         xsp = SP.hstack( (regi_subset, SP.csr_matrix(not_regi)) , format='csr')
     return xsp
 
-def set_name_x_regimes(name_x, regimes, constant_regi, cols2regi):
+def set_name_x_regimes(name_x, regimes, constant_regi, cols2regi, regimes_set):
     '''
     Generate the set of variable names in a regimes setup, according to the
     order of the betas
@@ -390,6 +397,8 @@ def set_name_x_regimes(name_x, regimes, constant_regi, cols2regi):
                       List of k booleans indicating whether each column should be
                       considered as different per regime (True) or held constant
                       across regimes (False)
+    regimes_set     : list
+                      List of ordered regimes tags
     Returns
     =======
     name_x_regi
@@ -397,8 +406,6 @@ def set_name_x_regimes(name_x, regimes, constant_regi, cols2regi):
     k = len(cols2regi)
     if constant_regi:
         k -= 1
-    regimes_set = list(set(regimes))
-    regimes_set.sort()
     if not name_x:
         name_x = ['var_'+str(i+1) for i in range(k)]
     if constant_regi:
@@ -407,7 +414,6 @@ def set_name_x_regimes(name_x, regimes, constant_regi, cols2regi):
     c2ra = np.array(cols2regi)
     vars_regi = nxa[np.where(c2ra==True)]
     vars_glob = nxa[np.where(c2ra==False)]
-
     name_x_regi = []
     for r in regimes_set:
         rl = ['%s_%s'%(str(r), i) for i in vars_regi]
@@ -415,7 +421,37 @@ def set_name_x_regimes(name_x, regimes, constant_regi, cols2regi):
     name_x_regi.extend(['Global_%s'%i for i in vars_glob])
     return name_x_regi
 
-def x2xsp(x, regimes):
+def w_regimes(w, regimes, regimes_set):
+    '''
+    Subsets W matrix according to regimes
+    ...
+
+    Attributes
+    ==========
+    w           : pysal W object
+                  Spatial weights object
+    regimes     : list
+                  list of n values with the mapping of each observation to a
+                  regime. Assumed to be aligned with 'x'.
+    regimes_set : list
+                  List of ordered regimes tags
+
+    Returns
+    =======
+    w_regi      : dictionary
+                  Dictionary containing the subsets of W according to regimes: [r1:w1, r2:w2, ..., rR:wR]
+    '''
+    regi_ids = dict((r, list(np.where(np.array(regimes) == r)[0])) for r in regimes_set)
+    w_ids = dict((r, map(w.id_order.__getitem__, regi_ids[r])) for r in regimes_set)
+    w_regi_i = dict((r, pysal.weights.w_subset(w, w_ids[r])) for r in regimes_set)
+    w_regi = pysal.weights.w_union(w_regi_i[regimes_set[0]], w_regi_i[regimes_set[1]])
+    if len(regimes_set)>2:
+        for i in range(len(regimes_set))[2:]:
+            w_regi = pysal.weights.w_union(w_regi, w_regi_i[regimes_set[i]])
+    w_regi.transform = w.get_transform()
+    return w_regi
+
+def x2xsp(x, regimes, regimes_set):
     '''
     Convert X matrix with regimes into a sparse X matrix that accounts for the
     regimes
@@ -428,6 +464,8 @@ def x2xsp(x, regimes):
     regimes     : list
                   list of n values with the mapping of each observation to a
                   regime. Assumed to be aligned with 'x'.
+    regimes_set : list
+                  List of ordered regimes tags
     Returns
     =======
     xsp         : csr sparse matrix
@@ -437,8 +475,6 @@ def x2xsp(x, regimes):
                   The structure of the alignent is X1r1 X2r1 ... X1r2 X2r2 ...
     '''
     n, k = x.shape
-    regimes_set = list(set(regimes))
-    regimes_set.sort()
     data = x.flatten()
     R = len(regimes_set)
     regime_by_row = np.array([[r] * k for r in list(regimes_set)]).flatten() #X1r1 X2r1 ... X1r2 X2r2 ...

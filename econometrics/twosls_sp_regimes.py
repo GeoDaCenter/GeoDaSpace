@@ -1,23 +1,16 @@
 '''
-Spatial Two Stages Least Squares
+Spatial Two Stages Least Squares with Regimes
 '''
 
-__author__ = "Luc Anselin luc.anselin@asu.edu, David C. Folch david.folch@asu.edu"
-
-import copy
 import numpy as np
 import pysal
-import numpy.linalg as la
-import robust as ROBUST
 import regimes as REGI
 import user_output as USER
 import summary_output as SUMMARY
-from twosls import BaseTSLS
-from utils import get_lags, set_endog, sp_att
+from twosls_regimes import TSLS_Regimes
+from utils import set_endog, sp_att
 
-#__all__ = ["GM_Lag"]
-
-class GM_Lag_Regimes(BaseTSLS, REGI.Regimes_Frame):
+class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
     """
     Spatial two stage least squares (S2SLS) with regimes; 
     Anselin (1988) [1]_
@@ -230,10 +223,131 @@ class GM_Lag_Regimes(BaseTSLS, REGI.Regimes_Frame):
     .. [1] Anselin, L. (1988) "Spatial Econometrics: Methods and Models".
     Kluwer Academic Publishers. Dordrecht.
 
-    
     Examples
     --------
 
+    We first need to import the needed modules, namely numpy to convert the
+    data we read into arrays that ``spreg`` understands and ``pysal`` to
+    perform all the analysis.
+
+    >>> import numpy as np
+    >>> import pysal
+
+    Open data on Columbus neighborhood crime (49 areas) using pysal.open().
+    This is the DBF associated with the Columbus shapefile.  Note that
+    pysal.open() also reads data in CSV format; since the actual class
+    requires data to be passed in as numpy arrays, the user can read their
+    data in using any method.  
+
+    >>> db = pysal.open(pysal.examples.get_path("columbus.dbf"),'r')
+    
+    Extract the CRIME column (crime rates) from the DBF file and make it the
+    dependent variable for the regression. Note that PySAL requires this to be
+    an numpy array of shape (n, 1) as opposed to the also common shape of (n, )
+    that other packages accept.
+
+    >>> y_var = 'CRIME'
+    >>> y = np.array([db.by_col(y_var)]).reshape(49,1)
+
+    Extract INC (income) and HOVAL (home value) vectors from the DBF to be used as
+    independent variables in the regression. Other variables can be inserted
+    by adding their names to x_var, such as x_var = ['Var1','Var2','...]
+    Note that PySAL requires this to be an nxj numpy array, where j is the
+    number of independent variables (not including a constant). By default
+    this model adds a vector of ones to the independent variables passed in,
+    but this can be overridden by passing constant=False.
+
+    >>> x_var = ['INC','HOVAL']
+    >>> x = np.array([db.by_col(name) for name in x_var]).T
+
+    The different regimes in this data are given according to the North and 
+    South dummy (NSA).
+
+    >>> r_var = 'NSA'
+    >>> regimes = db.by_col(r_var)
+
+    Since we want to run a spatial lag model, we need to specify
+    the spatial weights matrix that includes the spatial configuration of the
+    observations. To do that, we can open an already existing gal file or 
+    create a new one. In this case, we will create one from ``columbus.shp``.
+
+    >>> w = pysal.queen_from_shapefile(pysal.examples.get_path("columbus.shp"))
+
+    Unless there is a good reason not to do it, the weights have to be
+    row-standardized so every row of the matrix sums to one. Among other
+    things, this allows to interpret the spatial lag of a variable as the
+    average value of the neighboring observations. In PySAL, this can be
+    easily performed in the following way:
+
+    >>> w.transform = 'r'
+    
+    In this example, we want the spatial lag to be fixed across the regimes.
+    To do so, we have to specify that all other variables but the spatial lag
+    should be transformed into regimes. The spatial lag is always the last
+    element in the list cols2regi. The other elements refer to the exogenous
+    and other endogenous variables, if they exist. So in this case the first 
+    True refers to 'INC', our first exogenous variable, the second True refers
+    to 'HOVAL' our second and last exogenous variable, and the False refers to
+    the spatial lag, the only variable to be considered fixed across regimes:
+
+    >>> cols2regi = [True, True, False]
+
+    This class runs a lag model, which means that includes the spatial lag of
+    the dependent variable on the right-hand side of the equation. If we want
+    to have the names of the variables printed in the output summary, we will
+    have to pass them in as well, although this is optional.
+
+    >>> model=GM_Lag_Regimes(y, x, regimes, cols2regi=cols2regi, w=w, name_y=y_var, name_x=x_var, name_regimes=r_var, name_ds='columbus', name_w='columbus_queen')
+    >>> model.betas
+    array([[ 45.14892906],
+           [ -1.42593383],
+           [ -0.11501037],
+           [ 40.99023016],
+           [ -0.81498302],
+           [ -0.28391409],
+           [  0.4736163 ]])
+
+    Once the model is run, we can have a summary of the output by typing:
+    model.summary . Alternatively, we can obtain the standard error of 
+    the coefficient estimates by calling the diagnostics module:
+
+    >>> model.std_err
+    array([ 10.79422522,   0.57906884,   0.20754857,  12.12592894,
+             0.56730086,   0.10422545,   0.18275958])
+
+    The class is flexible enough to accomodate a spatial lag model that,
+    besides the spatial lag of the dependent variable, includes other
+    non-spatial endogenous regressors. As an example, we will assume that
+    HOVAL is actually endogenous and we decide to instrument for it with
+    DISCBD (distance to the CBD). We reload the X including INC only and
+    define HOVAL as endogenous and DISCBD as instrument:
+
+    >>> x_var = ['INC']
+    >>> x = np.array([db.by_col(name) for name in x_var]).T
+    >>> yd_var = ['HOVAL']
+    >>> yd = np.array([db.by_col(name) for name in yd_var]).T
+    >>> q_var = ['DISCBD']
+    >>> q = np.array([db.by_col(name) for name in q_var]).T
+
+    And we can run the model again:
+
+    >>> model = GM_Lag_Regimes(y, x, regimes, cols2regi=cols2regi, yend=yd, q=q, w=w, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus_queen')
+    >>> model.betas
+    array([[ 37.87698329],
+           [ -0.89426982],
+           [ 31.4714777 ],
+           [ -0.71640525],
+           [ -0.28494432],
+           [ -0.2294271 ],
+           [  0.62996544]])
+
+    Once the model is run, we can obtain the standard error of the coefficient
+    estimates. Alternatively, we can have a summary of the output by typing:
+    model.summary
+
+    >>> model.std_err
+    array([ 10.48497478,   0.95902977,  11.62016575,   0.60824367,
+             0.44893143,   0.16129971,   0.16640822])
     """
     def __init__(self, y, x, regimes, yend=None, q=None,\
                  w=None, w_lags=1, lag_q=True,\
@@ -250,54 +364,29 @@ class GM_Lag_Regimes(BaseTSLS, REGI.Regimes_Frame):
         USER.check_robust(robust, gwk)
         USER.check_spat_diag(spat_diag, w)
         name_yend = USER.set_name_yend(name_yend, yend)
-        self.name_x_r = USER.set_name_x(name_x, x) + name_yend
         name_q = USER.set_name_q(name_q, q)
+        name_q.extend(USER.set_name_q_sp(name_x, w_lags, name_q, lag_q, force_all=True))        
         self.cols2regi = cols2regi
-        print 'y2'
-        y2, name_y2 = REGI.Regimes_Frame.__init__(self, y, \
-                ['Null'], regimes, constant_regi=None, \
-                cols2regi=cols2regi)
-        print 'x'
-        x, name_x = REGI.Regimes_Frame.__init__(self, x, name_x, \
-                regimes, constant_regi, cols2regi=cols2regi)
-        if q:
-            print 'q'
-            q, name_q = REGI.Regimes_Frame.__init__(self, q, name_q, \
-                regimes, constant_regi=None, cols2regi='all')
-        if yend:
-            print 'yend'
-            yend, name_yend = REGI.Regimes_Frame.__init__(self, yend, \
-                name_yend, regimes, constant_regi=None, \
-                cols2regi=cols2regi, yend=True)
-        yend2, q2 = set_endog(y2, x, w, yend, q, w_lags, lag_q)
 
-        BaseTSLS.__init__(self, y=y, x=x, yend=yend2, q=q2, \
-                robust=robust, gwk=gwk, sig2n_k=sig2n_k)
-        self.name_x_r.append(USER.set_name_yend_sp(name_y))        
-        name_q.extend(USER.set_name_q_sp(name_x, w_lags, name_q, lag_q, force_all=True))
-        print self.betas
+        if cols2regi == 'all' and yend:
+            cols2regi = [True] * (x.shape[1]+yend.shape[1]+1)
+        elif cols2regi == 'all' and yend==None:
+            cols2regi = [True] * (x.shape[1]+1)     
+        if cols2regi[-1] == True:
+            self.regimes_set = list(set(regimes))
+            self.regimes_set.sort()
+            w = REGI.w_regimes(w, regimes, self.regimes_set)
+        
+        yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
+        name_yend.append(USER.set_name_yend_sp(name_y))
 
-        #if cols2regi=='all':
-        #    cols2regi = [True] * (x.shape[1]+yend2.shape[1]-1)
-        #    cols2regi.extend([False])
-        #TSLS_Regimes.__init__(self, y=y, x=x, yend=yend2, q=q2,\
-        #     regimes=regimes, w=w, robust=robust, gwk=gwk,\
-        #     sig2n_k=sig2n_k, spat_diag=spat_diag, vm=vm,\
-        #     constant_regi=constant_regi, cols2regi=cols2regi, name_y=name_y,\
-        #     name_x=name_x, name_yend=name_yend, name_q=name_q,\
-        #     name_regimes=name_regimes, name_w=name_w, name_gwk=name_gwk,\
-        #     name_ds=name_ds)
-        self.name_ds = USER.set_name_ds(name_ds)
-        self.name_y = USER.set_name_y(name_y)
-        self.name_x = USER.set_name_x(name_x, x, regi=True)
-        self.name_yend = USER.set_name_yend(name_yend, yend)
-        self.name_z = self.name_x + self.name_yend
-        self.name_q = USER.set_name_q(name_q, q)
-        self.name_regimes = USER.set_name_ds(name_regimes)
-        self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        self.robust = USER.set_robust(robust)
-        self.name_w = USER.set_name_w(name_w, w)
-        self.name_gwk = USER.set_name_w(name_gwk, gwk)
+        TSLS_Regimes.__init__(self, y=y, x=x, yend=yend2, q=q2,\
+             regimes=regimes, w=w, robust=robust, gwk=gwk,\
+             sig2n_k=sig2n_k, spat_diag=spat_diag, vm=vm,\
+             constant_regi=constant_regi, cols2regi=cols2regi, name_y=name_y,\
+             name_x=name_x, name_yend=name_yend, name_q=name_q,\
+             name_regimes=name_regimes, name_w=name_w, name_gwk=name_gwk,\
+             name_ds=name_ds)
         self.predy_e, self.e_pred = sp_att(w,self.y,self.predy,\
                       yend2[:,-1].reshape(self.n,1),self.betas[-1])
         self.title = "SPATIAL TWO STAGE LEAST SQUARES - REGIMES"        
@@ -313,21 +402,18 @@ def _test():
 
 
 if __name__ == '__main__':
-    #_test()        
+    _test()        
     
     import numpy as np
     import pysal
-    """
     db = pysal.open(pysal.examples.get_path("columbus.dbf"),'r')
     y_var = 'CRIME'
     y = np.array([db.by_col(y_var)]).reshape(49,1)
     #"""
-    """
     x_var = ['INC','HOVAL']
     x = np.array([db.by_col(name) for name in x_var]).T    
     yd, yd_var = None, None
     q, q_var = None, None
-    """
     """
     x_var = ['INC']
     x = np.array([db.by_col(name) for name in x_var]).T
@@ -336,12 +422,12 @@ if __name__ == '__main__':
     q_var = ['DISCBD']
     q = np.array([db.by_col(name) for name in q_var]).T
     #"""
-    """
+    cols2regi = [True, True, False]
     r_var = 'NSA'
     regimes = db.by_col(r_var)
-    w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
+    w = pysal.queen_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    model = GM_Lag_Regimes(y, x, regimes, yend=yd, q=q, w=w, constant_regi='many', spat_diag=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
+    model = GM_Lag_Regimes(y, x, regimes, cols2regi=cols2regi, yend=yd, q=q, w=w, constant_regi='many', spat_diag=True, sig2n_k=True, lag_q=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
     print model.summary
 
 
@@ -349,7 +435,8 @@ if __name__ == '__main__':
     db = pysal.open(pysal.examples.get_path('NAT.dbf'),'r')
     y_var = 'HR60'
     y = np.array([db.by_col(y_var)]).T
-    x_var = ['PS60','MA60','DV60','UE60']
+    x_var = ['PS60','MA60','DV60','UE60','RD60']
+    cols2regi = [True, True, True, True, True, True]
     x = np.array([db.by_col(name) for name in x_var]).T
     yd, yd_var = None, None
     q, q_var = None, None
@@ -357,8 +444,9 @@ if __name__ == '__main__':
     regimes = db.by_col(r_var)
     w = pysal.queen_from_shapefile(pysal.examples.get_path("NAT.shp"))
     w.transform = 'r'
-    model = GM_Lag_Regimes(y, x, regimes, yend=yd, q=q, w=w, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
+    model = GM_Lag_Regimes(y, x, regimes, cols2regi=cols2regi, yend=yd, q=q, w=w, sig2n_k=True, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
     print model.summary
+    #"""
 
 
 
