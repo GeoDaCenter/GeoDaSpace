@@ -222,14 +222,16 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
     >>> tslsr = TSLS_Regimes(y, x, yd, q, regimes, w=w, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
 
     >>> tslsr.betas
-    [[ 80.23408166]
-     [  5.48218125]
-     [ 82.98396737]
-     [  0.49775429]
-     [ -3.72663211]
-     [ -1.27451485]]
-    
+    array([[ 80.23408166],
+           [  5.48218125],
+           [ 82.98396737],
+           [  0.49775429],
+           [ -3.72663211],
+           [ -1.27451485]])
+
     >>> tslsr.std_err
+    array([ 22.25220181,   8.03638046,  27.05658869,   2.73638155,
+             3.85934759,   1.14692053])
 
     """
     def __init__(self, y, x, yend, q, regimes,\
@@ -330,7 +332,7 @@ if __name__ == '__main__':
     regimes = db.by_col(r_var)
     w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    tslsr = TSLS_Regimes(y, x, yd, q, regimes, w=w, constant_regi='many', cols2regi=[True,False], spat_diag=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
+    tslsr = TSLS_Regimes(y, x, yd, q, regimes, w=w, constant_regi='many', spat_diag=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
     print tslsr.summary
 
     """
