@@ -3,7 +3,6 @@ import regimes as REGI
 import user_output as USER
 from utils import sphstack
 from twosls import BaseTSLS
-from regimes import Chow
 import summary_output as SUMMARY
 
 class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
@@ -222,7 +221,7 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
 
     >>> tslsr = TSLS_Regimes(y, x, yd, q, regimes, w=w, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
 
-    >>> print tslsr.betas
+    >>> tslsr.betas
     [[ 80.23408166]
      [  5.48218125]
      [ 82.98396737]
@@ -230,6 +229,7 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
      [ -3.72663211]
      [ -1.27451485]]
     
+    >>> tslsr.std_err
 
     """
     def __init__(self, y, x, yend, q, regimes,\
@@ -237,7 +237,7 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
              spat_diag=False, vm=False, constant_regi='many',\
              cols2regi='all', name_y=None, name_x=None,\
              name_yend=None, name_q=None, name_regimes=None,\
-             name_w=None, name_gwk=None, name_ds=None):
+             name_w=None, name_gwk=None, name_ds=None, summ=True):
 
         n = USER.check_arrays(y, x)
         USER.check_y(y, n)
@@ -268,9 +268,10 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         self.robust = USER.set_robust(robust)
         self.name_w = USER.set_name_w(name_w, w)
         self.name_gwk = USER.set_name_w(name_gwk, gwk)
-        self.chow = Chow(self)        
-        self.title = "TWO STAGE LEAST SQUARES - REGIMES"
-        SUMMARY.TSLS(reg=self, vm=vm, w=w, spat_diag=spat_diag, regimes=True)
+        self.chow = REGI.Chow(self)        
+        if summ:
+            self.title = "TWO STAGE LEAST SQUARES - REGIMES"
+            SUMMARY.TSLS(reg=self, vm=vm, w=w, spat_diag=spat_diag, regimes=True)
 
         """
         ##### DELETE BEFORE ADDING TO PYSAL: #####
@@ -329,7 +330,7 @@ if __name__ == '__main__':
     regimes = db.by_col(r_var)
     w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    tslsr = TSLS_Regimes(y, x, yd, q, regimes, w=w, constant_regi='many', spat_diag=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
+    tslsr = TSLS_Regimes(y, x, yd, q, regimes, w=w, constant_regi='many', cols2regi=[True,False], spat_diag=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
     print tslsr.summary
 
     """

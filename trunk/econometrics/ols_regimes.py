@@ -8,7 +8,6 @@ test_ols.py related to regimes."""
 import regimes as REGI
 import user_output as USER
 from ols import BaseOLS
-from regimes import Chow
 import summary_output as SUMMARY
 import numpy as np
 
@@ -295,7 +294,7 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
         self.robust = USER.set_robust(robust)
         self.name_w = USER.set_name_w(name_w, w)
         self.name_gwk = USER.set_name_w(name_gwk, gwk)
-        self.chow = Chow(self)        
+        self.chow = REGI.Chow(self)
         SUMMARY.OLS(reg=self, vm=vm, w=w, nonspat_diag=nonspat_diag,\
                     spat_diag=spat_diag, moran=moran, regimes=True)
 
