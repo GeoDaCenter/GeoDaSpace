@@ -363,12 +363,14 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         USER.check_weights(w, y)
         USER.check_robust(robust, gwk)
         USER.check_spat_diag(spat_diag, w)
+        name_x = USER.set_name_x(name_x, x,regi=True)
+        name_y = USER.set_name_y(name_y)
         name_yend = USER.set_name_yend(name_yend, yend)
         name_q = USER.set_name_q(name_q, q)
         name_q.extend(USER.set_name_q_sp(name_x, w_lags, name_q, lag_q, force_all=True))        
         self.cols2regi = cols2regi
 
-        if cols2regi == 'all' and yend:
+        if cols2regi == 'all' and yend!=None:
             cols2regi = [True] * (x.shape[1]+yend.shape[1]+1)
         elif cols2regi == 'all' and yend==None:
             cols2regi = [True] * (x.shape[1]+1)     
@@ -386,7 +388,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
              constant_regi=constant_regi, cols2regi=cols2regi, name_y=name_y,\
              name_x=name_x, name_yend=name_yend, name_q=name_q,\
              name_regimes=name_regimes, name_w=name_w, name_gwk=name_gwk,\
-             name_ds=name_ds)
+             name_ds=name_ds,summ=False)
         self.predy_e, self.e_pred = sp_att(w,self.y,self.predy,\
                       yend2[:,-1].reshape(self.n,1),self.betas[-1])
         self.title = "SPATIAL TWO STAGE LEAST SQUARES - REGIMES"        
@@ -409,7 +411,7 @@ if __name__ == '__main__':
     db = pysal.open(pysal.examples.get_path("columbus.dbf"),'r')
     y_var = 'CRIME'
     y = np.array([db.by_col(y_var)]).reshape(49,1)
-    #"""
+    """
     x_var = ['INC','HOVAL']
     x = np.array([db.by_col(name) for name in x_var]).T    
     yd, yd_var = None, None
@@ -427,7 +429,7 @@ if __name__ == '__main__':
     regimes = db.by_col(r_var)
     w = pysal.queen_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    model = GM_Lag_Regimes(y, x, regimes, cols2regi=cols2regi, yend=yd, q=q, w=w, constant_regi='many', spat_diag=True, sig2n_k=True, lag_q=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
+    model = GM_Lag_Regimes(y, x, regimes, cols2regi=cols2regi, yend=yd, q=q, w=w, constant_regi='many', spat_diag=True, sig2n_k=False, lag_q=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
     print model.summary
 
 

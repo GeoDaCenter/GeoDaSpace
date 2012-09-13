@@ -281,6 +281,7 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
         USER.check_robust(robust, gwk)
         USER.check_spat_diag(spat_diag, w)
         self.name_x_r = USER.set_name_x(name_x, x)
+        self.constant_regi = constant_regi
         self.cols2regi = cols2regi        
         x, name_x2 = REGI.Regimes_Frame.__init__(self, x, name_x, \
                 regimes, constant_regi, cols2regi)
