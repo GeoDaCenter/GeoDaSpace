@@ -246,7 +246,7 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         USER.check_weights(w, y)
         USER.check_robust(robust, gwk)
         USER.check_spat_diag(spat_diag, w)
-        name_yend = USER.set_name_yend(name_yend, yend)        
+        name_yend = USER.set_name_yend(name_yend, yend)
         self.name_x_r = USER.set_name_x(name_x, x) + name_yend
         name_q = USER.set_name_q(name_q, q)
         self.cols2regi = cols2regi
@@ -259,6 +259,7 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
                 cols2regi=cols2regi, yend=True)
         BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q, \
                 robust=robust, gwk=gwk, sig2n_k=sig2n_k)
+        self.constant_regi = constant_regi
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x, regi=True)
