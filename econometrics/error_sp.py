@@ -411,7 +411,7 @@ class BaseGM_Endog_Error(RegressionPropsY):
 
         #1a. TSLS --> \tilde{betas}
         tsls = TSLS.BaseTSLS(y=y, x=x, yend=yend, q=q)
-        self.n, self.k = tsls.x.shape
+        self.n, self.k = tsls.z.shape
         self.x = tsls.x
         self.y = tsls.y
         self.yend, self.z = tsls.yend, tsls.z
