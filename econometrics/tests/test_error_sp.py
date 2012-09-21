@@ -122,7 +122,7 @@ class TestBaseGMEndogError(unittest.TestCase):
         np.testing.assert_array_almost_equal(reg.predy[0],predy,6)
         n = 49
         self.assertAlmostEqual(reg.n,n)
-        k = 2
+        k = 3
         self.assertAlmostEqual(reg.k,k)
         y = np.array([ 80.467003])
         np.testing.assert_array_almost_equal(reg.y[0],y,6)
@@ -172,7 +172,7 @@ class TestGMEndogError(unittest.TestCase):
         np.testing.assert_array_almost_equal(reg.predy[0],predy,6)
         n = 49
         self.assertAlmostEqual(reg.n,n)
-        k = 2
+        k = 3
         self.assertAlmostEqual(reg.k,k)
         y = np.array([ 80.467003])
         np.testing.assert_array_almost_equal(reg.y[0],y,6)
@@ -224,7 +224,7 @@ class TestBaseGMCombo(unittest.TestCase):
         np.testing.assert_array_almost_equal(reg.predy[0],predy,6)
         n = 49
         self.assertAlmostEqual(reg.n,n)
-        k = 3
+        k = 4
         self.assertAlmostEqual(reg.k,k)
         y = np.array([ 80.467003])
         np.testing.assert_array_almost_equal(reg.y[0],y,6)
@@ -271,7 +271,7 @@ class TestGMCombo(unittest.TestCase):
         np.testing.assert_array_almost_equal(reg.predy[0],predy,6)
         n = 49
         self.assertAlmostEqual(reg.n,n)
-        k = 3
+        k = 4
         self.assertAlmostEqual(reg.k,k)
         y = np.array([ 80.467003])
         np.testing.assert_array_almost_equal(reg.y[0],y,6)
