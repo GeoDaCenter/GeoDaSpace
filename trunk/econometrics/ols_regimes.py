@@ -280,17 +280,18 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
         USER.check_weights(w, y)
         USER.check_robust(robust, gwk)
         USER.check_spat_diag(spat_diag, w)
+        name_x = USER.set_name_x(name_x, x,constant=True)
         self.name_x_r = USER.set_name_x(name_x, x)
         self.constant_regi = constant_regi
         self.cols2regi = cols2regi        
-        x, name_x2 = REGI.Regimes_Frame.__init__(self, x, name_x, \
-                regimes, constant_regi, cols2regi)
+        x, name_x = REGI.Regimes_Frame.__init__(self, x,\
+                regimes, constant_regi, cols2regi, name_x)
         BaseOLS.__init__(self, y=y, x=x, robust=robust, gwk=gwk, \
                 sig2n_k=sig2n_k)
         self.title = "ORDINARY LEAST SQUARES - REGIMES"
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
-        self.name_x = USER.set_name_x(name_x2, x, regi=True)
+        self.name_x = USER.set_name_x(name_x, x, constant=True)
         self.name_regimes = USER.set_name_ds(name_regimes)
         self.robust = USER.set_robust(robust)
         self.name_w = USER.set_name_w(name_w, w)

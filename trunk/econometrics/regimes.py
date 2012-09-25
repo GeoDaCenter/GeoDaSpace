@@ -64,11 +64,13 @@ class Chow:
 
     def __init__(self, reg):
         self.reg = reg
-        kr, kf, nr, betas, vm = reg.kr, reg.kf, reg.nr, reg.betas, reg.vm
+        kr, kf, kryd, nr, betas, vm = reg.kr, reg.kf, reg.kryd, reg.nr, reg.betas, reg.vm
+        if betas.shape[0] != vm.shape[0]:
+            betas = betas[0:vm.shape[0],:]
         r_global = []
         regi = np.zeros((reg.kr, 2))
         for vari in np.arange(kr):
-            r_vari = buildR1var(vari, kr, kf, nr)
+            r_vari = buildR1var(vari, kr, kf, kryd, nr)
             r_global.append(r_vari)
             q = np.zeros((r_vari.shape[0], 1))
             regi[vari, :] = wald_test(betas, r_vari, q, vm)
@@ -125,8 +127,6 @@ class Regimes_Frame:
     x            : array
                    Two dimensional array with n rows and one column for each
                    independent (exogenous) variable, excluding the constant
-    name_x       : None, list of strings
-                   Names of independent variables for use in output
     regimes      : list
                    List of n values with the mapping of each
                    observation to a regime. Assumed to be aligned with 'x'.
@@ -146,6 +146,8 @@ class Regimes_Frame:
                    If a list, k booleans indicating for each variable the
                    option (True if one per regime, False to be held constant).
                    If 'all' (default), all the variables vary by regime.
+    names         : None, list of strings
+                   Names of independent variables for use in output
 
     Returns
     =======
@@ -154,7 +156,7 @@ class Regimes_Frame:
                    regimes regression. 'xsp' is of dimension (n, k*r) where 'r'
                    is the number of different regimes
                    The structure of the alignent is X1r1 X2r1 ... X1r2 X2r2 ...
-    name_x       : None, list of strings
+    names        : None, list of strings
                    Names of independent variables for use in output
                    conveniently arranged by regimes. The structure of the name
                    is "regimeName_-_varName"
@@ -173,9 +175,7 @@ class Regimes_Frame:
     Appends to self
     ===============
     '''
-    def __init__(self, x, name_x, regimes, constant_regi, cols2regi, yend=False):
-        self.regimes = regimes
-        self.constant_regi = constant_regi
+    def __init__(self, x, regimes, constant_regi, cols2regi, names=None, yend=False):
         if cols2regi == 'all':
             cols2regi = [True] * x.shape[1]
         else:
@@ -192,22 +192,27 @@ class Regimes_Frame:
             else:
                 raise Exception, "Invalid argument (%s) passed for 'constant_regi'. Please secify a valid term."%str(constant)
         try:
-            name_x = set_name_x_regimes(name_x, regimes, constant_regi, cols2regi, self.regimes_set)
+            x = regimeX_setup(x, regimes, cols2regi, self.regimes_set, constant=constant_regi)            
         except AttributeError:
             self.regimes_set = list(set(regimes))
             self.regimes_set.sort()
-            name_x = set_name_x_regimes(name_x, regimes, constant_regi, cols2regi, self.regimes_set)
+            x = regimeX_setup(x, regimes, cols2regi, self.regimes_set, constant=constant_regi)
 
-        x = regimeX_setup(x, regimes, cols2regi, self.regimes_set, constant=constant_regi)
         kr = len(np.where(np.array(cols2regi)==True)[0])
         if yend:
             self.kr += kr
             self.kf += len(cols2regi) - kr
+            self.kryd = kr            
         else:    
             self.kr = kr
             self.kf = len(cols2regi) - self.kr
+            self.kryd = 0
         self.nr = len(set(regimes))
-        return x, name_x
+            
+        if names:    
+            names = set_name_x_regimes(names, regimes, constant_regi, cols2regi, self.regimes_set)
+
+        return (x, names)        
 
 def wald_test(betas, r, q, vm):
     '''
@@ -272,7 +277,7 @@ def buildR(kr, kf, nr):
     '''
     return np.vstack(tuple(map(buildR1var, np.arange(kr), [kr]*kr, [kf]*kr, [nr]*kr)))
 
-def buildR1var(vari, kr, kf, nr):
+def buildR1var(vari, kr, kf, kryd, nr):
     '''
     Build R matrix to test for spatial heterogeneity across regimes in one
     variable. The constraint setup reflects the null betas for variable 'vari'
@@ -302,10 +307,16 @@ def buildR1var(vari, kr, kf, nr):
     nrows = nr - 1
     r = np.zeros((nrows, ncols), dtype=int)
     rbeg = 0
-    cbeg = vari
+    krexog = kr - kryd
+    if vari < krexog:
+        kr_j = krexog
+        cbeg = vari
+    else:
+        kr_j = kryd
+        cbeg = krexog*(nr-1) + vari
     r[rbeg: rbeg+nrows , cbeg] = 1
     for j in np.arange(nrows):
-        r[rbeg+j, kr + cbeg + j*kr] = -1
+        r[rbeg+j, kr_j + cbeg + j*kr] = -1
     return np.hstack( (r, np.zeros((nrows, kf), dtype=int)) )
 
 def regimeX_setup(x, regimes, cols2regi, regimes_set, constant=False):

@@ -219,6 +219,11 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
 
     >>> w.transform = 'r'
 
+    We can now run the regression and then have a summary of the output
+    by typing: model.summary
+    Alternatively, we can just check the betas and standard errors of the
+    parameters:
+
     >>> tslsr = TSLS_Regimes(y, x, yd, q, regimes, w=w, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
 
     >>> tslsr.betas
@@ -248,63 +253,31 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         USER.check_spat_diag(spat_diag, w)
         name_yend = USER.set_name_yend(name_yend, yend)
         self.name_x_r = USER.set_name_x(name_x, x) + name_yend
+        name_x = USER.set_name_x(name_x, x,constant=True)
         name_q = USER.set_name_q(name_q, q)
         self.cols2regi = cols2regi
-        q, name_q = REGI.Regimes_Frame.__init__(self, q, name_q, \
-                regimes, constant_regi=None, cols2regi='all')
-        x, name_x = REGI.Regimes_Frame.__init__(self, x, name_x, \
-                regimes, constant_regi, cols2regi=cols2regi)
-        yend, name_yend = REGI.Regimes_Frame.__init__(self, yend, \
-                name_yend, regimes, constant_regi=None, \
-                cols2regi=cols2regi, yend=True)
+        q, self.name_q = REGI.Regimes_Frame.__init__(self, q, \
+                regimes, constant_regi=None, cols2regi='all', names=name_q)
+        x, self.name_x = REGI.Regimes_Frame.__init__(self, x, \
+                regimes, constant_regi, cols2regi=cols2regi, names=name_x)
+        yend, self.name_yend = REGI.Regimes_Frame.__init__(self, yend, \
+                regimes, constant_regi=None, \
+                cols2regi=cols2regi, yend=True, names=name_yend)
         BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q, \
                 robust=robust, gwk=gwk, sig2n_k=sig2n_k)
         self.constant_regi = constant_regi
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
-        self.name_x = USER.set_name_x(name_x, x, regi=True)
-        self.name_yend = USER.set_name_yend(name_yend, yend)
         self.name_z = self.name_x + self.name_yend
-        self.name_q = USER.set_name_q(name_q, q)
         self.name_regimes = USER.set_name_ds(name_regimes)
         self.name_h = USER.set_name_h(self.name_x, self.name_q)
         self.robust = USER.set_robust(robust)
         self.name_w = USER.set_name_w(name_w, w)
         self.name_gwk = USER.set_name_w(name_gwk, gwk)
-        self.chow = REGI.Chow(self)        
+        self.chow = REGI.Chow(self)
         if summ:
             self.title = "TWO STAGE LEAST SQUARES - REGIMES"
             SUMMARY.TSLS(reg=self, vm=vm, w=w, spat_diag=spat_diag, regimes=True)
-
-        """
-        ##### DELETE BEFORE ADDING TO PYSAL: #####
-        h = sphstack(x,q)
-        h_r,_a_ = REGI.Regimes_Frame.__init__(self, h, None, \
-                regimes, constant_regi, cols2regi)
-        reg1 = BaseOLS(y=yend, x=h_r, robust=robust, gwk=gwk, \
-                sig2n_k=sig2n_k)
-        x2 = sphstack(x,reg1.predy)
-        name_x.extend(name_yend)
-        x2_r, name_x = REGI.Regimes_Frame.__init__(self, x2, name_x, \
-                regimes, constant_regi, cols2regi)    
-        BaseOLS.__init__(self, y=y, x=x2_r, robust=robust, gwk=gwk, \
-                sig2n_k=sig2n_k)        
-        self.title = "TWO STAGE LEAST SQUARES - REGIMES"
-        #self.z = sphstack(x,yend)
-        self.name_ds = USER.set_name_ds(name_ds)
-        self.name_y = USER.set_name_y(name_y)
-        self.name_x = USER.set_name_x(name_x, x, regi=True)
-        self.name_yend = USER.set_name_yend(name_yend, yend)
-        self.name_z = self.name_x + self.name_yend
-        self.name_q = USER.set_name_q(name_q, q)
-        self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        self.robust = USER.set_robust(robust)
-        self.name_w = USER.set_name_w(name_w, w)
-        self.name_gwk = USER.set_name_w(name_gwk, gwk)
-        SUMMARY.OLS(reg=self, vm=vm, w=w, nonspat_diag=False,\
-                    spat_diag=spat_diag, moran=False)
-        """
-
 
 def _test():
     import doctest
