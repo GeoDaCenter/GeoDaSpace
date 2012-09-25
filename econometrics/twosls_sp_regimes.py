@@ -58,6 +58,10 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
     lag_q        : boolean
                    If True, then include spatial lags of the additional 
                    instruments (q).
+    regime_lag   : boolean
+                   If True, the spatial parameter for spatial lag is also
+                   computed according to different regimes. If False (default), 
+                   the spatial parameter is fixed accross regimes.
     robust       : string
                    If 'white', then a White consistent estimator of the
                    variance-covariance matrix is given.  If 'hac', then a
@@ -205,6 +209,10 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                    If a list, k booleans indicating for each variable the
                    option (True if one per regime, False to be held constant).
                    If 'all', all the variables vary by regime.
+    regime_lag   : boolean
+                   If True, the spatial parameter for spatial lag is also
+                   computed according to different regimes. If False (default), 
+                   the spatial parameter is fixed accross regimes.
     kr           : int
                    Number of variables/columns to be "regimized" or subject
                    to change by regime. These will result in one parameter
@@ -281,23 +289,12 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
 
     >>> w.transform = 'r'
     
-    In this example, we want the spatial lag to be fixed across the regimes.
-    To do so, we have to specify that all other variables but the spatial lag
-    should be transformed into regimes. The spatial lag is always the last
-    element in the list cols2regi. The other elements refer to the exogenous
-    and other endogenous variables, if they exist. So in this case the first 
-    True refers to 'INC', our first exogenous variable, the second True refers
-    to 'HOVAL' our second and last exogenous variable, and the False refers to
-    the spatial lag, the only variable to be considered fixed across regimes:
-
-    >>> cols2regi = [True, True, False]
-
     This class runs a lag model, which means that includes the spatial lag of
     the dependent variable on the right-hand side of the equation. If we want
     to have the names of the variables printed in the output summary, we will
     have to pass them in as well, although this is optional.
 
-    >>> model=GM_Lag_Regimes(y, x, regimes, cols2regi=cols2regi, w=w, name_y=y_var, name_x=x_var, name_regimes=r_var, name_ds='columbus', name_w='columbus_queen')
+    >>> model=GM_Lag_Regimes(y, x, regimes, w=w, name_y=y_var, name_x=x_var, name_regimes=r_var, name_ds='columbus', name_w='columbus_queen')
     >>> model.betas
     array([[ 45.14892906],
            [ -1.42593383],
@@ -331,7 +328,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
 
     And we can run the model again:
 
-    >>> model = GM_Lag_Regimes(y, x, regimes, cols2regi=cols2regi, yend=yd, q=q, w=w, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus_queen')
+    >>> model = GM_Lag_Regimes(y, x, regimes, yend=yd, q=q, w=w, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus_queen')
     >>> model.betas
     array([[ 37.87698329],
            [ -0.89426982],
@@ -353,7 +350,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                  w=None, w_lags=1, lag_q=True,\
                  robust=None, gwk=None, sig2n_k=False,\
                  spat_diag=False, constant_regi='many',\
-                 cols2regi='all',\
+                 cols2regi='all', regime_lag=False,\
                  vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None, name_regimes=None,\
                  name_w=None, name_gwk=None, name_ds=None):
@@ -363,22 +360,26 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         USER.check_weights(w, y)
         USER.check_robust(robust, gwk)
         USER.check_spat_diag(spat_diag, w)
-        name_x = USER.set_name_x(name_x, x,regi=True)
+        name_x = USER.set_name_x(name_x, x,constant=True)
         name_y = USER.set_name_y(name_y)
         name_yend = USER.set_name_yend(name_yend, yend)
         name_q = USER.set_name_q(name_q, q)
         name_q.extend(USER.set_name_q_sp(name_x, w_lags, name_q, lag_q, force_all=True))        
         self.cols2regi = cols2regi
 
-        if cols2regi == 'all' and yend!=None:
-            cols2regi = [True] * (x.shape[1]+yend.shape[1]+1)
-        elif cols2regi == 'all' and yend==None:
-            cols2regi = [True] * (x.shape[1]+1)     
-        if cols2regi[-1] == True:
+        if cols2regi == 'all':
+            if yend!=None:
+                cols2regi = [True] * (x.shape[1]+yend.shape[1])
+            else:
+                cols2regi = [True] * (x.shape[1])     
+        if regime_lag == True:
+            cols2regi += [True]
             self.regimes_set = list(set(regimes))
             self.regimes_set.sort()
             w = REGI.w_regimes(w, regimes, self.regimes_set)
-        
+        else:
+            cols2regi += [False]
+
         yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
         name_yend.append(USER.set_name_yend_sp(name_y))
 
@@ -391,6 +392,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
              name_ds=name_ds,summ=False)
         self.predy_e, self.e_pred = sp_att(w,self.y,self.predy,\
                       yend2[:,-1].reshape(self.n,1),self.betas[-1])
+        self.regime_lag=regime_lag
         self.title = "SPATIAL TWO STAGE LEAST SQUARES - REGIMES"        
         SUMMARY.GM_Lag(reg=self, w=w, vm=vm, spat_diag=spat_diag, regimes=True)
 
@@ -424,12 +426,11 @@ if __name__ == '__main__':
     q_var = ['DISCBD']
     q = np.array([db.by_col(name) for name in q_var]).T
     #"""
-    cols2regi = [True, True, False]
     r_var = 'NSA'
     regimes = db.by_col(r_var)
     w = pysal.queen_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    model = GM_Lag_Regimes(y, x, regimes, cols2regi=cols2regi, yend=yd, q=q, w=w, constant_regi='many', spat_diag=True, sig2n_k=False, lag_q=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
+    model = GM_Lag_Regimes(y, x, regimes, yend=yd, q=q, w=w, constant_regi='many', regime_lag=False, spat_diag=True, sig2n_k=False, lag_q=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
     print model.summary
 
 

@@ -138,6 +138,11 @@ class TestTSLS(unittest.TestCase):
        [ -9.65611937e-01,   3.34238400e-01],\
        [ -1.11124949e+00,   2.66460976e-01]])
         np.testing.assert_array_almost_equal(np.array(reg.z_stat), z_stat, 7)
+        chow_regi = np.array([[ 0.00616179,  0.93743265],
+       [ 0.3447218 ,  0.55711631],
+       [ 0.37093662,  0.54249417]])
+        np.testing.assert_array_almost_equal(reg.chow.regi, chow_regi, 7)
+        self.assertAlmostEqual(reg.chow.joint[0], 1.1353790779820598, 7)
         title = 'TWO STAGE LEAST SQUARES - REGIMES'
         self.assertEqual(reg.title, title)
         

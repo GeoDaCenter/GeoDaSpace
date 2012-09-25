@@ -19,8 +19,7 @@ class TestGMLag_Regimes(unittest.TestCase):
         X.append(self.db.by_col("INC"))
         X.append(self.db.by_col("HOVAL"))
         self.X = np.array(X).T
-        cols2regi = [True, True, False]
-        reg = GM_Lag_Regimes(self.y, self.X, self.regimes, cols2regi=cols2regi, w=self.w, sig2n_k=True) 
+        reg = GM_Lag_Regimes(self.y, self.X, self.regimes, w=self.w, sig2n_k=True) 
         betas = np.array([[ 45.14892906],
        [ -1.42593383],
        [ -0.11501037],
@@ -111,15 +110,14 @@ class TestGMLag_Regimes(unittest.TestCase):
         self.assertAlmostEqual(reg.chow.joint[0], 0.82409867601863462, 7)
     
     def test_init_discbd(self):
-        #Chow does not match SpaceStat. Everything else matches.
+        #Matches SpaceStat.
         X = np.array(self.db.by_col("INC"))
         X = np.reshape(X, (49,1))
         yd = np.array(self.db.by_col("HOVAL"))
         yd = np.reshape(yd, (49,1))
         q = np.array(self.db.by_col("DISCBD"))
         q = np.reshape(q, (49,1))
-        cols2regi = [True, True, False]
-        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, lag_q=False, cols2regi=cols2regi, w=self.w, sig2n_k=True) 
+        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, lag_q=False, w=self.w, sig2n_k=True) 
         tbetas = np.array([[ 42.7266306 ],
        [ -0.15552345],
        [ 37.70545276],
@@ -131,11 +129,11 @@ class TestGMLag_Regimes(unittest.TestCase):
         vm = np.array([ 270.62979422,    3.62539081,  327.89638627,    6.24949355,
          -5.25333106,   -6.01743515,   -4.19290074])
         np.testing.assert_array_almost_equal(reg.vm[0], vm, 6)
-        chow_regi = np.array([[  7.21926697e+00,   7.21251555e-03],
-       [  6.10357192e-02,   8.04866370e-01],
-       [  2.41472647e+00,   1.20198964e-01]])
+        chow_regi = np.array([[ 0.13130991,  0.71707772],
+       [ 0.04740966,  0.82763357],
+       [ 0.15474413,  0.6940423 ]])
         np.testing.assert_array_almost_equal(reg.chow.regi, chow_regi, 7)
-        self.assertAlmostEqual(reg.chow.joint[0], 8.6988339003894968, 7)
+        self.assertAlmostEqual(reg.chow.joint[0], 0.31248100032096549, 7)
     
     def test_lag_q(self):
         X = np.array(self.db.by_col("INC"))
@@ -144,8 +142,7 @@ class TestGMLag_Regimes(unittest.TestCase):
         yd = np.reshape(yd, (49,1))
         q = np.array(self.db.by_col("DISCBD"))
         q = np.reshape(q, (49,1))
-        cols2regi = [True, True, False]
-        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, cols2regi=cols2regi, w=self.w, sig2n_k=True) 
+        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w, sig2n_k=True) 
         tbetas = np.array([[ 37.87698329],
        [ -0.89426982],
        [ 31.4714777 ],
@@ -157,11 +154,11 @@ class TestGMLag_Regimes(unittest.TestCase):
         vm = np.array([ 128.25714554,   -0.38975354,   95.7271044 ,   -1.8429218 ,
          -1.75331978,   -0.18240338,   -1.67767464])
         np.testing.assert_array_almost_equal(reg.vm[0], vm, 6)
-        chow_regi = np.array([[  1.12517774e+01,   7.95468079e-04],
-       [  1.66326003e-01,   6.83397862e-01],
-       [  6.32361832e+00,   1.19140278e-02]])
+        chow_regi = np.array([[ 0.43494049,  0.50957463],
+       [ 0.02089281,  0.88507135],
+       [ 0.01180501,  0.91347943]])
         np.testing.assert_array_almost_equal(reg.chow.regi, chow_regi, 7)
-        self.assertAlmostEqual(reg.chow.joint[0], 11.799058450904152, 7)
+        self.assertAlmostEqual(reg.chow.joint[0], 0.54288190938307757, 7)
     
     def test_all_regi(self):
         X = np.array(self.db.by_col("INC"))
@@ -170,8 +167,8 @@ class TestGMLag_Regimes(unittest.TestCase):
         yd = np.reshape(yd, (49,1))
         q = np.array(self.db.by_col("DISCBD"))
         q = np.reshape(q, (49,1))
-        cols2regi = 'all'
-        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, cols2regi=cols2regi, w=self.w) 
+        regime_lag = True
+        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w,regime_lag=regime_lag) 
         tbetas = np.array([[ 42.35827477],
        [ -0.09472413],
        [ 32.24228762],
@@ -184,12 +181,12 @@ class TestGMLag_Regimes(unittest.TestCase):
         vm = np.array([ 239.95511019,    5.44860771,    0.        ,    0.        ,
          -5.79921118,   -3.55347672,    0.        ,    0.        ])
         np.testing.assert_array_almost_equal(reg.vm[0], vm, 6)
-        chow_regi = np.array([[  7.34985089e+00,   6.70683184e-03],
-       [  1.69742973e-01,   6.80340337e-01],
-       [  2.60436116e+00,   1.06570094e-01],
-       [  1.17261847e+00,   2.78863868e-01]])
+        chow_regi = np.array([[  1.58777344e-01,   6.90284689e-01],
+       [  2.90183773e-04,   9.86408868e-01],
+       [  7.55292928e-02,   7.83449974e-01],
+       [  1.04465790e-01,   7.46534936e-01]])
         np.testing.assert_array_almost_equal(reg.chow.regi, chow_regi, 7)
-        self.assertAlmostEqual(reg.chow.joint[0], 14.099713515229489, 7)
+        self.assertAlmostEqual(reg.chow.joint[0], 0.38839928684452918, 7)
 
     def test_fixed_const(self):
         X = np.array(self.db.by_col("INC"))
@@ -198,8 +195,7 @@ class TestGMLag_Regimes(unittest.TestCase):
         yd = np.reshape(yd, (49,1))
         q = np.array(self.db.by_col("DISCBD"))
         q = np.reshape(q, (49,1))
-        cols2regi = [True, True, False]
-        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, cols2regi=cols2regi, w=self.w, constant_regi='one') 
+        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w, constant_regi='one') 
         tbetas = np.array([[ -0.37658823],
        [ -0.9666079 ],
        [ 35.5445944 ],
@@ -210,10 +206,10 @@ class TestGMLag_Regimes(unittest.TestCase):
         vm = np.array([ 1.4183697 , -0.05975784, -0.27161863, -0.62517245,  0.02266177,
         0.00312976])
         np.testing.assert_array_almost_equal(reg.vm[0], vm, 6)
-        chow_regi = np.array([[  1.20034413e+01,   5.31024060e-04],
-       [  5.14372875e-01,   4.73251975e-01]])
+        chow_regi = np.array([[  1.85767047e-01,   6.66463269e-01],
+       [  1.19445012e+01,   5.48089036e-04]])
         np.testing.assert_array_almost_equal(reg.chow.regi, chow_regi, 7)
-        self.assertAlmostEqual(reg.chow.joint[0], 12.008762477726487, 7)
+        self.assertAlmostEqual(reg.chow.joint[0], 12.017256217621382, 7)
 
     def test_names(self):
         y_var = 'CRIME'
@@ -223,9 +219,8 @@ class TestGMLag_Regimes(unittest.TestCase):
         yd = np.array([self.db.by_col(name) for name in yd_var]).T
         q_var = ['DISCBD']
         q = np.array([self.db.by_col(name) for name in q_var]).T
-        cols2regi = [True, True, False]
         r_var = 'NSA'
-        reg = GM_Lag_Regimes(self.y, x, self.regimes, cols2regi=cols2regi, yend=yd, q=q, w=self.w, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
+        reg = GM_Lag_Regimes(self.y, x, self.regimes, yend=yd, q=q, w=self.w, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
         betas = np.array([[ 37.87698329],
        [ -0.89426982],
        [ 31.4714777 ],
@@ -237,11 +232,11 @@ class TestGMLag_Regimes(unittest.TestCase):
         vm = np.array([ 109.93469618,   -0.33407447,   82.05180377,   -1.57964725,
          -1.50284553,   -0.15634575,   -1.43800683])
         np.testing.assert_array_almost_equal(reg.vm[0], vm, 6)
-        chow_regi = np.array([[  1.31270736e+01,   2.91059036e-04],
-       [  1.94047004e-01,   6.59569461e-01],
-       [  7.37755470e+00,   6.60429066e-03]])
+        chow_regi = np.array([[ 0.50743058,  0.47625326],
+       [ 0.02437494,  0.87593468],
+       [ 0.01377251,  0.9065777 ]])
         np.testing.assert_array_almost_equal(reg.chow.regi, chow_regi, 7)
-        self.assertAlmostEqual(reg.chow.joint[0], 13.765568192721517, 7)
+        self.assertAlmostEqual(reg.chow.joint[0], 0.63336222761359162, 7)
         self.assertListEqual(reg.name_x, ['0.0_CONSTANT', '0.0_INC', '1.0_CONSTANT', '1.0_INC'])
         self.assertListEqual(reg.name_yend, ['0.0_HOVAL', '1.0_HOVAL', 'Global_W_CRIME'])
         self.assertListEqual(reg.name_q, ['0.0_DISCBD', '0.0_W_INC', '0.0_W_DISCBD', '1.0_DISCBD', '1.0_W_INC', '1.0_W_DISCBD'])
