@@ -77,6 +77,25 @@ def GM_Lag(reg, vm, w, spat_diag, regimes=False):
         summary_regimes(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag, other_mid=regimes)
 
+def GM_Lag_multi(reg, multireg, vm, spat_diag, regimes=False):
+    for m in multireg:
+        mreg = multireg[m]
+        mreg.__summary = {}
+        # compute diagnostics and organize summary output
+        beta_diag_lag(mreg, mreg.robust)
+        if spat_diag:
+            # compute diagnostics and organize summary output
+            spat_diag_instruments(mreg, mreg.w)
+        # build coefficients table body
+        summary_coefs_yend(mreg, mreg.z_stat)
+        summary_coefs_instruments(mreg)
+        if regimes:
+            summary_regimes(mreg,chow=False)
+        multireg[m] = mreg
+    reg.__summary = {}
+    summary_chow(reg)
+    summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag, other_mid=regimes)
+
 def GM_Error(reg, vm, w, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
@@ -260,7 +279,8 @@ def spat_diag_instruments(reg, w):
     reg.__summary['summary_spat_diag'] = "%-27s      %2d    %12.6f       %9.7f\n" % ("Anselin-Kelejian Test", 1, reg.ak_test[0], reg.ak_test[1])
 
 def summary(reg, vm, instruments, short_intro=False, other_mid=False, nonspat_diag=False, spat_diag=False, other_end=False):
-    summary = summary_intro(reg,short_intro)
+    summary = summary_open()
+    summary += summary_intro(reg,short_intro)
     summary += reg.__summary['summary_r2']
     if nonspat_diag:
         summary += reg.__summary['summary_nonspat_diag_1']
@@ -283,6 +303,44 @@ def summary(reg, vm, instruments, short_intro=False, other_mid=False, nonspat_di
     summary += summary_close()
     reg.summary = summary
 
+def summary_multi(reg, multireg, vm, instruments, short_intro=False, other_mid=False, nonspat_diag=False, spat_diag=False, other_end=False):
+    summary = summary_open(multi=True)
+    for m in multireg:
+        mreg = multireg[m]
+        summary += "----------\n\n"
+        summary += summary_intro(mreg,short_intro)
+        summary += mreg.__summary['summary_r2']
+        if nonspat_diag:
+            summary += mreg.__summary['summary_nonspat_diag_1']
+        summary += summary_coefs_intro(mreg)
+        summary += mreg.__summary['summary_coefs']
+        summary += "------------------------------------------------------------------------------------\n"
+        if instruments:
+            summary += mreg.__summary['summary_coefs_instruments']
+        if other_mid:
+            summary += mreg.__summary['summary_other_mid']
+        if m == multireg.keys()[-1]:
+            try:
+                summary += reg.__summary['summary_other_mid']
+            except:
+                pass
+        if nonspat_diag:
+            summary += mreg.__summary['summary_nonspat_diag_2']
+        if spat_diag:
+            summary += summary_spat_diag_intro()
+            summary += mreg.__summary['summary_spat_diag']
+        if vm:
+            summary += summary_vm(mreg, instruments)
+        if other_end:
+            summary += mreg.__summary['summary_other_end']
+        if m == multireg.keys()[-1]:
+            try:
+                summary += reg.__summary['summary_other_end']
+            except:
+                pass
+    summary += summary_close()
+    reg.summary = summary
+
 ##############################################################################
 
 
@@ -295,13 +353,16 @@ def summary(reg, vm, instruments, short_intro=False, other_mid=False, nonspat_di
 """
 This section contains the pieces needed to put together the summary printout.
 """
-
-def summary_intro(reg,short):
+def summary_open(multi=False):
     strSummary = ""
     strSummary += "REGRESSION\n"
-    strSummary += "----------\n"
-    title = "SUMMARY OF OUTPUT: " + reg.title + " ESTIMATION\n"
-    strSummary += title
+    if not multi:
+        strSummary += "----------\n"
+    return strSummary
+
+def summary_intro(reg,short):
+    title = "SUMMARY OF OUTPUT: " + reg.title + "\n"
+    strSummary = title
     strSummary += "-" * (len(title)-1) + "\n"
     strSummary += "%-20s: %12s\n" % ('Data set',reg.name_ds)
     if reg.name_w:
@@ -385,11 +446,21 @@ def summary_coefs_instruments(reg):
     inst2 += insts
     reg.__summary['summary_coefs_instruments'] = inst2
 
-def summary_regimes(reg):
+def summary_regimes(reg,chow=True):
     """Generates a list of the instruments used.
     """
-    reg.__summary['summary_other_mid'] = "Regimes variable: %s\n" %reg.name_regimes
-    reg.__summary['summary_other_mid'] += "\nREGIMES DIAGNOSTICS - CHOW TEST\n"
+    try:
+        reg.__summary['summary_other_mid'] += "Regimes variable: %s\n" %reg.name_regimes
+    except:
+        reg.__summary['summary_other_mid'] = "Regimes variable: %s\n" %reg.name_regimes
+    if chow:
+        summary_chow(reg)
+
+def summary_chow(reg):
+    try:
+        reg.__summary['summary_other_mid'] += "\nREGIMES DIAGNOSTICS - CHOW TEST\n"
+    except:
+        reg.__summary['summary_other_mid'] = "\nREGIMES DIAGNOSTICS - CHOW TEST\n"     
     reg.__summary['summary_other_mid'] += "                 VARIABLE        DF        VALUE           PROB\n"
     if reg.cols2regi == 'all':
         names_chow = reg.name_x_r[1:]

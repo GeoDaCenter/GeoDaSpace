@@ -22,6 +22,7 @@ class Chow:
                     * betas : coefficient estimates
                     * vm    : variance covariance matrix of betas
                     * kr    : Number of variables varying across regimes
+                    * kryd  : Number of endogenous variables varying across regimes
                     * kf    : Number of variables fixed (global) across regimes
                     * nr    : Number of regimes
 
@@ -63,7 +64,6 @@ class Chow:
     '''
 
     def __init__(self, reg):
-        self.reg = reg
         kr, kf, kryd, nr, betas, vm = reg.kr, reg.kf, reg.kryd, reg.nr, reg.betas, reg.vm
         if betas.shape[0] != vm.shape[0]:
             betas = betas[0:vm.shape[0],:]
@@ -432,7 +432,7 @@ def set_name_x_regimes(name_x, regimes, constant_regi, cols2regi, regimes_set):
     name_x_regi.extend(['Global_%s'%i for i in vars_glob])
     return name_x_regi
 
-def w_regimes(w, regimes, regimes_set):
+def w_regimes(w, regimes, regimes_set, transform=True, get_ids=None):
     '''
     Subsets W matrix according to regimes
     ...
@@ -454,7 +454,34 @@ def w_regimes(w, regimes, regimes_set):
     '''
     regi_ids = dict((r, list(np.where(np.array(regimes) == r)[0])) for r in regimes_set)
     w_ids = dict((r, map(w.id_order.__getitem__, regi_ids[r])) for r in regimes_set)
-    w_regi_i = dict((r, pysal.weights.w_subset(w, w_ids[r])) for r in regimes_set)
+    w_regi_i = {}
+    for r in regimes_set:
+        w_regi_i[r] = pysal.weights.w_subset(w, w_ids[r])
+        if transform:
+            w_regi_i[r].transform = w.get_transform()
+    if get_ids:
+        get_ids = regi_ids
+    return w_regi_i, get_ids
+
+def w_regimes_union(w, w_regi_i, regimes_set):
+    '''
+    Combines the subsets of the W matrix according to regimes
+    ...
+
+    Attributes
+    ==========
+    w           : pysal W object
+                  Spatial weights object
+    w_regi_i    : dictionary
+                  Dictionary containing the subsets of W according to regimes: [r1:w1, r2:w2, ..., rR:wR]
+    regimes_set : list
+                  List of ordered regimes tags
+
+    Returns
+    =======
+    w_regi      : pysal W object
+                  Spatial weights object containing the union of the subsets of W
+    '''
     w_regi = pysal.weights.w_union(w_regi_i[regimes_set[0]], w_regi_i[regimes_set[1]])
     if len(regimes_set)>2:
         for i in range(len(regimes_set))[2:]:
