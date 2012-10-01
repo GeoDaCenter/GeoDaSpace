@@ -522,6 +522,38 @@ def set_endog(y, x, w, yend, q, w_lags, lag_q):
         raise Exception, "invalid value passed to yend"
     return yend, q
 
+    lag = lag_spatial(w, x)
+    spat_lags = lag
+    for i in range(w_lags-1):
+        lag = lag_spatial(w, lag)
+        spat_lags = sphstack(spat_lags, lag)
+    return spat_lags
+
+
+def set_endog_sparse(y, x, w, yend, q, w_lags, lag_q):
+    """
+    Same as set_endog, but with a sparse object passed as weights instead of W object.
+    """
+    yl = w * y
+    if issubclass(type(yend), np.ndarray):  # spatial and non-spatial instruments
+        if lag_q:
+            lag_vars = sphstack(x, q)
+        else:
+            lag_vars = x
+        spatial_inst = w * lag_vars
+        for i in range(w_lags-1):
+            spatial_inst = sphstack(spatial_inst, w * spatial_inst)
+        q = sphstack(q, spatial_inst)
+        yend = sphstack(yend, yl)
+    elif yend == None: # spatial instruments only
+        q = w * x
+        for i in range(w_lags-1):
+            q = sphstack(q, w * q)        
+        yend = yl
+    else:
+        raise Exception, "invalid value passed to yend"
+    return yend, q
+
 def iter_msg(iteration,max_iter):
     if iteration==max_iter:
         iter_stop = "Maximum number of iterations reached."

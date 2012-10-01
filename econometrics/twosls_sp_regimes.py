@@ -7,8 +7,10 @@ import pysal
 import regimes as REGI
 import user_output as USER
 import summary_output as SUMMARY
+import multiprocessing as mp
 from twosls_regimes import TSLS_Regimes
-from utils import set_endog, sp_att
+from twosls import BaseTSLS
+from utils import set_endog, set_endog_sparse, sp_att
 
 class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
     """
@@ -62,6 +64,11 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                    If True, the spatial parameter for spatial lag is also
                    computed according to different regimes. If False (default), 
                    the spatial parameter is fixed accross regimes.
+                   Option valid only when regime_lag=True
+    regime_sig2  : boolean
+                   If True, the variance of the residuals is
+                   computed according to different regimes. If False (default), 
+                   the variance of the residuals does not discriminate regimes.
     robust       : string
                    If 'white', then a White consistent estimator of the
                    variance-covariance matrix is given.  If 'hac', then a
@@ -213,6 +220,11 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                    If True, the spatial parameter for spatial lag is also
                    computed according to different regimes. If False (default), 
                    the spatial parameter is fixed accross regimes.
+    regime_sig2  : boolean
+                   If True, the variance of the residuals is
+                   computed according to different regimes. If False (default), 
+                   the variance of the residuals does not discriminate regimes.
+                   Option valid only when regime_lag=True
     kr           : int
                    Number of variables/columns to be "regimized" or subject
                    to change by regime. These will result in one parameter
@@ -347,10 +359,10 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
              0.44893143,   0.16129971,   0.16640822])
     """
     def __init__(self, y, x, regimes, yend=None, q=None,\
-                 w=None, w_lags=1, lag_q=True,\
+                 w=None, w_lags=1, lag_q=True, cores=None,\
                  robust=None, gwk=None, sig2n_k=False,\
                  spat_diag=False, constant_regi='many',\
-                 cols2regi='all', regime_lag=False,\
+                 cols2regi='all', regime_lag=False, regime_sig2=True,\
                  vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None, name_regimes=None,\
                  name_w=None, name_gwk=None, name_ds=None):
@@ -364,9 +376,9 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         name_y = USER.set_name_y(name_y)
         name_yend = USER.set_name_yend(name_yend, yend)
         name_q = USER.set_name_q(name_q, q)
-        name_q.extend(USER.set_name_q_sp(name_x, w_lags, name_q, lag_q, force_all=True))        
-        self.cols2regi = cols2regi
-
+        name_q.extend(USER.set_name_q_sp(name_x, w_lags, name_q, lag_q, force_all=True))
+        self.name_regimes = USER.set_name_ds(name_regimes)
+        self.constant_regi=constant_regi
         if cols2regi == 'all':
             if yend!=None:
                 cols2regi = [True] * (x.shape[1]+yend.shape[1])
@@ -376,27 +388,111 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
             cols2regi += [True]
             self.regimes_set = list(set(regimes))
             self.regimes_set.sort()
-            w = REGI.w_regimes(w, regimes, self.regimes_set)
+            w_i,regi_ids = REGI.w_regimes(w, regimes, self.regimes_set, transform=regime_sig2, get_ids=regime_sig2)
+            if not regime_sig2:
+                w = REGI.w_regimes_union(w, w_i, self.regimes_set)
         else:
             cols2regi += [False]
+        self.cols2regi = cols2regi
+        if regime_lag == True and regime_sig2 == True:
+            if set(cols2regi) == set([True]):
+                self.GM_Lag_Regimes_Multi(y, x, w_i, regi_ids,\
+                 yend=yend, q=q, w_lags=w_lags, lag_q=lag_q, cores=cores,\
+                 robust=robust, gwk=gwk, sig2n_k=sig2n_k, cols2regi=cols2regi,\
+                 spat_diag=spat_diag, vm=vm, name_y=name_y, name_x=name_x,\
+                 name_yend=name_yend, name_q=name_q, name_regimes=self.name_regimes,\
+                 name_w=name_w, name_gwk=name_gwk, name_ds=name_ds)
+            else:
+                raise Exception, "All coefficients must vary accross regimes if regime_sig2 = True."
+        else:
+            yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
+            name_yend.append(USER.set_name_yend_sp(name_y))
+            TSLS_Regimes.__init__(self, y=y, x=x, yend=yend2, q=q2,\
+                 regimes=regimes, w=w, robust=robust, gwk=gwk,\
+                 sig2n_k=sig2n_k, spat_diag=spat_diag, vm=vm,\
+                 constant_regi=constant_regi, cols2regi=cols2regi, name_y=name_y,\
+                 name_x=name_x, name_yend=name_yend, name_q=name_q,\
+                 name_regimes=name_regimes, name_w=name_w, name_gwk=name_gwk,\
+                 name_ds=name_ds,summ=False)
+            self.predy_e, self.e_pred = sp_att(w,self.y,self.predy,\
+                          yend2[:,-1].reshape(self.n,1),self.betas[-1])
+            self.regime_lag=regime_lag
+            self.title = "SPATIAL TWO STAGE LEAST SQUARES - REGIMES"        
+            SUMMARY.GM_Lag(reg=self, w=w, vm=vm, spat_diag=spat_diag, regimes=True)
 
-        yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
+    def GM_Lag_Regimes_Multi(self, y, x, w_i, regi_ids, cores=None,\
+                 yend=None, q=None, w_lags=1, lag_q=True,\
+                 robust=None, gwk=None, sig2n_k=False,cols2regi='all',\
+                 spat_diag=False, vm=False, name_y=None, name_x=None,\
+                 name_yend=None, name_q=None, name_regimes=None,\
+                 name_w=None, name_gwk=None, name_ds=None):
+        pool = mp.Pool(cores)
+        self.name_ds = USER.set_name_ds(name_ds)
+        name_y = USER.set_name_y(name_y)
+        name_x = USER.set_name_x(name_x, x)
+        name_yend = USER.set_name_yend(name_yend, yend)
         name_yend.append(USER.set_name_yend_sp(name_y))
+        name_q = USER.set_name_q(name_q, q)
+        name_q.extend(USER.set_name_q_sp(name_x, w_lags, name_q, lag_q))
+        self.name_w = USER.set_name_w(name_w, w_i)
+        self.name_gwk = USER.set_name_w(name_gwk, gwk)
+        results_p = {}
+        for r in self.regimes_set:
+            w_r = w_i[r].sparse
+            results_p[r] = pool.apply_async(_work,args=(y,x,regi_ids,r,yend,q,w_r,w_lags,lag_q,robust,gwk,sig2n_k,self.name_ds,name_y,name_x,name_yend,name_q,self.name_w,self.name_gwk,name_regimes, ))
+        pool.close()
+        pool.join()
+        results = {}
+        self.kryd = 0
+        self.kr = len(cols2regi) + 1
+        self.kf = 0
+        self.nr = len(self.regimes_set)
+        self.name_x_r = name_x + name_yend        
+        self.vm = np.zeros((self.nr*self.kr,self.nr*self.kr),float)
+        counter = 0
+        for r in self.regimes_set:
+            results[r] = results_p[r].get()
+            results[r].predy_e, results[r].e_pred = sp_att(w_i[r],results[r].y,results[r].predy, results[r].yend[:,-1].reshape(results[r].n,1),results[r].betas[-1])
+            results[r].w = w_i[r]
+            self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
+            if r == self.regimes_set[0]: 
+                self.betas = results[r].betas
+            else:
+                self.betas = np.vstack((self.betas,results[r].betas))
+                ## Add names_x and other###
+            counter += 1
+        self.chow = REGI.Chow(self)            
+        self.multi = results
+        SUMMARY.GM_Lag_multi(reg=self, multireg=results, vm=vm, spat_diag=spat_diag, regimes=True)
 
-        TSLS_Regimes.__init__(self, y=y, x=x, yend=yend2, q=q2,\
-             regimes=regimes, w=w, robust=robust, gwk=gwk,\
-             sig2n_k=sig2n_k, spat_diag=spat_diag, vm=vm,\
-             constant_regi=constant_regi, cols2regi=cols2regi, name_y=name_y,\
-             name_x=name_x, name_yend=name_yend, name_q=name_q,\
-             name_regimes=name_regimes, name_w=name_w, name_gwk=name_gwk,\
-             name_ds=name_ds,summ=False)
-        self.predy_e, self.e_pred = sp_att(w,self.y,self.predy,\
-                      yend2[:,-1].reshape(self.n,1),self.betas[-1])
-        self.regime_lag=regime_lag
-        self.title = "SPATIAL TWO STAGE LEAST SQUARES - REGIMES"        
-        SUMMARY.GM_Lag(reg=self, w=w, vm=vm, spat_diag=spat_diag, regimes=True)
-
-
+def _work(y,x,regi_ids,r,yend,q,w_r,w_lags,lag_q,robust,gwk,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_gwk,name_regimes):
+    y_r = y[regi_ids[r]]
+    x_r = x[regi_ids[r]]
+    if yend:
+        yend_r = yend[regi_ids[r]]
+    else:
+        yend_r = yend
+    if q:
+        q_r = q[regi_ids[r]]
+    else:
+        q_r = q
+    yend_r, q_r = set_endog_sparse(y_r, x_r, w_r, yend_r, q_r, w_lags, lag_q)
+    x_constant = USER.check_constant(x_r)
+    model = BaseTSLS(y_r, x_constant, yend_r, q_r, robust=robust, gwk=gwk, sig2n_k=sig2n_k)
+    model.title = "SPATIAL TWO STAGE LEAST SQUARES ESTIMATION - REGIME %s" %r        
+    model.robust = USER.set_robust(robust)
+    model.name_ds = name_ds
+    model.name_y = '%s_%s'%(str(r), name_y)
+    model.name_x = ['%s_%s'%(str(r), i) for i in name_x]
+    model.name_yend = ['%s_%s'%(str(r), i) for i in name_yend]
+    model.name_z = model.name_x + model.name_yend
+    model.name_q = ['%s_%s'%(str(r), i) for i in name_q]
+    model.name_h = model.name_x + model.name_q
+    model.name_w = name_w
+    model.name_gwk = name_gwk
+    model.name_regimes = name_regimes
+    return model
+    
 def _test():
     import doctest
     start_suppress = np.get_printoptions()['suppress']
