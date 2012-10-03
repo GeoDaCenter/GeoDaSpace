@@ -91,7 +91,7 @@ def GM_Lag_multi(reg, multireg, vm, spat_diag, regimes=False):
         summary_coefs_instruments(mreg)
         if regimes:
             summary_regimes(mreg,chow=False)
-        multireg[m] = mreg
+        multireg[m].__summary = mreg.__summary
     reg.__summary = {}
     summary_chow(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag, other_mid=regimes)
@@ -248,8 +248,8 @@ def beta_diag_lag(reg, robust):
     # organize summary output
     reg.__summary['summary_std_err'] = robust
     reg.__summary['summary_zt'] = 'z'
-    reg.__summary['summary_r2'] = "%-20s:%12.6f\n" % ('Pseudo R-squared',reg.pr2)
-    reg.__summary['summary_r2'] += "%-20s:%12.6f\n" % ('Spatial Pseudo R-squared',reg.pr2_e)
+    reg.__summary['summary_r2'] = "%-20s:      %5.4f\n" % ('Pseudo R-squared',reg.pr2)
+    reg.__summary['summary_r2'] += "%-20s:  %5.4f\n" % ('Spatial Pseudo R-squared',reg.pr2_e)
 
 def build_coefs_body_instruments(reg):
     beta_position = summary_coefs_allx(reg, reg.z_stat)
@@ -364,9 +364,9 @@ def summary_intro(reg,short):
     title = "SUMMARY OF OUTPUT: " + reg.title + "\n"
     strSummary = title
     strSummary += "-" * (len(title)-1) + "\n"
-    strSummary += "%-20s: %12s\n" % ('Data set',reg.name_ds)
+    strSummary += "%-20s:%12s\n" % ('Data set',reg.name_ds)
     if reg.name_w:
-        strSummary += "%-20s: %12s\n" % ('Weights matrix',reg.name_w)
+        strSummary += "%-20s:%12s\n" % ('Weights matrix',reg.name_w)
     strSummary += "%-20s:%12s               %-22s:%12d\n" % ('Dependent Variable',reg.name_y,'Number of Observations',reg.n)
     if not short:
         strSummary += "%-20s:%12.4f               %-22s:%12d\n" % ('Mean dependent var',reg.mean_y,'Number of Variables',reg.k)
@@ -415,7 +415,7 @@ def summary_coefs_yend(reg, zt_stat, lambd=False):
     if lambd:
         indices = [0]+(np.argsort(reg.name_z[1:-1])+1).tolist()
     else:
-        indices = [0]+(np.argsort(reg.name_z[1:])+1).tolist()    
+        indices = [0]+(np.argsort(reg.name_z[1:])+1).tolist() 
     for i in indices:
         strSummary += "%20s    %12.7f    %12.7f    %12.7f    %12.7f\n"   \
                      % (reg.name_z[i],reg.betas[i][0],reg.std_err[i],zt_stat[i][0],zt_stat[i][1])              

@@ -71,6 +71,7 @@ class Chow:
         regi = np.zeros((reg.kr, 2))
         for vari in np.arange(kr):
             r_vari = buildR1var(vari, kr, kf, kryd, nr)
+            #print betas, r_vari
             r_global.append(r_vari)
             q = np.zeros((r_vari.shape[0], 1))
             regi[vari, :] = wald_test(betas, r_vari, q, vm)
