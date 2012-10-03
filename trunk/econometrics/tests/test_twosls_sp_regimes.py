@@ -167,8 +167,7 @@ class TestGMLag_Regimes(unittest.TestCase):
         yd = np.reshape(yd, (49,1))
         q = np.array(self.db.by_col("DISCBD"))
         q = np.reshape(q, (49,1))
-        regime_lag = True
-        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w,regime_lag=regime_lag) 
+        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w,regime_lag=True, regime_sig2 = False) 
         tbetas = np.array([[ 42.35827477],
        [ -0.09472413],
        [ 32.24228762],
@@ -187,6 +186,33 @@ class TestGMLag_Regimes(unittest.TestCase):
        [  1.04465790e-01,   7.46534936e-01]])
         np.testing.assert_array_almost_equal(reg.chow.regi, chow_regi, 7)
         self.assertAlmostEqual(reg.chow.joint[0], 0.38839928684452918, 7)
+    
+    def test_all_regi_sig2(self):
+        X = np.array(self.db.by_col("INC"))
+        X = np.reshape(X, (49,1))
+        yd = np.array(self.db.by_col("HOVAL"))
+        yd = np.reshape(yd, (49,1))
+        q = np.array(self.db.by_col("DISCBD"))
+        q = np.reshape(q, (49,1))
+        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w,regime_lag=True, regime_sig2 = True) 
+        tbetas = np.array([[ 42.35827477],
+       [ -0.09472413],
+       [ -0.68794223],
+       [  0.54482537],
+       [ 32.24228762],
+       [ -0.12304063],
+       [ -0.46840307],
+       [  0.67108156]])
+        np.testing.assert_array_almost_equal(tbetas, reg.betas)
+        vm = np.array([ 200.92894859,    4.56244927,   -4.85603079,   -2.9755413 ,
+          0.        ,    0.        ,    0.        ,    0.        ])
+        np.testing.assert_array_almost_equal(reg.vm[0], vm, 6)
+        chow_regi = np.array([[  1.51825373e-01,   6.96797034e-01],
+       [  3.20105698e-04,   9.85725412e-01],
+       [  8.58836996e-02,   7.69476896e-01],
+       [  1.01357290e-01,   7.50206873e-01]])
+        np.testing.assert_array_almost_equal(reg.chow.regi, chow_regi, 7)
+        self.assertAlmostEqual(reg.chow.joint[0], 0.38417230022512161, 7)
 
     def test_fixed_const(self):
         X = np.array(self.db.by_col("INC"))

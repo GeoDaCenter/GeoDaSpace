@@ -343,9 +343,9 @@ class OLS(BaseOLS):
     >>> print ols.summary
     REGRESSION
     ----------
-    SUMMARY OF OUTPUT: ORDINARY LEAST SQUARES ESTIMATION
-    ----------------------------------------------------
-    Data set            :     columbus
+    SUMMARY OF OUTPUT: ORDINARY LEAST SQUARES
+    -----------------------------------------
+    Data set            :    columbus
     Dependent Variable  :  home value               Number of Observations:          49
     Mean dependent var  :     38.4362               Number of Variables   :           3
     S.D. dependent var  :     18.4661               Degrees of Freedom    :          46

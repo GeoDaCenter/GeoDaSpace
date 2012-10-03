@@ -318,12 +318,48 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
 
     Once the model is run, we can have a summary of the output by typing:
     model.summary . Alternatively, we can obtain the standard error of 
-    the coefficient estimates by calling the diagnostics module:
+    the coefficient estimates by calling:
 
     >>> model.std_err
     array([ 10.79422522,   0.57906884,   0.20754857,  12.12592894,
              0.56730086,   0.10422545,   0.18275958])
 
+    In the example above, all coefficients but the spatial lag vary
+    according to the regime. It is also possible to have the spatial lag
+    varying according to the regime, which effective will result in an
+    independent spatial lag model estimated for each regime. To run these
+    models, the argument regime_lag must be set to True:
+
+    >>> model=GM_Lag_Regimes(y, x, regimes, w=w, regime_lag=True, name_y=y_var, name_x=x_var, name_regimes=r_var, name_ds='columbus', name_w='columbus_queen')
+    >>> print np.hstack((np.array(model.name_z).reshape(8,1),model.betas,np.sqrt(model.vm.diagonal().reshape(8,1))))
+    [['0.0_CONSTANT' '44.773245374' '11.329872178']
+     ['0.0_INC' '-1.377813734' '0.5125537240']
+     ['0.0_HOVAL' '-0.116807332' '0.1705109301']
+     ['0.0_W_CRIME' '0.4634281246' '0.1985850135']
+     ['1.0_CONSTANT' '61.573404202' '49.256455029']
+     ['1.0_INC' '-1.201842988' '1.4605430528']
+     ['1.0_HOVAL' '-0.323282871' '0.1286914111']
+     ['1.0_W_CRIME' '0.1106507249' '0.8741763401']]
+
+    Alternatively, we can type: 'model.summary' to see the organized results output.
+    If instead we want to have varying coefficients for the spatial lag
+    but only one regression, restricting the sigma^2 to be the same across
+    regimes, we can se regime_sig2 to False. The change in the option regime_sig2
+    will not affect the estimated coefficients, as expected, but the standard
+    errors will reflect the restricted sigma^2:
+
+    >>> model=GM_Lag_Regimes(y, x, regimes, w=w, regime_lag=True, regime_sig2=False, name_y=y_var, name_x=x_var, name_regimes=r_var, name_ds='columbus', name_w='columbus_queen')
+    >>> print np.hstack((np.array(model.name_z).reshape(8,1),model.betas,np.sqrt(model.vm.diagonal().reshape(8,1))))
+    [['0.0_CONSTANT' '44.773245374' '13.936125808']
+     ['0.0_INC' '-1.377813734' '0.6304584085']
+     ['0.0_HOVAL' '-0.116807332' '0.2097342085']
+     ['1.0_CONSTANT' '61.573404202' '42.343343522']
+     ['1.0_INC' '-1.201842988' '1.2555567829']
+     ['1.0_HOVAL' '-0.323282871' '0.1106296550']
+     ['0.0_W_CRIME' '0.4634281246' '0.2442662801']
+     ['1.0_W_CRIME' '0.1106507249' '0.7514862579']]
+
+    Alternatively, we can type: 'model.summary' to see the organized results output.
     The class is flexible enough to accomodate a spatial lag model that,
     besides the spatial lag of the dependent variable, includes other
     non-spatial endogenous regressors. As an example, we will assume that
@@ -389,6 +425,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
             self.regimes_set = list(set(regimes))
             self.regimes_set.sort()
             w_i,regi_ids = REGI.w_regimes(w, regimes, self.regimes_set, transform=regime_sig2, get_ids=regime_sig2)
+            #print 'w0',w_i[0].neighbors,'w1',w_i[1].neighbors
             if not regime_sig2:
                 w = REGI.w_regimes_union(w, w_i, self.regimes_set)
         else:
@@ -440,16 +477,18 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         for r in self.regimes_set:
             w_r = w_i[r].sparse
             results_p[r] = pool.apply_async(_work,args=(y,x,regi_ids,r,yend,q,w_r,w_lags,lag_q,robust,gwk,sig2n_k,self.name_ds,name_y,name_x,name_yend,name_q,self.name_w,self.name_gwk,name_regimes, ))
-        pool.close()
-        pool.join()
-        results = {}
         self.kryd = 0
         self.kr = len(cols2regi) + 1
         self.kf = 0
         self.nr = len(self.regimes_set)
-        self.name_x_r = name_x + name_yend        
+        self.name_x_r = name_x + name_yend
+        self.name_regimes = name_regimes
         self.vm = np.zeros((self.nr*self.kr,self.nr*self.kr),float)
         counter = 0
+        pool.close()
+        pool.join()
+        results = {}
+        self.name_y, self.name_x, self.name_yend, self.name_q, self.name_z, self.name_h = [],[],[],[],[],[]
         for r in self.regimes_set:
             results[r] = results_p[r].get()
             results[r].predy_e, results[r].e_pred = sp_att(w_i[r],results[r].y,results[r].predy, results[r].yend[:,-1].reshape(results[r].n,1),results[r].betas[-1])
@@ -459,24 +498,31 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                 self.betas = results[r].betas
             else:
                 self.betas = np.vstack((self.betas,results[r].betas))
-                ## Add names_x and other###
+            self.name_y += results[r].name_y
+            self.name_x += results[r].name_x
+            self.name_yend += results[r].name_yend
+            self.name_q += results[r].name_q
+            self.name_z += results[r].name_z
+            self.name_h += results[r].name_h
             counter += 1
         self.chow = REGI.Chow(self)            
         self.multi = results
-        SUMMARY.GM_Lag_multi(reg=self, multireg=results, vm=vm, spat_diag=spat_diag, regimes=True)
+        SUMMARY.GM_Lag_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=spat_diag, regimes=True)
 
 def _work(y,x,regi_ids,r,yend,q,w_r,w_lags,lag_q,robust,gwk,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_gwk,name_regimes):
     y_r = y[regi_ids[r]]
     x_r = x[regi_ids[r]]
-    if yend:
+    if yend != None:
         yend_r = yend[regi_ids[r]]
     else:
         yend_r = yend
-    if q:
+    if q != None:
         q_r = q[regi_ids[r]]
     else:
         q_r = q
+    #print r, y_r
     yend_r, q_r = set_endog_sparse(y_r, x_r, w_r, yend_r, q_r, w_lags, lag_q)
+    #print r, yend_r
     x_constant = USER.check_constant(x_r)
     model = BaseTSLS(y_r, x_constant, yend_r, q_r, robust=robust, gwk=gwk, sig2n_k=sig2n_k)
     model.title = "SPATIAL TWO STAGE LEAST SQUARES ESTIMATION - REGIME %s" %r        
