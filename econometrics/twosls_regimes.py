@@ -156,60 +156,59 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
     >>> import numpy as np
     >>> import pysal
 
-    Open data on Columbus neighborhood crime (49 areas) using pysal.open().
-    This is the DBF associated with the Columbus shapefile.  Note that
+    Open data on NCOVR US County Homicides (3085 areas) using pysal.open().
+    This is the DBF associated with the NAT shapefile.  Note that
     pysal.open() also reads data in CSV format; since the actual class
     requires data to be passed in as numpy arrays, the user can read their
     data in using any method.  
 
-    >>> db = pysal.open(pysal.examples.get_path("columbus.dbf"),'r')
+    >>> db = pysal.open(pysal.examples.get_path("NAT.dbf"),'r')
  
-    Extract the CRIME column (crime rates) from the DBF file and make it the
+    Extract the HR90 column (homicide rates in 1990) from the DBF file and make it the
     dependent variable for the regression. Note that PySAL requires this to be
     an numpy array of shape (n, 1) as opposed to the also common shape of (n, )
     that other packages accept.
 
-    >>> y_var = 'CRIME'
-    >>> y = np.array([db.by_col(y_var)]).reshape(49,1)
+    >>> y_var = 'HR90'
+    >>> y = np.array([db.by_col(y_var)]).reshape(3085,1)
 
-    Extract INC (income) vector from the DBF to be used as
-    independent variables in the regression. Other variables can be inserted
-    by adding their names to x_var, such as x_var = ['Var1','Var2','...]
+    Extract UE90 (unemployment rate) and PS90 (population structure) vectors from
+    the DBF to be used as independent variables in the regression. Other variables
+    can be inserted by adding their names to x_var, such as x_var = ['Var1','Var2','...]
     Note that PySAL requires this to be an nxj numpy array, where j is the
     number of independent variables (not including a constant). By default
-    this model adds a vector of ones to the independent variables passed in,
-    but this can be overridden by passing constant=False.
+    this model adds a vector of ones to the independent variables passed in.
 
-    >>> x_var = ['INC']
+    >>> x_var = ['PS90','UE90']
     >>> x = np.array([db.by_col(name) for name in x_var]).T
 
-    In this case we consider HOVAL (home value) is an endogenous regressor.
+    In this case we consider RD90 (resource deprivation) as an endogenous regressor.
     We tell the model that this is so by passing it in a different parameter
     from the exogenous variables (x).
 
-    >>> yd_var = ['HOVAL']
+    >>> yd_var = ['RD90']
     >>> yd = np.array([db.by_col(name) for name in yd_var]).T
 
     Because we have endogenous variables, to obtain a correct estimate of the
-    model, we need to instrument for HOVAL. We use DISCBD (distance to the
-    CBD) for this and hence put it in the instruments parameter, 'q'.
+    model, we need to instrument for RD90. We use FP89 (families below poverty)
+    for this and hence put it in the instruments parameter, 'q'.
 
-    >>> q_var = ['DISCBD']
+    >>> q_var = ['FP89']
     >>> q = np.array([db.by_col(name) for name in q_var]).T
 
     The different regimes in this data are given according to the North and 
-    South dummy (NSA).
+    South dummy (SOUTH).
 
-    >>> r_var = 'NSA'
+    >>> r_var = 'SOUTH'
     >>> regimes = db.by_col(r_var)
 
     Since we want to perform tests for spatial dependence, we need to specify
     the spatial weights matrix that includes the spatial configuration of the
     observations into the error component of the model. To do that, we can open
     an already existing gal file or create a new one. In this case, we will
-    create one from ``columbus.shp``.
+    create one from ``NAT.shp``.
 
-    >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
+    >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("NAT.shp"))
 
     Unless there is a good reason not to do it, the weights have to be
     row-standardized so every row of the matrix sums to one. Among other
@@ -224,19 +223,21 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
     Alternatively, we can just check the betas and standard errors of the
     parameters:
 
-    >>> tslsr = TSLS_Regimes(y, x, yd, q, regimes, w=w, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
+    >>> tslsr = TSLS_Regimes(y, x, yd, q, regimes, w=w, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='NAT', name_w='NAT.shp')
 
     >>> tslsr.betas
-    array([[ 80.23408166],
-           [  5.48218125],
-           [ 82.98396737],
-           [  0.49775429],
-           [ -3.72663211],
-           [ -1.27451485]])
+    array([[ 3.66973562],
+           [ 1.06950466],
+           [ 0.14680946],
+           [ 9.55873243],
+           [ 1.94666348],
+           [-0.30810214],
+           [ 2.45864196],
+           [ 3.68718119]])
 
     >>> tslsr.std_err
-    array([ 22.25220181,   8.03638046,  27.05658869,   2.73638155,
-             3.85934759,   1.14692053])
+    array([ 0.46522151,  0.12074672,  0.05661795,  0.41893265,  0.16721773,
+            0.06631022,  0.27538921,  0.21745974])
 
     """
     def __init__(self, y, x, yend, q, regimes,\
@@ -292,24 +293,6 @@ if __name__ == '__main__':
     
     import numpy as np
     import pysal
-    #"""
-    db = pysal.open(pysal.examples.get_path("columbus.dbf"),'r')
-    y_var = 'CRIME'
-    y = np.array([db.by_col(y_var)]).reshape(49,1)
-    x_var = ['INC']
-    x = np.array([db.by_col(name) for name in x_var]).T
-    yd_var = ['HOVAL']
-    yd = np.array([db.by_col(name) for name in yd_var]).T
-    q_var = ['DISCBD']
-    q = np.array([db.by_col(name) for name in q_var]).T
-    r_var = 'NSA'
-    regimes = db.by_col(r_var)
-    w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
-    w.transform = 'r'
-    tslsr = TSLS_Regimes(y, x, yd, q, regimes, w=w, constant_regi='many', spat_diag=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
-    print tslsr.summary
-
-    """
     db = pysal.open(pysal.examples.get_path('NAT.dbf'),'r')
     y_var = 'HR60'
     y = np.array([db.by_col(y_var)]).T
@@ -323,6 +306,3 @@ if __name__ == '__main__':
     regimes = db.by_col(r_var)
     tslsr = TSLS_Regimes(y, x, yd, q, regimes, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var)
     print tslsr.summary
-    #"""
-
-

@@ -71,7 +71,6 @@ class Chow:
         regi = np.zeros((reg.kr, 2))
         for vari in np.arange(kr):
             r_vari = buildR1var(vari, kr, kf, kryd, nr)
-            #print betas, r_vari
             r_global.append(r_vari)
             q = np.zeros((r_vari.shape[0], 1))
             regi[vari, :] = wald_test(betas, r_vari, q, vm)
@@ -487,6 +486,7 @@ def w_regimes_union(w, w_regi_i, regimes_set):
     if len(regimes_set)>2:
         for i in range(len(regimes_set))[2:]:
             w_regi = pysal.weights.w_union(w_regi, w_regi_i[regimes_set[i]])
+    w_regi = pysal.weights.remap_ids(w_regi, dict((i,i) for i in w_regi.id_order),w.id_order)
     w_regi.transform = w.get_transform()
     return w_regi
 

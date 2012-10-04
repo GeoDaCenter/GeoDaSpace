@@ -226,45 +226,50 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
     >>> import numpy as np
     >>> import pysal
 
-    Open data on Columbus neighborhood crime (49 areas) using pysal.open().
-    This is the DBF associated with the Columbus shapefile.  Note that
-    pysal.open() also reads data in CSV format; also, the actual OLS class
-    requires data to be passed in as numpy arrays so the user can read their
+    Open data on NCOVR US County Homicides (3085 areas) using pysal.open().
+    This is the DBF associated with the NAT shapefile.  Note that
+    pysal.open() also reads data in CSV format; since the actual class
+    requires data to be passed in as numpy arrays, the user can read their
     data in using any method.  
 
-    >>> db = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
+    >>> db = pysal.open(pysal.examples.get_path("NAT.dbf"),'r')
+ 
+    Extract the HR90 column (homicide rates in 1990) from the DBF file and make it
+    the dependent variable for the regression. Note that PySAL requires this to be
+    an numpy array of shape (n, 1) as opposed to the also common shape of (n, )
+    that other packages accept.
     
-    Extract the HOVAL column (home values) from the DBF file and make it the
-    dependent variable for the regression. Note that PySAL requires this to be
-    an nx1 numpy array.
-    
-    >>> hoval = db.by_col("HOVAL")
-    >>> y = np.array(hoval)
-    >>> y.shape = (len(hoval), 1)
+    >>> y_var = 'HR90'
+    >>> y = db.by_col(y_var)
+    >>> y = np.array(y).reshape(len(y), 1)
 
-    Extract CRIME (crime) and INC (income) vectors from the DBF to be used as
-    independent variables in the regression.  Note that PySAL requires this to
-    be an nxj numpy array, where j is the number of independent variables (not
-    including a constant). pysal.spreg.OLS adds a vector of ones to the
-    independent variables passed in.
+    Extract UE90 (unemployment rate) and PS90 (population structure) vectors from
+    the DBF to be used as independent variables in the regression. Other variables
+    can be inserted by adding their names to x_var, such as x_var = ['Var1','Var2','...]
+    Note that PySAL requires this to be an nxj numpy array, where j is the
+    number of independent variables (not including a constant). By default
+    this model adds a vector of ones to the independent variables passed in.
 
-    >>> X = []
-    >>> X.append(db.by_col("INC"))
-    >>> X.append(db.by_col("CRIME"))
-    >>> X = np.array(X).T
+    >>> x_var = ['PS90','UE90']
+    >>> x = np.array([db.by_col(name) for name in x_var]).T
 
-    >>> regimes = db.by_col("NSA")
-    >>> olsr = OLS_Regimes(y, X, regimes, nonspat_diag=False)
+    The different regimes in this data are given according to the North and 
+    South dummy (SOUTH).
+
+    >>> r_var = 'SOUTH'
+    >>> regimes = db.by_col(r_var)
+
+    >>> olsr = OLS_Regimes(y, x, regimes, nonspat_diag=False, name_y=y_var, name_x=x_var, name_regimes=r_var, name_ds='NAT')
     >>> olsr.betas
-    array([[  9.386956  ],
-           [  1.86338981],
-           [ -0.09091956],
-           [ 57.42063184],
-           [  0.6347145 ],
-           [ -0.66190849]])
+    array([[ 0.39642899],
+           [ 0.65583299],
+           [ 0.48703937],
+           [ 5.59835   ],
+           [ 1.16210453],
+           [ 0.53163886]])
     >>> olsr.std_err
-    array([ 21.29552114,   0.79528657,   0.28460755,  16.79327777,
-             0.85352708,   0.22389296])
+    array([ 0.31880436,  0.12413205,  0.04661535,  0.38716735,  0.17888871,
+            0.04908804])
     >>> olsr.cols2regi
     'all'
     """
