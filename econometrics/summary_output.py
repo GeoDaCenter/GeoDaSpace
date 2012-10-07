@@ -119,16 +119,18 @@ def GM_Endog_Error(reg, vm, w, regimes=False):
         summary_regimes(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False, other_mid=regimes)
 
-def GM_Error_Hom(reg, vm, w):
+def GM_Error_Hom(reg, vm, w, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
     beta_diag(reg, None)
     # build coefficients table body
     beta_position = summary_coefs_somex(reg, reg.z_stat)
     summary_coefs_lambda(reg, reg.z_stat)
-    summary(reg=reg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=False)
+    if regimes:
+        summary_regimes(reg)
+    summary(reg=reg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=False, other_mid=regimes)
 
-def GM_Endog_Error_Hom(reg, vm, w):
+def GM_Endog_Error_Hom(reg, vm, w, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
     beta_diag(reg, None)
@@ -136,7 +138,9 @@ def GM_Endog_Error_Hom(reg, vm, w):
     summary_coefs_yend(reg, reg.z_stat, lambd=True)
     summary_coefs_lambda(reg, reg.z_stat)
     summary_coefs_instruments(reg)
-    summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False)
+    if regimes:
+        summary_regimes(reg)
+    summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False, other_mid=regimes)
 
 def GM_Error_Het(reg, vm, w):
     reg.__summary = {}
@@ -169,7 +173,7 @@ def GM_Combo(reg, vm, w, regimes=False):
         summary_regimes(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False, other_mid=regimes)
 
-def GM_Combo_Hom(reg, vm, w):
+def GM_Combo_Hom(reg, vm, w, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
     beta_diag_lag(reg, None)
@@ -177,7 +181,9 @@ def GM_Combo_Hom(reg, vm, w):
     summary_coefs_yend(reg, reg.z_stat, lambd=True)
     summary_coefs_lambda(reg, reg.z_stat)
     summary_coefs_instruments(reg)
-    summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False)
+    if regimes:
+        summary_regimes(reg)
+    summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False, other_mid=regimes)
 
 def GM_Combo_Het(reg, vm, w):
     reg.__summary = {}

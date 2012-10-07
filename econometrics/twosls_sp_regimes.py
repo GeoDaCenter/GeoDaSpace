@@ -65,7 +65,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                    computed according to different regimes. If False (default), 
                    the spatial parameter is fixed accross regimes.
                    Option valid only when regime_lag=True
-    regime_sig2  : boolean
+    regime_error  : boolean
                    If True, the variance of the residuals is
                    computed according to different regimes. If False (default), 
                    the variance of the residuals does not discriminate regimes.
@@ -220,7 +220,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                    If True, the spatial parameter for spatial lag is also
                    computed according to different regimes. If False (default), 
                    the spatial parameter is fixed accross regimes.
-    regime_sig2  : boolean
+    regime_error  : boolean
                    If True, the variance of the residuals is
                    computed according to different regimes. If False (default), 
                    the variance of the residuals does not discriminate regimes.
@@ -253,8 +253,8 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
     >>> import numpy as np
     >>> import pysal
 
-    Open data on Columbus neighborhood crime (49 areas) using pysal.open().
-    This is the DBF associated with the Columbus shapefile.  Note that
+    Open data on NCOVR US County Homicides (3085 areas) using pysal.open().
+    This is the DBF associated with the NAT shapefile.  Note that
     pysal.open() also reads data in CSV format; since the actual class
     requires data to be passed in as numpy arrays, the user can read their
     data in using any method.  
@@ -343,11 +343,11 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
     Alternatively, we can type: 'model.summary' to see the organized results output.
     If instead we want to have varying coefficients for the spatial lag
     but only one regression, restricting the sigma^2 to be the same across
-    regimes, we can se regime_sig2 to False. The change in the option regime_sig2
+    regimes, we can se regime_error to False. The change in the option regime_error
     will not affect the estimated coefficients, as expected, but the standard
     errors will reflect the restricted sigma^2:
 
-    >>> model=GM_Lag_Regimes(y, x, regimes, w=w, regime_lag=True, regime_sig2=False, name_y=y_var, name_x=x_var, name_regimes=r_var, name_ds='NAT', name_w='NAT.shp')
+    >>> model=GM_Lag_Regimes(y, x, regimes, w=w, regime_lag=True, regime_error=False, name_y=y_var, name_x=x_var, name_regimes=r_var, name_ds='NAT', name_w='NAT.shp')
     >>> print np.hstack((np.array(model.name_z).reshape(8,1),model.betas,np.sqrt(model.vm.diagonal().reshape(8,1))))
     [['0_CONSTANT' '1.36584769' '0.51821919']
      ['0_PS90' '0.80875730' '0.14725414']
@@ -396,7 +396,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                  w=None, w_lags=1, lag_q=True, cores=None,\
                  robust=None, gwk=None, sig2n_k=False,\
                  spat_diag=False, constant_regi='many',\
-                 cols2regi='all', regime_lag=False, regime_sig2=True,\
+                 cols2regi='all', regime_lag=False, regime_error=True,\
                  vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None, name_regimes=None,\
                  name_w=None, name_gwk=None, name_ds=None):
@@ -422,13 +422,13 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
             cols2regi += [True]
             self.regimes_set = list(set(regimes))
             self.regimes_set.sort()
-            w_i,regi_ids = REGI.w_regimes(w, regimes, self.regimes_set, transform=regime_sig2, get_ids=regime_sig2)
-            if not regime_sig2:
+            w_i,regi_ids = REGI.w_regimes(w, regimes, self.regimes_set, transform=regime_error, get_ids=regime_error)
+            if not regime_error:
                 w = REGI.w_regimes_union(w, w_i, self.regimes_set)
         else:
             cols2regi += [False]
         self.cols2regi = cols2regi
-        if regime_lag == True and regime_sig2 == True:
+        if regime_lag == True and regime_error == True:
             if set(cols2regi) == set([True]):
                 self.GM_Lag_Regimes_Multi(y, x, w_i, regi_ids,\
                  yend=yend, q=q, w_lags=w_lags, lag_q=lag_q, cores=cores,\
@@ -437,7 +437,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                  name_yend=name_yend, name_q=name_q, name_regimes=self.name_regimes,\
                  name_w=name_w, name_gwk=name_gwk, name_ds=name_ds)
             else:
-                raise Exception, "All coefficients must vary accross regimes if regime_sig2 = True."
+                raise Exception, "All coefficients must vary accross regimes if regime_error = True."
         else:
             yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
             name_yend.append(USER.set_name_yend_sp(name_y))
