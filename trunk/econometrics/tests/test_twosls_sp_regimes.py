@@ -167,7 +167,7 @@ class TestGMLag_Regimes(unittest.TestCase):
         yd = np.reshape(yd, (49,1))
         q = np.array(self.db.by_col("DISCBD"))
         q = np.reshape(q, (49,1))
-        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w,regime_lag=True, regime_sig2 = False) 
+        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w,regime_lag=True, regime_error = False) 
         tbetas = np.array([[ 42.35827477],
        [ -0.09472413],
        [ 32.24228762],
@@ -194,7 +194,7 @@ class TestGMLag_Regimes(unittest.TestCase):
         yd = np.reshape(yd, (49,1))
         q = np.array(self.db.by_col("DISCBD"))
         q = np.reshape(q, (49,1))
-        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w,regime_lag=True, regime_sig2 = True) 
+        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w,regime_lag=True, regime_error = True) 
         tbetas = np.array([[ 42.35827477],
        [ -0.09472413],
        [ -0.68794223],
