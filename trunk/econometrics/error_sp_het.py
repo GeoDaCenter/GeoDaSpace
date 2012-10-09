@@ -318,7 +318,7 @@ class GM_Error_Het(BaseGM_Error_Het):
 
     >>> w.transform = 'r'
 
-    We are all set with the preliminars, we are good to run the model. In this
+    We are all set with the preliminaries, we are good to run the model. In this
     case, we will need the variables and the weights matrix. If we want to
     have the names of the variables printed in the output summary, we will
     have to pass them in as well, although this is optional.
@@ -740,7 +740,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
 
     >>> w.transform = 'r'
 
-    We are all set with the preliminars, we are good to run the model. In this
+    We are all set with the preliminaries, we are good to run the model. In this
     case, we will need the variables (exogenous and endogenous), the
     instruments and the weights matrix. If we want to
     have the names of the variables printed in the output summary, we will
