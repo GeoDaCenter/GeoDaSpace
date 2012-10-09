@@ -254,7 +254,7 @@ class GM_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
 
     >>> w.transform = 'r'
 
-    We are all set with the preliminars, we are good to run the model. In this
+    We are all set with the preliminaries, we are good to run the model. In this
     case, we will need the variables and the weights matrix. If we want to
     have the names of the variables printed in the output summary, we will
     have to pass them in as well, although this is optional.
@@ -447,6 +447,9 @@ class GM_Endog_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
 
     Attributes
     ----------
+    summary      : string
+                   Summary of regression results and diagnostics (note: use in
+                   conjunction with the print command)
     betas        : array
                    kx1 array of estimated coefficients
     u            : array
@@ -627,7 +630,7 @@ class GM_Endog_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
 
     >>> w.transform = 'r'
 
-    We are all set with the preliminars, we are good to run the model. In this
+    We are all set with the preliminaries, we are good to run the model. In this
     case, we will need the variables (exogenous and endogenous), the
     instruments and the weights matrix. If we want to
     have the names of the variables printed in the output summary, we will
@@ -644,6 +647,7 @@ class GM_Endog_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     which we calculate taking the square root of the diagonal of the
     variance-covariance matrix. Alternatively, we can have a summary of the
     output by typing: model.summary
+
     >>> print reg.name_z
     ['0_CONSTANT', '0_PS90', '0_UE90', '1_CONSTANT', '1_PS90', '1_UE90', '0_RD90', '1_RD90', 'lambda']
 
@@ -662,6 +666,7 @@ class GM_Endog_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     [ 0.5204  0.1371  0.0629  0.4721  0.1824  0.0725  0.2992  0.2395  0.024 ]
 
     '''
+    
     def __init__(self, y, x, yend, q, regimes, w,\
                  constant_regi='many', cols2regi='all', regime_error=False,\
                  max_iter=1, epsilon=0.00001, A1='het',\
@@ -771,9 +776,9 @@ class GM_Endog_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
 
 class GM_Combo_Hom_Regimes(GM_Endog_Error_Hom_Regimes):
     '''
-    GMM method for a spatial lag and error model with homoskedasticity and
-    endogenous variables, with results and diagnostics; based on Drukker et
-    al. (2010) [1]_, following Anselin (2011) [2]_.
+    GMM method for a spatial lag and error model with homoskedasticity,
+    regimes and endogenous variables, with results and diagnostics;
+    based on Drukker et al. (2010) [1]_, following Anselin (2011) [2]_.
 
     Parameters
     ----------
@@ -789,9 +794,34 @@ class GM_Combo_Hom_Regimes(GM_Endog_Error_Hom_Regimes):
                    Two dimensional array with n rows and one column for each
                    external exogenous variable to use as instruments (note: 
                    this should not contain any variables from x)
+    regimes      : list
+                   List of n values with the mapping of each
+                   observation to a regime. Assumed to be aligned with 'x'.
     w            : pysal W object
                    Spatial weights object (note: if provided then spatial
                    diagnostics are computed)   
+    constant_regi: [False, 'one', 'many']
+                   Switcher controlling the constant term setup. It may take
+                   the following values:
+                     *  'one': a vector of ones is appended to x and held
+                               constant across regimes
+                     * 'many': a vector of ones is appended to x and considered
+                               different per regime (default)
+    cols2regi    : list, 'all'
+                   Argument indicating whether each
+                   column of x should be considered as different per regime
+                   or held constant across regimes (False).
+                   If a list, k booleans indicating for each variable the
+                   option (True if one per regime, False to be held constant).
+                   If 'all' (default), all the variables vary by regime.
+    regime_error : boolean
+                   If True, the spatial parameter for autoregressive error is also
+                   computed according to different regimes. If False (default), 
+                   the spatial parameter is fixed accross regimes.
+    regime_lag   : boolean
+                   If True, the spatial parameter for spatial lag is also
+                   computed according to different regimes. If False (default), 
+                   the spatial parameter is fixed accross regimes.
     w_lags       : integer
                    Orders of W to include as instruments for the spatially
                    lagged dependent variable. For example, w_lags=1, then
@@ -826,6 +856,8 @@ class GM_Combo_Hom_Regimes(GM_Endog_Error_Hom_Regimes):
                    Name of weights matrix for use in output
     name_ds      : string
                    Name of dataset for use in output
+    name_regimes : string
+                   Name of regime variable for use in the output
 
     Attributes
     ----------
@@ -907,8 +939,43 @@ class GM_Combo_Hom_Regimes(GM_Endog_Error_Hom_Regimes):
                     Name of dataset for use in output
     title         : string
                     Name of the regression method used
-    hth          : float
-                   H'H
+    regimes       : list
+                    List of n values with the mapping of each
+                    observation to a regime. Assumed to be aligned with 'x'.
+    constant_regi : [False, 'one', 'many']
+                    Ignored if regimes=False. Constant option for regimes.
+                    Switcher controlling the constant term setup. It may take
+                    the following values:
+                      *  'one': a vector of ones is appended to x and held
+                                constant across regimes
+                      * 'many': a vector of ones is appended to x and considered
+                                different per regime
+    cols2regi     : list, 'all'
+                    Ignored if regimes=False. Argument indicating whether each
+                    column of x should be considered as different per regime
+                    or held constant across regimes (False).
+                    If a list, k booleans indicating for each variable the
+                    option (True if one per regime, False to be held constant).
+                    If 'all', all the variables vary by regime.
+    regime_error : boolean
+                   If True, the spatial parameter for autoregressive error is also
+                   computed according to different regimes. If False (default), 
+                   the spatial parameter is fixed accross regimes.
+    regime_lag    : boolean
+                    If True, the spatial parameter for spatial lag is also
+                    computed according to different regimes. If False (default), 
+                    the spatial parameter is fixed accross regimes.
+    kr            : int
+                    Number of variables/columns to be "regimized" or subject
+                    to change by regime. These will result in one parameter
+                    estimate by regime for each variable (i.e. nr parameters per
+                    variable)
+    kf            : int
+                    Number of variables/columns to be considered fixed or
+                    global across regimes and hence only obtain one parameter
+                    estimate
+    nr            : int
+                    Number of different regimes in the 'regimes' list
 
 
     References
@@ -963,7 +1030,7 @@ class GM_Combo_Hom_Regimes(GM_Endog_Error_Hom_Regimes):
     >>> r_var = 'SOUTH'
     >>> regimes = db.by_col(r_var)
 
-    Since we want to run a spatial lag model, we need to specify
+    Since we want to run a spatial combo model, we need to specify
     the spatial weights matrix that includes the spatial configuration of the
     observations. To do that, we can open an already existing gal file or 
     create a new one. In this case, we will create one from ``NAT.shp``.
@@ -978,7 +1045,7 @@ class GM_Combo_Hom_Regimes(GM_Endog_Error_Hom_Regimes):
 
     >>> w.transform = 'r'
 
-    We are all set with the preliminars, we are good to run the model. In this
+    We are all set with the preliminaries, we are good to run the model. In this
     case, we will need the variables and the weights matrix. If we want to
     have the names of the variables printed in the output summary, we will
     have to pass them in as well, although this is optional.
