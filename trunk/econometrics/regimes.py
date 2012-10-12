@@ -66,7 +66,14 @@ class Chow:
     def __init__(self, reg):
         kr, kf, kryd, nr, betas, vm = reg.kr, reg.kf, reg.kryd, reg.nr, reg.betas, reg.vm
         if betas.shape[0] != vm.shape[0]:
-            betas = betas[0:vm.shape[0],:]
+            if kf>0:
+                betas = betas[0:vm.shape[0],:]
+                kf = kf-1
+            else:
+                brange = []
+                for i in range(nr):
+                    brange.extend(range(i*(kr+1),i*(kr+1)+kr))
+                betas = betas[brange,:]
         r_global = []
         regi = np.zeros((reg.kr, 2))
         for vari in np.arange(kr):

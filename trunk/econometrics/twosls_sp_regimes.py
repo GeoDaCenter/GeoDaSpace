@@ -393,11 +393,11 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
             0.06749131,  0.27370369,  0.25106224,  0.05804213])
     """
     def __init__(self, y, x, regimes, yend=None, q=None,\
-                 w=None, w_lags=1, lag_q=True, cores=None,\
+                 w=None, w_lags=1, lag_q=True,\
                  robust=None, gwk=None, sig2n_k=False,\
                  spat_diag=False, constant_regi='many',\
                  cols2regi='all', regime_lag=False, regime_error=True,\
-                 vm=False, name_y=None, name_x=None,\
+                 cores=None, vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None, name_regimes=None,\
                  name_w=None, name_gwk=None, name_ds=None):
 
@@ -477,11 +477,11 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         self.name_x_r = name_x + name_yend
         self.name_regimes = name_regimes
         self.vm = np.zeros((self.nr*self.kr,self.nr*self.kr),float)
-        counter = 0
         pool.close()
         pool.join()
         results = {}
         self.name_y, self.name_x, self.name_yend, self.name_q, self.name_z, self.name_h = [],[],[],[],[],[]
+        counter = 0
         for r in self.regimes_set:
             results[r] = results_p[r].get()
             results[r].predy_e, results[r].e_pred = sp_att(w_i[r],results[r].y,results[r].predy, results[r].yend[:,-1].reshape(results[r].n,1),results[r].betas[-1])
@@ -516,7 +516,7 @@ def _work(y,x,regi_ids,r,yend,q,w_r,w_lags,lag_q,robust,gwk,sig2n_k,name_ds,name
     yend_r, q_r = set_endog_sparse(y_r, x_r, w_r, yend_r, q_r, w_lags, lag_q)
     x_constant = USER.check_constant(x_r)
     model = BaseTSLS(y_r, x_constant, yend_r, q_r, robust=robust, gwk=gwk, sig2n_k=sig2n_k)
-    model.title = "SPATIAL TWO STAGE LEAST SQUARES ESTIMATION - REGIME %s" %r        
+    model.title = "SPATIAL TWO STAGE LEAST SQUARES ESTIMATION - REGIME %s" %r
     model.robust = USER.set_robust(robust)
     model.name_ds = name_ds
     model.name_y = '%s_%s'%(str(r), name_y)

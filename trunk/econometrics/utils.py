@@ -345,8 +345,12 @@ def get_spFilter(w,lamb,sf):
      [ -36.9051915]
      [-111.1298   ]]
 
-    '''        
-    return sf - lamb * (w.sparse * sf)
+    '''
+    try:
+        result = sf - lamb * (w.sparse * sf)
+    except:
+        result = sf - lamb * (w * sf)
+    return result
 
 def get_lags(w, x, w_lags):
     '''

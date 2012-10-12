@@ -2,6 +2,7 @@ import unittest
 import pysal
 import numpy as np
 from econometrics import error_sp_regimes as SP
+from econometrics.error_sp import GM_Error, GM_Endog_Error, GM_Combo
 
 class TestGM_Error_Regimes(unittest.TestCase):
     def setUp(self):
@@ -16,6 +17,29 @@ class TestGM_Error_Regimes(unittest.TestCase):
         self.w.transform = 'r'
         self.r_var = 'NSA'
         self.regimes = db.by_col(self.r_var)
+        X1 = []
+        X1.append(db.by_col("INC"))
+        self.X1 = np.array(X1).T
+        yd = []
+        yd.append(db.by_col("HOVAL"))
+        self.yd = np.array(yd).T
+        q = []
+        q.append(db.by_col("DISCBD"))
+        self.q = np.array(q).T
+        #Artficial:
+        n = 256
+        self.n2 = n/2
+        self.x_a1 = np.random.uniform(-10,10,(n,1))
+        self.x_a2 = np.random.uniform(1,5,(n,1))
+        self.q_a = self.x_a2 + np.random.normal(0,1,(n,1))
+        self.x_a = np.hstack((self.x_a1,self.x_a2))
+        self.y_a = np.dot(np.hstack((np.ones((n,1)),self.x_a)),np.array([[1],[0.5],[2]])) + np.random.normal(0,1,(n,1))
+        latt = int(np.sqrt(n))
+        self.w_a = pysal.lat2W(latt,latt)
+        self.w_a.transform='r'
+        self.regi_a = [0]*(n/2) + [1]*(n/2)
+        self.w_a1 = pysal.lat2W(latt/2,latt)
+        self.w_a1.transform='r'
         
     def test_model(self):
         reg = SP.GM_Error_Regimes(self.y, self.X, self.regimes, self.w)
@@ -62,27 +86,38 @@ class TestGM_Error_Regimes(unittest.TestCase):
         chow_j = 0.81985446000130979
         self.assertAlmostEqual(reg.chow.joint[0],chow_j)
 
-class TestGM_Endog_Error_Regimes(unittest.TestCase):
-    def setUp(self):
-        db=pysal.open(pysal.examples.get_path("columbus.dbf"),"r")
-        y = np.array(db.by_col("CRIME"))
-        self.y = np.reshape(y, (49,1))
-        X = []
-        X.append(db.by_col("INC"))
-        self.X = np.array(X).T
-        yd = []
-        yd.append(db.by_col("HOVAL"))
-        self.yd = np.array(yd).T
-        q = []
-        q.append(db.by_col("DISCBD"))
-        self.q = np.array(q).T
-        self.w = pysal.queen_from_shapefile(pysal.examples.get_path("columbus.shp"))
-        self.w.transform = 'r'
-        self.r_var = 'NSA'
-        self.regimes = db.by_col(self.r_var)
+    def test_model_regi_error(self):
+        #Columbus:
+        reg = SP.GM_Error_Regimes(self.y, self.X, self.regimes, self.w, regime_error=True)
+        betas = np.array([[ 60.45730439],
+       [ -0.17732134],
+       [ -1.30936328],
+       [  0.51314713],
+       [ 66.5487126 ],
+       [ -0.31845995],
+       [ -1.29047149],
+       [  0.08092997]])
+        np.testing.assert_array_almost_equal(reg.betas,betas,6)
+        vm = np.array([ 39.33656288,  -0.08420799,  -1.50350999,   0.        ,
+         0.        ,   0.        ])
+        np.testing.assert_array_almost_equal(reg.vm[0],vm,6)
+        chow_r = np.array([[  3.63674458e-01,   5.46472584e-01],
+       [  4.29607250e-01,   5.12181727e-01],
+       [  5.44739543e-04,   9.81379339e-01]])
+        np.testing.assert_array_almost_equal(reg.chow.regi,chow_r,6)
+        chow_j = 0.70119418251625387
+        self.assertAlmostEqual(reg.chow.joint[0],chow_j)
+        #Artficial:
+        model = SP.GM_Error_Regimes(self.y_a, self.x_a, self.regi_a, w=self.w_a, regime_error=True)
+        model1 = GM_Error(self.y_a[0:(self.n2)].reshape((self.n2),1), self.x_a[0:(self.n2)], w=self.w_a1)
+        model2 = GM_Error(self.y_a[(self.n2):].reshape((self.n2),1), self.x_a[(self.n2):], w=self.w_a1)
+        tbetas = np.vstack((model1.betas, model2.betas))
+        np.testing.assert_array_almost_equal(model.betas,tbetas)
+        vm = np.hstack((model1.vm.diagonal(),model2.vm.diagonal()))
+        np.testing.assert_array_almost_equal(model.vm.diagonal(), vm, 6)
 
-    def test_model(self):
-        reg = SP.GM_Endog_Error_Regimes(self.y, self.X, self.yd, self.q, self.regimes, self.w)
+    def test_model_endog(self):
+        reg = SP.GM_Endog_Error_Regimes(self.y, self.X1, self.yd, self.q, self.regimes, self.w)
         betas = np.array([[ 77.48384119],
        [  4.52986158],
        [ 78.9320719 ],
@@ -131,27 +166,38 @@ class TestGM_Endog_Error_Regimes(unittest.TestCase):
         chow_j = 1.2885586296152094
         self.assertAlmostEqual(reg.chow.joint[0],chow_j)
 
-class TestGM_Combo_Regimes(unittest.TestCase):
-    def setUp(self):
-        db=pysal.open(pysal.examples.get_path("columbus.dbf"),"r")
-        y = np.array(db.by_col("CRIME"))
-        self.y = np.reshape(y, (49,1))
-        X = []
-        X.append(db.by_col("INC"))
-        self.X = np.array(X).T
-        yd = []
-        yd.append(db.by_col("HOVAL"))
-        self.yd = np.array(yd).T
-        q = []
-        q.append(db.by_col("DISCBD"))
-        self.q = np.array(q).T
-        self.w = pysal.queen_from_shapefile(pysal.examples.get_path("columbus.shp"))
-        self.w.transform = 'r'
-        self.r_var = 'NSA'
-        self.regimes = db.by_col(self.r_var)
+    def test_model_endog_regi_error(self):
+        #Columbus:
+        reg = SP.GM_Endog_Error_Regimes(self.y, self.X1, self.yd, self.q, self.regimes, self.w, regime_error=True)
+        betas = np.array([[  7.91729500e+01],
+       [  5.80693176e+00],
+       [ -3.84036576e+00],
+       [  1.46462983e-01],
+       [  8.24723791e+01],
+       [  5.68908920e-01],
+       [ -1.28824699e+00],
+       [  6.70387351e-02]])
+        np.testing.assert_array_almost_equal(reg.betas,betas,6)
+        vm = np.array([ 791.86679562,  140.12967904,  -81.37581314,    0.        ,
+          0.        ,    0.        ])
+        np.testing.assert_array_almost_equal(reg.vm[0],vm,6)
+        chow_r = np.array([[ 0.00926459,  0.92331985],
+       [ 0.26102777,  0.60941494],
+       [ 0.26664581,  0.60559072]])
+        np.testing.assert_array_almost_equal(reg.chow.regi,chow_r,6)
+        chow_j = 1.118463120181409
+        self.assertAlmostEqual(reg.chow.joint[0],chow_j)
+        #Artficial:
+        model = SP.GM_Endog_Error_Regimes(self.y_a, self.x_a1, yend=self.x_a2, q=self.q_a, regimes=self.regi_a, w=self.w_a, regime_error=True)
+        model1 = GM_Endog_Error(self.y_a[0:(self.n2)].reshape((self.n2),1), self.x_a1[0:(self.n2)], yend=self.x_a2[0:(self.n2)], q=self.q_a[0:(self.n2)], w=self.w_a1)
+        model2 = GM_Endog_Error(self.y_a[(self.n2):].reshape((self.n2),1), self.x_a1[(self.n2):], yend=self.x_a2[(self.n2):], q=self.q_a[(self.n2):], w=self.w_a1)
+        tbetas = np.vstack((model1.betas, model2.betas))
+        np.testing.assert_array_almost_equal(model.betas,tbetas)
+        vm = np.hstack((model1.vm.diagonal(),model2.vm.diagonal()))
+        np.testing.assert_array_almost_equal(model.vm.diagonal(), vm, 6)
 
-    def test_model(self):
-        reg = SP.GM_Combo_Regimes(self.y, self.X, self.regimes, self.yd, self.q, w=self.w)
+    def test_model_combo(self):
+        reg = SP.GM_Combo_Regimes(self.y, self.X1, self.regimes, self.yd, self.q, w=self.w)
         predy_e = np.array([ 18.82774339])
         np.testing.assert_array_almost_equal(reg.predy_e[0],predy_e,6)
         betas = np.array([[ 36.44798052],
@@ -204,6 +250,38 @@ class TestGM_Combo_Regimes(unittest.TestCase):
         np.testing.assert_array_almost_equal(reg.chow.regi,chow_r,6)
         chow_j = 0.64531386285872072
         self.assertAlmostEqual(reg.chow.joint[0],chow_j)
+
+    def test_model_combo_regi_error(self):
+        #Columbus:
+        reg = SP.GM_Combo_Regimes(self.y, self.X1, self.regimes, self.yd, self.q, w=self.w, regime_lag=True, regime_error=True)
+        betas = np.array([[ 42.01035248],
+       [ -0.13938772],
+       [ -0.6528306 ],
+       [  0.54737621],
+       [  0.2684419 ],
+       [ 34.02473255],
+       [ -0.14920259],
+       [ -0.48972903],
+       [  0.65883658],
+       [ -0.17174845]])
+        np.testing.assert_array_almost_equal(reg.betas,betas,6)
+        vm = np.array([ 153.58614432,    2.96302131,   -3.26211855,   -2.46914703,
+          0.        ,    0.        ,    0.        ,    0.        ])
+        np.testing.assert_array_almost_equal(reg.vm[0],vm,6)
+        chow_r = np.array([[  1.00886404e-01,   7.50768497e-01],
+       [  3.61843271e-05,   9.95200481e-01],
+       [  4.69585772e-02,   8.28442711e-01],
+       [  8.13275259e-02,   7.75506385e-01]])
+        np.testing.assert_array_almost_equal(reg.chow.regi,chow_r,6)
+        chow_j = 0.28479988992843119
+        self.assertAlmostEqual(reg.chow.joint[0],chow_j)
+        #Artficial:
+        model = SP.GM_Combo_Regimes(self.y_a, self.x_a1, yend=self.x_a2, q=self.q_a, regimes=self.regi_a, w=self.w_a, regime_error=True, regime_lag=True)
+        model1 = GM_Combo(self.y_a[0:(self.n2)].reshape((self.n2),1), self.x_a1[0:(self.n2)], yend=self.x_a2[0:(self.n2)], q=self.q_a[0:(self.n2)], w=self.w_a1)
+        model2 = GM_Combo(self.y_a[(self.n2):].reshape((self.n2),1), self.x_a1[(self.n2):], yend=self.x_a2[(self.n2):], q=self.q_a[(self.n2):], w=self.w_a1)
+        tbetas = np.vstack((model1.betas, model2.betas))
+        np.testing.assert_array_almost_equal(model.betas,tbetas)
+        vm = np.hstack((model1.vm.diagonal(),model2.vm.diagonal()))
 
 if __name__ == '__main__':
     unittest.main()
