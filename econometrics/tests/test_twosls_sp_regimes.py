@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 import pysal
 from econometrics.twosls_sp_regimes import GM_Lag_Regimes
+from econometrics.twosls_sp import GM_Lag
 
 class TestGMLag_Regimes(unittest.TestCase):
     def setUp(self):
@@ -188,6 +189,27 @@ class TestGMLag_Regimes(unittest.TestCase):
         self.assertAlmostEqual(reg.chow.joint[0], 0.38839928684452918, 7)
     
     def test_all_regi_sig2(self):
+        #Artficial:
+        n = 256
+        x1 = np.random.uniform(-10,10,(n,1))
+        x2 = np.random.uniform(1,5,(n,1))
+        q = x2 + np.random.normal(0,1,(n,1))
+        x = np.hstack((x1,x2))
+        y = np.dot(np.hstack((np.ones((n,1)),x)),np.array([[1],[0.5],[2]])) + np.random.normal(0,1,(n,1))
+        latt = int(np.sqrt(n))
+        w = pysal.lat2W(latt,latt)
+        w.transform='r'
+        regi = [0]*(n/2) + [1]*(n/2)
+        model = GM_Lag_Regimes(y, x1, regi, q=q, yend=x2, w=w, regime_lag=True, regime_error=True)
+        w1 = pysal.lat2W(latt/2,latt)
+        w1.transform='r'
+        model1 = GM_Lag(y[0:(n/2)].reshape((n/2),1), x1[0:(n/2)], yend=x2[0:(n/2)], q=q[0:(n/2)], w=w1)
+        model2 = GM_Lag(y[(n/2):n].reshape((n/2),1), x1[(n/2):n], yend=x2[(n/2):n], q=q[(n/2):n], w=w1)
+        tbetas = np.vstack((model1.betas, model2.betas))
+        np.testing.assert_array_almost_equal(model.betas,tbetas)
+        vm = np.hstack((model1.vm.diagonal(),model2.vm.diagonal()))
+        np.testing.assert_array_almost_equal(model.vm.diagonal(), vm, 6)
+        #Columbus:
         X = np.array(self.db.by_col("INC"))
         X = np.reshape(X, (49,1))
         yd = np.array(self.db.by_col("HOVAL"))

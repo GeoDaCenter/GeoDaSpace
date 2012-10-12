@@ -107,6 +107,22 @@ def GM_Error(reg, vm, w, regimes=False):
         summary_regimes(reg)
     summary(reg=reg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=False, other_mid=regimes)
 
+def GM_Error_multi(reg, multireg, vm, regimes=False):
+    for m in multireg:
+        mreg = multireg[m]
+        mreg.__summary = {}
+        # compute diagnostics and organize summary output
+        beta_diag(mreg, None)
+        # build coefficients table body
+        beta_position = summary_coefs_somex(mreg, mreg.z_stat)
+        summary_coefs_lambda(mreg, mreg.z_stat)
+        if regimes:
+            summary_regimes(mreg,chow=False)
+        multireg[m].__summary = mreg.__summary
+    reg.__summary = {}
+    summary_chow(reg)
+    summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=False, other_mid=regimes)
+
 def GM_Endog_Error(reg, vm, w, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
@@ -118,6 +134,22 @@ def GM_Endog_Error(reg, vm, w, regimes=False):
     if regimes:
         summary_regimes(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False, other_mid=regimes)
+
+def GM_Endog_Error_multi(reg, multireg, vm, regimes=False):
+    for m in multireg:
+        mreg = multireg[m]
+        mreg.__summary = {}
+        # compute diagnostics and organize summary output
+        beta_diag(mreg, None)
+        # build coefficients table body
+        summary_coefs_yend(mreg, mreg.z_stat, lambd=True)
+        summary_coefs_lambda(mreg, mreg.z_stat)
+        summary_coefs_instruments(mreg)
+        if regimes:
+            summary_regimes(mreg,chow=False)
+    reg.__summary = {}
+    summary_chow(reg)
+    summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False, other_mid=regimes)
 
 def GM_Error_Hom(reg, vm, w, regimes=False):
     reg.__summary = {}
@@ -434,11 +466,15 @@ def summary_coefs_yend(reg, zt_stat, lambd=False):
     reg.__summary['summary_coefs'] = strSummary
     
 def summary_coefs_lambda(reg, zt_stat):
+    try:
+        name_var = reg.name_z
+    except:
+        name_var = reg.name_x
     if len(reg.betas) == len(zt_stat):
         reg.__summary['summary_coefs'] += "%20s    %12.7f    %12.7f    %12.7f    %12.7f\n"   \
-                           % ('lambda',reg.betas[-1][0],reg.std_err[-1],zt_stat[-1][0],zt_stat[-1][1])
+                           % (name_var[-1],reg.betas[-1][0],reg.std_err[-1],zt_stat[-1][0],zt_stat[-1][1])
     else:
-        reg.__summary['summary_coefs'] += "%20s    %12.7f    \n" % ('lambda',reg.betas[-1][0])
+        reg.__summary['summary_coefs'] += "%20s    %12.7f    \n" % (name_var[-1],reg.betas[-1][0])
 
 def summary_coefs_instruments(reg):
     """Generates a list of the instruments used.

@@ -1,15 +1,15 @@
 import numpy as np
-from numpy import linalg as la
+import multiprocessing as mp
+import regimes as REGI
+import user_output as USER
+import summary_output as SUMMARY
 from pysal import lag_spatial
 from econometrics.ols import BaseOLS
 from econometrics.twosls import BaseTSLS
 from econometrics.error_sp import BaseGM_Error, BaseGM_Endog_Error, _momentsGM_Error
-from utils import power_expansion, set_endog, iter_msg, sp_att
-from utils import get_A1_hom, get_A2_hom, get_A1_het, optim_moments, get_spFilter, get_lags, _moments2eqs
+from utils import set_endog, iter_msg, sp_att
+from utils import optim_moments, get_spFilter, get_lags
 from utils import spdot, RegressionPropsY
-import regimes as REGI
-import user_output as USER
-import summary_output as SUMMARY
 
 class GM_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     """
@@ -257,7 +257,7 @@ class GM_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     def __init__(self, y, x, regimes, w,\
                  vm=False, name_y=None, name_x=None, name_w=None,\
                  constant_regi='many', cols2regi='all', regime_error=False,\
-                 name_ds=None, name_regimes=None):
+                 cores=None, name_ds=None, name_regimes=None):
 
         n = USER.check_arrays(y, x)
         USER.check_y(y, n)
@@ -265,6 +265,10 @@ class GM_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         self.constant_regi = constant_regi
         self.cols2regi = cols2regi
         self.regime_error = regime_error
+        self.name_ds = USER.set_name_ds(name_ds)
+        self.name_y = USER.set_name_y(name_y)
+        self.name_w = USER.set_name_w(name_w, w)
+        self.name_regimes = USER.set_name_ds(name_regimes)
 
         x_constant = USER.check_constant(x)
         name_x = USER.set_name_x(name_x, x)
@@ -279,43 +283,75 @@ class GM_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         else:
             cols2regi = regi_cons + cols2regi
 
-        self.x, self.name_x = REGI.Regimes_Frame.__init__(self, x_constant, \
-                regimes, constant_regi=None, cols2regi=cols2regi, names=name_x)
-        ols = BaseOLS(y=y, x=self.x)
-        self.n, self.k = ols.x.shape
-        self.y = ols.y
-        """
         if regime_error == True:
-            self.regimes_set = list(set(regimes))
-            self.regimes_set.sort()
-            w = REGI.w_regimes(w, regimes, self.regimes_set)
-        """    
-        moments = _momentsGM_Error(w, ols.u)
-        lambda1 = optim_moments(moments)
-        xs = get_spFilter(w, lambda1, x_constant)
-        ys = get_spFilter(w, lambda1, y)
-        xs = REGI.Regimes_Frame.__init__(self, xs,\
-                regimes, constant_regi=None, cols2regi=cols2regi)[0]
-        ols2 = BaseOLS(y=ys, x=xs)
+            if set(cols2regi) == set([True]):
+                self._error_regimes_multi(y, x, regimes, w, cores,\
+                 cols2regi, vm, name_x)
+            else:
+                raise Exception, "All coefficients must vary accross regimes if regime_error = True."
+        else:
+            self.x, self.name_x = REGI.Regimes_Frame.__init__(self, x_constant, \
+                    regimes, constant_regi=None, cols2regi=cols2regi, names=name_x)
+            ols = BaseOLS(y=y, x=self.x)
+            self.n, self.k = ols.x.shape
+            self.y = ols.y
+            moments = _momentsGM_Error(w, ols.u)
+            lambda1 = optim_moments(moments)
+            xs = get_spFilter(w, lambda1, x_constant)
+            ys = get_spFilter(w, lambda1, y)
+            xs = REGI.Regimes_Frame.__init__(self, xs,\
+                    regimes, constant_regi=None, cols2regi=cols2regi)[0]
+            ols2 = BaseOLS(y=ys, x=xs)
 
-        #Output
-        self.predy = spdot(self.x, ols2.betas)
-        self.u = y - self.predy
-        self.betas = np.vstack((ols2.betas, np.array([[lambda1]])))
-        self.sig2 = ols2.sig2n
-        self.e_filtered = self.u - lambda1*lag_spatial(w,self.u)
-        self.vm = self.sig2 * ols2.xtxi
-        self.title = "SPATIALLY WEIGHTED LEAST SQUARES - REGIMES"        
-        self.name_ds = USER.set_name_ds(name_ds)
-        self.name_y = USER.set_name_y(name_y)
-        self.name_x.append('lambda')
-        self.name_w = USER.set_name_w(name_w, w)
-        self.name_regimes = USER.set_name_ds(name_regimes)
-        self.chow = REGI.Chow(self)
-        self._cache = {}
-        
-        SUMMARY.GM_Error(reg=self, w=w, vm=vm, regimes=True)
+            #Output
+            self.predy = spdot(self.x, ols2.betas)
+            self.u = y - self.predy
+            self.betas = np.vstack((ols2.betas, np.array([[lambda1]])))
+            self.sig2 = ols2.sig2n
+            self.e_filtered = self.u - lambda1*lag_spatial(w,self.u)
+            self.vm = self.sig2 * ols2.xtxi
+            self.title = "SPATIALLY WEIGHTED LEAST SQUARES - REGIMES"        
+            self.name_x.append('lambda')
+            self.kf += 1
+            self.chow = REGI.Chow(self)
+            self._cache = {}
+            SUMMARY.GM_Error(reg=self, w=w, vm=vm, regimes=True)
 
+    def _error_regimes_multi(self, y, x, regimes, w, cores,\
+                 cols2regi, vm, name_x):
+
+        self.regimes_set = list(set(regimes))
+        self.regimes_set.sort()
+        w_i,regi_ids = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True)
+        pool = mp.Pool(cores)
+        results_p = {}
+        for r in self.regimes_set:
+            w_r = w_i[r].sparse
+            results_p[r] = pool.apply_async(_work_error,args=(y,x,regi_ids,r,w_r,self.name_ds,self.name_y,name_x+['lambda'],self.name_w,self.name_regimes, ))
+        self.kryd = 0
+        self.kr = len(cols2regi)
+        self.kf = 0
+        self.nr = len(self.regimes_set)
+        self.vm = np.zeros((self.nr*self.kr,self.nr*self.kr),float)
+        pool.close()
+        pool.join()
+        results = {}
+        self.name_y, self.name_x = [],[]
+        counter = 0
+        for r in self.regimes_set:
+            results[r] = results_p[r].get()
+            results[r].w = w_i[r]
+            self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
+            if r == self.regimes_set[0]: 
+                self.betas = results[r].betas
+            else:
+                self.betas = np.vstack((self.betas,results[r].betas))
+            self.name_y += results[r].name_y
+            self.name_x += results[r].name_x
+            counter += 1
+        self.chow = REGI.Chow(self)            
+        self.multi = results
+        SUMMARY.GM_Error_multi(reg=self, multireg=self.multi, vm=vm, regimes=True)
 
 
 class GM_Endog_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
@@ -589,7 +625,7 @@ class GM_Endog_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
             0.300711,  0.240413])
     
     '''
-    def __init__(self, y, x, yend, q, regimes, w,\
+    def __init__(self, y, x, yend, q, regimes, w, cores=None,\
                  vm=False, constant_regi='many', cols2regi='all',\
                  regime_error=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None, name_w=None,\
@@ -600,6 +636,9 @@ class GM_Endog_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         USER.check_weights(w, y)
         self.constant_regi = constant_regi
         self.cols2regi = cols2regi
+        self.name_ds = USER.set_name_ds(name_ds)
+        self.name_regimes = USER.set_name_ds(name_regimes)
+        self.name_w = USER.set_name_w(name_w, w)
         
         x_constant = USER.check_constant(x)
         name_x = USER.set_name_x(name_x, x)
@@ -618,52 +657,96 @@ class GM_Endog_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         else:
             cols2regi = regi_cons + cols2regi
 
-        q, name_q = REGI.Regimes_Frame.__init__(self, q,\
-                regimes, constant_regi=None, cols2regi='all', names=name_q)
-        x, name_x = REGI.Regimes_Frame.__init__(self, x_constant,\
-                regimes, constant_regi=None, cols2regi=cols2regi,\
-                names=name_x)
-        yend2, name_yend = REGI.Regimes_Frame.__init__(self, yend,\
-                regimes, constant_regi=None,\
-                cols2regi=cols2regi, yend=True, names=name_yend)
+        if regime_error == True:
+            if set(cols2regi) == set([True]):
+                self._endog_error_regimes_multi(y, x, regimes, w, yend, q, cores,\
+                 cols2regi, vm, name_x, name_yend, name_q)
+            else:
+                raise Exception, "All coefficients must vary accross regimes if regime_error = True."
+        else:
+            q, name_q = REGI.Regimes_Frame.__init__(self, q,\
+                    regimes, constant_regi=None, cols2regi='all', names=name_q)
+            x, name_x = REGI.Regimes_Frame.__init__(self, x_constant,\
+                    regimes, constant_regi=None, cols2regi=cols2regi,\
+                    names=name_x)
+            yend2, name_yend = REGI.Regimes_Frame.__init__(self, yend,\
+                    regimes, constant_regi=None,\
+                    cols2regi=cols2regi, yend=True, names=name_yend)
 
-        tsls = BaseTSLS(y=y, x=x, yend=yend2, q=q)
-        self.n, self.k = tsls.z.shape
-        self.x, self.y = tsls.x, tsls.y
-        self.yend, self.z = tsls.yend, tsls.z
-        moments = _momentsGM_Error(w, tsls.u)
-        lambda1 = optim_moments(moments)
-        xs = get_spFilter(w, lambda1, x_constant)
-        xs = REGI.Regimes_Frame.__init__(self, xs,\
-                regimes, constant_regi=None, cols2regi=cols2regi)[0]
-        ys = get_spFilter(w, lambda1, y)
-        yend_s = get_spFilter(w, lambda1, yend)
-        yend_s = REGI.Regimes_Frame.__init__(self, yend_s,\
-                regimes, constant_regi=None, cols2regi=cols2regi,\
-                yend=True)[0]
-        tsls2 = BaseTSLS(ys, xs, yend_s, h=tsls.h)
+            tsls = BaseTSLS(y=y, x=x, yend=yend2, q=q)
+            self.n, self.k = tsls.z.shape
+            self.x, self.y = tsls.x, tsls.y
+            self.yend, self.z = tsls.yend, tsls.z
+            moments = _momentsGM_Error(w, tsls.u)
+            lambda1 = optim_moments(moments)
+            xs = get_spFilter(w, lambda1, x_constant)
+            xs = REGI.Regimes_Frame.__init__(self, xs,\
+                    regimes, constant_regi=None, cols2regi=cols2regi)[0]
+            ys = get_spFilter(w, lambda1, y)
+            yend_s = get_spFilter(w, lambda1, yend)
+            yend_s = REGI.Regimes_Frame.__init__(self, yend_s,\
+                    regimes, constant_regi=None, cols2regi=cols2regi,\
+                    yend=True)[0]
+            tsls2 = BaseTSLS(ys, xs, yend_s, h=tsls.h)
 
-        #Output
-        self.betas = np.vstack((tsls2.betas, np.array([[lambda1]])))
-        self.predy = spdot(tsls.z, tsls2.betas)
-        self.u = y - self.predy
-        self.sig2 = float(np.dot(tsls2.u.T,tsls2.u)) / self.n
-        self.e_filtered = self.u - lambda1*lag_spatial(w,self.u)
-        self.vm = self.sig2 * tsls2.varb
-        self.name_ds = USER.set_name_ds(name_ds)
-        self.name_x = USER.set_name_x(name_x, x, constant=True)
-        self.name_yend = USER.set_name_yend(name_yend, yend)
-        self.name_z = self.name_x + self.name_yend
-        self.name_z.append('lambda')
-        self.name_q = USER.set_name_q(name_q, q)
-        self.name_regimes = USER.set_name_ds(name_regimes)
-        self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        self.name_w = USER.set_name_w(name_w, w)
-        self.chow = REGI.Chow(self)
-        self._cache = {}
-        if summ:
-            self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES - REGIMES"
-            SUMMARY.GM_Endog_Error(reg=self, w=w, vm=vm, regimes=True)
+            #Output
+            self.betas = np.vstack((tsls2.betas, np.array([[lambda1]])))
+            self.predy = spdot(tsls.z, tsls2.betas)
+            self.u = y - self.predy
+            self.sig2 = float(np.dot(tsls2.u.T,tsls2.u)) / self.n
+            self.e_filtered = self.u - lambda1*lag_spatial(w,self.u)
+            self.vm = self.sig2 * tsls2.varb
+            self.name_x = USER.set_name_x(name_x, x, constant=True)
+            self.name_yend = USER.set_name_yend(name_yend, yend)
+            self.name_z = self.name_x + self.name_yend
+            self.name_z.append('lambda')
+            self.name_q = USER.set_name_q(name_q, q)
+            self.name_h = USER.set_name_h(self.name_x, self.name_q)
+            self.kf += 1
+            self.chow = REGI.Chow(self)
+            self._cache = {}
+            if summ:
+                self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES - REGIMES"
+                SUMMARY.GM_Endog_Error(reg=self, w=w, vm=vm, regimes=True)
+
+    def _endog_error_regimes_multi(self, y, x, regimes, w, yend, q, cores,\
+                 cols2regi, vm, name_x, name_yend, name_q):
+
+        self.regimes_set = list(set(regimes))
+        self.regimes_set.sort()
+        w_i,regi_ids = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True)
+        pool = mp.Pool(cores)
+        results_p = {}
+        for r in self.regimes_set:
+            w_r = w_i[r].sparse
+            results_p[r] = pool.apply_async(_work_endog_error,args=(y,x,yend,q,regi_ids,r,w_r,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes, ))
+        self.kryd,self.kf = 0,0
+        self.kr = len(cols2regi)
+        self.nr = len(self.regimes_set)
+        self.vm = np.zeros((self.nr*self.kr,self.nr*self.kr),float)
+        pool.close()
+        pool.join()
+        results = {}
+        self.name_y, self.name_x, self.name_yend, self.name_q, self.name_z, self.name_h = [],[],[],[],[],[]
+        counter = 0
+        for r in self.regimes_set:
+            results[r] = results_p[r].get()
+            results[r].w = w_i[r]
+            self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
+            if r == self.regimes_set[0]: 
+                self.betas = results[r].betas
+            else:
+                self.betas = np.vstack((self.betas,results[r].betas))
+            self.name_y += results[r].name_y
+            self.name_x += results[r].name_x
+            self.name_yend += results[r].name_yend
+            self.name_q += results[r].name_q
+            self.name_z += results[r].name_z
+            self.name_h += results[r].name_h
+            counter += 1
+        self.chow = REGI.Chow(self)            
+        self.multi = results
+        SUMMARY.GM_Endog_Error_multi(reg=self, multireg=self.multi, vm=vm, regimes=True)
 
 class GM_Combo_Regimes(GM_Endog_Error_Regimes, REGI.Regimes_Frame):
     """
@@ -1018,43 +1101,60 @@ class GM_Combo_Regimes(GM_Endog_Error_Regimes, REGI.Regimes_Frame):
             self.regimes_set = list(set(regimes))
             self.regimes_set.sort()
             w_i,regi_ids = REGI.w_regimes(w, regimes, self.regimes_set, transform=regime_error, get_ids=regime_error)
-            if not regime_error:
-                w = REGI.w_regimes_union(w, w_i, self.regimes_set)
+            w = REGI.w_regimes_union(w, w_i, self.regimes_set)
         else:
             cols2regi += [False]
+            if regime_error == True:
+               raise Exception, "All coefficients must vary accross regimes if regime_error = True. Therefore, if regime_error = True, regime_lag must also be True"
 
-        if regime_lag == True and regime_error == True:
-            """
-            if set(cols2regi) == set([True]):
-                self.name_regimes = USER.set_name_ds(name_regimes)
-                self.constant_regi=constant_regi
-                self.cols2regi = cols2regi
-                self.GM_Endog_Error_Regimes(y, x, w_i, regi_ids,\
-                 yend=yend, q=q, w_lags=w_lags, lag_q=lag_q, cores=cores,\
-                 robust=robust, gwk=gwk, sig2n_k=sig2n_k, cols2regi=cols2regi,\
-                 spat_diag=spat_diag, vm=vm, name_y=name_y, name_x=name_x,\
-                 name_yend=name_yend, name_q=name_q, name_regimes=self.name_regimes,\
-                 name_w=name_w, name_gwk=name_gwk, name_ds=name_ds)
-            else:
-                raise Exception, "All coefficients must vary accross regimes if regime_error = True."
-            """
-            pass
-        else:
-            yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
-            name_yend.append(USER.set_name_yend_sp(self.name_y))
+        yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
+        name_yend.append(USER.set_name_yend_sp(self.name_y))
 
-            GM_Endog_Error_Regimes.__init__(self, y=y, x=x, yend=yend2,\
-                    q=q2, regimes=regimes, w=w, vm=vm, constant_regi=constant_regi,\
-                    cols2regi=cols2regi, regime_error=regime_error,\
-                    name_y=self.name_y, name_x=name_x,\
-                    name_yend=name_yend, name_q=name_q, name_w=name_w,\
-                    name_ds=name_ds, name_regimes=name_regimes, summ=False)
+        GM_Endog_Error_Regimes.__init__(self, y=y, x=x, yend=yend2,\
+                q=q2, regimes=regimes, w=w, vm=vm, constant_regi=constant_regi,\
+                cols2regi=cols2regi, regime_error=regime_error,\
+                name_y=self.name_y, name_x=name_x,\
+                name_yend=name_yend, name_q=name_q, name_w=name_w,\
+                name_ds=name_ds, name_regimes=name_regimes, summ=False)
 
+        if regime_error != True:
             self.predy_e, self.e_pred = sp_att(w,self.y,\
-                       self.predy,yend2[:,-1].reshape(self.n,1),self.betas[-2])
+                   self.predy,yend2[:,-1].reshape(self.n,1),self.betas[-2])
             self.regime_lag=regime_lag
             self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES - REGIMES"
             SUMMARY.GM_Combo(reg=self, w=w, vm=vm, regimes=True)
+
+def _work_error(y,x,regi_ids,r,w_r,name_ds,name_y,name_x,name_w,name_regimes):
+    y_r = y[regi_ids[r]]
+    x_r = x[regi_ids[r]]
+    x_constant = USER.check_constant(x_r)
+    model = BaseGM_Error(y_r, x_constant, w_r)
+    model.title = "SPATIALLY WEIGHTED LEAST SQUARES ESTIMATION - REGIME %s" %r
+    model.name_ds = name_ds
+    model.name_y = '%s_%s'%(str(r), name_y)
+    model.name_x = ['%s_%s'%(str(r), i) for i in name_x]
+    model.name_w = name_w
+    model.name_regimes = name_regimes       
+    return model
+
+def _work_endog_error(y,x,yend,q,regi_ids,r,w_r,name_ds,name_y,name_x,name_yend,name_q,name_w,name_regimes):
+    y_r = y[regi_ids[r]]
+    x_r = x[regi_ids[r]]
+    yend_r = yend[regi_ids[r]]
+    q_r = q[regi_ids[r]]
+    x_constant = USER.check_constant(x_r)
+    model = BaseGM_Endog_Error(y_r, x_constant, yend_r, q_r, w_r)
+    model.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES - REGIME %s" %r
+    model.name_ds = name_ds
+    model.name_y = '%s_%s'%(str(r), name_y)
+    model.name_x = ['%s_%s'%(str(r), i) for i in name_x]
+    model.name_yend = ['%s_%s'%(str(r), i) for i in name_yend]
+    model.name_z = model.name_x + model.name_yend + ['lambda']
+    model.name_q = ['%s_%s'%(str(r), i) for i in name_q]
+    model.name_h = model.name_x + model.name_q
+    model.name_w = name_w
+    model.name_regimes = name_regimes       
+    return model
 
 def _test():
     import doctest

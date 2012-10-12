@@ -17,7 +17,7 @@ class TestBaseGMError(unittest.TestCase):
         self.w.transform = 'r'
 
     def test_model(self):
-        reg = SP.BaseGM_Error(self.y, self.X, self.w)
+        reg = SP.BaseGM_Error(self.y, self.X, self.w.sparse)
         betas = np.array([[ 47.94371455], [  0.70598088], [ -0.55571746], [  0.37230161]])
         np.testing.assert_array_almost_equal(reg.betas,betas,6)
         u = np.array([ 27.4739775])
@@ -111,7 +111,7 @@ class TestBaseGMEndogError(unittest.TestCase):
         self.w.transform = 'r'
 
     def test_model(self):
-        reg = SP.BaseGM_Endog_Error(self.y, self.X, self.yd, self.q, self.w)
+        reg = SP.BaseGM_Endog_Error(self.y, self.X, self.yd, self.q, self.w.sparse)
         betas = np.array([[ 55.36095292], [  0.46411479], [ -0.66883535], [  0.38989939]])
         np.testing.assert_array_almost_equal(reg.betas,betas,6)
         u = np.array([ 26.55951566])
@@ -213,7 +213,7 @@ class TestBaseGMCombo(unittest.TestCase):
         # Only spatial lag
         yd2, q2 = pysal.spreg.utils.set_endog(self.y, self.X, self.w, None, None, 1, True)
         self.X = np.hstack((np.ones(self.y.shape),self.X))
-        reg = SP.BaseGM_Combo(self.y, self.X, yend=yd2, q=q2, w=self.w)
+        reg = SP.BaseGM_Combo(self.y, self.X, yend=yd2, q=q2, w=self.w.sparse)
         betas = np.array([[ 57.61123461],[  0.73441314], [ -0.59459416], [ -0.21762921], [  0.54732051]])
         np.testing.assert_array_almost_equal(reg.betas,betas,5)
         u = np.array([ 25.57932637])
