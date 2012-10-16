@@ -438,7 +438,7 @@ def inverse_prod(w, data, scalar, post_multiply=False, inv_method="power_exp", t
                 threshold=threshold, max_iterations=max_iterations)
     elif inv_method=="true_inv":
         try:
-            matrix = la.inv(np.eye(w.n) - (scalar * w.sparse))
+            matrix = la.inv(np.eye(w.n) - (scalar * w.full()[0]))
         except:
             matrix = la.inv(np.eye(w.shape[0]) - (scalar * w))
         if post_multiply:
