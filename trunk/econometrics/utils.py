@@ -437,7 +437,10 @@ def inverse_prod(w, data, scalar, post_multiply=False, inv_method="power_exp", t
         inv_prod = power_expansion(w, data, scalar, post_multiply=post_multiply,\
                 threshold=threshold, max_iterations=max_iterations)
     elif inv_method=="true_inv":
-        matrix = la.inv(np.eye(w.n) - (scalar * w.full()[0]))
+        try:
+            matrix = la.inv(np.eye(w.n) - (scalar * w.sparse))
+        except:
+            matrix = la.inv(np.eye(w.shape[0]) - (scalar * w))
         if post_multiply:
             inv_prod = spdot(data.T, matrix)
         else:
@@ -460,11 +463,12 @@ def power_expansion(w, data, scalar, post_multiply=False, threshold=0.0000000001
     Tests for this function are in inverse_prod()
 
     """
+    try:
+        ws = w.sparse
+    except:
+        ws = w
     if post_multiply:
-        lag = rev_lag_spatial
         data = data.T
-    else:
-        lag = lag_spatial
     running_total = copy.copy(data)
     increment = copy.copy(data)
     count = 1
@@ -472,7 +476,10 @@ def power_expansion(w, data, scalar, post_multiply=False, threshold=0.0000000001
     if max_iterations == None:
         max_iterations = 10000000
     while test > threshold and count <= max_iterations:
-        increment = lag(w, scalar*increment)
+        if post_multiply:    
+            increment = increment*ws*scalar
+        else:
+            increment = ws*increment*scalar
         running_total += increment
         test_old = test
         test = la.norm(increment)
@@ -480,33 +487,6 @@ def power_expansion(w, data, scalar, post_multiply=False, threshold=0.0000000001
             raise Exception, "power expansion will not converge, check model specification and that weight are less than 1"
         count += 1
     return running_total
-
-def rev_lag_spatial(w, y):
-    """
-    Helper function for power_expansion.  This reverses the usual lag operator
-    (pysal.lag_spatial) to post-multiply a vector by a sparse W.
-
-    Parameters
-    ----------
-
-    w : W
-        weights object
-    y : array
-        variable to take the lag of (note: assumed that the order of y matches
-        w.id_order)
-
-    Returns
-    -------
-
-    yw : array
-         array of numeric values
-
-    Examples
-    --------
-    Tests for this function are in inverse_prod()
-
-    """
-    return y * w.sparse
 
 def set_endog(y, x, w, yend, q, w_lags, lag_q):
     # Create spatial lag of y

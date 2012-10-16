@@ -34,9 +34,8 @@ class BaseGM_Error_Het(RegressionPropsY):
     x            : array
                    Two dimensional array with n rows and one column for each
                    independent (exogenous) variable, excluding the constant
-    w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+    w            : Sparse matrix
+                   Spatial weights sparse matrix 
     max_iter     : int
                    Maximum number of iterations of steps 2a and 2b from Arraiz
                    et al. Note: epsilon provides an additional stop condition.
@@ -107,7 +106,7 @@ class BaseGM_Error_Het(RegressionPropsY):
     >>> X = np.hstack((np.ones(y.shape),X))
     >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     >>> w.transform = 'r'
-    >>> reg = BaseGM_Error_Het(y, X, w, step1c=True)
+    >>> reg = BaseGM_Error_Het(y, X, w.sparse, step1c=True)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[ 47.9963  11.479 ]
      [  0.7105   0.3681]
@@ -121,16 +120,16 @@ class BaseGM_Error_Het(RegressionPropsY):
         #1a. OLS --> \tilde{betas}
         ols = OLS.BaseOLS(y=y, x=x)
         self.x, self.y, self.n, self.k, self.xtx = ols.x, ols.y, ols.n, ols.k, ols.xtx
-        w.A1 = UTILS.get_A1_het(w.sparse)
+        wA1 = UTILS.get_A1_het(w)
 
         #1b. GMM --> \tilde{\lambda1}
-        moments = UTILS._moments2eqs(w.A1, w.sparse, ols.u)
+        moments = UTILS._moments2eqs(wA1, w, ols.u)
         lambda1 = UTILS.optim_moments(moments)
 
         if step1c:
             #1c. GMM --> \tilde{\lambda2}
             sigma = get_psi_sigma(w, ols.u, lambda1)
-            vc1 = get_vc_het(w, sigma)
+            vc1 = get_vc_het(w, wA1, sigma)
             lambda2 = UTILS.optim_moments(moments,vc1)
         else:
             lambda2 = lambda1 
@@ -147,8 +146,8 @@ class BaseGM_Error_Het(RegressionPropsY):
 
             #2b. GMM --> \hat{\lambda}
             sigma_i = get_psi_sigma(w, self.u, lambda_old)
-            vc_i = get_vc_het(w, sigma_i)
-            moments_i = UTILS._moments2eqs(w.A1, w.sparse, self.u)
+            vc_i = get_vc_het(w, wA1, sigma_i)
+            moments_i = UTILS._moments2eqs(wA1, w, self.u)
             lambda3 = UTILS.optim_moments(moments_i, vc_i)
             eps = abs(lambda3 - lambda_old)
             lambda_old = lambda3
@@ -157,10 +156,10 @@ class BaseGM_Error_Het(RegressionPropsY):
         self.iter_stop = UTILS.iter_msg(self.iteration,max_iter)
 
         sigma = get_psi_sigma(w, self.u, lambda3)
-        vc3 = get_vc_het(w, sigma)
+        vc3 = get_vc_het(w, wA1, sigma)
         self.vm = get_vm_het(moments_i[0], lambda3, self, w, vc3)
         self.betas = np.vstack((ols_s.betas, lambda3))
-        self.e_filtered = self.u - lambda3*lag_spatial(w,self.u)
+        self.e_filtered = self.u - lambda3*w*self.u
         self._cache = {}
 
 class GM_Error_Het(BaseGM_Error_Het):
@@ -355,7 +354,7 @@ class GM_Error_Het(BaseGM_Error_Het):
         USER.check_y(y, n)
         USER.check_weights(w, y)
         x_constant = USER.check_constant(x)
-        BaseGM_Error_Het.__init__(self, y, x_constant, w, max_iter=max_iter,\
+        BaseGM_Error_Het.__init__(self, y, x_constant, w.sparse, max_iter=max_iter,\
                 step1c=step1c, epsilon=epsilon)
         self.title = "SPATIALLY WEIGHTED LEAST SQUARES (HET)"        
         self.name_ds = USER.set_name_ds(name_ds)
@@ -385,9 +384,8 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
                    Two dimensional array with n rows and one column for each
                    external exogenous variable to use as instruments (note: 
                    this should not contain any variables from x)
-    w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+    w            : Sparse matrix
+                   Spatial weights sparse matrix   
     max_iter     : int
                    Maximum number of iterations of steps 2a and 2b from Arraiz
                    et al. Note: epsilon provides an additional stop condition.
@@ -477,7 +475,7 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
     >>> q = np.array(q).T
     >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     >>> w.transform = 'r'
-    >>> reg = BaseGM_Endog_Error_Het(y, X, yd, q, w, step1c=True)
+    >>> reg = BaseGM_Endog_Error_Het(y, X, yd, q, w.sparse, step1c=True)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[ 55.3971  28.8901]
      [  0.4656   0.7731]
@@ -493,17 +491,17 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
         tsls = TSLS.BaseTSLS(y=y, x=x, yend=yend, q=q)
         self.x, self.z, self.h, self.y = tsls.x, tsls.z, tsls.h, tsls.y
         self.yend, self.q, self.n, self.k, self.hth = tsls.yend, tsls.q, tsls.n, tsls.k, tsls.hth
-        w.A1 = UTILS.get_A1_het(w.sparse)
+        wA1 = UTILS.get_A1_het(w)
 
         #1b. GMM --> \tilde{\lambda1}
-        moments = UTILS._moments2eqs(w.A1, w.sparse, tsls.u)
+        moments = UTILS._moments2eqs(wA1, w, tsls.u)
         lambda1 = UTILS.optim_moments(moments)
 
         if step1c:
             #1c. GMM --> \tilde{\lambda2}
             self.u = tsls.u
             zs = UTILS.get_spFilter(w, lambda1, self.z)
-            vc1 = get_vc_het_tsls(w, self, lambda1, tsls.pfora1a2, zs, inv_method, filt=False)
+            vc1 = get_vc_het_tsls(w, wA1, self, lambda1, tsls.pfora1a2, zs, inv_method, filt=False)
             lambda2 = UTILS.optim_moments(moments,vc1)
         else:
             lambda2 = lambda1
@@ -520,8 +518,8 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
             self.u = self.y - self.predy
 
             #2b. GMM --> \hat{\lambda}
-            vc2 = get_vc_het_tsls(w, self, lambda_old, tsls_s.pfora1a2, sphstack(xs,yend_s), inv_method)
-            moments_i = UTILS._moments2eqs(w.A1, w.sparse, self.u)
+            vc2 = get_vc_het_tsls(w, wA1, self, lambda_old, tsls_s.pfora1a2, sphstack(xs,yend_s), inv_method)
+            moments_i = UTILS._moments2eqs(wA1, w, self.u)
             lambda3 = UTILS.optim_moments(moments_i, vc2)
             eps = abs(lambda3 - lambda_old)
             lambda_old = lambda3
@@ -531,10 +529,10 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
 
         zs = UTILS.get_spFilter(w, lambda3, self.z)
         P = get_P_hat(self, tsls.hthi, zs)
-        vc3 = get_vc_het_tsls(w, self, lambda3, P, zs, inv_method, save_a1a2=True)
+        vc3 = get_vc_het_tsls(w, wA1, self, lambda3, P, zs, inv_method, save_a1a2=True)
         self.vm = get_Omega_GS2SLS(w, lambda3, self, moments_i[0], vc3, P)
         self.betas = np.vstack((tsls_s.betas, lambda3))
-        self.e_filtered = self.u - lambda3*lag_spatial(w,self.u)
+        self.e_filtered = self.u - lambda3*w*self.u
         self._cache = {}
 
 class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
@@ -778,7 +776,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
         USER.check_weights(w, y)
         x_constant = USER.check_constant(x)
         BaseGM_Endog_Error_Het.__init__(self, y=y, x=x_constant, yend=yend,\
-                                        q=q, w=w, max_iter=max_iter,\
+                                        q=q, w=w.sparse, max_iter=max_iter,\
                                         step1c=step1c, epsilon=epsilon, inv_method=inv_method)
         self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HET)"
         self.name_ds = USER.set_name_ds(name_ds)
@@ -813,9 +811,8 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
                    Two dimensional array with n rows and one column for each
                    external exogenous variable to use as instruments (note: 
                    this should not contain any variables from x)
-    w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+    w            : Sparse matrix
+                   Spatial weights sparse matrix 
     w_lags       : integer
                    Orders of W to include as instruments for the spatially
                    lagged dependent variable. For example, w_lags=1, then
@@ -910,7 +907,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
 
     Example only with spatial lag
 
-    >>> reg = BaseGM_Combo_Het(y, X, yend=yd2, q=q2, w=w, step1c=True)
+    >>> reg = BaseGM_Combo_Het(y, X, yend=yd2, q=q2, w=w.sparse, step1c=True)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[  9.9753  14.1435]
      [  1.5742   0.374 ]
@@ -930,7 +927,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     >>> q = np.array(q).T
     >>> yd2, q2 = pysal.spreg.utils.set_endog(y, X, w, yd, q, w_lags, True)
     >>> X = np.hstack((np.ones(y.shape),X))
-    >>> reg = BaseGM_Combo_Het(y, X, yd2, q2, w, step1c=True)
+    >>> reg = BaseGM_Combo_Het(y, X, yd2, q2, w.sparse, step1c=True)
     >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['lag_hoval'],['lambda']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
     [['CONSTANT' '113.91292' '64.38815']
@@ -1217,7 +1214,7 @@ class GM_Combo_Het(BaseGM_Combo_Het):
         yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
         x_constant = USER.check_constant(x)
         BaseGM_Combo_Het.__init__(self, y=y, x=x_constant, yend=yend2, q=q2,\
-                                w=w, w_lags=w_lags,\
+                                w=w.sparse, w_lags=w_lags,\
                                 max_iter=max_iter, step1c=step1c, lag_q=lag_q,\
                                 epsilon=epsilon, inv_method=inv_method)
         self.predy_e, self.e_pred = UTILS.sp_att(w,self.y,self.predy,\
@@ -1245,22 +1242,20 @@ def get_psi_sigma(w, u, lamb):
 
     Parameters
     ----------
-    w           : W
-                  Spatial weights instance (requires 'S' and 'A1')
-
+    w           : Sparse matrix
+                  Spatial weights sparse matrix
     u           : array
                   nx1 vector of residuals
-
     lamb        : float
                   Lambda
 
     """
 
-    e = (u - lamb * (w.sparse * u)) ** 2
-    E = SP.dia_matrix((e.flat,0), shape=(w.n,w.n))
+    e = (u - lamb * (w * u)) ** 2
+    E = SP.dia_matrix((e.flat,0), shape=(w.shape[0],w.shape[0]))
     return E.tocsr()
 
-def get_vc_het(w, E):
+def get_vc_het(w, wA1, E):
     """
     Computes the VC matrix Psi based on lambda as in Arraiz et al [1]_:
 
@@ -1278,8 +1273,8 @@ def get_vc_het(w, E):
     Parameters
     ----------
 
-    w           : W
-                  Spatial weights instance (requires 'S' and 'A1')
+    w           : Sparse matrix
+                  Spatial weights sparse matrix
 
     E           : sparse matrix
                   Sigma
@@ -1299,14 +1294,14 @@ def get_vc_het(w, E):
     592-614.
 
     """
-    aPatE = 2*w.A1* E
-    wPwtE = (w.sparse + w.sparse.T) * E
+    aPatE = 2*wA1* E
+    wPwtE = (w + w.T) * E
 
     psi11 = aPatE * aPatE
     psi12 = aPatE * wPwtE
     psi22 = wPwtE * wPwtE 
     psi = map(np.sum, [psi11.diagonal(), psi12.diagonal(), psi22.diagonal()])
-    return np.array([[psi[0], psi[1]], [psi[1], psi[2]]]) / (2. * w.n)
+    return np.array([[psi[0], psi[1]], [psi[1], psi[2]]]) / (2. * w.shape[0])
 
 def get_vm_het(G, lamb, reg, w, psi):
     """
@@ -1328,8 +1323,8 @@ def get_vm_het(G, lamb, reg, w, psi):
     u           : array
                   nx1 vector of residuals
 
-    w           : W
-                  Spatial weights instance
+    w           : Sparse matrix
+                  Spatial weights sparse matrix
 
     psi         : array
                   2x2 array with the variance-covariance matrix of the moment equations
@@ -1354,10 +1349,10 @@ def get_vm_het(G, lamb, reg, w, psi):
     Zs = UTILS.get_spFilter(w,lamb,reg.x)
     ZstEZs = spdot((Zs.T * get_psi_sigma(w, reg.u, lamb)), Zs)
     ZsZsi = la.inv(spdot(Zs.T,Zs))
-    omega11 = w.n * np.dot(np.dot(ZsZsi,ZstEZs),ZsZsi)
+    omega11 = w.shape[0] * np.dot(np.dot(ZsZsi,ZstEZs),ZsZsi)
     omega22 = la.inv(np.dot(np.dot(J.T,la.inv(psi)),J))
     zero = np.zeros((reg.k,1),float)
-    vm = np.vstack((np.hstack((omega11, zero)),np.hstack((zero.T, omega22)))) / w.n
+    vm = np.vstack((np.hstack((omega11, zero)),np.hstack((zero.T, omega22)))) / w.shape[0]
     return vm
 
 def get_P_hat(reg, hthi, zf):
@@ -1370,7 +1365,7 @@ def get_P_hat(reg, hthi, zf):
     P2i = la.inv(P2)
     return reg.n*np.dot(P1, P2i)
 
-def get_a1a2(w, reg, lambdapar, P, zs, inv_method, filt):
+def get_a1a2(w, wA1, reg, lambdapar, P, zs, inv_method, filt):
     """
     Computes the a1 in psi assuming residuals come from original regression
     ...
@@ -1378,8 +1373,8 @@ def get_a1a2(w, reg, lambdapar, P, zs, inv_method, filt):
     Parameters
     ----------
 
-    w           : W
-                  Spatial weights instance 
+    w           : Sparse matrix
+                  Spatial weights sparse matrix 
 
     reg         : TSLS
                   Two stage least quare regression instance
@@ -1400,8 +1395,8 @@ def get_a1a2(w, reg, lambdapar, P, zs, inv_method, filt):
     
     """
     us = UTILS.get_spFilter(w, lambdapar, reg.u)
-    alpha1 = (-2.0/w.n) * (np.dot(spdot(zs.T,w.A1), us))
-    alpha2 = (-1.0/w.n) * (np.dot(spdot(zs.T,(w.sparse + w.sparse.T)), us))
+    alpha1 = (-2.0/w.shape[0]) * (np.dot(spdot(zs.T,wA1), us))
+    alpha2 = (-1.0/w.shape[0]) * (np.dot(spdot(zs.T,(w + w.T)), us))
     a1 = np.dot(spdot(reg.h, P), alpha1)
     a2 = np.dot(spdot(reg.h, P), alpha2)
     if not filt:
@@ -1409,18 +1404,18 @@ def get_a1a2(w, reg, lambdapar, P, zs, inv_method, filt):
         a2 = UTILS.inverse_prod(w, a2, lambdapar, post_multiply=True, inv_method=inv_method).T
     return [a1, a2]
 
-def get_vc_het_tsls(w, reg, lambdapar, P, zs, inv_method, filt=True, save_a1a2=False):
+def get_vc_het_tsls(w, wA1, reg, lambdapar, P, zs, inv_method, filt=True, save_a1a2=False):
 
     sigma = get_psi_sigma(w, reg.u, lambdapar)
-    vc1 = get_vc_het(w, sigma)
-    a1, a2 = get_a1a2(w, reg, lambdapar, P, zs, inv_method, filt)
+    vc1 = get_vc_het(w, wA1, sigma)
+    a1, a2 = get_a1a2(w, wA1, reg, lambdapar, P, zs, inv_method, filt)
     a1s = a1.T * sigma
     a2s = a2.T * sigma
     psi11 = float(np.dot(a1s, a1))
     psi12 = float(np.dot(a1s, a2))
     psi21 = float(np.dot(a2s, a1))
     psi22 = float(np.dot(a2s, a2))
-    psi0 = np.array([[psi11, psi12], [psi21, psi22]]) / w.n
+    psi0 = np.array([[psi11, psi12], [psi21, psi22]]) / w.shape[0]
     if save_a1a2:
         psi = (vc1 + psi0, a1, a2)
     else:
@@ -1435,8 +1430,8 @@ def get_Omega_GS2SLS(w, lamb, reg, G, psi, P):
     Parameters
     ----------
 
-    w           : W
-                  Spatial weights instance 
+    w           : Sparse matrix
+                  Spatial weights sparse matrix 
 
     lamb        : float
                   Spatial autoregressive parameter
@@ -1456,7 +1451,7 @@ def get_Omega_GS2SLS(w, lamb, reg, G, psi, P):
     """
     psi, a1, a2 = psi
     sigma=get_psi_sigma(w, reg.u, lamb)
-    psi_dd_1=(1.0/w.n) * reg.h.T * sigma 
+    psi_dd_1=(1.0/w.shape[0]) * reg.h.T * sigma 
     psi_dd = spdot(psi_dd_1, reg.h)
     psi_dl=spdot(psi_dd_1,np.hstack((a1,a2)))
     psi_o=np.hstack((np.vstack((psi_dd, psi_dl.T)), np.vstack((psi_dl, psi))))
@@ -1476,7 +1471,7 @@ def get_Omega_GS2SLS(w, lamb, reg, G, psi, P):
     omega_right=np.hstack((np.vstack((P, np.zeros((om_2_s[0],p_s[1])))), 
                np.vstack((np.zeros((p_s[0], om_2_s[1])), omega_2))))
     omega=np.dot(np.dot(omega_left, psi_o), omega_right)    
-    return omega / w.n
+    return omega / w.shape[0]
                     
 
 def _test():

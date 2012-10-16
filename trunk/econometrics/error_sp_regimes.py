@@ -1074,7 +1074,7 @@ class GM_Combo_Regimes(GM_Endog_Error_Regimes, REGI.Regimes_Frame):
     lambda:  [ 0.1868]
     """
     def __init__(self, y, x, regimes, yend=None, q=None,\
-                 w=None, w_lags=1, lag_q=True,\
+                 w=None, w_lags=1, lag_q=True, cores=None,\
                  constant_regi='many', cols2regi='all',\
                  regime_error=False, regime_lag=False,\
                  vm=False, name_y=None, name_x=None,\
@@ -1105,14 +1105,14 @@ class GM_Combo_Regimes(GM_Endog_Error_Regimes, REGI.Regimes_Frame):
         else:
             cols2regi += [False]
             if regime_error == True:
-               raise Exception, "All coefficients must vary accross regimes if regime_error = True. Therefore, if regime_error = True, regime_lag must also be True"
+               raise Exception, "All coefficients must vary accross regimes if regime_error = True. Therefore, if regime_error = True, regime_lag must also be True."
 
         yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
         name_yend.append(USER.set_name_yend_sp(self.name_y))
 
         GM_Endog_Error_Regimes.__init__(self, y=y, x=x, yend=yend2,\
                 q=q2, regimes=regimes, w=w, vm=vm, constant_regi=constant_regi,\
-                cols2regi=cols2regi, regime_error=regime_error,\
+                cols2regi=cols2regi, regime_error=regime_error, cores=cores,\
                 name_y=self.name_y, name_x=name_x,\
                 name_yend=name_yend, name_q=name_q, name_w=name_w,\
                 name_ds=name_ds, name_regimes=name_regimes, summ=False)
