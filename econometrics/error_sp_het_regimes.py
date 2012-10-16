@@ -3,13 +3,14 @@ Spatial Error with Heteroskedasticity and Regimes family of models
 '''
 
 import numpy as np
-from econometrics.ols import BaseOLS
-from econometrics.twosls import BaseTSLS
-from econometrics.error_sp_het import get_psi_sigma, get_vc_het, get_vm_het, get_P_hat, get_a1a2, get_vc_het_tsls, get_Omega_GS2SLS
+import multiprocessing as mp
 import user_output as USER
 import summary_output as SUMMARY
 import utils as UTILS
 import regimes as REGI
+from econometrics.ols import BaseOLS
+from econometrics.twosls import BaseTSLS
+from econometrics.error_sp_het import BaseGM_Error_Het, BaseGM_Endog_Error_Het, get_psi_sigma, get_vc_het, get_vm_het, get_P_hat, get_a1a2, get_vc_het_tsls, get_Omega_GS2SLS
 from utils import RegressionPropsY, spdot, set_endog, sphstack
 from scipy import sparse as SP
 from pysal import lag_spatial
@@ -262,7 +263,7 @@ class GM_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
 
     def __init__(self, y, x, regimes, w, max_iter=1, epsilon=0.00001, step1c=False,\
                  constant_regi='many', cols2regi='all', regime_error=False,\
-                 vm=False, name_y=None, name_x=None, name_w=None,\
+                 cores=None, vm=False, name_y=None, name_x=None, name_w=None,\
                  name_ds=None, name_regimes=None):
 
         n = USER.check_arrays(y, x)
@@ -271,6 +272,10 @@ class GM_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         self.constant_regi = constant_regi
         self.cols2regi = cols2regi
         self.regime_error = regime_error
+        self.name_ds = USER.set_name_ds(name_ds)
+        self.name_y = USER.set_name_y(name_y)
+        self.name_w = USER.set_name_w(name_w, w)
+        self.name_regimes = USER.set_name_ds(name_regimes)
 
         x_constant = USER.check_constant(x)
         name_x = USER.set_name_x(name_x, x)
@@ -285,69 +290,106 @@ class GM_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         else:
             cols2regi = regi_cons + cols2regi
 
-        self.x, self.name_x = REGI.Regimes_Frame.__init__(self, x_constant, \
-                regimes, constant_regi=None, cols2regi=cols2regi, names=name_x)
-        ols = BaseOLS(y=y, x=self.x)
-
-        self.n, self.k = ols.x.shape
-        self.y = ols.y
-
-        w.A1 = UTILS.get_A1_het(w.sparse)
-
-        #1b. GMM --> \tilde{\lambda1}
-        moments = UTILS._moments2eqs(w.A1, w.sparse, ols.u)
-        lambda1 = UTILS.optim_moments(moments)
-
-        if step1c:
-            #1c. GMM --> \tilde{\lambda2}
-            sigma = get_psi_sigma(w, ols.u, lambda1)
-            vc1 = get_vc_het(w, sigma)
-            lambda2 = UTILS.optim_moments(moments,vc1)
+        if regime_error == True:
+            if set(cols2regi) == set([True]):
+                self._error_regimes_multi(y, x, regimes, w, cores,\
+                 max_iter, epsilon, step1c,\
+                 cols2regi, vm, name_x)
+            else:
+                raise Exception, "All coefficients must vary accross regimes if regime_error = True."
         else:
-            lambda2 = lambda1 
-        lambda_old = lambda2
-        
-        self.iteration, eps = 0, 1
-        while self.iteration<max_iter and eps>epsilon:
-            #2a. reg -->\hat{betas}
-            xs = UTILS.get_spFilter(w, lambda_old, x_constant)
-            ys = UTILS.get_spFilter(w, lambda_old, y)
-            xs = REGI.Regimes_Frame.__init__(self, xs,\
-                regimes, constant_regi=None, cols2regi=cols2regi)[0]
-            ols_s = BaseOLS(y=ys, x=xs)
-            self.predy = spdot(self.x, ols_s.betas)
-            self.u = self.y - self.predy
+            self.x, self.name_x = REGI.Regimes_Frame.__init__(self, x_constant, \
+                    regimes, constant_regi=None, cols2regi=cols2regi, names=name_x)
+            ols = BaseOLS(y=y, x=self.x)
 
-            #2b. GMM --> \hat{\lambda}
-            sigma_i = get_psi_sigma(w, self.u, lambda_old)
-            vc_i = get_vc_het(w, sigma_i)
-            moments_i = UTILS._moments2eqs(w.A1, w.sparse, self.u)
-            lambda3 = UTILS.optim_moments(moments_i, vc_i)
-            eps = abs(lambda3 - lambda_old)
-            lambda_old = lambda3
-            self.iteration+=1
+            self.n, self.k = ols.x.shape
+            self.y = ols.y
 
-        self.iter_stop = UTILS.iter_msg(self.iteration,max_iter)
+            wA1 = UTILS.get_A1_het(w.sparse)
 
-        sigma = get_psi_sigma(w, self.u, lambda3)
-        vc3 = get_vc_het(w, sigma)
-        self.vm = get_vm_het(moments_i[0], lambda3, self, w, vc3)
-        self.betas = np.vstack((ols_s.betas, lambda3))
-        self.e_filtered = self.u - lambda3*lag_spatial(w,self.u)
-        self.title = "SPATIALLY WEIGHTED LEAST SQUARES (HET) - REGIMES"        
-        self.name_ds = USER.set_name_ds(name_ds)
-        self.name_y = USER.set_name_y(name_y)
-        self.name_x.append('lambda')
-        self.name_w = USER.set_name_w(name_w, w)
-        self.name_regimes = USER.set_name_ds(name_regimes)
-        if regime_error:
-            self.kr += 2
-        else:
+            #1b. GMM --> \tilde{\lambda1}
+            moments = UTILS._moments2eqs(wA1, w.sparse, ols.u)
+            lambda1 = UTILS.optim_moments(moments)
+
+            if step1c:
+                #1c. GMM --> \tilde{\lambda2}
+                sigma = get_psi_sigma(w.sparse, ols.u, lambda1)
+                vc1 = get_vc_het(w.sparse, wA1, sigma)
+                lambda2 = UTILS.optim_moments(moments,vc1)
+            else:
+                lambda2 = lambda1 
+            lambda_old = lambda2
+            
+            self.iteration, eps = 0, 1
+            while self.iteration<max_iter and eps>epsilon:
+                #2a. reg -->\hat{betas}
+                xs = UTILS.get_spFilter(w, lambda_old, x_constant)
+                ys = UTILS.get_spFilter(w, lambda_old, y)
+                xs = REGI.Regimes_Frame.__init__(self, xs,\
+                    regimes, constant_regi=None, cols2regi=cols2regi)[0]
+                ols_s = BaseOLS(y=ys, x=xs)
+                self.predy = spdot(self.x, ols_s.betas)
+                self.u = self.y - self.predy
+
+                #2b. GMM --> \hat{\lambda}
+                sigma_i = get_psi_sigma(w.sparse, self.u, lambda_old)
+                vc_i = get_vc_het(w.sparse, wA1, sigma_i)
+                moments_i = UTILS._moments2eqs(wA1, w.sparse, self.u)
+                lambda3 = UTILS.optim_moments(moments_i, vc_i)
+                eps = abs(lambda3 - lambda_old)
+                lambda_old = lambda3
+                self.iteration+=1
+
+            self.iter_stop = UTILS.iter_msg(self.iteration,max_iter)
+
+            sigma = get_psi_sigma(w.sparse, self.u, lambda3)
+            vc3 = get_vc_het(w.sparse, wA1, sigma)
+            self.vm = get_vm_het(moments_i[0], lambda3, self, w.sparse, vc3)
+            self.betas = np.vstack((ols_s.betas, lambda3))
+            self.e_filtered = self.u - lambda3*lag_spatial(w,self.u)
+            self.title = "SPATIALLY WEIGHTED LEAST SQUARES (HET) - REGIMES"        
+            self.name_x.append('lambda')
             self.kf += 1
-        self.chow = REGI.Chow(self)
-        self._cache = {}
-        
-        SUMMARY.GM_Error_Het(reg=self, w=w, vm=vm, regimes=True)
+            self.chow = REGI.Chow(self)
+            self._cache = {}
+            
+            SUMMARY.GM_Error_Het(reg=self, w=w, vm=vm, regimes=True)
+
+    def _error_regimes_multi(self, y, x, regimes, w, cores,\
+                 max_iter, epsilon, step1c, cols2regi, vm, name_x):
+
+        self.regimes_set = list(set(regimes))
+        self.regimes_set.sort()
+        w_i,regi_ids = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True)
+        pool = mp.Pool(cores)
+        results_p = {}
+        for r in self.regimes_set:
+            w_r = w_i[r].sparse
+            results_p[r] = pool.apply_async(_work_error,args=(y,x,regi_ids,r,w_r,max_iter,epsilon,step1c,self.name_ds,self.name_y,name_x+['lambda'],self.name_w,self.name_regimes, ))
+        self.kryd = 0
+        self.kr = len(cols2regi)+1
+        self.kf = 0
+        self.nr = len(self.regimes_set)
+        self.vm = np.zeros((self.nr*self.kr,self.nr*self.kr),float)
+        pool.close()
+        pool.join()
+        results = {}
+        self.name_y, self.name_x = [],[]
+        counter = 0
+        for r in self.regimes_set:
+            results[r] = results_p[r].get()
+            results[r].w = w_i[r]
+            self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
+            if r == self.regimes_set[0]: 
+                self.betas = results[r].betas
+            else:
+                self.betas = np.vstack((self.betas,results[r].betas))
+            self.name_y += results[r].name_y
+            self.name_x += results[r].name_x
+            counter += 1
+        self.chow = REGI.Chow(self)            
+        self.multi = results
+        SUMMARY.GM_Error_Het_multi(reg=self, multireg=self.multi, vm=vm, regimes=True)
 
 class GM_Endog_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     """
@@ -641,9 +683,9 @@ class GM_Endog_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
 
     """
     def __init__(self, y, x, yend, q, regimes, w,\
-                 max_iter=1, epsilon=0.00001,
+                 max_iter=1, epsilon=0.00001, step1c=False,\
                  constant_regi='many', cols2regi='all', regime_error=False,\
-                 step1c=False, inv_method='power_exp',\
+                 inv_method='power_exp', cores=None,\
                  vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None,\
                  name_w=None, name_ds=None, name_regimes=None, summ=True):
@@ -653,6 +695,9 @@ class GM_Endog_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         USER.check_weights(w, y)
         self.constant_regi = constant_regi
         self.cols2regi = cols2regi
+        self.name_ds = USER.set_name_ds(name_ds)
+        self.name_regimes = USER.set_name_ds(name_regimes)
+        self.name_w = USER.set_name_w(name_w, w)
         
         x_constant = USER.check_constant(x)
         name_x = USER.set_name_x(name_x, x)
@@ -671,85 +716,128 @@ class GM_Endog_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         else:
             cols2regi = regi_cons + cols2regi
 
-        q, name_q = REGI.Regimes_Frame.__init__(self, q,\
-                regimes, constant_regi=None, cols2regi='all', names=name_q)
-        x, name_x = REGI.Regimes_Frame.__init__(self, x_constant,\
-                regimes, constant_regi=None, cols2regi=cols2regi,\
-                names=name_x)
-        yend2, name_yend = REGI.Regimes_Frame.__init__(self, yend,\
-                regimes, constant_regi=None,\
-                cols2regi=cols2regi, yend=True, names=name_yend)        
-
-        # 1a. S2SLS --> \tilde{\delta}
-        tsls = BaseTSLS(y=y, x=x, yend=yend2, q=q)
-        self.n, self.k = tsls.z.shape
-        self.x, self.y = tsls.x, tsls.y
-        self.yend, self.z, self.h = tsls.yend, tsls.z, tsls.h
-        w.A1 = UTILS.get_A1_het(w.sparse)
-
-        #1b. GMM --> \tilde{\lambda1}
-        moments = UTILS._moments2eqs(w.A1, w.sparse, tsls.u)
-        lambda1 = UTILS.optim_moments(moments)
-
-        if step1c:
-            #1c. GMM --> \tilde{\lambda2}
-            self.u = tsls.u
-            zs = UTILS.get_spFilter(w, lambda1, self.z)
-            vc1 = get_vc_het_tsls(w, self, lambda1, tsls.pfora1a2, zs, inv_method, filt=False)
-            lambda2 = UTILS.optim_moments(moments,vc1)
+        if regime_error == True:
+            if set(cols2regi) == set([True]):
+                self._endog_error_regimes_multi(y, x, regimes, w, yend, q, cores,\
+                 max_iter, epsilon, step1c, inv_method, cols2regi, vm,\
+                 name_x, name_yend, name_q)
+            else:
+                raise Exception, "All coefficients must vary accross regimes if regime_error = True."
         else:
-            lambda2 = lambda1
-        lambda_old = lambda2
-        
-        self.iteration, eps = 0, 1
-        while self.iteration<max_iter and eps>epsilon:
-            #2a. reg -->\hat{betas}
-            xs = UTILS.get_spFilter(w, lambda1, x_constant)
-            xs = REGI.Regimes_Frame.__init__(self, xs,\
-                    regimes, constant_regi=None, cols2regi=cols2regi)[0]
-            ys = UTILS.get_spFilter(w, lambda1, y)
-            yend_s = UTILS.get_spFilter(w, lambda1, yend)
-            yend_s = REGI.Regimes_Frame.__init__(self, yend_s,\
+            q, name_q = REGI.Regimes_Frame.__init__(self, q,\
+                    regimes, constant_regi=None, cols2regi='all', names=name_q)
+            x, name_x = REGI.Regimes_Frame.__init__(self, x_constant,\
                     regimes, constant_regi=None, cols2regi=cols2regi,\
-                    yend=True)[0] 
-            tsls_s = BaseTSLS(ys, xs, yend_s, h=tsls.h)
-            self.predy = spdot(self.z, tsls_s.betas)
-            self.u = self.y - self.predy
+                    names=name_x)
+            yend2, name_yend = REGI.Regimes_Frame.__init__(self, yend,\
+                    regimes, constant_regi=None,\
+                    cols2regi=cols2regi, yend=True, names=name_yend)        
 
-            #2b. GMM --> \hat{\lambda}
-            vc2 = get_vc_het_tsls(w, self, lambda_old, tsls_s.pfora1a2, sphstack(xs,yend_s), inv_method)
-            moments_i = UTILS._moments2eqs(w.A1, w.sparse, self.u)
-            lambda3 = UTILS.optim_moments(moments_i, vc2)
-            eps = abs(lambda3 - lambda_old)
-            lambda_old = lambda3
-            self.iteration+=1
+            # 1a. S2SLS --> \tilde{\delta}
+            tsls = BaseTSLS(y=y, x=x, yend=yend2, q=q)
+            self.n, self.k = tsls.z.shape
+            self.x, self.y = tsls.x, tsls.y
+            self.yend, self.z, self.h = tsls.yend, tsls.z, tsls.h
+            wA1 = UTILS.get_A1_het(w.sparse)
 
-        self.iter_stop = UTILS.iter_msg(self.iteration,max_iter)
+            #1b. GMM --> \tilde{\lambda1}
+            moments = UTILS._moments2eqs(wA1, w.sparse, tsls.u)
+            lambda1 = UTILS.optim_moments(moments)
 
-        zs = UTILS.get_spFilter(w, lambda3, self.z)
-        P = get_P_hat(self, tsls.hthi, zs)
-        vc3 = get_vc_het_tsls(w, self, lambda3, P, zs, inv_method, save_a1a2=True)
-        self.vm = get_Omega_GS2SLS(w, lambda3, self, moments_i[0], vc3, P)
-        self.betas = np.vstack((tsls_s.betas, lambda3))
-        self.e_filtered = self.u - lambda3*lag_spatial(w,self.u)
-        self.name_ds = USER.set_name_ds(name_ds)
-        self.name_x = USER.set_name_x(name_x, x, constant=True)
-        self.name_yend = USER.set_name_yend(name_yend, yend)
-        self.name_z = self.name_x + self.name_yend
-        self.name_z.append('lambda')  #listing lambda last
-        self.name_q = USER.set_name_q(name_q, q)
-        self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        self.name_w = USER.set_name_w(name_w, w)
-        self.name_regimes = USER.set_name_ds(name_regimes)
-        if regime_error:
-            self.kr += 2
-        else:
+            if step1c:
+                #1c. GMM --> \tilde{\lambda2}
+                self.u = tsls.u
+                zs = UTILS.get_spFilter(w, lambda1, self.z)
+                vc1 = get_vc_het_tsls(w.sparse, wA1, self, lambda1, tsls.pfora1a2, zs, inv_method, filt=False)
+                lambda2 = UTILS.optim_moments(moments,vc1)
+            else:
+                lambda2 = lambda1
+            lambda_old = lambda2
+            
+            self.iteration, eps = 0, 1
+            while self.iteration<max_iter and eps>epsilon:
+                #2a. reg -->\hat{betas}
+                xs = UTILS.get_spFilter(w, lambda1, x_constant)
+                xs = REGI.Regimes_Frame.__init__(self, xs,\
+                        regimes, constant_regi=None, cols2regi=cols2regi)[0]
+                ys = UTILS.get_spFilter(w, lambda1, y)
+                yend_s = UTILS.get_spFilter(w, lambda1, yend)
+                yend_s = REGI.Regimes_Frame.__init__(self, yend_s,\
+                        regimes, constant_regi=None, cols2regi=cols2regi,\
+                        yend=True)[0] 
+                tsls_s = BaseTSLS(ys, xs, yend_s, h=tsls.h)
+                self.predy = spdot(self.z, tsls_s.betas)
+                self.u = self.y - self.predy
+
+                #2b. GMM --> \hat{\lambda}
+                vc2 = get_vc_het_tsls(w.sparse, wA1, self, lambda_old, tsls_s.pfora1a2, sphstack(xs,yend_s), inv_method)
+                moments_i = UTILS._moments2eqs(wA1, w.sparse, self.u)
+                lambda3 = UTILS.optim_moments(moments_i, vc2)
+                eps = abs(lambda3 - lambda_old)
+                lambda_old = lambda3
+                self.iteration+=1
+
+            self.iter_stop = UTILS.iter_msg(self.iteration,max_iter)
+
+            zs = UTILS.get_spFilter(w, lambda3, self.z)
+            P = get_P_hat(self, tsls.hthi, zs)
+            vc3 = get_vc_het_tsls(w.sparse, wA1, self, lambda3, P, zs, inv_method, save_a1a2=True)
+            self.vm = get_Omega_GS2SLS(w.sparse, lambda3, self, moments_i[0], vc3, P)
+            self.betas = np.vstack((tsls_s.betas, lambda3))
+            self.e_filtered = self.u - lambda3*lag_spatial(w,self.u)
+            self.name_x = USER.set_name_x(name_x, x, constant=True)
+            self.name_yend = USER.set_name_yend(name_yend, yend)
+            self.name_z = self.name_x + self.name_yend
+            self.name_z.append('lambda')  #listing lambda last
+            self.name_q = USER.set_name_q(name_q, q)
+            self.name_h = USER.set_name_h(self.name_x, self.name_q)
             self.kf += 1
-        self.chow = REGI.Chow(self)
-        self._cache = {}
-        if summ:
-            self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HET) - REGIMES"
-            SUMMARY.GM_Endog_Error_Het(reg=self, w=w, vm=vm, regimes=True)
+            self.chow = REGI.Chow(self)
+            self._cache = {}
+            if summ:
+                self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HET) - REGIMES"
+                SUMMARY.GM_Endog_Error_Het(reg=self, w=w, vm=vm, regimes=True)
+
+    def _endog_error_regimes_multi(self, y, x, regimes, w, yend, q, cores,\
+                 max_iter, epsilon, step1c, inv_method, cols2regi, vm,\
+                 name_x, name_yend, name_q):
+
+        self.regimes_set = list(set(regimes))
+        self.regimes_set.sort()
+        w_i,regi_ids = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True)
+        pool = mp.Pool(cores)
+        results_p = {}
+        for r in self.regimes_set:
+            w_r = w_i[r].sparse
+            results_p[r] = pool.apply_async(_work_endog_error,args=(y,x,yend,q,regi_ids,r,w_r,max_iter,epsilon,step1c,inv_method,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes, ))
+        self.kryd,self.kf = 0,0
+        self.kr = len(cols2regi)+1
+        self.nr = len(self.regimes_set)
+        self.vm = np.zeros((self.nr*self.kr,self.nr*self.kr),float)
+        pool.close()
+        pool.join()
+        results = {}
+        self.name_y, self.name_x, self.name_yend, self.name_q, self.name_z, self.name_h = [],[],[],[],[],[]
+        counter = 0
+        for r in self.regimes_set:
+            results[r] = results_p[r].get()
+            results[r].w = w_i[r]
+            self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
+            if r == self.regimes_set[0]: 
+                self.betas = results[r].betas
+            else:
+                self.betas = np.vstack((self.betas,results[r].betas))
+            self.name_y += results[r].name_y
+            self.name_x += results[r].name_x
+            self.name_yend += results[r].name_yend
+            self.name_q += results[r].name_q
+            self.name_z += results[r].name_z
+            self.name_h += results[r].name_h
+            counter += 1
+        self.chow = REGI.Chow(self)            
+        self.multi = results
+        SUMMARY.GM_Endog_Error_Het_multi(reg=self, multireg=self.multi, vm=vm, regimes=True)
+
 
 class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
     """
@@ -1086,8 +1174,8 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
     """
     def __init__(self, y, x, regimes, yend=None, q=None,\
                  w=None, w_lags=1, lag_q=True,\
-                 max_iter=1, epsilon=0.00001,\
-                 step1c=False, inv_method='power_exp',\
+                 max_iter=1, epsilon=0.00001, step1c=False,\
+                 cores=None, inv_method='power_exp',\
                  constant_regi='many', cols2regi='all',\
                  regime_error=False, regime_lag=False,\
                  vm=False, name_y=None, name_x=None,\
@@ -1114,10 +1202,11 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
             self.regimes_set = list(set(regimes))
             self.regimes_set.sort()
             w_i,regi_ids = REGI.w_regimes(w, regimes, self.regimes_set, transform=regime_error, get_ids=regime_error)
-            if not regime_error:
-                w = REGI.w_regimes_union(w, w_i, self.regimes_set)
+            w = REGI.w_regimes_union(w, w_i, self.regimes_set)
         else:
             cols2regi += [False]
+            if regime_error == True:
+               raise Exception, "All coefficients must vary accross regimes if regime_error = True. Therefore, if regime_error = True, regime_lag must also be True."
 
         yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
         name_yend.append(USER.set_name_yend_sp(self.name_y))
@@ -1125,17 +1214,50 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
         GM_Endog_Error_Het_Regimes.__init__(self, y=y, x=x, yend=yend2,\
                  q=q2, regimes=regimes, w=w, constant_regi=constant_regi,\
                  cols2regi=cols2regi, regime_error=regime_error,\
-                 max_iter=max_iter, epsilon=epsilon,
-                 step1c=step1c, inv_method=inv_method,\
+                 max_iter=max_iter, epsilon=epsilon,\
+                 step1c=step1c, inv_method=inv_method, cores=cores,\
                  vm=vm, name_y=name_y, name_x=name_x,\
                  name_yend=name_yend, name_q=name_q, name_w=name_w,\
                  name_ds=name_ds, name_regimes=name_regimes, summ=False)
 
-        self.predy_e, self.e_pred = UTILS.sp_att(w,self.y,\
-                   self.predy,yend2[:,-1].reshape(self.n,1),self.betas[-2])
-        self.regime_lag=regime_lag
-        self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HET) - REGIMES"
-        SUMMARY.GM_Combo_Het(reg=self, w=w, vm=vm, regimes=True)                    
+        if regime_error != True:
+            self.predy_e, self.e_pred = UTILS.sp_att(w,self.y,\
+                       self.predy,yend2[:,-1].reshape(self.n,1),self.betas[-2])
+            self.regime_lag=regime_lag
+            self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HET) - REGIMES"
+            SUMMARY.GM_Combo_Het(reg=self, w=w, vm=vm, regimes=True)
+
+def _work_error(y,x,regi_ids,r,w_r,max_iter,epsilon,step1c,name_ds,name_y,name_x,name_w,name_regimes):
+    y_r = y[regi_ids[r]]
+    x_r = x[regi_ids[r]]
+    x_constant = USER.check_constant(x_r)
+    model = BaseGM_Error_Het(y_r,x_constant,w_r,max_iter=max_iter,epsilon=epsilon,step1c=step1c)
+    model.title = "SPATIALLY WEIGHTED LEAST SQUARES ESTIMATION (HET) - REGIME %s" %r
+    model.name_ds = name_ds
+    model.name_y = '%s_%s'%(str(r), name_y)
+    model.name_x = ['%s_%s'%(str(r), i) for i in name_x]
+    model.name_w = name_w
+    model.name_regimes = name_regimes       
+    return model
+
+def _work_endog_error(y,x,yend,q,regi_ids,r,w_r,max_iter,epsilon,step1c,inv_method,name_ds,name_y,name_x,name_yend,name_q,name_w,name_regimes):
+    y_r = y[regi_ids[r]]
+    x_r = x[regi_ids[r]]
+    yend_r = yend[regi_ids[r]]
+    q_r = q[regi_ids[r]]
+    x_constant = USER.check_constant(x_r)
+    model = BaseGM_Endog_Error_Het(y_r,x_constant,yend_r,q_r,w_r,max_iter=max_iter,epsilon=epsilon,step1c=step1c,inv_method=inv_method)
+    model.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HET) - REGIME %s" %r
+    model.name_ds = name_ds
+    model.name_y = '%s_%s'%(str(r), name_y)
+    model.name_x = ['%s_%s'%(str(r), i) for i in name_x]
+    model.name_yend = ['%s_%s'%(str(r), i) for i in name_yend]
+    model.name_z = model.name_x + model.name_yend + ['lambda']
+    model.name_q = ['%s_%s'%(str(r), i) for i in name_q]
+    model.name_h = model.name_x + model.name_q
+    model.name_w = name_w
+    model.name_regimes = name_regimes       
+    return model
 
 def _test():
     import doctest
