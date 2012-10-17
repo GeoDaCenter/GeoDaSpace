@@ -162,6 +162,21 @@ def GM_Error_Hom(reg, vm, w, regimes=False):
         summary_regimes(reg)
     summary(reg=reg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=False, other_mid=regimes)
 
+def GM_Error_Hom_multi(reg, multireg, vm, regimes=False):
+    for m in multireg:
+        mreg = multireg[m]
+        mreg.__summary = {}
+        # compute diagnostics and organize summary output
+        beta_diag(mreg, None)
+        # build coefficients table body
+        beta_position = summary_coefs_somex(mreg, mreg.z_stat)
+        summary_coefs_lambda(mreg, mreg.z_stat)
+        if regimes:
+            summary_regimes(mreg,chow=False)
+    reg.__summary = {}
+    summary_chow(reg)
+    summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=False, other_mid=regimes)
+
 def GM_Endog_Error_Hom(reg, vm, w, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
@@ -173,6 +188,22 @@ def GM_Endog_Error_Hom(reg, vm, w, regimes=False):
     if regimes:
         summary_regimes(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False, other_mid=regimes)
+
+def GM_Endog_Error_Hom_multi(reg, multireg, vm, regimes=False):
+    for m in multireg:
+        mreg = multireg[m]
+        mreg.__summary = {}
+        # compute diagnostics and organize summary output
+        beta_diag(mreg, None)
+        # build coefficients table body
+        summary_coefs_yend(mreg, mreg.z_stat, lambd=True)
+        summary_coefs_lambda(mreg, mreg.z_stat)
+        summary_coefs_instruments(mreg)
+        if regimes:
+            summary_regimes(mreg,chow=False)
+    reg.__summary = {}
+    summary_chow(reg)
+    summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False, other_mid=regimes)
 
 def GM_Error_Het(reg, vm, w, regimes=False):
     reg.__summary = {}

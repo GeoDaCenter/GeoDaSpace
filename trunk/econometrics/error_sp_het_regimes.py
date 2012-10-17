@@ -1261,7 +1261,10 @@ def _work_endog_error(y,x,yend,q,regi_ids,r,w_r,max_iter,epsilon,step1c,inv_meth
 
 def _test():
     import doctest
+    start_suppress = np.get_printoptions()['suppress']
+    np.set_printoptions(suppress=True)    
     doctest.testmod()
+    np.set_printoptions(suppress=start_suppress)
 
 if __name__ == '__main__':
     _test()
