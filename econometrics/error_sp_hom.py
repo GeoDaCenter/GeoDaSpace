@@ -42,9 +42,8 @@ class BaseGM_Error_Hom(RegressionPropsY):
     x            : array
                    Two dimensional array with n rows and one column for each
                    independent (exogenous) variable, excluding the constant
-    w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+    w            : Sparse matrix
+                   Spatial weights sparse matrix   
     max_iter     : int
                    Maximum number of iterations of steps 2a and 2b from Arraiz
                    et al. Note: epsilon provides an additional stop condition.
@@ -121,7 +120,7 @@ class BaseGM_Error_Hom(RegressionPropsY):
 
     Model commands
 
-    >>> reg = BaseGM_Error_Hom(y, X, w, A1='hom_sc')
+    >>> reg = BaseGM_Error_Hom(y, X, w.sparse, A1='hom_sc')
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[ 47.9479  12.3021]
      [  0.7063   0.4967]
@@ -137,20 +136,20 @@ class BaseGM_Error_Hom(RegressionPropsY):
     def __init__(self, y, x, w,\
                  max_iter=1, epsilon=0.00001, A1='het'):
         if A1 == 'hom':
-            w.A1 = get_A1_hom(w.sparse)
+            wA1 = get_A1_hom(w)
         elif A1 == 'hom_sc':
-            w.A1 = get_A1_hom(w.sparse, scalarKP=True)
+            wA1 = get_A1_hom(w, scalarKP=True)
         elif A1 == 'het':
-            w.A1 = get_A1_het(w.sparse)
+            wA1 = get_A1_het(w)
 
-        w.A2 = get_A2_hom(w.sparse)
+        wA2 = get_A2_hom(w)
 
         # 1a. OLS --> \tilde{\delta}
         ols = OLS.BaseOLS(y=y, x=x)
         self.x, self.y, self.n, self.k, self.xtx = ols.x, ols.y, ols.n, ols.k, ols.xtx
 
         # 1b. GM --> \tilde{\rho}
-        moments = moments_hom(w, ols.u)
+        moments = moments_hom(w, wA1, wA2, ols.u)
         lambda1 = optim_moments(moments)
         lambda_old = lambda1
 
@@ -164,8 +163,8 @@ class BaseGM_Error_Hom(RegressionPropsY):
             self.u = self.y - self.predy
 
             # 2b. GM 2nd iteration --> \hat{\rho}
-            moments = moments_hom(w, self.u)
-            psi = get_vc_hom(w, self, lambda_old)[0]
+            moments = moments_hom(w, wA1, wA2, self.u)
+            psi = get_vc_hom(w, wA1, wA2, self, lambda_old)[0]
             lambda2 = optim_moments(moments, psi)
             eps = abs(lambda2 - lambda_old)
             lambda_old = lambda2
@@ -175,8 +174,8 @@ class BaseGM_Error_Hom(RegressionPropsY):
 
         # Output
         self.betas = np.vstack((ols_s.betas,lambda2))
-        self.vm,self.sig2 = get_omega_hom_ols(w, self, lambda2, moments[0])
-        self.e_filtered = self.u - lambda2*lag_spatial(w,self.u)
+        self.vm,self.sig2 = get_omega_hom_ols(w, wA1, wA2, self, lambda2, moments[0])
+        self.e_filtered = self.u - lambda2*w*self.u
         self._cache = {}
 
 class GM_Error_Hom(BaseGM_Error_Hom):
@@ -371,7 +370,7 @@ class GM_Error_Hom(BaseGM_Error_Hom):
         USER.check_y(y, n)
         USER.check_weights(w, y)
         x_constant = USER.check_constant(x)
-        BaseGM_Error_Hom.__init__(self, y=y, x=x_constant, w=w, A1=A1,\
+        BaseGM_Error_Hom.__init__(self, y=y, x=x_constant, w=w.sparse, A1=A1,\
                 max_iter=max_iter, epsilon=epsilon)
         self.title = "SPATIALLY WEIGHTED LEAST SQUARES (HOM)"        
         self.name_ds = USER.set_name_ds(name_ds)
@@ -402,9 +401,8 @@ class BaseGM_Endog_Error_Hom(RegressionPropsY):
                    Two dimensional array with n rows and one column for each
                    external exogenous variable to use as instruments (note: 
                    this should not contain any variables from x)
-    w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+    w            : Sparse matrix
+                   Spatial weights sparse matrix   
     max_iter     : int
                    Maximum number of iterations of steps 2a and 2b from Arraiz
                    et al. Note: epsilon provides an additional stop condition.
@@ -493,7 +491,7 @@ class BaseGM_Endog_Error_Hom(RegressionPropsY):
     >>> q = np.array(q).T
     >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     >>> w.transform = 'r'
-    >>> reg = BaseGM_Endog_Error_Hom(y, X, yd, q, w, A1='hom_sc')
+    >>> reg = BaseGM_Endog_Error_Hom(y, X, yd, q, w.sparse, A1='hom_sc')
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[ 55.3658  23.496 ]
      [  0.4643   0.7382]
@@ -506,13 +504,13 @@ class BaseGM_Endog_Error_Hom(RegressionPropsY):
                  max_iter=1, epsilon=0.00001, A1='het'):
 
         if A1 == 'hom':
-            w.A1 = get_A1_hom(w.sparse)
+            wA1 = get_A1_hom(w)
         elif A1 == 'hom_sc':
-            w.A1 = get_A1_hom(w.sparse, scalarKP=True)
+            wA1 = get_A1_hom(w, scalarKP=True)
         elif A1 == 'het':
-            w.A1 = get_A1_het(w.sparse)
+            wA1 = get_A1_het(w)
 
-        w.A2 = get_A2_hom(w.sparse)
+        wA2 = get_A2_hom(w)
 
         # 1a. S2SLS --> \tilde{\delta}
         tsls = TSLS.BaseTSLS(y=y, x=x, yend=yend, q=q)
@@ -520,7 +518,7 @@ class BaseGM_Endog_Error_Hom(RegressionPropsY):
         self.yend, self.q, self.n, self.k = tsls.yend, tsls.q, tsls.n, tsls.k
 
         # 1b. GM --> \tilde{\rho}
-        moments = moments_hom(w, tsls.u)
+        moments = moments_hom(w, wA1, wA2, tsls.u)
         lambda1 = optim_moments(moments)
         lambda_old = lambda1
 
@@ -535,8 +533,8 @@ class BaseGM_Endog_Error_Hom(RegressionPropsY):
             self.u = self.y - self.predy
 
             # 2b. GM 2nd iteration --> \hat{\rho}
-            moments = moments_hom(w, self.u)
-            psi = get_vc_hom(w, self, lambda_old, tsls_s.z)[0]
+            moments = moments_hom(w, wA1, wA2, self.u)
+            psi = get_vc_hom(w, wA1, wA2, self, lambda_old, tsls_s.z)[0]
             lambda2 = optim_moments(moments, psi)
             eps = abs(lambda2 - lambda_old)
             lambda_old = lambda2
@@ -546,8 +544,8 @@ class BaseGM_Endog_Error_Hom(RegressionPropsY):
 
         # Output
         self.betas = np.vstack((tsls_s.betas,lambda2))
-        self.vm,self.sig2 = get_omega_hom(w, self, lambda2, moments[0])
-        self.e_filtered = self.u - lambda2*lag_spatial(w,self.u)
+        self.vm,self.sig2 = get_omega_hom(w, wA1, wA2, self, lambda2, moments[0])
+        self.e_filtered = self.u - lambda2*w*self.u
         self._cache = {}
 
 class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom):
@@ -791,7 +789,7 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom):
         USER.check_y(y, n)
         USER.check_weights(w, y)
         x_constant = USER.check_constant(x)
-        BaseGM_Endog_Error_Hom.__init__(self, y=y, x=x_constant, w=w, yend=yend, q=q,\
+        BaseGM_Endog_Error_Hom.__init__(self, y=y, x=x_constant, w=w.sparse, yend=yend, q=q,\
                 A1=A1, max_iter=max_iter, epsilon=epsilon)
         self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HOM)"        
         self.name_ds = USER.set_name_ds(name_ds)
@@ -827,9 +825,8 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom):
                    Two dimensional array with n rows and one column for each
                    external exogenous variable to use as instruments (note: 
                    this should not contain any variables from x)
-    w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+    w            : Sparse matrix
+                   Spatial weights sparse matrix   
     w_lags       : integer
                    Orders of W to include as instruments for the spatially
                    lagged dependent variable. For example, w_lags=1, then
@@ -926,7 +923,7 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom):
 
     Example only with spatial lag
 
-    >>> reg = BaseGM_Combo_Hom(y, X, yend=yd2, q=q2, w=w, A1='hom_sc')
+    >>> reg = BaseGM_Combo_Hom(y, X, yend=yd2, q=q2, w=w.sparse, A1='hom_sc')
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[ 10.1254  15.2871]
      [  1.5683   0.4407]
@@ -947,7 +944,7 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom):
     >>> q = np.array(q).T
     >>> yd2, q2 = pysal.spreg.utils.set_endog(y, X, w, yd, q, w_lags, True)
     >>> X = np.hstack((np.ones(y.shape),X))
-    >>> reg = BaseGM_Combo_Hom(y, X, yd2, q2, w, A1='hom_sc')
+    >>> reg = BaseGM_Combo_Hom(y, X, yd2, q2, w.sparse, A1='hom_sc')
     >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['W_hoval'],['lambda']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
     [['CONSTANT' '111.7705' '67.75191']
@@ -1227,7 +1224,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom):
         USER.check_weights(w, y)
         yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
         x_constant = USER.check_constant(x)
-        BaseGM_Combo_Hom.__init__(self, y=y, x=x_constant, w=w, yend=yend2, q=q2,\
+        BaseGM_Combo_Hom.__init__(self, y=y, x=x_constant, w=w.sparse, yend=yend2, q=q2,\
                     w_lags=w_lags, A1=A1, lag_q=lag_q,\
                     max_iter=max_iter, epsilon=epsilon)
         self.predy_e, self.e_pred = sp_att(w,self.y,self.predy,\
@@ -1249,7 +1246,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom):
 
 # Functions
 
-def moments_hom(w, u):
+def moments_hom(w, wA1, wA2, u):
     '''
     Compute G and g matrices for the spatial error model with homoscedasticity
     as in Anselin [1]_ (2011).
@@ -1258,8 +1255,8 @@ def moments_hom(w, u):
     Parameters
     ----------
 
-    w           : W
-                  Spatial weights instance
+    w           : Sparse matrix
+                  Spatial weights sparse matrix   
 
     u           : array
                   Residuals. nx1 array assumed to be aligned with w
@@ -1278,23 +1275,23 @@ def moments_hom(w, u):
     .. [1] Anselin, L. (2011) "GMM Estimation of Spatial Error Autocorrelation
     with and without Heteroskedasticity". 
     '''
-    n = w.sparse.shape[0]
-    A1u = w.A1 * u
-    A2u = w.A2 * u
-    wu = w.sparse * u
+    n = w.shape[0]
+    A1u = wA1 * u
+    A2u = wA2 * u
+    wu = w * u
 
     g1 = np.dot(u.T, A1u)
     g2 = np.dot(u.T, A2u)
     g = np.array([[g1][0][0],[g2][0][0]]) / n
 
-    G11 = 2 * np.dot(wu.T * w.A1, u)
-    G12 = -np.dot(wu.T * w.A1, wu)
-    G21 = 2 * np.dot(wu.T * w.A2, u)
-    G22 = -np.dot(wu.T * w.A2, wu)
+    G11 = 2 * np.dot(wu.T * wA1, u)
+    G12 = -np.dot(wu.T * wA1, wu)
+    G21 = 2 * np.dot(wu.T * wA2, u)
+    G22 = -np.dot(wu.T * wA2, wu)
     G = np.array([[G11[0][0],G12[0][0]],[G21[0][0],G22[0][0]]]) / n
     return [G, g]
 
-def get_vc_hom(w, reg, lambdapar, z_s=None, for_omegaOLS=False):
+def get_vc_hom(w, wA1, wA2, reg, lambdapar, z_s=None, for_omegaOLS=False):
     '''
     VC matrix \psi of Spatial error with homoscedasticity. As in 
     Anselin (2011) [1]_ (p. 20)
@@ -1302,8 +1299,8 @@ def get_vc_hom(w, reg, lambdapar, z_s=None, for_omegaOLS=False):
 
     Parameters
     ----------
-    w               :   W
-                        Weights with A1 appended
+    w               :   Sparse matrix
+                        Spatial weights sparse matrix
     reg             :   reg
                         Regression object
     lambdapar       :   float
@@ -1336,18 +1333,18 @@ def get_vc_hom(w, reg, lambdapar, z_s=None, for_omegaOLS=False):
 
     '''
     u_s = get_spFilter(w, lambdapar, reg.u)
-    n = float(w.n)
+    n = float(w.shape[0])
     sig2 = np.dot(u_s.T, u_s) / n
     mu3 = np.sum(u_s**3) / n
     mu4 = np.sum(u_s**4) / n
 
-    tr11 = w.A1 * w.A1
+    tr11 = wA1 * wA1
     tr11 = np.sum(tr11.diagonal())
-    tr12 = w.A1 * (w.A2 * 2)
+    tr12 = wA1 * (wA2 * 2)
     tr12 = np.sum(tr12.diagonal())
-    tr22 = w.A2 * w.A2 * 2
+    tr22 = wA2 * wA2 * 2
     tr22 = np.sum(tr22.diagonal())
-    vecd1 = np.array([w.A1.diagonal()]).T
+    vecd1 = np.array([wA1.diagonal()]).T
 
     psi11 = 2 * sig2**2 * tr11 + \
             (mu4 - 3 * sig2**2) * np.dot(vecd1.T, vecd1)
@@ -1363,8 +1360,8 @@ def get_vc_hom(w, reg, lambdapar, z_s=None, for_omegaOLS=False):
     if issubclass(type(z_s), np.ndarray) or \
             issubclass(type(z_s), SP.csr.csr_matrix) or \
             issubclass(type(z_s), SP.csc.csc_matrix):
-        alpha1 = (-2/n) * spdot(z_s.T, w.A1 * u_s)
-        alpha2 = (-2/n) * spdot(z_s.T, w.A2 * u_s)
+        alpha1 = (-2/n) * spdot(z_s.T, wA1 * u_s)
+        alpha2 = (-2/n) * spdot(z_s.T, wA2 * u_s)
 
         hth = spdot(reg.h.T, reg.h)
         hthni = la.inv(hth / n) 
@@ -1387,7 +1384,7 @@ def get_vc_hom(w, reg, lambdapar, z_s=None, for_omegaOLS=False):
     psi = np.array([[psi11[0][0], psi12[0][0]], [psi12[0][0], psi22[0][0]]]) / n
     return psi, a1, a2, p
 
-def get_omega_hom(w, reg, lamb, G):
+def get_omega_hom(w, wA1, wA2, reg, lamb, G):
     '''
     Omega VC matrix for Hom models with endogenous variables computed as in
     Anselin (2011) [1]_ (p. 21).
@@ -1395,8 +1392,8 @@ def get_omega_hom(w, reg, lamb, G):
 
     Parameters
     ----------
-    w       :   W
-                Weights with A1 appended
+    w       :   Sparse matrix
+                Spatial weights sparse matrix
     reg     :   reg
                 Regression object
     lamb    :   float
@@ -1417,13 +1414,13 @@ def get_omega_hom(w, reg, lamb, G):
     with and without Heteroskedasticity". 
 
     '''
-    n = float(w.n)
+    n = float(w.shape[0])
     z_s = get_spFilter(w, lamb, reg.z)
     u_s = get_spFilter(w, lamb, reg.u)
     sig2 = np.dot(u_s.T, u_s) / n
     mu3 = np.sum(u_s**3) / n
-    vecdA1 = np.array([w.A1.diagonal()]).T
-    psi, a1, a2, p = get_vc_hom(w, reg, lamb, z_s)
+    vecdA1 = np.array([wA1.diagonal()]).T
+    psi, a1, a2, p = get_vc_hom(w, wA1, wA2, reg, lamb, z_s)
     j = np.dot(G, np.array([[1.], [2*lamb]]))
     psii = la.inv(psi)
     t2 = spdot(reg.h.T, np.hstack((a1, a2)))
@@ -1439,7 +1436,7 @@ def get_omega_hom(w, reg, lamb, G):
     o_lower = np.hstack((oDL.T, oLL))
     return np.vstack((o_upper, o_lower)),float(sig2)
 
-def get_omega_hom_ols(w, reg, lamb, G):
+def get_omega_hom_ols(w, wA1, wA2, reg, lamb, G):
     '''
     Omega VC matrix for Hom models without endogenous variables (OLS) computed
     as in Anselin (2011) [1]_.
@@ -1447,8 +1444,8 @@ def get_omega_hom_ols(w, reg, lamb, G):
 
     Parameters
     ----------
-    w       :   W
-                Weights with A1 appended
+    w       :   Sparse matrix
+                Spatial weights sparse matrix
     reg     :   reg
                 Regression object
     lamb    :   float
@@ -1469,12 +1466,12 @@ def get_omega_hom_ols(w, reg, lamb, G):
     with and without Heteroskedasticity". 
 
     '''
-    n = float(w.n)
+    n = float(w.shape[0])
     x_s = get_spFilter(w, lamb, reg.x)
     u_s = get_spFilter(w, lamb, reg.u)
     sig2 = np.dot(u_s.T, u_s) / n
-    vecdA1 = np.array([w.A1.diagonal()]).T
-    psi, a1, a2, p = get_vc_hom(w, reg, lamb, for_omegaOLS=True)
+    vecdA1 = np.array([wA1.diagonal()]).T
+    psi, a1, a2, p = get_vc_hom(w, wA1, wA2, reg, lamb, for_omegaOLS=True)
     j = np.dot(G, np.array([[1.], [2*lamb]]))
     psii = la.inv(psi)
 
