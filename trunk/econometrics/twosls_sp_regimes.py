@@ -10,7 +10,7 @@ import summary_output as SUMMARY
 import multiprocessing as mp
 from twosls_regimes import TSLS_Regimes
 from twosls import BaseTSLS
-from utils import set_endog, set_endog_sparse, sp_att
+from utils import set_endog, set_endog_sparse, sp_att, set_warn
 
 class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
     """
@@ -422,7 +422,8 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
             cols2regi += [True]
             self.regimes_set = list(set(regimes))
             self.regimes_set.sort()
-            w_i,regi_ids = REGI.w_regimes(w, regimes, self.regimes_set, transform=regime_error, get_ids=regime_error)
+            w_i,regi_ids,warn = REGI.w_regimes(w, regimes, self.regimes_set, transform=regime_error, get_ids=regime_error)
+            set_warn(self,warn)
             if not regime_error:
                 w = REGI.w_regimes_union(w, w_i, self.regimes_set)
         else:

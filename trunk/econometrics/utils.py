@@ -739,8 +739,14 @@ def spmax(a):
     else:
         raise Exception, "Invalid format for 'spmultiply' argument: %s and %s"%(type(a).__name__, type(b).__name__)
 
-
-
+def set_warn(reg,warn):
+    if warn:
+        try:
+            reg.warning += warn
+        except:
+            reg.warning = warn
+    else:
+        reg.warning = None
 
 def _test():
     import doctest

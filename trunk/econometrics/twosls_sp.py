@@ -36,9 +36,8 @@ class BaseGM_Lag(TSLS.BaseTSLS):
                    external exogenous variable to use as instruments (note: 
                    this should not contain any variables from x); cannot be
                    used in combination with h
-    w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+    w            : Sparse matrix
+                   Spatial weights sparse matrix 
     w_lags       : integer
                    Orders of W to include as instruments for the spatially
                    lagged dependent variable. For example, w_lags=1, then
@@ -138,7 +137,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
     >>> w_lags = 2
     >>> yd2, q2 = pysal.spreg.utils.set_endog(y, X, w, None, None, w_lags, True)
     >>> X = np.hstack((np.ones(y.shape),X))
-    >>> reg=BaseGM_Lag(y, X, yend=yd2, q=q2, w=w, w_lags=w_lags)
+    >>> reg=BaseGM_Lag(y, X, yend=yd2, q=q2, w=w.sparse, w_lags=w_lags)
     >>> reg.betas
     array([[ 45.30170561],
            [  0.62088862],
@@ -146,7 +145,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
            [  0.02836221]])
     >>> D.se_betas(reg)
     array([ 17.91278862,   0.52486082,   0.1822815 ,   0.31740089])
-    >>> reg=BaseGM_Lag(y, X, yend=yd2, q=q2, w=w, w_lags=w_lags, robust='white')
+    >>> reg=BaseGM_Lag(y, X, yend=yd2, q=q2, w=w.sparse, w_lags=w_lags, robust='white')
     >>> reg.betas
     array([[ 45.30170561],
            [  0.62088862],
@@ -163,7 +162,7 @@ class BaseGM_Lag(TSLS.BaseTSLS):
     >>> q = np.reshape(q, (49,1))
     >>> yd2, q2 = pysal.spreg.utils.set_endog(y, X, w, yd, q, w_lags, True)
     >>> X = np.hstack((np.ones(y.shape),X))
-    >>> reg=BaseGM_Lag(y, X, w=w, yend=yd2, q=q2, w_lags=w_lags)
+    >>> reg=BaseGM_Lag(y, X, w=w.sparse, yend=yd2, q=q2, w_lags=w_lags)
     >>> reg.betas
     array([[ 100.79359082],
            [  -0.50215501],
@@ -482,7 +481,7 @@ class GM_Lag(BaseGM_Lag):
         USER.check_robust(robust, gwk)
         yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
         x_constant = USER.check_constant(x)
-        BaseGM_Lag.__init__(self, y=y, x=x_constant, w=w, yend=yend2, q=q2,\
+        BaseGM_Lag.__init__(self, y=y, x=x_constant, w=w.sparse, yend=yend2, q=q2,\
                             w_lags=w_lags, robust=robust, gwk=gwk,\
                             lag_q=lag_q, sig2n_k=sig2n_k)
         self.predy_e, self.e_pred = sp_att(w,self.y,self.predy,\
