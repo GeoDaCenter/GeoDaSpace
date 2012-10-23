@@ -462,13 +462,18 @@ def w_regimes(w, regimes, regimes_set, transform=True, get_ids=None):
     regi_ids = dict((r, list(np.where(np.array(regimes) == r)[0])) for r in regimes_set)
     w_ids = dict((r, map(w.id_order.__getitem__, regi_ids[r])) for r in regimes_set)
     w_regi_i = {}
+    warn = "\n"
     for r in regimes_set:
         w_regi_i[r] = pysal.weights.w_subset(w, w_ids[r])
         if transform:
             w_regi_i[r].transform = w.get_transform()
+        if w_regi_i[r].islands:
+            warn += "Warning: The regimes operation resulted in islands for regime %s." %r
     if get_ids:
         get_ids = regi_ids
-    return w_regi_i, get_ids
+    if len(warn)<3:
+        warn = None
+    return w_regi_i, get_ids, warn
 
 def w_regimes_union(w, w_regi_i, regimes_set):
     '''

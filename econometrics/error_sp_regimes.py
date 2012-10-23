@@ -7,7 +7,7 @@ from pysal import lag_spatial
 from econometrics.ols import BaseOLS
 from econometrics.twosls import BaseTSLS
 from econometrics.error_sp import BaseGM_Error, BaseGM_Endog_Error, _momentsGM_Error
-from utils import set_endog, iter_msg, sp_att
+from utils import set_endog, iter_msg, sp_att, set_warn
 from utils import optim_moments, get_spFilter, get_lags
 from utils import spdot, RegressionPropsY
 
@@ -269,6 +269,7 @@ class GM_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         self.name_y = USER.set_name_y(name_y)
         self.name_w = USER.set_name_w(name_w, w)
         self.name_regimes = USER.set_name_ds(name_regimes)
+        self.n = n
 
         x_constant = USER.check_constant(x)
         name_x = USER.set_name_x(name_x, x)
@@ -293,7 +294,7 @@ class GM_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
             self.x, self.name_x = REGI.Regimes_Frame.__init__(self, x_constant, \
                     regimes, constant_regi=None, cols2regi=cols2regi, names=name_x)
             ols = BaseOLS(y=y, x=self.x)
-            self.n, self.k = ols.x.shape
+            self.k = ols.x.shape[1]
             self.y = ols.y
             moments = _momentsGM_Error(w, ols.u)
             lambda1 = optim_moments(moments)
@@ -322,7 +323,8 @@ class GM_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
 
         self.regimes_set = list(set(regimes))
         self.regimes_set.sort()
-        w_i,regi_ids = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True)
+        w_i,regi_ids,warn = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True)
+        set_warn(self, warn)
         pool = mp.Pool(cores)
         results_p = {}
         for r in self.regimes_set:
@@ -333,6 +335,10 @@ class GM_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         self.kf = 0
         self.nr = len(self.regimes_set)
         self.vm = np.zeros((self.nr*self.kr,self.nr*self.kr),float)
+        self.betas = np.zeros((self.nr*(self.kr+1),1),float)
+        self.u = np.zeros((self.n,1),float)
+        self.predy = np.zeros((self.n,1),float)
+        self.e_filtered = np.zeros((self.n,1),float)
         pool.close()
         pool.join()
         results = {}
@@ -342,10 +348,10 @@ class GM_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
             results[r] = results_p[r].get()
             results[r].w = w_i[r]
             self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
-            if r == self.regimes_set[0]: 
-                self.betas = results[r].betas
-            else:
-                self.betas = np.vstack((self.betas,results[r].betas))
+            self.betas[(counter*(self.kr+1)):((counter+1)*(self.kr+1)),] = results[r].betas
+            self.u[regi_ids[r],]=results[r].u
+            self.predy[regi_ids[r],]=results[r].predy
+            self.e_filtered[regi_ids[r],]=results[r].e_filtered
             self.name_y += results[r].name_y
             self.name_x += results[r].name_x
             counter += 1
@@ -627,8 +633,8 @@ class GM_Endog_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     '''
     def __init__(self, y, x, yend, q, regimes, w, cores=None,\
                  vm=False, constant_regi='many', cols2regi='all',\
-                 regime_error=False, name_y=None, name_x=None,\
-                 name_yend=None, name_q=None, name_w=None,\
+                 regime_error=False, regi_w=None, name_y=None,\
+                 name_x=None, name_yend=None, name_q=None, name_w=None,\
                  name_ds=None, name_regimes=None, summ=True):      
         
         n = USER.check_arrays(y, x, yend, q)
@@ -639,6 +645,7 @@ class GM_Endog_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_regimes = USER.set_name_ds(name_regimes)
         self.name_w = USER.set_name_w(name_w, w)
+        self.n = n
         
         x_constant = USER.check_constant(x)
         name_x = USER.set_name_x(name_x, x)
@@ -660,7 +667,7 @@ class GM_Endog_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         if regime_error == True:
             if set(cols2regi) == set([True]):
                 self._endog_error_regimes_multi(y, x, regimes, w, yend, q, cores,\
-                 cols2regi, vm, name_x, name_yend, name_q)
+                 cols2regi, regi_w, vm, name_x, name_yend, name_q)
             else:
                 raise Exception, "All coefficients must vary accross regimes if regime_error = True."
         else:
@@ -674,7 +681,7 @@ class GM_Endog_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
                     cols2regi=cols2regi, yend=True, names=name_yend)
 
             tsls = BaseTSLS(y=y, x=x, yend=yend2, q=q)
-            self.n, self.k = tsls.z.shape
+            self.k = tsls.z.shape[1]
             self.x, self.y = tsls.x, tsls.y
             self.yend, self.z = tsls.yend, tsls.z
             moments = _momentsGM_Error(w, tsls.u)
@@ -710,11 +717,15 @@ class GM_Endog_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
                 SUMMARY.GM_Endog_Error(reg=self, w=w, vm=vm, regimes=True)
 
     def _endog_error_regimes_multi(self, y, x, regimes, w, yend, q, cores,\
-                 cols2regi, vm, name_x, name_yend, name_q):
+                 cols2regi, regi_w, vm, name_x, name_yend, name_q):
 
         self.regimes_set = list(set(regimes))
         self.regimes_set.sort()
-        w_i,regi_ids = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True)
+        if regi_w:
+            w_i,regi_ids = regi_w[0:2]
+        else:
+            w_i,regi_ids,warn = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True)
+            set_warn(self, warn)
         pool = mp.Pool(cores)
         results_p = {}
         for r in self.regimes_set:
@@ -724,6 +735,10 @@ class GM_Endog_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         self.kr = len(cols2regi)
         self.nr = len(self.regimes_set)
         self.vm = np.zeros((self.nr*self.kr,self.nr*self.kr),float)
+        self.betas = np.zeros((self.nr*(self.kr+1),1),float)
+        self.u = np.zeros((self.n,1),float)
+        self.predy = np.zeros((self.n,1),float)
+        self.e_filtered = np.zeros((self.n,1),float)
         pool.close()
         pool.join()
         results = {}
@@ -733,10 +748,10 @@ class GM_Endog_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
             results[r] = results_p[r].get()
             results[r].w = w_i[r]
             self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
-            if r == self.regimes_set[0]: 
-                self.betas = results[r].betas
-            else:
-                self.betas = np.vstack((self.betas,results[r].betas))
+            self.betas[(counter*(self.kr+1)):((counter+1)*(self.kr+1)),] = results[r].betas
+            self.u[regi_ids[r],]=results[r].u
+            self.predy[regi_ids[r],]=results[r].predy
+            self.e_filtered[regi_ids[r],]=results[r].e_filtered
             self.name_y += results[r].name_y
             self.name_x += results[r].name_x
             self.name_yend += results[r].name_yend
@@ -1100,10 +1115,12 @@ class GM_Combo_Regimes(GM_Endog_Error_Regimes, REGI.Regimes_Frame):
             cols2regi += [True]
             self.regimes_set = list(set(regimes))
             self.regimes_set.sort()
-            w_i,regi_ids = REGI.w_regimes(w, regimes, self.regimes_set, transform=regime_error, get_ids=regime_error)
-            w = REGI.w_regimes_union(w, w_i, self.regimes_set)
+            regi_w = (REGI.w_regimes(w, regimes, self.regimes_set, transform=regime_error, get_ids=regime_error))
+            w = REGI.w_regimes_union(w, regi_w[0], self.regimes_set)
+            set_warn(self, regi_w[2])
         else:
             cols2regi += [False]
+            regi_w = None
             if regime_error == True:
                raise Exception, "All coefficients must vary accross regimes if regime_error = True. Therefore, if regime_error = True, regime_lag must also be True."
 
@@ -1113,7 +1130,7 @@ class GM_Combo_Regimes(GM_Endog_Error_Regimes, REGI.Regimes_Frame):
         GM_Endog_Error_Regimes.__init__(self, y=y, x=x, yend=yend2,\
                 q=q2, regimes=regimes, w=w, vm=vm, constant_regi=constant_regi,\
                 cols2regi=cols2regi, regime_error=regime_error, cores=cores,\
-                name_y=self.name_y, name_x=name_x,\
+                regi_w=regi_w, name_y=self.name_y, name_x=name_x,\
                 name_yend=name_yend, name_q=name_q, name_w=name_w,\
                 name_ds=name_ds, name_regimes=name_regimes, summ=False)
 
