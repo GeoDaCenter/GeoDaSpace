@@ -600,11 +600,11 @@ def summary_chow(reg):
         names_chow = [reg.name_x_r[1:][i] for i in np.where(reg.cols2regi)[0]]
     if reg.constant_regi=='many':
         indices = [0]+(np.argsort(names_chow)+1).tolist()
+        names_chow = ['CONSTANT']+names_chow
     else:
-        indices = (np.argsort(names_chow)).tolist()
-        reg.name_x_r = reg.name_x_r[1:]
+        indices = (np.argsort(names_chow)).tolist() 
     for i in indices:    
-        reg.__summary['summary_other_mid'] += "%25s        %2d    %12.6f        %9.7f\n" %(reg.name_x_r[i],reg.nr-1,reg.chow.regi[i,0],reg.chow.regi[i,1])
+        reg.__summary['summary_other_mid'] += "%25s        %2d    %12.6f        %9.7f\n" %(names_chow[i],reg.nr-1,reg.chow.regi[i,0],reg.chow.regi[i,1])
     reg.__summary['summary_other_mid'] += "%25s        %2d    %12.6f        %9.7f\n" %('Global test',reg.kr*(reg.nr-1),reg.chow.joint[0],reg.chow.joint[1])
 
 def summary_warning(reg):
