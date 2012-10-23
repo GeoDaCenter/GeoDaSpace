@@ -101,6 +101,12 @@ class TestGM_Error_Regimes(unittest.TestCase):
         vm = np.array([ 39.33656288,  -0.08420799,  -1.50350999,   0.        ,
          0.        ,   0.        ])
         np.testing.assert_array_almost_equal(reg.vm[0],vm,6)
+        u = np.array([ 0.00698341])
+        np.testing.assert_array_almost_equal(reg.u[0],u,6)
+        predy = np.array([ 15.71899659])
+        np.testing.assert_array_almost_equal(reg.predy[0],predy,6)
+        e = np.array([ 0.53685671])
+        np.testing.assert_array_almost_equal(reg.e_filtered[0],e,6)
         chow_r = np.array([[  3.63674458e-01,   5.46472584e-01],
        [  4.29607250e-01,   5.12181727e-01],
        [  5.44739543e-04,   9.81379339e-01]])
@@ -181,6 +187,12 @@ class TestGM_Error_Regimes(unittest.TestCase):
         vm = np.array([ 791.86679562,  140.12967904,  -81.37581314,    0.        ,
           0.        ,    0.        ])
         np.testing.assert_array_almost_equal(reg.vm[0],vm,6)
+        u = np.array([ 25.80361497])
+        np.testing.assert_array_almost_equal(reg.u[0],u,6)
+        predy = np.array([-10.07763497])
+        np.testing.assert_array_almost_equal(reg.predy[0],predy,6)
+        e = np.array([ 27.32251813])
+        np.testing.assert_array_almost_equal(reg.e_filtered[0],e,6)
         chow_r = np.array([[ 0.00926459,  0.92331985],
        [ 0.26102777,  0.60941494],
        [ 0.26664581,  0.60559072]])
@@ -268,6 +280,12 @@ class TestGM_Error_Regimes(unittest.TestCase):
         vm = np.array([ 153.58614432,    2.96302131,   -3.26211855,   -2.46914703,
           0.        ,    0.        ,    0.        ,    0.        ])
         np.testing.assert_array_almost_equal(reg.vm[0],vm,6)
+        u = np.array([ 7.73968703])
+        np.testing.assert_array_almost_equal(reg.u[0],u,6)
+        predy = np.array([ 7.98629297])
+        np.testing.assert_array_almost_equal(reg.predy[0],predy,6)
+        e = np.array([ 6.45052714])
+        np.testing.assert_array_almost_equal(reg.e_filtered[0],e,6)
         chow_r = np.array([[  1.00886404e-01,   7.50768497e-01],
        [  3.61843271e-05,   9.95200481e-01],
        [  4.69585772e-02,   8.28442711e-01],

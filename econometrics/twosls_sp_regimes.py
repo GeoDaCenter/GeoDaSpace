@@ -413,6 +413,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         name_q.extend(USER.set_name_q_sp(name_x, w_lags, name_q, lag_q, force_all=True))
         self.name_regimes = USER.set_name_ds(name_regimes)
         self.constant_regi=constant_regi
+        self.n = n
         if cols2regi == 'all':
             if yend!=None:
                 cols2regi = [True] * (x.shape[1]+yend.shape[1])
@@ -422,7 +423,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
             cols2regi += [True]
             self.regimes_set = list(set(regimes))
             self.regimes_set.sort()
-            w_i,regi_ids,warn = REGI.w_regimes(w, regimes, self.regimes_set, transform=regime_error, get_ids=regime_error)
+            w_i,regi_ids,warn = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True)
             set_warn(self,warn)
             if not regime_error:
                 w = REGI.w_regimes_union(w, w_i, self.regimes_set)
@@ -449,10 +450,13 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                  name_x=name_x, name_yend=name_yend, name_q=name_q,\
                  name_regimes=name_regimes, name_w=name_w, name_gwk=name_gwk,\
                  name_ds=name_ds,summ=False)
-            self.predy_e, self.e_pred = sp_att(w,self.y,self.predy,\
+            if regime_lag:
+                self.sp_att_reg(w_i, regi_ids, yend2[:,-1].reshape(self.n,1))
+            else:
+                self.predy_e, self.e_pred = sp_att(w,self.y,self.predy,\
                           yend2[:,-1].reshape(self.n,1),self.betas[-1])
             self.regime_lag=regime_lag
-            self.title = "SPATIAL TWO STAGE LEAST SQUARES - REGIMES"        
+            self.title = "SPATIAL TWO STAGE LEAST SQUARES - REGIMES"
             SUMMARY.GM_Lag(reg=self, w=w, vm=vm, spat_diag=spat_diag, regimes=True)
 
     def GM_Lag_Regimes_Multi(self, y, x, w_i, regi_ids, cores=None,\
@@ -478,6 +482,11 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         self.name_x_r = name_x + name_yend
         self.name_regimes = name_regimes
         self.vm = np.zeros((self.nr*self.kr,self.nr*self.kr),float)
+        self.betas = np.zeros((self.nr*self.kr,1),float)
+        self.u = np.zeros((self.n,1),float)
+        self.predy = np.zeros((self.n,1),float)
+        self.predy_e = np.zeros((self.n,1),float)
+        self.e_pred = np.zeros((self.n,1),float)
         pool.close()
         pool.join()
         results = {}
@@ -488,10 +497,11 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
             results[r].predy_e, results[r].e_pred = sp_att(w_i[r],results[r].y,results[r].predy, results[r].yend[:,-1].reshape(results[r].n,1),results[r].betas[-1])
             results[r].w = w_i[r]
             self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
-            if r == self.regimes_set[0]: 
-                self.betas = results[r].betas
-            else:
-                self.betas = np.vstack((self.betas,results[r].betas))
+            self.betas[(counter*self.kr):((counter+1)*self.kr),] = results[r].betas
+            self.u[regi_ids[r],]=results[r].u
+            self.predy[regi_ids[r],]=results[r].predy
+            self.predy_e[regi_ids[r],]=results[r].predy_e
+            self.e_pred[regi_ids[r],]=results[r].e_pred
             self.name_y += results[r].name_y
             self.name_x += results[r].name_x
             self.name_yend += results[r].name_yend
@@ -502,6 +512,19 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         self.chow = REGI.Chow(self)            
         self.multi = results
         SUMMARY.GM_Lag_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=spat_diag, regimes=True)
+
+    def sp_att_reg(self, w_i, regi_ids, wy):
+        predy_e_r,e_pred_r = {},{}
+        self.predy_e = np.zeros((self.n,1),float) 
+        self.e_pred = np.zeros((self.n,1),float)
+        counter = 1
+        for r in self.regimes_set:
+            lambd = self.betas[(self.kr-self.kryd)*self.nr+counter*self.kryd-1]
+            self.predy_e[regi_ids[r],], self.e_pred[regi_ids[r],] = sp_att(w_i[r],\
+                          self.y[regi_ids[r]],self.predy[regi_ids[r]],\
+                          wy[regi_ids[r]],lambd)
+            counter += 1
+
 
 def _work(y,x,regi_ids,r,yend,q,w_r,w_lags,lag_q,robust,gwk,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_gwk,name_regimes):
     y_r = y[regi_ids[r]]
