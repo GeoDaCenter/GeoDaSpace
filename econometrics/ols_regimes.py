@@ -67,6 +67,8 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
                    If a list, k booleans indicating for each variable the
                    option (True if one per regime, False to be held constant).
                    If 'all' (default), all the variables vary by regime.
+    regime_err_sep  : boolean
+                   If True, a separate regression is run for each regime.
     name_y       : string
                    Name of dependent variable for use in output
     name_x       : list of strings
@@ -208,6 +210,8 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
                    If a list, k booleans indicating for each variable the
                    option (True if one per regime, False to be held constant).
                    If 'all', all the variables vary by regime.
+    regime_err_sep  : boolean
+                   If True, a separate regression is run for each regime.
     kr           : int
                    Number of variables/columns to be "regimized" or subject
                    to change by regime. These will result in one parameter
@@ -277,6 +281,7 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
                  w=None, robust=None, gwk=None, sig2n_k=True,\
                  nonspat_diag=True, spat_diag=False, moran=False,\
                  vm=False, constant_regi='many', cols2regi='all',\
+                 regime_err_sep=True,\
                  name_y=None, name_x=None, name_regimes=None,\
                  name_w=None, name_gwk=None, name_ds=None):
 

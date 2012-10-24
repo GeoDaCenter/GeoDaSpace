@@ -47,10 +47,8 @@ class GM_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
                    If a list, k booleans indicating for each variable the
                    option (True if one per regime, False to be held constant).
                    If 'all' (default), all the variables vary by regime.
-    regime_error : boolean
-                   If True, the spatial parameter for autoregressive error is also
-                   computed according to different regimes. If False (default), 
-                   the spatial parameter is fixed accross regimes.
+    regime_err_sep: boolean
+                   If True, a separate regression is run for each regime.
     max_iter     : int
                    Maximum number of iterations of steps 2a and 2b from Arraiz
                    et al. Note: epsilon provides an additional stop condition.
@@ -147,10 +145,8 @@ class GM_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
                    If a list, k booleans indicating for each variable the
                    option (True if one per regime, False to be held constant).
                    If 'all', all the variables vary by regime.
-    regime_error : boolean
-                   If True, the spatial parameter for autoregressive error is also
-                   computed according to different regimes. If False (default), 
-                   the spatial parameter is fixed accross regimes.
+    regime_err_sep : boolean
+                   If True, a separate regression is run for each regime.
     kr           : int
                    Number of variables/columns to be "regimized" or subject
                    to change by regime. These will result in one parameter
@@ -262,7 +258,7 @@ class GM_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     """
 
     def __init__(self, y, x, regimes, w, max_iter=1, epsilon=0.00001, step1c=False,\
-                 constant_regi='many', cols2regi='all', regime_error=False,\
+                 constant_regi='many', cols2regi='all', regime_err_sep=False,\
                  cores=None, vm=False, name_y=None, name_x=None, name_w=None,\
                  name_ds=None, name_regimes=None):
 
@@ -271,7 +267,7 @@ class GM_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         USER.check_weights(w, y)
         self.constant_regi = constant_regi
         self.cols2regi = cols2regi
-        self.regime_error = regime_error
+        self.regime_err_sep = regime_err_sep
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
         self.name_w = USER.set_name_w(name_w, w)
@@ -291,13 +287,13 @@ class GM_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         else:
             cols2regi = regi_cons + cols2regi
 
-        if regime_error == True:
+        if regime_err_sep == True:
             if set(cols2regi) == set([True]):
                 self._error_regimes_multi(y, x, regimes, w, cores,\
                  max_iter, epsilon, step1c,\
                  cols2regi, vm, name_x)
             else:
-                raise Exception, "All coefficients must vary accross regimes if regime_error = True."
+                raise Exception, "All coefficients must vary accross regimes if regime_err_sep = True."
         else:
             self.x, self.name_x = REGI.Regimes_Frame.__init__(self, x_constant, \
                     regimes, constant_regi=None, cols2regi=cols2regi, names=name_x)
@@ -437,10 +433,8 @@ class GM_Endog_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
                    If a list, k booleans indicating for each variable the
                    option (True if one per regime, False to be held constant).
                    If 'all' (default), all the variables vary by regime.
-    regime_error : boolean
-                   If True, the spatial parameter for autoregressive error is also
-                   computed according to different regimes. If False (default), 
-                   the spatial parameter is fixed accross regimes.
+    regime_err_sep : boolean
+                   If True, a separate regression is run for each regime.
     max_iter     : int
                    Maximum number of iterations of steps 2a and 2b from Arraiz
                    et al. Note: epsilon provides an additional stop condition.
@@ -560,10 +554,8 @@ class GM_Endog_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
                     If a list, k booleans indicating for each variable the
                     option (True if one per regime, False to be held constant).
                     If 'all', all the variables vary by regime.
-    regime_error : boolean
-                   If True, the spatial parameter for autoregressive error is also
-                   computed according to different regimes. If False (default), 
-                   the spatial parameter is fixed accross regimes.
+    regime_err_sep : boolean
+                   If True, a separate regression is run for each regime.
     kr            : int
                     Number of variables/columns to be "regimized" or subject
                     to change by regime. These will result in one parameter
@@ -690,7 +682,7 @@ class GM_Endog_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     """
     def __init__(self, y, x, yend, q, regimes, w,\
                  max_iter=1, epsilon=0.00001, step1c=False,\
-                 constant_regi='many', cols2regi='all', regime_error=False,\
+                 constant_regi='many', cols2regi='all', regime_err_sep=False,\
                  inv_method='power_exp', cores=None, regi_w=None,\
                  vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None,\
@@ -723,13 +715,13 @@ class GM_Endog_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         else:
             cols2regi = regi_cons + cols2regi
 
-        if regime_error == True:
+        if regime_err_sep == True:
             if set(cols2regi) == set([True]):
                 self._endog_error_regimes_multi(y, x, regimes, w, yend, q, cores,\
                  max_iter, epsilon, step1c, inv_method, cols2regi, regi_w, vm,\
                  name_x, name_yend, name_q)
             else:
-                raise Exception, "All coefficients must vary accross regimes if regime_error = True."
+                raise Exception, "All coefficients must vary accross regimes if regime_err_sep = True."
         else:
             q, name_q = REGI.Regimes_Frame.__init__(self, q,\
                     regimes, constant_regi=None, cols2regi='all', names=name_q)
@@ -894,11 +886,9 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
                    If a list, k booleans indicating for each variable the
                    option (True if one per regime, False to be held constant).
                    If 'all' (default), all the variables vary by regime.
-    regime_error : boolean
-                   If True, the spatial parameter for autoregressive error is also
-                   computed according to different regimes. If False (default), 
-                   the spatial parameter is fixed accross regimes.
-    regime_lag   : boolean
+    regime_err_sep : boolean
+                   If True, a separate regression is run for each regime.
+    regime_lag_sep   : boolean
                    If True, the spatial parameter for spatial lag is also
                    computed according to different regimes. If False (default), 
                    the spatial parameter is fixed accross regimes.
@@ -1035,11 +1025,9 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
                     If a list, k booleans indicating for each variable the
                     option (True if one per regime, False to be held constant).
                     If 'all', all the variables vary by regime.
-    regime_error  : boolean
-                    If True, the spatial parameter for autoregressive error is also
-                    computed according to different regimes. If False (default), 
-                    the spatial parameter is fixed accross regimes.
-    regime_lag    : boolean
+    regime_err_sep: boolean
+                    If True, a separate regression is run for each regime.
+    regime_lag_sep: boolean
                     If True, the spatial parameter for spatial lag is also
                     computed according to different regimes. If False (default), 
                     the spatial parameter is fixed accross regimes.
@@ -1140,7 +1128,7 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
 
     >>> reg = GM_Combo_Het_Regimes(y, x, regimes, w=w, step1c=True, name_y=y_var, name_x=x_var, name_regimes=r_var, name_ds='NAT')
     >>> print reg.name_z
-    ['0_CONSTANT', '0_PS90', '0_UE90', '1_CONSTANT', '1_PS90', '1_UE90', 'Global_W_HR90', 'lambda']
+    ['0_CONSTANT', '0_PS90', '0_UE90', '1_CONSTANT', '1_PS90', '1_UE90', '_Global_W_HR90', 'lambda']
     >>> print np.around(reg.betas,4)
     [[ 1.4613]
      [ 0.9587]
@@ -1168,7 +1156,7 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
 
     >>> reg = GM_Combo_Het_Regimes(y, x, regimes, yd, q, w, step1c=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='NAT')
     >>> print reg.name_z
-    ['0_CONSTANT', '0_PS90', '0_UE90', '1_CONSTANT', '1_PS90', '1_UE90', '0_RD90', '1_RD90', 'Global_W_HR90', 'lambda']
+    ['0_CONSTANT', '0_PS90', '0_UE90', '1_CONSTANT', '1_PS90', '1_UE90', '0_RD90', '1_RD90', '_Global_W_HR90', 'lambda']
     >>> print reg.betas
     [[ 3.41936197]
      [ 1.04071048]
@@ -1192,7 +1180,7 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
                  max_iter=1, epsilon=0.00001, step1c=False,\
                  cores=None, inv_method='power_exp',\
                  constant_regi='many', cols2regi='all',\
-                 regime_error=False, regime_lag=False,\
+                 regime_err_sep=False, regime_lag_sep=False,\
                  vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None,\
                  name_w=None, name_ds=None, name_regimes=None):
@@ -1212,35 +1200,35 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
             else:
                 cols2regi = [True] * (x.shape[1])     
 
-        if regime_lag == True:
+        if regime_lag_sep == True:
             cols2regi += [True]
             self.regimes_set = list(set(regimes))
             self.regimes_set.sort()
-            regi_w = (REGI.w_regimes(w, regimes, self.regimes_set, transform=regime_error, get_ids=regime_error))
+            regi_w = (REGI.w_regimes(w, regimes, self.regimes_set, transform=regime_err_sep, get_ids=regime_err_sep))
             w = REGI.w_regimes_union(w, regi_w[0], self.regimes_set)
             set_warn(self, regi_w[2])
         else:
             cols2regi += [False]
             regi_w = None
-            if regime_error == True:
-               raise Exception, "All coefficients must vary accross regimes if regime_error = True. Therefore, if regime_error = True, regime_lag must also be True."
+            if regime_err_sep == True:
+               raise Exception, "All coefficients must vary accross regimes if regime_err_sep = True. Therefore, if regime_err_sep = True, regime_lag_sep must also be True."
 
         yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
         name_yend.append(USER.set_name_yend_sp(self.name_y))
 
         GM_Endog_Error_Het_Regimes.__init__(self, y=y, x=x, yend=yend2,\
                  q=q2, regimes=regimes, w=w, constant_regi=constant_regi,\
-                 cols2regi=cols2regi, regime_error=regime_error,\
+                 cols2regi=cols2regi, regime_err_sep=regime_err_sep,\
                  max_iter=max_iter, epsilon=epsilon, regi_w=regi_w,\
                  step1c=step1c, inv_method=inv_method, cores=cores,\
                  vm=vm, name_y=name_y, name_x=name_x,\
                  name_yend=name_yend, name_q=name_q, name_w=name_w,\
                  name_ds=name_ds, name_regimes=name_regimes, summ=False)
 
-        if regime_error != True:
+        if regime_err_sep != True:
             self.predy_e, self.e_pred = UTILS.sp_att(w,self.y,\
                        self.predy,yend2[:,-1].reshape(self.n,1),self.betas[-2])
-            self.regime_lag=regime_lag
+            self.regime_lag_sep=regime_lag_sep
             self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HET) - REGIMES"
             SUMMARY.GM_Combo_Het(reg=self, w=w, vm=vm, regimes=True)
 

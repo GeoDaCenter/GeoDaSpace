@@ -436,7 +436,7 @@ def set_name_x_regimes(name_x, regimes, constant_regi, cols2regi, regimes_set):
     for r in regimes_set:
         rl = ['%s_%s'%(str(r), i) for i in vars_regi]
         name_x_regi.extend(rl)
-    name_x_regi.extend(['Global_%s'%i for i in vars_glob])
+    name_x_regi.extend(['_Global_%s'%i for i in vars_glob])
     return name_x_regi
 
 def w_regimes(w, regimes, regimes_set, transform=True, get_ids=None):
