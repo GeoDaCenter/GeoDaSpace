@@ -323,7 +323,7 @@ def buildR1var(vari, kr, kf, kryd, nr):
         cbeg = krexog*(nr-1) + vari
     r[rbeg: rbeg+nrows , cbeg] = 1
     for j in np.arange(nrows):
-        r[rbeg+j, kr_j + cbeg + j*kr] = -1
+        r[rbeg+j, kr_j + cbeg + j*kr_j] = -1
     return np.hstack( (r, np.zeros((nrows, kf), dtype=int)) )
 
 def regimeX_setup(x, regimes, cols2regi, regimes_set, constant=False):
@@ -439,7 +439,7 @@ def set_name_x_regimes(name_x, regimes, constant_regi, cols2regi, regimes_set):
     name_x_regi.extend(['_Global_%s'%i for i in vars_glob])
     return name_x_regi
 
-def w_regimes(w, regimes, regimes_set, transform=True, get_ids=None):
+def w_regimes(w, regimes, regimes_set, transform=True, get_ids=None, min_n=None):
     '''
     Subsets W matrix according to regimes
     ...
@@ -465,10 +465,13 @@ def w_regimes(w, regimes, regimes_set, transform=True, get_ids=None):
     warn = "\n"
     for r in regimes_set:
         w_regi_i[r] = pysal.weights.w_subset(w, w_ids[r])
+        if min_n:
+            if w_regi_i[r].n < min_n:
+                raise Exception, "There are less observations than variables in regime %s." %r
         if transform:
             w_regi_i[r].transform = w.get_transform()
         if w_regi_i[r].islands:
-            warn += "Warning: The regimes operation resulted in islands for regime %s." %r
+            warn += "Warning: The regimes operation resulted in islands for regime %s.\n" %r
     if get_ids:
         get_ids = regi_ids
     if len(warn)<3:
