@@ -352,9 +352,10 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         if evt:
             self.model.regimes_regime_lag = self.RegimeLag.GetValue()
         elif value != None:
-            if self.model.regimes_regime_error:
-                value = True
-            self.RegimeLag.SetValue(value)
+            if value == False and self.model.regimes_regime_error == True:
+                self.model.regimes_regime_lag = True
+            else:
+                self.RegimeLag.SetValue(value)
     def SetPrefs(self,prefs):
         for key in prefs:
             if hasattr(self.model,key):
