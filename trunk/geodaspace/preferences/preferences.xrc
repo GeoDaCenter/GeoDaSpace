@@ -486,7 +486,6 @@
                         <font>
                           <weight>bold</weight>
                         </font>
-                        <hidden>1</hidden>
                       </object>
                       <flag>wxTOP</flag>
                       <border>15</border>
@@ -495,23 +494,21 @@
                     <object class="sizeritem">
                       <object class="wxStaticText" name="numcoresLabel">
                         <label>Multi-Core</label>
-                        <hidden>1</hidden>
                         <XRCED>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
                     </object>
                     <object class="sizeritem">
-                      <object class="wxSpinCtrl" name="numcores">
-                        <value>1</value>
-                        <min>1</min>
-                        <hidden>1</hidden>
+                      <object class="wxChoice" name="numcores">
+                        <content>
+                          <item/>
+                        </content>
                         <XRCED>
-                          <events>EVT_SPINCTRL</events>
+                          <events>EVT_CHOICE</events>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
-                      <flag>wxALIGN_CENTRE</flag>
                     </object>
                     <object class="sizeritem">
                       <object class="wxStaticText">
@@ -578,6 +575,58 @@
           <XRCED>
             <assign_var>1</assign_var>
           </XRCED>
+          <object class="notebookpage">
+            <object class="wxPanel" name="regimes">
+              <object class="wxBoxSizer">
+                <orient>wxVERTICAL</orient>
+                <object class="sizeritem">
+                  <object class="wxFlexGridSizer">
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="RegimeErrorLabel">
+                        <label>Regime Error</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="RegimeError">
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="RegimeLagLabel">
+                        <label>Regime Lag</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="RegimeLag">
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
+                    </object>
+                    <cols>2</cols>
+                    <rows>2</rows>
+                    <vgap>20</vgap>
+                    <hgap>10</hgap>
+                  </object>
+                  <flag>wxALL|wxALIGN_CENTRE</flag>
+                  <border>15</border>
+                </object>
+              </object>
+            </object>
+            <label>Regimes</label>
+          </object>
         </object>
         <option>1</option>
         <flag>wxALL|wxEXPAND</flag>

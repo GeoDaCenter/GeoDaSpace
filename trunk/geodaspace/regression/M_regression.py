@@ -310,16 +310,24 @@ class guiRegModel(abstractmodel.AbstractModel):
         mtypes = {0: 'Standard', 1: 'Spatial Lag', 2: 'Spatial Error', 3: 'Spatial Lag+Error'}
         model_type = mtypes[data['modelType']['mType']]
 
+        # R
+        if data['spec']['R']:
+            name_r = data['spec']['R']
+            r = self.get_col(db,name_r)
+        else:
+            name_r = None
+            r = None
+        # T
+        if data['spec']['T']:
+            name_t = data['spec']['T']
+            t = self.get_col(db,name_t)
+        else:
+            name_t = None
+            t = None
         # These options are not available yet....
-        r = None
-        name_r = None
         s = None
         name_s = None
-        t = None
-        name_t = None
-        sig2n_k_ols = False
-        sig2n_k_tsls = False
-        sig2n_k_gmlag = False
+
         config = data['config']
 
         if self.getMWeightsEnabled() and model_type in ['Standard','Spatial Lag']:
@@ -340,7 +348,8 @@ class guiRegModel(abstractmodel.AbstractModel):
                  config['gmm_max_iter'], config['gmm_epsilon'], config['gmm_inferenceOnLambda'], config['gmm_inv_method'], config['gmm_step1c'],
                  config['instruments_w_lags'], config['instruments_lag_q'],
                  config['output_vm_summary'], predy_resid,
-                 config['other_ols_diagnostics'], config['other_residualMoran']
+                 config['other_ols_diagnostics'], config['other_residualMoran'],
+                 config['regimes_regime_error'], config['regimes_regime_lag'], config['other_numcores']
                  )
         print results
         for r in results:
