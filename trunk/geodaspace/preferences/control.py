@@ -344,7 +344,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         elif value != None:
             self.RegimeError.SetValue(self.model.regimes_regime_error)
             if value:
-                self.RegimeLag.SetValue(True)
+                self.model.regimes_regime_lag = True
                 self.RegimeLag.Disable()
             else:
                 self.RegimeLag.Enable()
