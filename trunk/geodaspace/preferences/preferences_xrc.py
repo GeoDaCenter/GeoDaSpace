@@ -903,7 +903,7 @@ def __init_resources():
                   <object class="wxFlexGridSizer">
                     <object class="sizeritem">
                       <object class="wxStaticText" name="RegimeErrorLabel">
-                        <label>Regime Error</label>
+                        <label>Error by regimes</label>
                         <XRCED>
                           <assign_var>1</assign_var>
                         </XRCED>
@@ -920,7 +920,7 @@ def __init_resources():
                     </object>
                     <object class="sizeritem">
                       <object class="wxStaticText" name="RegimeLagLabel">
-                        <label>Regime Lag</label>
+                        <label>Spatial lag by regimes</label>
                         <XRCED>
                           <assign_var>1</assign_var>
                         </XRCED>
