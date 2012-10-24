@@ -24,4 +24,6 @@ tips = {
     'inferenceOnLambda': "Only affects models without heteroskedasticity. Based on Drukker, D.M., P. Egger, and I. R. Prucha. 2010. On two- step estimation of a spatial autoregressive model with autoregressive disturbances and endogenous regressors.  Technical report, Department of Economics, University of Maryland.",
     'OLSdiagnostics': "Diagnostics include tests for heteroskedasticity, normality, multi-collinearity, measures of fit, and other. Warning: Slow computation times for extremely large datasets.",
     'residualMoran': "Warning: Slower Computation Times!",
+    'RegimeError':'A separate regression is run for each regime.',
+    'RegimeLag':'A regime-specific spatial lag parameter is estimated for each regime.',
 }
