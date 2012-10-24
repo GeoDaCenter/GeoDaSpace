@@ -1,6 +1,12 @@
 #system
 import os
 import json
+try:
+    import multiprocessing
+    CPU_COUNT = multiprocessing.cpu_count()
+except:
+    CPU_COUNT = 1
+CPU_OPTIONS = range(CPU_COUNT,0,-1)
 #3rd Part
 import wx
 #local
@@ -50,7 +56,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
     #    'sig2n_k': {'other': False, 'ols': True, 'gmlag': False, '2sls': False},
     #    'gmm': {'epsilon': 1e-05, 'inferenceOnLambda': True, 'max_iter': 1, 'step1c': False, 'inv_method': 'power_exp'},
     #    'instruments': {'lag_q': True, 'w_lags': 1},
-    #    'other': {'ols_diagnostics': True, 'numcores': 1, 'residualMoran': False},
+    #    'other': {'ols_diagnostics': True, 'numcores': 0, 'residualMoran': False},
     #    'output': {'save_pred_residuals': False, 'vm_summary': False}}
 
     def __init__(self,parent=None):
@@ -58,6 +64,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         remapEvtsToDispatcher(self, self.evtDispatch)
         preferences_xrc.xrcgsPrefsDialog.__init__(self,parent)
         self.CompInverse.SetItems(list(INV_METHODS))
+        self.numcores.SetItems(map(str,CPU_OPTIONS))
         self.SetEscapeId(self.cancelButton.GetId())
         self.SetAffirmativeId(self.saveButton.GetId())
 
@@ -111,6 +118,10 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         d['other_missingValueCheck'] = self.other_missingValueCheck
         d['missingValue'] = self.other_missingValue
         d['other_missingValue'] = self.other_missingValue
+        d['regimes_regime_error'] = self.regimes_regime_error
+        d['RegimeError'] = self.regimes_regime_error
+        d['regimes_regime_lag'] = self.regimes_regime_lag
+        d['RegimeLag'] = self.regimes_regime_lag
 
         self.model = preferencesModel()
         self.reset_model()
@@ -298,9 +309,12 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
             self.OLSdiagnostics.SetValue(self.model.other_ols_diagnostics)
     def other_numcores(self, evtName=None, evt=None, value=None):
         if evt:
-            self.model.other_numcores = self.numcores.GetValue()
+            self.model.other_numcores = CPU_OPTIONS[self.numcores.GetSelection()]
         elif value != None:
-            self.numcores.SetValue(self.model.other_numcores)
+            if value < 1: # default, USE ALL
+                self.numcores.SetSelection(0)
+            else:
+                self.numcores.SetSelection(CPU_OPTIONS.index(value))
     def other_residualMoran(self, evtName=None, evt=None, value=None):
         if evt:
             self.model.other_residualMoran = self.residualMoran.GetValue()
@@ -324,6 +338,16 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
                 curval = None
             if self.model.other_missingValue != curval:
                 self.missingValue.SetValue(str(self.model.other_missingValue))
+    def regimes_regime_error(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.regimes_regime_error = self.RegimeError.GetValue()
+        elif value != None:
+            self.RegimeError.SetValue(self.model.regimes_regime_error)
+    def regimes_regime_lag(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.regimes_regime_lag = self.RegimeLag.GetValue()
+        elif value != None:
+            self.RegimeLag.SetValue(self.model.regimes_regime_lag)
     def SetPrefs(self,prefs):
         for key in prefs:
             if hasattr(self.model,key):

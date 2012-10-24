@@ -79,6 +79,10 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.missingValueCheck = xrc.XRCCTRL(self, "missingValueCheck")
         self.missingValueLabel = xrc.XRCCTRL(self, "missingValueLabel")
         self.missingValue = xrc.XRCCTRL(self, "missingValue")
+        self.RegimeErrorLabel = xrc.XRCCTRL(self, "RegimeErrorLabel")
+        self.RegimeError = xrc.XRCCTRL(self, "RegimeError")
+        self.RegimeLagLabel = xrc.XRCCTRL(self, "RegimeLagLabel")
+        self.RegimeLag = xrc.XRCCTRL(self, "RegimeLag")
         self.restoreButton = xrc.XRCCTRL(self, "restoreButton")
         self.cancelButton = xrc.XRCCTRL(self, "cancelButton")
         self.saveButton = xrc.XRCCTRL(self, "saveButton")
@@ -101,9 +105,11 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_showDetailedModelSpec, self.showDetailedModelSpec)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_OLSdiagnostics, self.OLSdiagnostics)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_residualMoran, self.residualMoran)
-        self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_numcores, self.numcores)
+        self.Bind(wx.EVT_CHOICE, self.OnChoice_numcores, self.numcores)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_missingValueCheck, self.missingValueCheck)
         self.Bind(wx.EVT_TEXT, self.OnText_missingValue, self.missingValue)
+        self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_RegimeError, self.RegimeError)
+        self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_RegimeLag, self.RegimeLag)
         self.Bind(wx.EVT_BUTTON, self.OnButton_restoreButton, self.restoreButton)
         self.Bind(wx.EVT_BUTTON, self.OnButton_cancelButton, self.cancelButton)
         self.Bind(wx.EVT_BUTTON, self.OnButton_saveButton, self.saveButton)
@@ -217,11 +223,11 @@ class xrcgsPrefsDialog(wx.Dialog):
         print "OnCheckbox_residualMoran()"
 #!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_residualMoran        
 
-#!XRCED:begin-block:xrcgsPrefsDialog.OnSpinctrl_numcores
-    def OnSpinctrl_numcores(self, evt):
+#!XRCED:begin-block:xrcgsPrefsDialog.OnChoice_numcores
+    def OnChoice_numcores(self, evt):
         # Replace with event handler code
-        print "OnSpinctrl_numcores()"
-#!XRCED:end-block:xrcgsPrefsDialog.OnSpinctrl_numcores        
+        print "OnChoice_numcores()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnChoice_numcores        
 
 #!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_missingValueCheck
     def OnCheckbox_missingValueCheck(self, evt):
@@ -234,6 +240,18 @@ class xrcgsPrefsDialog(wx.Dialog):
         # Replace with event handler code
         print "OnText_missingValue()"
 #!XRCED:end-block:xrcgsPrefsDialog.OnText_missingValue        
+
+#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_RegimeError
+    def OnCheckbox_RegimeError(self, evt):
+        # Replace with event handler code
+        print "OnCheckbox_RegimeError()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_RegimeError        
+
+#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_RegimeLag
+    def OnCheckbox_RegimeLag(self, evt):
+        # Replace with event handler code
+        print "OnCheckbox_RegimeLag()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_RegimeLag        
 
 #!XRCED:begin-block:xrcgsPrefsDialog.OnButton_restoreButton
     def OnButton_restoreButton(self, evt):
@@ -788,7 +806,6 @@ def __init_resources():
                         <font>
                           <weight>bold</weight>
                         </font>
-                        <hidden>1</hidden>
                       </object>
                       <flag>wxTOP</flag>
                       <border>15</border>
@@ -797,23 +814,21 @@ def __init_resources():
                     <object class="sizeritem">
                       <object class="wxStaticText" name="numcoresLabel">
                         <label>Multi-Core</label>
-                        <hidden>1</hidden>
                         <XRCED>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
                     </object>
                     <object class="sizeritem">
-                      <object class="wxSpinCtrl" name="numcores">
-                        <value>1</value>
-                        <min>1</min>
-                        <hidden>1</hidden>
+                      <object class="wxChoice" name="numcores">
+                        <content>
+                          <item/>
+                        </content>
                         <XRCED>
-                          <events>EVT_SPINCTRL</events>
+                          <events>EVT_CHOICE</events>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
-                      <flag>wxALIGN_CENTRE</flag>
                     </object>
                     <object class="sizeritem">
                       <object class="wxStaticText">
@@ -880,6 +895,58 @@ def __init_resources():
           <XRCED>
             <assign_var>1</assign_var>
           </XRCED>
+          <object class="notebookpage">
+            <object class="wxPanel" name="regimes">
+              <object class="wxBoxSizer">
+                <orient>wxVERTICAL</orient>
+                <object class="sizeritem">
+                  <object class="wxFlexGridSizer">
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="RegimeErrorLabel">
+                        <label>Regime Error</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="RegimeError">
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="RegimeLagLabel">
+                        <label>Regime Lag</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="RegimeLag">
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
+                    </object>
+                    <cols>2</cols>
+                    <rows>2</rows>
+                    <vgap>20</vgap>
+                    <hgap>10</hgap>
+                  </object>
+                  <flag>wxALL|wxALIGN_CENTRE</flag>
+                  <border>15</border>
+                </object>
+              </object>
+            </object>
+            <label>Regimes</label>
+          </object>
         </object>
         <option>1</option>
         <flag>wxALL|wxEXPAND</flag>

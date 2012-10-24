@@ -1,6 +1,11 @@
 #System
 import os
 import json
+try:
+    import multiprocessing
+    CPU_COUNT = multiprocessing.cpu_count()
+except:
+    CPU_COUNT = 1
 #3rd Party
 #Local
 from geodaspace import AbstractModel
@@ -14,9 +19,10 @@ class preferencesModel(AbstractModel):
         'sig2n_k_other':False, 'sig2n_k_ols':True, 'sig2n_k_gmlag':False, 'sig2n_k_2sls':False,
         'gmm_epsilon':1e-05, 'gmm_inferenceOnLambda':True, 'gmm_max_iter':1, 'gmm_step1c':False, 'gmm_inv_method':'Power Expansion',
         'instruments_lag_q':True, 'instruments_w_lags':1,
-        'other_ols_diagnostics':True, 'other_numcores':1, 'other_residualMoran':False,
+        'other_ols_diagnostics':True, 'other_numcores':CPU_COUNT, 'other_residualMoran':False,
         'other_missingValueCheck':False, 'other_missingValue':0.0,
-        'output_save_pred_residuals':False, 'output_vm_summary':False, 'output_show_detailed_spec':False
+        'output_save_pred_residuals':False, 'output_vm_summary':False, 'output_show_detailed_spec':False,
+        'regimes_regime_error':False, 'regimes_regime_lag':False
     }
     sig2n_k_other = AbstractModel.abstractProp('sig2n_k_other',bool)
     sig2n_k_ols = AbstractModel.abstractProp('sig2n_k_ols',bool)
@@ -41,6 +47,9 @@ class preferencesModel(AbstractModel):
     output_save_pred_residuals = AbstractModel.abstractProp('output_save_pred_residuals',bool)
     output_vm_summary = AbstractModel.abstractProp('output_vm_summary',bool)
     output_show_detailed_spec = AbstractModel.abstractProp('output_show_detailed_spec',bool)
+
+    regimes_regime_error = AbstractModel.abstractProp('regimes_regime_error',bool)
+    regimes_regime_lag = AbstractModel.abstractProp('regimes_regime_lag',bool)
 
     def __init__(self):
         AbstractModel.__init__(self)
