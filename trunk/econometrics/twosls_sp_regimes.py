@@ -60,15 +60,13 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
     lag_q        : boolean
                    If True, then include spatial lags of the additional 
                    instruments (q).
-    regime_lag   : boolean
+    regime_lag_sep: boolean
                    If True, the spatial parameter for spatial lag is also
                    computed according to different regimes. If False (default), 
                    the spatial parameter is fixed accross regimes.
-                   Option valid only when regime_lag=True
-    regime_error  : boolean
-                   If True, the variance of the residuals is
-                   computed according to different regimes. If False (default), 
-                   the variance of the residuals does not discriminate regimes.
+                   Option valid only when regime_lag_sep=True
+    regime_err_sep: boolean
+                   If True, a separate regression is run for each regime.
     robust       : string
                    If 'white', then a White consistent estimator of the
                    variance-covariance matrix is given.  If 'hac', then a
@@ -216,15 +214,12 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                    If a list, k booleans indicating for each variable the
                    option (True if one per regime, False to be held constant).
                    If 'all', all the variables vary by regime.
-    regime_lag   : boolean
+    regime_lag_sep   : boolean
                    If True, the spatial parameter for spatial lag is also
                    computed according to different regimes. If False (default), 
                    the spatial parameter is fixed accross regimes.
-    regime_error  : boolean
-                   If True, the variance of the residuals is
-                   computed according to different regimes. If False (default), 
-                   the variance of the residuals does not discriminate regimes.
-                   Option valid only when regime_lag=True
+    regime_err_sep  : boolean
+                   If True, a separate regression is run for each regime.
     kr           : int
                    Number of variables/columns to be "regimized" or subject
                    to change by regime. These will result in one parameter
@@ -327,9 +322,9 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
     according to the regime. It is also possible to have the spatial lag
     varying according to the regime, which effective will result in an
     independent spatial lag model estimated for each regime. To run these
-    models, the argument regime_lag must be set to True:
+    models, the argument regime_lag_sep must be set to True:
 
-    >>> model=GM_Lag_Regimes(y, x, regimes, w=w, regime_lag=True, name_y=y_var, name_x=x_var, name_regimes=r_var, name_ds='NAT', name_w='NAT.shp')
+    >>> model=GM_Lag_Regimes(y, x, regimes, w=w, regime_lag_sep=True, name_y=y_var, name_x=x_var, name_regimes=r_var, name_ds='NAT', name_w='NAT.shp')
     >>> print np.hstack((np.array(model.name_z).reshape(8,1),model.betas,np.sqrt(model.vm.diagonal().reshape(8,1))))
     [['0_CONSTANT' '1.36584769' '0.39854720']
      ['0_PS90' '0.80875730' '0.11324884']
@@ -343,11 +338,11 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
     Alternatively, we can type: 'model.summary' to see the organized results output.
     If instead we want to have varying coefficients for the spatial lag
     but only one regression, restricting the sigma^2 to be the same across
-    regimes, we can se regime_error to False. The change in the option regime_error
+    regimes, we can se regime_err_sep to False. The change in the option regime_err_sep
     will not affect the estimated coefficients, as expected, but the standard
     errors will reflect the restricted sigma^2:
 
-    >>> model=GM_Lag_Regimes(y, x, regimes, w=w, regime_lag=True, regime_error=False, name_y=y_var, name_x=x_var, name_regimes=r_var, name_ds='NAT', name_w='NAT.shp')
+    >>> model=GM_Lag_Regimes(y, x, regimes, w=w, regime_lag_sep=True, regime_err_sep=False, name_y=y_var, name_x=x_var, name_regimes=r_var, name_ds='NAT', name_w='NAT.shp')
     >>> print np.hstack((np.array(model.name_z).reshape(8,1),model.betas,np.sqrt(model.vm.diagonal().reshape(8,1))))
     [['0_CONSTANT' '1.36584769' '0.51821919']
      ['0_PS90' '0.80875730' '0.14725414']
@@ -396,7 +391,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                  w=None, w_lags=1, lag_q=True,\
                  robust=None, gwk=None, sig2n_k=False,\
                  spat_diag=False, constant_regi='many',\
-                 cols2regi='all', regime_lag=False, regime_error=True,\
+                 cols2regi='all', regime_lag_sep=False, regime_err_sep=True,\
                  cores=None, vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None, name_regimes=None,\
                  name_w=None, name_gwk=None, name_ds=None):
@@ -419,18 +414,18 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                 cols2regi = [True] * (x.shape[1]+yend.shape[1])
             else:
                 cols2regi = [True] * (x.shape[1])     
-        if regime_lag == True:
+        if regime_lag_sep == True:
             cols2regi += [True]
             self.regimes_set = list(set(regimes))
             self.regimes_set.sort()
             w_i,regi_ids,warn = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True)
             set_warn(self,warn)
-            if not regime_error:
+            if not regime_err_sep:
                 w = REGI.w_regimes_union(w, w_i, self.regimes_set)
         else:
             cols2regi += [False]
         self.cols2regi = cols2regi
-        if regime_lag == True and regime_error == True:
+        if regime_lag_sep == True and regime_err_sep == True:
             if set(cols2regi) == set([True]):
                 self.GM_Lag_Regimes_Multi(y, x, w_i, regi_ids,\
                  yend=yend, q=q, w_lags=w_lags, lag_q=lag_q, cores=cores,\
@@ -439,7 +434,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                  name_yend=name_yend, name_q=name_q, name_regimes=self.name_regimes,\
                  name_w=name_w, name_gwk=name_gwk, name_ds=name_ds)
             else:
-                raise Exception, "All coefficients must vary accross regimes if regime_error = True."
+                raise Exception, "All coefficients must vary accross regimes if regime_err_sep = True."
         else:
             yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
             name_yend.append(USER.set_name_yend_sp(name_y))
@@ -450,12 +445,12 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                  name_x=name_x, name_yend=name_yend, name_q=name_q,\
                  name_regimes=name_regimes, name_w=name_w, name_gwk=name_gwk,\
                  name_ds=name_ds,summ=False)
-            if regime_lag:
+            if regime_lag_sep:
                 self.sp_att_reg(w_i, regi_ids, yend2[:,-1].reshape(self.n,1))
             else:
                 self.predy_e, self.e_pred = sp_att(w,self.y,self.predy,\
                           yend2[:,-1].reshape(self.n,1),self.betas[-1])
-            self.regime_lag=regime_lag
+            self.regime_lag_sep=regime_lag_sep
             self.title = "SPATIAL TWO STAGE LEAST SQUARES - REGIMES"
             SUMMARY.GM_Lag(reg=self, w=w, vm=vm, spat_diag=spat_diag, regimes=True)
 
@@ -580,5 +575,5 @@ if __name__ == '__main__':
     regimes = db.by_col(r_var)
     w = pysal.queen_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    model = GM_Lag_Regimes(y, x, regimes, yend=yd, q=q, w=w, constant_regi='many', regime_lag=False, spat_diag=True, sig2n_k=False, lag_q=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
+    model = GM_Lag_Regimes(y, x, regimes, yend=yd, q=q, w=w, constant_regi='many', regime_lag_sep=False, spat_diag=True, sig2n_k=False, lag_q=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
     print model.summary

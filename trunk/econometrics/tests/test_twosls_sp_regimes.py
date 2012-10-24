@@ -184,7 +184,7 @@ class TestGMLag_Regimes(unittest.TestCase):
         yd = np.reshape(yd, (49,1))
         q = np.array(self.db.by_col("DISCBD"))
         q = np.reshape(q, (49,1))
-        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w, regime_lag=True, regime_error=False) 
+        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w, regime_lag_sep=True, regime_err_sep=False) 
         tbetas = np.array([[ 42.35827477],
        [ -0.09472413],
        [ 32.24228762],
@@ -232,7 +232,7 @@ class TestGMLag_Regimes(unittest.TestCase):
         w = pysal.lat2W(latt,latt)
         w.transform='r'
         regi = [0]*(n/2) + [1]*(n/2)
-        model = GM_Lag_Regimes(y, x1, regi, q=q, yend=x2, w=w, regime_lag=True, regime_error=True)
+        model = GM_Lag_Regimes(y, x1, regi, q=q, yend=x2, w=w, regime_lag_sep=True, regime_err_sep=True)
         w1 = pysal.lat2W(latt/2,latt)
         w1.transform='r'
         model1 = GM_Lag(y[0:(n/2)].reshape((n/2),1), x1[0:(n/2)], yend=x2[0:(n/2)], q=q[0:(n/2)], w=w1)
@@ -248,7 +248,7 @@ class TestGMLag_Regimes(unittest.TestCase):
         yd = np.reshape(yd, (49,1))
         q = np.array(self.db.by_col("DISCBD"))
         q = np.reshape(q, (49,1))
-        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w,regime_lag=True, regime_error = True) 
+        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w,regime_lag_sep=True, regime_err_sep = True) 
         tbetas = np.array([[ 42.35827477],
        [ -0.09472413],
        [ -0.68794223],
@@ -350,7 +350,7 @@ class TestGMLag_Regimes(unittest.TestCase):
         np.testing.assert_array_almost_equal(reg.chow.regi, chow_regi, 7)
         self.assertAlmostEqual(reg.chow.joint[0], 0.63336222761359162, 7)
         self.assertListEqual(reg.name_x, ['0.0_CONSTANT', '0.0_INC', '1.0_CONSTANT', '1.0_INC'])
-        self.assertListEqual(reg.name_yend, ['0.0_HOVAL', '1.0_HOVAL', 'Global_W_CRIME'])
+        self.assertListEqual(reg.name_yend, ['0.0_HOVAL', '1.0_HOVAL', '_Global_W_CRIME'])
         self.assertListEqual(reg.name_q, ['0.0_DISCBD', '0.0_W_INC', '0.0_W_DISCBD', '1.0_DISCBD', '1.0_W_INC', '1.0_W_DISCBD'])
         self.assertEqual(reg.name_y, y_var)
 

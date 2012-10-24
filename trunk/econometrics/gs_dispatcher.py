@@ -50,8 +50,8 @@ class Spmodel:
                   (two dimensional array)
     name_h      : list of strings
                   Names of instruments for use in output
-    r           : array
-                  nx1 array of regimes variable
+    r           : list
+                  List of length n with regimes variable
     name_r      : string
                   Name of regime variable for use in output
     t           : place holder
@@ -110,14 +110,12 @@ class Spmodel:
     moran       : boolean
                   If True compute Moran's I of the residuals (only affects the
                   OLS case)
-    regime_error  : boolean
-                    If True, the spatial parameter for autoregressive error is also
-                    computed according to different regimes. If False (default), 
-                    the spatial parameter is fixed accross regimes.
-    regime_lag    : boolean
-                    If True, the spatial parameter for spatial lag is also
-                    computed according to different regimes. If False (default), 
-                    the spatial parameter is fixed accross regimes.
+    regime_err_sep  : boolean
+                      If True, a separate regression is run for each regime.
+    regime_lag_sep  : boolean
+                      If True, the spatial parameter for spatial lag is also
+                      computed according to different regimes. If False (default), 
+                      the spatial parameter is fixed accross regimes.
     cores         : int
                     Amount of cores to be used for multiprocessing tasks.
                     Default: None, which is same as maximum number possible.
@@ -161,7 +159,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
     >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval']
@@ -174,7 +172,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=True, hac=False, kp_het=False, inf_lambda=False)
     >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval']
@@ -187,7 +185,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=False, hac=True, kp_het=False, inf_lambda=False)
     >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval']
@@ -200,7 +198,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
@@ -213,7 +211,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=True, hac=False, kp_het=False, inf_lambda=False)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
@@ -226,7 +224,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
@@ -239,7 +237,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
     >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
@@ -252,7 +250,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=False, hac=False, kp_het=True, inf_lambda=False)
     >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
@@ -265,7 +263,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=False, hac=False, kp_het=False, inf_lambda=True)
     >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
@@ -278,7 +276,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=False, hac=False, kp_het=True, inf_lambda=True)
     >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
@@ -291,7 +289,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
@@ -304,7 +302,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=False, hac=False, kp_het=True, inf_lambda=False)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
@@ -326,7 +324,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval']
@@ -339,7 +337,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=True, hac=False, kp_het=False, inf_lambda=False)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval']
@@ -352,7 +350,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=False, hac=True, kp_het=False, inf_lambda=False)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval']
@@ -365,7 +363,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
@@ -378,7 +376,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=True, hac=False, kp_het=False, inf_lambda=False)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
@@ -391,7 +389,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
@@ -404,7 +402,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'lambda']
@@ -417,7 +415,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=False, hac=False, kp_het=True, inf_lambda=False)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'lambda']
@@ -430,7 +428,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=False, hac=False, kp_het=False, inf_lambda=False)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
@@ -443,7 +441,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_error=None, regime_lag=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=None,\
         white=False, hac=False, kp_het=True, inf_lambda=False)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
@@ -459,7 +457,7 @@ class Spmodel:
                 instrument_lags, lag_user_inst,\
                 vc_matrix, predy_resid,\
                 ols_diag, moran,\
-                regime_error, regime_lag, cores):
+                regime_err_sep, regime_lag_sep, cores):
 
         self.name_ds = name_ds
         self.w_list = w_list
@@ -497,8 +495,8 @@ class Spmodel:
         self.predy_resid = predy_resid
         self.ols_diag = ols_diag
         self.moran = moran
-        self.regime_error = regime_error
-        self.regime_lag = regime_lag
+        self.regime_err_sep = regime_err_sep
+        self.regime_lag_sep = regime_lag_sep
         self.cores = cores
 
         if predy_resid:
@@ -539,7 +537,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
             instrument_lags, lag_user_inst,\
             vc_matrix, predy_resid,\
             ols_diag, moran,\
-            regime_error, regime_lag, cores):
+            regime_err_sep, regime_lag_sep, cores):
     """
     spmodel originally ran the dispatcher. The class Spmodel now runs the
     dispatcher, and was created when this module was refactored for ease of
@@ -556,7 +554,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                 instrument_lags, lag_user_inst,\
                 vc_matrix, predy_resid,\
                 ols_diag, moran,\
-                regime_error, regime_lag, cores)
+                regime_err_sep, regime_lag_sep, cores)
     return result.output
 
 ##############################################################################
@@ -975,7 +973,7 @@ def get_OLS_regimes(gui):
     reg = OLS_Regimes(y=gui.y, x=gui.x, regimes=gui.r, name_regimes=gui.name_r,\
                nonspat_diag=gui.ols_diag, spat_diag=False, vm=gui.vc_matrix,\
                name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,
-               sig2n_k=gui.sig2n_k_ols)
+               sig2n_k=gui.sig2n_k_ols, regime_err_sep=gui.regime_err_sep)
     if gui.predy_resid:  # write out predicted values and residuals
         gui.pred_res, gui.header_pr, counter = collect_predy_resid(\
                                gui.pred_res, gui.header_pr, reg, 'standard',\
@@ -1002,7 +1000,7 @@ def get_OLS_regimes(gui):
 
 def get_TSLS_regimes(gui):
     reg = TSLS_Regimes(y=gui.y, x=gui.x, yend=gui.ye, q=gui.h,\
-                regimes=gui.r, name_regimes=gui.name_r,\
+                regimes=gui.r, name_regimes=gui.name_r, regime_err_sep=gui.regime_err_sep,\
                 spat_diag=False, vm=gui.vc_matrix,\
                 name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
                 name_q=gui.name_h, name_ds=gui.name_ds, sig2n_k=gui.sig2n_k_tsls)
@@ -1037,7 +1035,7 @@ def get_GM_Lag_endog_regimes(gui):
     for w in gui.w_list:
         reg = GM_Lag_Regimes(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
               regimes=gui.r, name_regimes=gui.name_r,\
-              regime_error=gui.regime_error, regime_lag=gui.regime_lag, cores=gui.cores,\
+              regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep, cores=gui.cores,\
               vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, sig2n_k=gui.sig2n_k_gmlag,\
@@ -1059,7 +1057,7 @@ def get_GM_Lag_noEndog_regimes(gui):
     for w in gui.w_list:
         reg = GM_Lag_Regimes(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
               regimes=gui.r, name_regimes=gui.name_r,\
-              regime_error=gui.regime_error, regime_lag=gui.regime_lag, cores=gui.cores,\
+              regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep, cores=gui.cores,\
               w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               sig2n_k=gui.sig2n_k_gmlag, spat_diag=gui.spat_diag, name_w=w.name)
@@ -1080,7 +1078,7 @@ def get_GM_Endog_Error_Hom_regimes(gui):
     for w in gui.w_list:
         reg = GM_Endog_Error_Hom_Regimes(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
               regimes=gui.r, name_regimes=gui.name_r,\
-              regime_error=gui.regime_error, cores=gui.cores,\
+              regime_err_sep=gui.regime_err_sep, cores=gui.cores,\
               vm=gui.vc_matrix, max_iter=gui.max_iter, epsilon=gui.stop_crit,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
@@ -1096,7 +1094,7 @@ def get_GM_Error_Hom_regimes(gui):
     for w in gui.w_list:
         reg = GM_Error_Hom_Regimes(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
               regimes=gui.r, name_regimes=gui.name_r,\
-              regime_error=gui.regime_error, cores=gui.cores,\
+              regime_err_sep=gui.regime_err_sep, cores=gui.cores,\
               max_iter=gui.max_iter, epsilon=gui.stop_crit,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               name_w=w.name)
@@ -1112,7 +1110,7 @@ def get_GM_Endog_Error_regimes(gui):
     for w in gui.w_list:
         reg = GM_Endog_Error_Regimes(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
               regimes=gui.r, name_regimes=gui.name_r,\
-              regime_error=gui.regime_error, cores=gui.cores,\
+              regime_err_sep=gui.regime_err_sep, cores=gui.cores,\
               vm=gui.vc_matrix,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
@@ -1128,7 +1126,7 @@ def get_GM_Error_regimes(gui):
     for w in gui.w_list:
         reg = GM_Error_Regimes(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
               regimes=gui.r, name_regimes=gui.name_r,\
-              regime_error=gui.regime_error, cores=gui.cores,\
+              regime_err_sep=gui.regime_err_sep, cores=gui.cores,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               name_w=w.name)
         run_predy_resid(gui, reg, '', False)
@@ -1143,7 +1141,7 @@ def get_GM_Endog_Error_Het_regimes(gui):
     for w in gui.w_list:
         reg = GM_Endog_Error_Het_Regimes(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
               regimes=gui.r, name_regimes=gui.name_r,\
-              regime_error=gui.regime_error, cores=gui.cores,\
+              regime_err_sep=gui.regime_err_sep, cores=gui.cores,\
               vm=gui.vc_matrix, max_iter=gui.max_iter, epsilon=gui.stop_crit,\
               step1c=gui.step1c, inv_method=gui.comp_inverse,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
@@ -1158,7 +1156,7 @@ def get_GM_Error_Het_regimes(gui):
     for w in gui.w_list:
         reg = GM_Error_Het_Regimes(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
               regimes=gui.r, name_regimes=gui.name_r,\
-              regime_error=gui.regime_error, cores=gui.cores,\
+              regime_err_sep=gui.regime_err_sep, cores=gui.cores,\
               max_iter=gui.max_iter, epsilon=gui.stop_crit,\
               step1c=gui.step1c,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
@@ -1173,7 +1171,7 @@ def get_GM_Combo_Hom_endog_regimes(gui):
     for w in gui.w_list:
         reg = GM_Combo_Hom_Regimes(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
               regimes=gui.r, name_regimes=gui.name_r,\
-              regime_error=gui.regime_error, regime_lag=gui.regime_lag, cores=gui.cores,\
+              regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep, cores=gui.cores,\
               vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
               max_iter=gui.max_iter, epsilon=gui.stop_crit,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
@@ -1190,7 +1188,7 @@ def get_GM_Combo_Hom_noEndog_regimes(gui):
     for w in gui.w_list:
         reg = GM_Combo_Hom_Regimes(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
               regimes=gui.r, name_regimes=gui.name_r,\
-              regime_error=gui.regime_error, regime_lag=gui.regime_lag, cores=gui.cores,\
+              regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep, cores=gui.cores,\
               w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
               max_iter=gui.max_iter, epsilon=gui.stop_crit,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
@@ -1207,7 +1205,7 @@ def get_GM_Combo_endog_regimes(gui):
     for w in gui.w_list:
         reg = GM_Combo_Regimes(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
               regimes=gui.r, name_regimes=gui.name_r,\
-              regime_error=gui.regime_error, regime_lag=gui.regime_lag, cores=gui.cores,\
+              regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep, cores=gui.cores,\
               vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
@@ -1223,7 +1221,7 @@ def get_GM_Combo_noEndog_regimes(gui):
     for w in gui.w_list:
         reg = GM_Combo_Regimes(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
               regimes=gui.r, name_regimes=gui.name_r,\
-              regime_error=gui.regime_error, regime_lag=gui.regime_lag, cores=gui.cores,\
+              regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep, cores=gui.cores,\
               w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               name_w=w.name)
@@ -1239,7 +1237,7 @@ def get_GM_Combo_Het_endog_regimes(gui):
     for w in gui.w_list:
         reg = GM_Combo_Het_Regimes(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
               regimes=gui.r, name_regimes=gui.name_r,\
-              regime_error=gui.regime_error, regime_lag=gui.regime_lag, cores=gui.cores,\
+              regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep, cores=gui.cores,\
               vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
               max_iter=gui.max_iter, epsilon=gui.stop_crit,\
               step1c=gui.step1c, inv_method=gui.comp_inverse,\
@@ -1255,7 +1253,7 @@ def get_GM_Combo_Het_noEndog_regimes(gui):
     for w in gui.w_list:
         reg = GM_Combo_Het_Regimes(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
               regimes=gui.r, name_regimes=gui.name_r,\
-              regime_error=gui.regime_error, regime_lag=gui.regime_lag, cores=gui.cores,\
+              regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep, cores=gui.cores,\
               w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
               max_iter=gui.max_iter, epsilon=gui.stop_crit,\
               step1c=gui.step1c, inv_method=gui.comp_inverse,\

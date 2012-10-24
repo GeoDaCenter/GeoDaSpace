@@ -88,7 +88,7 @@ class TestGM_Error_Regimes(unittest.TestCase):
 
     def test_model_regi_error(self):
         #Columbus:
-        reg = SP.GM_Error_Regimes(self.y, self.X, self.regimes, self.w, regime_error=True)
+        reg = SP.GM_Error_Regimes(self.y, self.X, self.regimes, self.w, regime_err_sep=True)
         betas = np.array([[ 60.45730439],
        [ -0.17732134],
        [ -1.30936328],
@@ -114,7 +114,7 @@ class TestGM_Error_Regimes(unittest.TestCase):
         chow_j = 0.70119418251625387
         self.assertAlmostEqual(reg.chow.joint[0],chow_j)
         #Artficial:
-        model = SP.GM_Error_Regimes(self.y_a, self.x_a, self.regi_a, w=self.w_a, regime_error=True)
+        model = SP.GM_Error_Regimes(self.y_a, self.x_a, self.regi_a, w=self.w_a, regime_err_sep=True)
         model1 = GM_Error(self.y_a[0:(self.n2)].reshape((self.n2),1), self.x_a[0:(self.n2)], w=self.w_a1)
         model2 = GM_Error(self.y_a[(self.n2):].reshape((self.n2),1), self.x_a[(self.n2):], w=self.w_a1)
         tbetas = np.vstack((model1.betas, model2.betas))
@@ -174,7 +174,7 @@ class TestGM_Error_Regimes(unittest.TestCase):
 
     def test_model_endog_regi_error(self):
         #Columbus:
-        reg = SP.GM_Endog_Error_Regimes(self.y, self.X1, self.yd, self.q, self.regimes, self.w, regime_error=True)
+        reg = SP.GM_Endog_Error_Regimes(self.y, self.X1, self.yd, self.q, self.regimes, self.w, regime_err_sep=True)
         betas = np.array([[  7.91729500e+01],
        [  5.80693176e+00],
        [ -3.84036576e+00],
@@ -200,7 +200,7 @@ class TestGM_Error_Regimes(unittest.TestCase):
         chow_j = 1.118463120181409
         self.assertAlmostEqual(reg.chow.joint[0],chow_j)
         #Artficial:
-        model = SP.GM_Endog_Error_Regimes(self.y_a, self.x_a1, yend=self.x_a2, q=self.q_a, regimes=self.regi_a, w=self.w_a, regime_error=True)
+        model = SP.GM_Endog_Error_Regimes(self.y_a, self.x_a1, yend=self.x_a2, q=self.q_a, regimes=self.regi_a, w=self.w_a, regime_err_sep=True)
         model1 = GM_Endog_Error(self.y_a[0:(self.n2)].reshape((self.n2),1), self.x_a1[0:(self.n2)], yend=self.x_a2[0:(self.n2)], q=self.q_a[0:(self.n2)], w=self.w_a1)
         model2 = GM_Endog_Error(self.y_a[(self.n2):].reshape((self.n2),1), self.x_a1[(self.n2):], yend=self.x_a2[(self.n2):], q=self.q_a[(self.n2):], w=self.w_a1)
         tbetas = np.vstack((model1.betas, model2.betas))
@@ -265,7 +265,7 @@ class TestGM_Error_Regimes(unittest.TestCase):
 
     def test_model_combo_regi_error(self):
         #Columbus:
-        reg = SP.GM_Combo_Regimes(self.y, self.X1, self.regimes, self.yd, self.q, w=self.w, regime_lag=True, regime_error=True)
+        reg = SP.GM_Combo_Regimes(self.y, self.X1, self.regimes, self.yd, self.q, w=self.w, regime_lag_sep=True, regime_err_sep=True)
         betas = np.array([[ 42.01035248],
        [ -0.13938772],
        [ -0.6528306 ],
@@ -294,7 +294,7 @@ class TestGM_Error_Regimes(unittest.TestCase):
         chow_j = 0.28479988992843119
         self.assertAlmostEqual(reg.chow.joint[0],chow_j)
         #Artficial:
-        model = SP.GM_Combo_Regimes(self.y_a, self.x_a1, yend=self.x_a2, q=self.q_a, regimes=self.regi_a, w=self.w_a, regime_error=True, regime_lag=True)
+        model = SP.GM_Combo_Regimes(self.y_a, self.x_a1, yend=self.x_a2, q=self.q_a, regimes=self.regi_a, w=self.w_a, regime_err_sep=True, regime_lag_sep=True)
         model1 = GM_Combo(self.y_a[0:(self.n2)].reshape((self.n2),1), self.x_a1[0:(self.n2)], yend=self.x_a2[0:(self.n2)], q=self.q_a[0:(self.n2)], w=self.w_a1)
         model2 = GM_Combo(self.y_a[(self.n2):].reshape((self.n2),1), self.x_a1[(self.n2):], yend=self.x_a2[(self.n2):], q=self.q_a[(self.n2):], w=self.w_a1)
         tbetas = np.vstack((model1.betas, model2.betas))
