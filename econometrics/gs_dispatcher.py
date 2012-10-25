@@ -970,7 +970,7 @@ def get_GM_Combo_Het_noEndog(gui):
     return output
 
 def get_OLS_regimes(gui):
-    if gui.regime_err_sep and gui.ols_diag:
+    if gui.regime_err_sep==False:
         gui.ols_diag = False
     reg = OLS_Regimes(y=gui.y, x=gui.x, regimes=gui.r, name_regimes=gui.name_r,\
                nonspat_diag=gui.ols_diag, spat_diag=False, vm=gui.vc_matrix,\
