@@ -7,7 +7,9 @@ test_ols.py related to regimes."""
 
 import regimes as REGI
 import user_output as USER
+import multiprocessing as mp
 from ols import BaseOLS
+from utils import set_warn
 import summary_output as SUMMARY
 import numpy as np
 
@@ -281,35 +283,105 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
                  w=None, robust=None, gwk=None, sig2n_k=True,\
                  nonspat_diag=True, spat_diag=False, moran=False,\
                  vm=False, constant_regi='many', cols2regi='all',\
-                 regime_err_sep=True,\
+                 regime_err_sep=False, cores=None,\
                  name_y=None, name_x=None, name_regimes=None,\
-                 name_w=None, name_gwk=None, name_ds=None):
-
+                 name_w=None, name_gwk=None, name_ds=None):         
+        
         n = USER.check_arrays(y, x)
         USER.check_y(y, n)
         USER.check_weights(w, y)
         USER.check_robust(robust, gwk)
         USER.check_spat_diag(spat_diag, w)
-        name_x = USER.set_name_x(name_x, x,constant=True)
         self.name_x_r = USER.set_name_x(name_x, x)
         self.constant_regi = constant_regi
         self.cols2regi = cols2regi        
-        x, name_x = REGI.Regimes_Frame.__init__(self, x,\
-                regimes, constant_regi, cols2regi, name_x)
-        BaseOLS.__init__(self, y=y, x=x, robust=robust, gwk=gwk, \
-                sig2n_k=sig2n_k)
-        self.title = "ORDINARY LEAST SQUARES - REGIMES"
-        self.name_ds = USER.set_name_ds(name_ds)
-        self.name_y = USER.set_name_y(name_y)
-        self.name_x = USER.set_name_x(name_x, x, constant=True)
-        self.name_regimes = USER.set_name_ds(name_regimes)
-        self.robust = USER.set_robust(robust)
         self.name_w = USER.set_name_w(name_w, w)
         self.name_gwk = USER.set_name_w(name_gwk, gwk)
-        self.chow = REGI.Chow(self)
-        SUMMARY.OLS(reg=self, vm=vm, w=w, nonspat_diag=nonspat_diag,\
-                    spat_diag=spat_diag, moran=moran, regimes=True)
+        self.name_ds = USER.set_name_ds(name_ds)
+        self.name_y = USER.set_name_y(name_y)
+        self.name_regimes = USER.set_name_ds(name_regimes)
+        self.n = n        
+        if regime_err_sep == True:
+            name_x = USER.set_name_x(name_x, x)
+            self.y = y
+            if cols2regi == 'all':
+                cols2regi = [True] * (x.shape[1])
+            self.regimes_set = list(set(regimes))
+            self.regimes_set.sort()
+            if w:
+                w_i,regi_ids,warn = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True, min_n=len(self.cols2regi)+1)
+                set_warn(self,warn)
+            else:
+                regi_ids = dict((r, list(np.where(np.array(regimes) == r)[0])) for r in self.regimes_set)
+                w_i = None
+            if set(cols2regi) == set([True]):
+                self._ols_regimes_multi(x, w_i, regi_ids, cores,\
+                 gwk, sig2n_k, robust, nonspat_diag, spat_diag, vm, name_x, moran)
+            else:
+                raise Exception, "All coefficients must vary accross regimes if regime_err_sep = True."
+        else:
+            name_x = USER.set_name_x(name_x, x,constant=True)
+            x, self.name_x = REGI.Regimes_Frame.__init__(self, x,\
+                    regimes, constant_regi, cols2regi, name_x)
+            BaseOLS.__init__(self, y=y, x=x, robust=robust, gwk=gwk, \
+                    sig2n_k=sig2n_k)
+            self.title = "ORDINARY LEAST SQUARES - REGIMES"
+            self.robust = USER.set_robust(robust)
+            self.chow = REGI.Chow(self)
+            SUMMARY.OLS(reg=self, vm=vm, w=w, nonspat_diag=nonspat_diag,\
+                        spat_diag=spat_diag, moran=moran, regimes=True)
 
+    def _ols_regimes_multi(self, x, w_i, regi_ids, cores,\
+                 gwk, sig2n_k, robust, nonspat_diag, spat_diag, vm, name_x, moran):
+        pool = mp.Pool(cores)
+        results_p = {}
+        for r in self.regimes_set:
+            results_p[r] = pool.apply_async(_work,args=(self.y,x,regi_ids,r,robust,gwk,sig2n_k,self.name_ds,self.name_y,name_x,self.name_w,self.name_gwk,self.name_regimes))
+        self.kryd = 0
+        self.kr = x.shape[1]+1
+        self.kf = 0
+        self.nr = len(self.regimes_set)
+        self.vm = np.zeros((self.nr*self.kr,self.nr*self.kr),float)
+        self.betas = np.zeros((self.nr*self.kr,1),float)
+        self.u = np.zeros((self.n,1),float)
+        self.predy = np.zeros((self.n,1),float)
+        pool.close()
+        pool.join()
+        results = {}
+        self.name_y, self.name_x = [],[]
+        counter = 0
+        for r in self.regimes_set:
+            results[r] = results_p[r].get()
+            if w_i:
+                results[r].w = w_i[r]
+            else:
+                results[r].w = None
+            self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
+            self.betas[(counter*self.kr):((counter+1)*self.kr),] = results[r].betas
+            self.u[regi_ids[r],]=results[r].u
+            self.predy[regi_ids[r],]=results[r].predy
+            self.name_y += results[r].name_y
+            self.name_x += results[r].name_x
+            counter += 1
+        self.chow = REGI.Chow(self)            
+        self.multi = results
+        SUMMARY.OLS_multi(reg=self, multireg=self.multi, vm=vm, nonspat_diag=nonspat_diag, spat_diag=spat_diag, moran=moran, regimes=True)
+
+def _work(y,x,regi_ids,r,robust,gwk,sig2n_k,name_ds,name_y,name_x,name_w,name_gwk,name_regimes):
+    y_r = y[regi_ids[r]]
+    x_r = x[regi_ids[r]]
+    x_constant = USER.check_constant(x_r)
+    model = BaseOLS(y_r, x_constant, robust=robust, gwk=gwk, sig2n_k=sig2n_k)
+    model.title = "ORDINARY LEAST SQUARES ESTIMATION - REGIME %s" %r
+    model.robust = USER.set_robust(robust)
+    model.name_ds = name_ds
+    model.name_y = '%s_%s'%(str(r), name_y)
+    model.name_x = ['%s_%s'%(str(r), i) for i in name_x]
+    model.name_w = name_w
+    model.name_gwk = name_gwk
+    model.name_regimes = name_regimes
+    return model
+            
 def _test():
     import doctest
     start_suppress = np.get_printoptions()['suppress']

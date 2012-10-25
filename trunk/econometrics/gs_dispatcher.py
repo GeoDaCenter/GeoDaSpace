@@ -970,9 +970,11 @@ def get_GM_Combo_Het_noEndog(gui):
     return output
 
 def get_OLS_regimes(gui):
+    if gui.regime_err_sep and gui.ols_diag:
+        gui.ols_diag = False
     reg = OLS_Regimes(y=gui.y, x=gui.x, regimes=gui.r, name_regimes=gui.name_r,\
                nonspat_diag=gui.ols_diag, spat_diag=False, vm=gui.vc_matrix,\
-               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,
+               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds, cores=gui.cores,\
                sig2n_k=gui.sig2n_k_ols, regime_err_sep=gui.regime_err_sep)
     if gui.predy_resid:  # write out predicted values and residuals
         gui.pred_res, gui.header_pr, counter = collect_predy_resid(\
@@ -1001,7 +1003,7 @@ def get_OLS_regimes(gui):
 def get_TSLS_regimes(gui):
     reg = TSLS_Regimes(y=gui.y, x=gui.x, yend=gui.ye, q=gui.h,\
                 regimes=gui.r, name_regimes=gui.name_r, regime_err_sep=gui.regime_err_sep,\
-                spat_diag=False, vm=gui.vc_matrix,\
+                spat_diag=False, vm=gui.vc_matrix, cores=gui.cores,\
                 name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
                 name_q=gui.name_h, name_ds=gui.name_ds, sig2n_k=gui.sig2n_k_tsls)
     if gui.predy_resid:  # write out predicted values and residuals
@@ -1034,8 +1036,8 @@ def get_GM_Lag_endog_regimes(gui):
     counter = 1
     for w in gui.w_list:
         reg = GM_Lag_Regimes(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
-              regimes=gui.r, name_regimes=gui.name_r,\
-              regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep, cores=gui.cores,\
+              regimes=gui.r, name_regimes=gui.name_r, cores=gui.cores,\
+              regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep,\
               vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, sig2n_k=gui.sig2n_k_gmlag,\
@@ -1056,8 +1058,8 @@ def get_GM_Lag_noEndog_regimes(gui):
     counter = 1
     for w in gui.w_list:
         reg = GM_Lag_Regimes(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
-              regimes=gui.r, name_regimes=gui.name_r,\
-              regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep, cores=gui.cores,\
+              regimes=gui.r, name_regimes=gui.name_r, cores=gui.cores,\
+              regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep,\
               w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               sig2n_k=gui.sig2n_k_gmlag, spat_diag=gui.spat_diag, name_w=w.name)
