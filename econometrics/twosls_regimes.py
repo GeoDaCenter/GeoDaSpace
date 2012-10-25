@@ -1,7 +1,8 @@
 import numpy as np
 import regimes as REGI
 import user_output as USER
-from utils import sphstack
+import multiprocessing as mp
+from utils import sphstack, set_warn
 from twosls import BaseTSLS
 import summary_output as SUMMARY
 
@@ -72,11 +73,6 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
                    nx1 array of predicted y values
     n            : integer
                    Number of observations
-    k            : integer
-                   Number of variables for which coefficients are estimated
-                   (including the constant)
-    kstar        : integer
-                   Number of endogenous variables. 
     y            : array
                    nx1 array for dependent variable
     x            : array
@@ -88,34 +84,8 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
     q            : array
                    Two dimensional array with n rows and one column for each
                    external exogenous variable used as instruments 
-    z            : array
-                   nxk array of variables (combination of x and yend)
-    h            : array
-                   nxl array of instruments (combination of x and q)
-    mean_y       : float
-                   Mean of dependent variable
-    std_y        : float
-                   Standard deviation of dependent variable
     vm           : array
                    Variance covariance matrix (kxk)
-    utu          : float
-                   Sum of squared residuals
-    sig2         : float
-                   Sigma squared used in computations
-    sig2n        : float
-                   Sigma squared (computed with n in the denominator)
-    sig2n_k      : float
-                   Sigma squared (computed with n-k in the denominator)
-    hth          : float
-                   H'H
-    hthi         : float
-                   (H'H)^-1
-    varb         : array
-                   (Z'H (H'H)^-1 H'Z)^-1
-    zthhthi      : array
-                   Z'H(H'H)^-1
-    pfora1a2     : array
-                   n(zthhthi)'varb
     regimes      : list
                    List of n values with the mapping of each
                    observation to a regime. Assumed to be aligned with 'x'.
@@ -247,42 +217,123 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
     def __init__(self, y, x, yend, q, regimes,\
              w=None, robust=None, gwk=None, sig2n_k=True,\
              spat_diag=False, vm=False, constant_regi='many',\
-             cols2regi='all', regime_err_sep=True, name_y=None, name_x=None,\
-             name_yend=None, name_q=None, name_regimes=None,\
+             cols2regi='all', regime_err_sep=False, name_y=None, name_x=None,\
+             cores=None, name_yend=None, name_q=None, name_regimes=None,\
              name_w=None, name_gwk=None, name_ds=None, summ=True):
-
+       
         n = USER.check_arrays(y, x)
         USER.check_y(y, n)
         USER.check_weights(w, y)
         USER.check_robust(robust, gwk)
         USER.check_spat_diag(spat_diag, w)
-        name_yend = USER.set_name_yend(name_yend, yend)
-        self.name_x_r = USER.set_name_x(name_x, x) + name_yend
-        name_x = USER.set_name_x(name_x, x,constant=True)
-        name_q = USER.set_name_q(name_q, q)
-        self.cols2regi = cols2regi
-        q, self.name_q = REGI.Regimes_Frame.__init__(self, q, \
-                regimes, constant_regi=None, cols2regi='all', names=name_q)
-        x, self.name_x = REGI.Regimes_Frame.__init__(self, x, \
-                regimes, constant_regi, cols2regi=cols2regi, names=name_x)
-        yend, self.name_yend = REGI.Regimes_Frame.__init__(self, yend, \
-                regimes, constant_regi=None, \
-                cols2regi=cols2regi, yend=True, names=name_yend)
-        BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q, \
-                robust=robust, gwk=gwk, sig2n_k=sig2n_k)
         self.constant_regi = constant_regi
+        self.cols2regi = cols2regi
         self.name_ds = USER.set_name_ds(name_ds)
-        self.name_y = USER.set_name_y(name_y)
-        self.name_z = self.name_x + self.name_yend
         self.name_regimes = USER.set_name_ds(name_regimes)
-        self.name_h = USER.set_name_h(self.name_x, self.name_q)
-        self.robust = USER.set_robust(robust)
         self.name_w = USER.set_name_w(name_w, w)
         self.name_gwk = USER.set_name_w(name_gwk, gwk)
-        self.chow = REGI.Chow(self)
-        if summ:
-            self.title = "TWO STAGE LEAST SQUARES - REGIMES"
-            SUMMARY.TSLS(reg=self, vm=vm, w=w, spat_diag=spat_diag, regimes=True)
+        self.name_y = USER.set_name_y(name_y)
+        name_yend = USER.set_name_yend(name_yend, yend)
+        name_q = USER.set_name_q(name_q, q)
+        self.name_x_r = USER.set_name_x(name_x, x) + name_yend            
+        self.n = n
+        if regime_err_sep == True:
+            name_x = USER.set_name_x(name_x, x)
+            self.y = y
+            if cols2regi == 'all':
+                cols2regi = [True] * (x.shape[1]+yend.shape[1])
+            self.regimes_set = list(set(regimes))
+            self.regimes_set.sort()
+            if w:
+                w_i,regi_ids,warn = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True, min_n=len(self.cols2regi)+1)
+                set_warn(self,warn)
+            else:
+                regi_ids = dict((r, list(np.where(np.array(regimes) == r)[0])) for r in self.regimes_set)
+                w_i = None
+            if set(cols2regi) == set([True]):
+                self._tsls_regimes_multi(x, yend, q, w_i, regi_ids, cores,\
+                 gwk, sig2n_k, robust, spat_diag, vm, name_x, name_yend, name_q)
+            else:
+                raise Exception, "All coefficients must vary accross regimes if regime_err_sep = True."
+        else:
+            name_x = USER.set_name_x(name_x, x,constant=True)
+            q, self.name_q = REGI.Regimes_Frame.__init__(self, q, \
+                    regimes, constant_regi=None, cols2regi='all', names=name_q)
+            x, self.name_x = REGI.Regimes_Frame.__init__(self, x, \
+                    regimes, constant_regi, cols2regi=cols2regi, names=name_x)
+            yend, self.name_yend = REGI.Regimes_Frame.__init__(self, yend, \
+                    regimes, constant_regi=None, \
+                    cols2regi=cols2regi, yend=True, names=name_yend)
+            BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q, \
+                    robust=robust, gwk=gwk, sig2n_k=sig2n_k)
+            self.name_z = self.name_x + self.name_yend
+            self.name_h = USER.set_name_h(self.name_x, self.name_q)
+            self.chow = REGI.Chow(self)
+            self.robust = USER.set_robust(robust)
+            if summ:
+                self.title = "TWO STAGE LEAST SQUARES - REGIMES"
+                SUMMARY.TSLS(reg=self, vm=vm, w=w, spat_diag=spat_diag, regimes=True)
+
+    def _tsls_regimes_multi(self, x, yend, q, w_i, regi_ids, cores,\
+                 gwk, sig2n_k, robust, spat_diag, vm, name_x, name_yend, name_q):
+        pool = mp.Pool(cores)
+        results_p = {}
+        for r in self.regimes_set:
+            results_p[r] = pool.apply_async(_work,args=(self.y,x,regi_ids,r,yend,q,robust,gwk,sig2n_k,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_gwk,self.name_regimes))
+        self.kryd = 0
+        self.kr = x.shape[1]+yend.shape[1]+1
+        self.kf = 0
+        self.nr = len(self.regimes_set)
+        self.vm = np.zeros((self.nr*self.kr,self.nr*self.kr),float)
+        self.betas = np.zeros((self.nr*self.kr,1),float)
+        self.u = np.zeros((self.n,1),float)
+        self.predy = np.zeros((self.n,1),float)
+        pool.close()
+        pool.join()
+        results = {}
+        self.name_y, self.name_x, self.name_yend, self.name_q, self.name_z, self.name_h = [],[],[],[],[],[]
+        counter = 0
+        for r in self.regimes_set:
+            results[r] = results_p[r].get()
+            if w_i:
+                results[r].w = w_i[r]
+            else:
+                results[r].w = None
+            self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
+            self.betas[(counter*self.kr):((counter+1)*self.kr),] = results[r].betas
+            self.u[regi_ids[r],]=results[r].u
+            self.predy[regi_ids[r],]=results[r].predy
+            self.name_y += results[r].name_y
+            self.name_x += results[r].name_x
+            self.name_yend += results[r].name_yend
+            self.name_q += results[r].name_q
+            self.name_z += results[r].name_z
+            self.name_h += results[r].name_h
+            counter += 1
+        self.chow = REGI.Chow(self)            
+        self.multi = results
+        SUMMARY.TSLS_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=spat_diag, regimes=True)
+
+def _work(y,x,regi_ids,r,yend,q,robust,gwk,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_gwk,name_regimes):
+    y_r = y[regi_ids[r]]
+    x_r = x[regi_ids[r]]
+    yend_r = yend[regi_ids[r]]
+    q_r = q[regi_ids[r]]
+    x_constant = USER.check_constant(x_r)
+    model = BaseTSLS(y_r, x_constant, yend_r, q_r, robust=robust, gwk=gwk, sig2n_k=sig2n_k)
+    model.title = "SPATIAL TWO STAGE LEAST SQUARES ESTIMATION - REGIME %s" %r
+    model.robust = USER.set_robust(robust)
+    model.name_ds = name_ds
+    model.name_y = '%s_%s'%(str(r), name_y)
+    model.name_x = ['%s_%s'%(str(r), i) for i in name_x]
+    model.name_yend = ['%s_%s'%(str(r), i) for i in name_yend]
+    model.name_z = model.name_x + model.name_yend
+    model.name_q = ['%s_%s'%(str(r), i) for i in name_q]
+    model.name_h = model.name_x + model.name_q
+    model.name_w = name_w
+    model.name_gwk = name_gwk
+    model.name_regimes = name_regimes
+    return model
 
 def _test():
     import doctest

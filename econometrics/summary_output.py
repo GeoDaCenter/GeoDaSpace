@@ -63,6 +63,25 @@ def TSLS(reg, vm, w, spat_diag, regimes=False):
         summary_regimes(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag)
 
+def TSLS_multi(reg, multireg, vm, spat_diag, regimes=False):
+    for m in multireg:
+        mreg = multireg[m]
+        mreg.__summary = {}
+        # compute diagnostics and organize summary output
+        beta_diag(mreg, mreg.robust)
+        if spat_diag:
+            # compute diagnostics and organize summary output
+            spat_diag_instruments(mreg, mreg.w)
+        # build coefficients table body
+        build_coefs_body_instruments(mreg)
+        if regimes:
+            summary_regimes(mreg,chow=False)
+        multireg[m].__summary = mreg.__summary
+    reg.__summary = {}
+    summary_chow(reg)
+    summary_warning(reg)
+    summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag)
+
 def GM_Lag(reg, vm, w, spat_diag, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
