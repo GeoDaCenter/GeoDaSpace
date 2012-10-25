@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 import pysal
+from econometrics.ols import OLS
 from econometrics.ols_regimes import OLS_Regimes
 
 PEGP = pysal.examples.get_path
@@ -88,6 +89,47 @@ class TestOLS_regimes(unittest.TestCase):
         np.testing.assert_array_almost_equal(ols.t_stat[2][1], \
                 0.66687472578594531,7)
         np.set_printoptions(suppress=start_suppress)        
+
+    def test_OLS_regi(self):
+        #Artficial:
+        n = 256
+        x1 = np.random.uniform(-10,10,(n,1))
+        y = np.dot(np.hstack((np.ones((n,1)),x1)),np.array([[1],[0.5]])) + np.random.normal(0,1,(n,1))
+        latt = int(np.sqrt(n))
+        regi = [0]*(n/2) + [1]*(n/2)
+        model = OLS_Regimes(y, x1, regimes=regi, regime_err_sep=True, sig2n_k=False)
+        model1 = OLS(y[0:(n/2)].reshape((n/2),1), x1[0:(n/2)], sig2n_k=False)
+        model2 = OLS(y[(n/2):n].reshape((n/2),1), x1[(n/2):n], sig2n_k=False)
+        tbetas = np.vstack((model1.betas, model2.betas))
+        np.testing.assert_array_almost_equal(model.betas,tbetas)
+        vm = np.hstack((model1.vm.diagonal(),model2.vm.diagonal()))
+        np.testing.assert_array_almost_equal(model.vm.diagonal(), vm, 6)
+        #Columbus:  
+        reg = OLS_Regimes(self.y, self.x, self.regimes, w=self.w, constant_regi='many', nonspat_diag=True, spat_diag=True, name_y=self.y_var, name_x=self.x_var, name_ds='columbus', name_regimes=self.r_var, name_w='columbus.gal', regime_err_sep=True)        
+        np.testing.assert_array_almost_equal(reg.multi[0].aic, 192.96044303402897 ,7)
+        tbetas = np.array([[ 68.78670869],
+       [ -1.9864167 ],
+       [ -0.10887962],
+       [ 67.73579559],
+       [ -1.36937552],
+       [ -0.31792362]])
+        np.testing.assert_array_almost_equal(tbetas, reg.betas)
+        vm = np.array([ 41.68828023,  -1.83582717,  -0.17053478,   0.        ,
+         0.        ,   0.        ])
+        np.testing.assert_array_almost_equal(reg.vm[0], vm, 6)
+        u_3 = np.array([[ 0.31781838],
+       [-5.6905584 ],
+       [-6.8819715 ]])
+        np.testing.assert_array_almost_equal(reg.u[0:3], u_3, 7)
+        predy_3 = np.array([[ 15.40816162],
+       [ 24.4923124 ],
+       [ 37.5087525 ]])
+        np.testing.assert_array_almost_equal(reg.predy[0:3], predy_3, 7)
+        chow_regi = np.array([[ 0.01002733,  0.92023592],
+       [ 0.46017009,  0.49754449],
+       [ 0.60732697,  0.43579603]])
+        np.testing.assert_array_almost_equal(reg.chow.regi, chow_regi, 7)
+        self.assertAlmostEqual(reg.chow.joint[0], 0.67787986791767096, 7)
 
 if __name__ == '__main__':
     unittest.main()
