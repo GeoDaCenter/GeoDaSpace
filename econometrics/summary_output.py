@@ -50,6 +50,38 @@ def OLS(reg, vm, w, nonspat_diag, spat_diag, moran, regimes=False):
         summary_regimes(reg)
     summary(reg=reg, vm=vm, instruments=False, nonspat_diag=nonspat_diag, spat_diag=spat_diag)
 
+def OLS_multi(reg, multireg, vm, nonspat_diag, spat_diag, moran, regimes=False):
+    for m in multireg:
+        mreg = multireg[m]
+        mreg.__summary = {}
+        # compute diagnostics and organize summary output
+        beta_diag_ols(mreg, mreg.robust)
+        if nonspat_diag:
+            # compute diagnostics
+            mreg.sig2ML = mreg.sig2n  
+            mreg.f_stat = diagnostics.f_stat(mreg)  
+            mreg.logll = diagnostics.log_likelihood(mreg) 
+            mreg.aic = diagnostics.akaike(mreg) 
+            mreg.schwarz = diagnostics.schwarz(mreg) 
+            mreg.mulColli = diagnostics.condition_index(mreg)
+            mreg.jarque_bera = diagnostics.jarque_bera(mreg)
+            mreg.breusch_pagan = diagnostics.breusch_pagan(mreg)
+            mreg.koenker_bassett = diagnostics.koenker_bassett(mreg)
+            mreg.white = diagnostics.white(mreg)
+            # organize summary output
+            mreg.__summary['summary_nonspat_diag_1'] = summary_nonspat_diag_1(mreg)
+            mreg.__summary['summary_nonspat_diag_2'] = summary_nonspat_diag_2(mreg)
+        if spat_diag:
+            # compute diagnostics and organize summary output
+            spat_diag_ols(mreg, mreg.w, moran)
+        if regimes:
+            summary_regimes(mreg,chow=False)
+        multireg[m].__summary = mreg.__summary
+    reg.__summary = {}
+    summary_chow(reg)
+    summary_warning(reg)
+    summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=False, nonspat_diag=nonspat_diag, spat_diag=spat_diag)
+
 def TSLS(reg, vm, w, spat_diag, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output

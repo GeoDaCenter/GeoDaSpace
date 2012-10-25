@@ -321,7 +321,7 @@ def _work(y,x,regi_ids,r,yend,q,robust,gwk,sig2n_k,name_ds,name_y,name_x,name_ye
     q_r = q[regi_ids[r]]
     x_constant = USER.check_constant(x_r)
     model = BaseTSLS(y_r, x_constant, yend_r, q_r, robust=robust, gwk=gwk, sig2n_k=sig2n_k)
-    model.title = "SPATIAL TWO STAGE LEAST SQUARES ESTIMATION - REGIME %s" %r
+    model.title = "TWO STAGE LEAST SQUARES ESTIMATION - REGIME %s" %r
     model.robust = USER.set_robust(robust)
     model.name_ds = name_ds
     model.name_y = '%s_%s'%(str(r), name_y)
