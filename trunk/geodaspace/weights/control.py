@@ -407,10 +407,14 @@ class weightsDialog(xrcDIALOGWEIGHTS):
             if self.model.bbox_diag > 0:
                 max_dist = self.model.bbox_diag
                 rec_dist = self.model.knn1_dist
-                self.ThresholdSlider.SetValue(int(math.ceil((rec_dist/max_dist) * self.ThresholdSlider.GetMax())))
-                self.ThresholdSlider2.SetValue(int(math.ceil((rec_dist/max_dist) * self.ThresholdSlider2.GetMax())))
-                self.threshold()
-                self.threshold2()
+                #self.ThresholdSlider.SetValue(int(math.ceil((rec_dist/max_dist) * self.ThresholdSlider.GetMax())))
+                #self.ThresholdSlider2.SetValue(int(math.ceil((rec_dist/max_dist) * self.ThresholdSlider2.GetMax())))
+                self.CutoffText.ChangeValue(str(self.model.knn1_dist))
+                self.CutoffText.SetModified(True)
+                self.CutoffText2.ChangeValue(str(self.model.knn1_dist))
+                self.CutoffText2.SetModified(True)
+                self.threshold(evtName='OnText')
+                self.threshold2(evtName='OnText')
 
     def isdigit(self,evt):
         """easy validator for textCtrl
