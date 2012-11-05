@@ -970,8 +970,6 @@ def get_GM_Combo_Het_noEndog(gui):
     return output
 
 def get_OLS_regimes(gui):
-    if gui.regime_err_sep==False:
-        gui.ols_diag = False
     reg = OLS_Regimes(y=gui.y, x=gui.x, regimes=gui.r, name_regimes=gui.name_r,\
                nonspat_diag=gui.ols_diag, spat_diag=False, vm=gui.vc_matrix,\
                name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds, cores=gui.cores,\
@@ -982,14 +980,28 @@ def get_OLS_regimes(gui):
                                False, 0, 0)
     if gui.w_list and gui.spat_diag:
         output = []
-        for w in gui.w_list:
-            # add spatial diagnostics for each W
-            reg_spat = COPY.copy(reg)
-            reg_spat.name_w = w.name
-            SUMMARY.spat_diag_ols(reg=reg_spat, w=w, moran=gui.moran)
-            SUMMARY.summary(reg=reg_spat, vm=gui.vc_matrix, instruments=False,\
-                            nonspat_diag=gui.ols_diag, spat_diag=True)
-            output.append(reg_spat)
+        if regime_err_sep: #Run regression again to account for different W. 
+            reg.name_w = gui.w_list[0].name
+            SUMMARY.spat_diag_ols(reg=reg, w=w_list[0], moran=gui.moran)
+            SUMMARY.summary(reg=reg, vm=gui.vc_matrix, instruments=False,\
+                                nonspat_diag=gui.ols_diag, spat_diag=True)
+            output.append(reg)
+            for w in gui.w_list[1:]:
+                reg_spat = COPY.copy(reg)
+                reg_spat.name_w = w.name
+                SUMMARY.spat_diag_ols(reg=reg_spat, w=w, moran=gui.moran)
+                SUMMARY.summary(reg=reg_spat, vm=gui.vc_matrix, instruments=False,\
+                                nonspat_diag=gui.ols_diag, spat_diag=True)
+                output.append(reg_spat)       
+        else: #Re-use results.
+            for w in gui.w_list:
+                # add spatial diagnostics for each W
+                reg_spat = COPY.copy(reg)
+                reg_spat.name_w = w.name
+                SUMMARY.spat_diag_ols(reg=reg_spat, w=w, moran=gui.moran)
+                SUMMARY.summary(reg=reg_spat, vm=gui.vc_matrix, instruments=False,\
+                                nonspat_diag=gui.ols_diag, spat_diag=True)
+                output.append(reg_spat)     
     else:
         output = [reg]
     robust_regs = get_white_hac_standard(reg, gui)
@@ -1012,14 +1024,28 @@ def get_TSLS_regimes(gui):
                                False, 0, 0)
     if gui.w_list and gui.spat_diag:
         output = []
-        for w in gui.w_list:
-            # add spatial diagnostics for each W
-            reg_spat = COPY.copy(reg)
-            reg_spat.name_w = w.name
-            SUMMARY.spat_diag_instruments(reg=reg_spat, w=w)
-            SUMMARY.summary(reg=reg_spat, vm=gui.vc_matrix, instruments=True,\
-                            nonspat_diag=False, spat_diag=True)
-            output.append(reg_spat)
+        if regime_err_sep: #Run regression again to account for different W. 
+            reg.name_w = gui.w_list[0].name
+            SUMMARY.spat_diag_instruments(reg=reg, w=w_list[0])
+            SUMMARY.summary(reg=reg, vm=gui.vc_matrix, instruments=True,\
+                                nonspat_diag=False, spat_diag=True)
+            output.append(reg)
+            for w in gui.w_list[1:]:
+                reg_spat = COPY.copy(reg)
+                reg_spat.name_w = w.name
+                SUMMARY.spat_diag_instruments(reg=reg_spat, w=w)
+                SUMMARY.summary(reg=reg_spat, vm=gui.vc_matrix, instruments=True,\
+                                nonspat_diag=False, spat_diag=True)
+                output.append(reg_spat)       
+        else: #Re-use results.
+            for w in gui.w_list:
+                # add spatial diagnostics for each W
+                reg_spat = COPY.copy(reg)
+                reg_spat.name_w = w.name
+                SUMMARY.spat_diag_instruments(reg=reg_spat, w=w)
+                SUMMARY.summary(reg=reg_spat, vm=gui.vc_matrix, instruments=True,\
+                                nonspat_diag=False, spat_diag=True)
+                output.append(reg_spat)
     else:
         output = [reg]
     robust_regs = get_white_hac_standard(reg, gui)

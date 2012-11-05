@@ -20,7 +20,7 @@ class TestGMLag_Regimes(unittest.TestCase):
         X.append(self.db.by_col("INC"))
         X.append(self.db.by_col("HOVAL"))
         self.X = np.array(X).T
-        reg = GM_Lag_Regimes(self.y, self.X, self.regimes, w=self.w, sig2n_k=True) 
+        reg = GM_Lag_Regimes(self.y, self.X, self.regimes, w=self.w, sig2n_k=True, regime_lag_sep=False, regime_err_sep=False) 
         betas = np.array([[ 45.14892906],
        [ -1.42593383],
        [ -0.11501037],
@@ -118,7 +118,7 @@ class TestGMLag_Regimes(unittest.TestCase):
         yd = np.reshape(yd, (49,1))
         q = np.array(self.db.by_col("DISCBD"))
         q = np.reshape(q, (49,1))
-        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, lag_q=False, w=self.w, sig2n_k=True) 
+        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, lag_q=False, w=self.w, sig2n_k=True, regime_lag_sep=False, regime_err_sep=False) 
         tbetas = np.array([[ 42.7266306 ],
        [ -0.15552345],
        [ 37.70545276],
@@ -159,7 +159,7 @@ class TestGMLag_Regimes(unittest.TestCase):
         yd = np.reshape(yd, (49,1))
         q = np.array(self.db.by_col("DISCBD"))
         q = np.reshape(q, (49,1))
-        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w, sig2n_k=True) 
+        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w, sig2n_k=True, regime_lag_sep=False, regime_err_sep=False) 
         tbetas = np.array([[ 37.87698329],
        [ -0.89426982],
        [ 31.4714777 ],
@@ -291,7 +291,7 @@ class TestGMLag_Regimes(unittest.TestCase):
         yd = np.reshape(yd, (49,1))
         q = np.array(self.db.by_col("DISCBD"))
         q = np.reshape(q, (49,1))
-        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w, constant_regi='one') 
+        reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w, constant_regi='one', regime_lag_sep=False, regime_err_sep=False) 
         tbetas = np.array([[ -0.37658823],
        [ -0.9666079 ],
        [ 35.5445944 ],
@@ -332,7 +332,7 @@ class TestGMLag_Regimes(unittest.TestCase):
         q_var = ['DISCBD']
         q = np.array([self.db.by_col(name) for name in q_var]).T
         r_var = 'NSA'
-        reg = GM_Lag_Regimes(self.y, x, self.regimes, yend=yd, q=q, w=self.w, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
+        reg = GM_Lag_Regimes(self.y, x, self.regimes, yend=yd, q=q, w=self.w, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal', regime_lag_sep=False, regime_err_sep=False)
         betas = np.array([[ 37.87698329],
        [ -0.89426982],
        [ 31.4714777 ],

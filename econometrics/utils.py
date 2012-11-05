@@ -710,7 +710,13 @@ def spmin(a):
     if type(a).__name__ == 'ndarray':
         return a.min()
     elif type(a).__name__ == 'csr_matrix' or type(a).__name__ == 'csc_matrix':
-        return min(a.data)
+        try:
+            return min(a.data)
+        except:
+            if np.sum(a.data) == 0:
+                return 0
+            else:
+                raise Exception, "Error: could not evaluate the minimum value."
     else:
         raise Exception, "Invalid format for 'spmultiply' argument: %s and %s"%(type(a).__name__, type(b).__name__)
 
@@ -730,12 +736,16 @@ def spmax(a):
     max a       : int or float
                   maximum value in a
     """  
-
-
     if type(a).__name__ == 'ndarray':
         return a.max()
     elif type(a).__name__ == 'csr_matrix' or type(a).__name__ == 'csc_matrix':
-        return max(a.data)
+        try:
+            return max(a.data)
+        except:
+            if np.sum(a.data) == 0:
+                return 0
+            else:
+                raise Exception, "Error: could not evaluate the maximum value."    
     else:
         raise Exception, "Invalid format for 'spmultiply' argument: %s and %s"%(type(a).__name__, type(b).__name__)
 
