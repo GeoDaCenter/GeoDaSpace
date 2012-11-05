@@ -300,7 +300,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
     to have the names of the variables printed in the output summary, we will
     have to pass them in as well, although this is optional.
 
-    >>> model=GM_Lag_Regimes(y, x, regimes, w=w, name_y=y_var, name_x=x_var, name_regimes=r_var, name_ds='NAT', name_w='NAT.shp')
+    >>> model=GM_Lag_Regimes(y, x, regimes, w=w, regime_lag_sep=False, regime_err_sep=False, name_y=y_var, name_x=x_var, name_regimes=r_var, name_ds='NAT', name_w='NAT.shp')
     >>> model.betas
     array([[ 1.28897623],
            [ 0.79777722],
@@ -367,7 +367,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
 
     And we can run the model again:
 
-    >>> model = GM_Lag_Regimes(y, x, regimes, yend=yd, q=q, w=w, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='NAT', name_w='NAT.shp')
+    >>> model = GM_Lag_Regimes(y, x, regimes, yend=yd, q=q, w=w, regime_lag_sep=False, regime_err_sep=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='NAT', name_w='NAT.shp')
     >>> model.betas
     array([[ 3.42195202],
            [ 1.03311878],
@@ -577,5 +577,5 @@ if __name__ == '__main__':
     regimes = db.by_col(r_var)
     w = pysal.queen_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    model = GM_Lag_Regimes(y, x, regimes, yend=yd, q=q, w=w, constant_regi='many', regime_lag_sep=False, spat_diag=True, sig2n_k=False, lag_q=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
+    model = GM_Lag_Regimes(y, x, regimes, yend=yd, q=q, w=w, constant_regi='many', spat_diag=True, sig2n_k=False, lag_q=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
     print model.summary
