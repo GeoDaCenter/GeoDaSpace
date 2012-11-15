@@ -468,6 +468,10 @@ def summary(reg, vm, instruments, short_intro=False, nonspat_diag=False, spat_di
         summary += reg.__summary['summary_other_mid']
     except:
         pass
+    try:
+        summary += reg.__summary['summary_chow']
+    except:
+        pass
     if nonspat_diag:
         summary += reg.__summary['summary_nonspat_diag_2']
     if spat_diag:
@@ -501,6 +505,10 @@ def summary_multi(reg, multireg, vm, instruments, short_intro=False, nonspat_dia
         if m == multireg.keys()[-1]:
             try:
                 summary += reg.__summary['summary_other_mid']
+            except:
+                pass
+            try:
+                summary += reg.__summary['summary_chow']
             except:
                 pass
         if nonspat_diag:
@@ -630,7 +638,7 @@ def summary_coefs_instruments(reg):
     reg.__summary['summary_coefs_instruments'] = inst2
 
 def summary_regimes(reg,chow=True):
-    """Generates a list of the instruments used.
+    """Lists the regimes variable used.
     """
     try:
         reg.__summary['summary_other_mid'] += "Regimes variable: %s\n" %reg.name_regimes
@@ -640,11 +648,8 @@ def summary_regimes(reg,chow=True):
         summary_chow(reg)
 
 def summary_chow(reg):
-    try:
-        reg.__summary['summary_other_mid'] += "\nREGIMES DIAGNOSTICS - CHOW TEST\n"
-    except:
-        reg.__summary['summary_other_mid'] = "\nREGIMES DIAGNOSTICS - CHOW TEST\n"     
-    reg.__summary['summary_other_mid'] += "                 VARIABLE        DF        VALUE           PROB\n"
+    reg.__summary['summary_chow'] = "\nREGIMES DIAGNOSTICS - CHOW TEST\n"
+    reg.__summary['summary_chow'] += "                 VARIABLE        DF        VALUE           PROB\n"
     if reg.cols2regi == 'all':
         names_chow = reg.name_x_r[1:]
     else:
@@ -655,8 +660,8 @@ def summary_chow(reg):
     else:
         indices = (np.argsort(names_chow)).tolist() 
     for i in indices:    
-        reg.__summary['summary_other_mid'] += "%25s        %2d    %12.6f        %9.7f\n" %(names_chow[i],reg.nr-1,reg.chow.regi[i,0],reg.chow.regi[i,1])
-    reg.__summary['summary_other_mid'] += "%25s        %2d    %12.6f        %9.7f\n" %('Global test',reg.kr*(reg.nr-1),reg.chow.joint[0],reg.chow.joint[1])
+        reg.__summary['summary_chow'] += "%25s        %2d    %12.6f        %9.7f\n" %(names_chow[i],reg.nr-1,reg.chow.regi[i,0],reg.chow.regi[i,1])
+    reg.__summary['summary_chow'] += "%25s        %2d    %12.6f        %9.7f\n" %('Global test',reg.kr*(reg.nr-1),reg.chow.joint[0],reg.chow.joint[1])
 
 def summary_warning(reg):
     try:

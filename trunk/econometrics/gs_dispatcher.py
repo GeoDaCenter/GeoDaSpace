@@ -15,6 +15,7 @@ from error_sp_hom_regimes import GM_Endog_Error_Hom_Regimes, GM_Error_Hom_Regime
 import robust as ROBUST
 import summary_output as SUMMARY
 import user_output as USER
+import regimes as REGI
 
 INV_METHODS = ("Power Expansion", "True Inverse",)
 
@@ -601,14 +602,11 @@ class Wildcard_Dict(dict):
         else:
             dict.__setitem__(self, key, value)
 
-def get_robust(reg, robust, gwk=None):
+def get_robust(reg_robust, robust, gwk=None):
     """Creates a new regression object, computes the robust standard errors,
     resets the regression object's internal cache and recompute the non-spatial 
     diagnostics.
     """
-    USER.check_robust(robust, gwk)    
-    reg_robust = COPY.copy(reg)
-    reg_robust._cache = {}
     reg_robust.robust = robust
     if gwk != None:
         reg_robust.name_gwk = gwk.name
@@ -637,13 +635,31 @@ def get_white_hac_standard(reg, gui):
     robust_regs = []
     if gui.white:
         # compute White std errors
-        robust_regs.append(get_robust(reg, 'white'))
+        reg_robust = COPY.copy(reg)
+        reg_robust._cache = {}
+        reg_robust.multi_robust = {}
+        try:
+            for m in reg_robust.multi:
+                reg_robust.multi_robust[m] = get_robust(reg_robust.multi[m], 'white')
+            robust_regs.append(robust_vm_multi(reg_robust))
+        except:
+            robust_regs.append(get_robust(reg_robust, 'white'))
     if gui.hac:
         if len(gui.wk_list) == 0:
             raise Exception, "must provide kernel weights matrix to use HAC"
         for gwk in gui.wk_list:
             # compute HAC std errors
-            robust_regs.append(get_robust(reg, 'hac', gwk))
+            USER.check_robust('hac', gwk)
+            reg_robust = COPY.copy(reg)
+            reg_robust._cache = {}
+            reg_robust.multi_robust = {}
+            try:
+                for m in reg_robust.multi:
+                    pass
+                    #reg_robust.multi_robust[m] = get_robust(reg_robust.multi[m], 'hac', gwk)
+                #robust_regs.append(robust_vm_multi(reg_robust))
+            except:
+                robust_regs.append(get_robust(reg_robust, 'hac', gwk))
     return robust_regs
 
 def get_white_hac_lag(reg, gui, output):    
@@ -655,15 +671,40 @@ def get_white_hac_lag(reg, gui, output):
     if gui.white:
         for reg in output:
             # compute White std errors
-            robust_regs.append(get_robust(reg, 'white'))
+            reg_robust = COPY.copy(reg)
+            reg_robust._cache = {}
+            try:
+                reg_robust.multi_robust = {}
+                for m in reg_robust.multi:
+                    reg_robust.multi_robust[m] = get_robust(reg_robust.multi[m], 'white')
+                robust_regs.append(robust_vm_multi(reg_robust))
+            except:
+                robust_regs.append(get_robust(reg_robust, 'white'))
     if gui.hac:
         if len(gui.wk_list) == 0:
             raise Exception, "must provide kernel weights matrix to use HAC"
         for reg in output:
             for gwk in gui.wk_list:
                 # compute HAC std errors
-                robust_regs.append(get_robust(reg, 'hac', gwk))
+                USER.check_robust('hac', gwk)
+                reg_robust = COPY.copy(reg)
+                reg_robust._cache = {}
+                try:
+                    reg_robust.multi_robust = {}
+                    for m in reg_robust.multi:
+                        pass
+                        #reg_robust.multi_robust[m] = get_robust(reg_robust.multi[m], 'hac', gwk)
+                    #robust_regs.append(robust_vm_multi(reg_robust))
+                except:
+                    robust_regs.append(get_robust(reg_robust, 'hac', gwk))
     return robust_regs
+
+def robust_vm_multi(reg):
+    counter = 0
+    for r in reg.regimes_set:
+        reg.vm[(counter*reg.kr):((counter+1)*reg.kr),(counter*reg.kr):((counter+1)*reg.kr)] = reg.multi_robust[r].vm
+        counter += 1
+    return reg    
 
 def collect_predy_resid(pred_res, header_pr, reg, model, spatial, ws, counter):
     if ws > 1:
@@ -729,7 +770,7 @@ def get_OLS(gui):
     for rob_reg in robust_regs:
         SUMMARY.beta_diag_ols(rob_reg, rob_reg.robust)
         SUMMARY.summary(reg=rob_reg, vm=gui.vc_matrix, instruments=False,\
-                        nonspat_diag=gui.ols_diag, spat_diag=gui.spat_diag)
+                        nonspat_diag=gui.ols_diag, spat_diag=False)
     output.extend(robust_regs)
     return output
 
@@ -779,7 +820,7 @@ def get_GM_Lag_endog(gui):
         SUMMARY.beta_diag_lag(rob_reg, rob_reg.robust)
         SUMMARY.build_coefs_body_instruments(rob_reg)
         SUMMARY.summary(reg=rob_reg, vm=gui.vc_matrix, instruments=True,\
-                        nonspat_diag=False, spat_diag=False)
+                        nonspat_diag=False, spat_diag=gui.spat_diag)
     output.extend(robust_regs)
     return output
 
@@ -798,7 +839,7 @@ def get_GM_Lag_noEndog(gui):
         SUMMARY.beta_diag_lag(rob_reg, rob_reg.robust)
         SUMMARY.build_coefs_body_instruments(rob_reg)
         SUMMARY.summary(reg=rob_reg, vm=gui.vc_matrix, instruments=True,\
-                        nonspat_diag=False, spat_diag=False)
+                        nonspat_diag=False, spat_diag=gui.spat_diag)
     output.extend(robust_regs)
     return output
 
@@ -970,31 +1011,30 @@ def get_GM_Combo_Het_noEndog(gui):
     return output
 
 def get_OLS_regimes(gui):
-    reg = OLS_Regimes(y=gui.y, x=gui.x, regimes=gui.r, name_regimes=gui.name_r,\
-               nonspat_diag=gui.ols_diag, spat_diag=False, vm=gui.vc_matrix,\
+    if gui.w_list:
+        w0 = gui.w_list[0]
+        name_w0 = gui.w_list[0].name
+    else:
+        w0,name_w0 = None,None
+    reg = OLS_Regimes(y=gui.y, x=gui.x, regimes=gui.r, name_regimes=gui.name_r, w=w0,\
+               nonspat_diag=gui.ols_diag, spat_diag=gui.spat_diag, vm=gui.vc_matrix,\
                name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds, cores=gui.cores,\
-               sig2n_k=gui.sig2n_k_ols, regime_err_sep=gui.regime_err_sep)
+               sig2n_k=gui.sig2n_k_ols, regime_err_sep=gui.regime_err_sep, name_w=name_w0)
     if gui.predy_resid:  # write out predicted values and residuals
         gui.pred_res, gui.header_pr, counter = collect_predy_resid(\
                                gui.pred_res, gui.header_pr, reg, 'standard',\
                                False, 0, 0)
+    output = [reg]
     if gui.w_list and gui.spat_diag:
-        output = []
-        if regime_err_sep: #Run regression again to account for different W. 
-            reg.name_w = gui.w_list[0].name
-            SUMMARY.spat_diag_ols(reg=reg, w=w_list[0], moran=gui.moran)
-            SUMMARY.summary(reg=reg, vm=gui.vc_matrix, instruments=False,\
-                                nonspat_diag=gui.ols_diag, spat_diag=True)
-            output.append(reg)
+        if gui.regime_err_sep: #Run regression again to account for different W. 
             for w in gui.w_list[1:]:
-                reg_spat = COPY.copy(reg)
-                reg_spat.name_w = w.name
-                SUMMARY.spat_diag_ols(reg=reg_spat, w=w, moran=gui.moran)
-                SUMMARY.summary(reg=reg_spat, vm=gui.vc_matrix, instruments=False,\
-                                nonspat_diag=gui.ols_diag, spat_diag=True)
-                output.append(reg_spat)       
+                reg_spat = OLS_Regimes(y=gui.y, x=gui.x, regimes=gui.r, name_regimes=gui.name_r, w=w,\
+                       nonspat_diag=gui.ols_diag, spat_diag=True, vm=gui.vc_matrix,\
+                       name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds, cores=gui.cores,\
+                       sig2n_k=gui.sig2n_k_ols, regime_err_sep=gui.regime_err_sep, name_w=w.name)
+                output.append(reg_spat)
         else: #Re-use results.
-            for w in gui.w_list:
+            for w in gui.w_list[1:]:
                 # add spatial diagnostics for each W
                 reg_spat = COPY.copy(reg)
                 reg_spat.name_w = w.name
@@ -1002,43 +1042,53 @@ def get_OLS_regimes(gui):
                 SUMMARY.summary(reg=reg_spat, vm=gui.vc_matrix, instruments=False,\
                                 nonspat_diag=gui.ols_diag, spat_diag=True)
                 output.append(reg_spat)     
-    else:
-        output = [reg]
     robust_regs = get_white_hac_standard(reg, gui)
     for rob_reg in robust_regs:
-        SUMMARY.beta_diag_ols(rob_reg, rob_reg.robust)
-        SUMMARY.summary(reg=rob_reg, vm=gui.vc_matrix, instruments=False,\
-                        nonspat_diag=gui.ols_diag, spat_diag=gui.spat_diag)
-    output.extend(robust_regs)
+        rob_reg.w,rob_reg.name_w = None,None
+        if gui.regime_err_sep:
+            for m in rob_reg.multi_robust:
+                rob_reg.multi_robust[m].w,rob_reg.multi_robust[m].name_w = None,None
+                SUMMARY.beta_diag_ols(rob_reg.multi_robust[m], rob_reg.multi_robust[m].robust)
+            rob_reg.chow = REGI.Chow(rob_reg)
+            SUMMARY.summary_chow(rob_reg)
+            SUMMARY.summary_multi(reg=rob_reg, multireg=rob_reg.multi_robust, vm=gui.vc_matrix,\
+                    instruments=False, nonspat_diag=gui.ols_diag, spat_diag=False)
+        else:
+            SUMMARY.beta_diag_ols(rob_reg, rob_reg.robust)
+            rob_reg.chow = REGI.Chow(rob_reg)
+            SUMMARY.summary_chow(rob_reg)
+            SUMMARY.summary(reg=rob_reg, vm=gui.vc_matrix, instruments=False,\
+                        nonspat_diag=gui.ols_diag, spat_diag=False)
+    output.extend(robust_regs)  
     return output
 
 def get_TSLS_regimes(gui):
-    reg = TSLS_Regimes(y=gui.y, x=gui.x, yend=gui.ye, q=gui.h,\
+    if gui.w_list:
+        w0 = gui.w_list[0]
+        name_w0 = gui.w_list[0].name
+    else:
+        w0,name_w0 = None,None
+    reg = TSLS_Regimes(y=gui.y, x=gui.x, yend=gui.ye, q=gui.h, name_w=name_w0, w=w0,\
                 regimes=gui.r, name_regimes=gui.name_r, regime_err_sep=gui.regime_err_sep,\
-                spat_diag=False, vm=gui.vc_matrix, cores=gui.cores,\
+                spat_diag=gui.spat_diag, vm=gui.vc_matrix, cores=gui.cores,\
                 name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
                 name_q=gui.name_h, name_ds=gui.name_ds, sig2n_k=gui.sig2n_k_tsls)
     if gui.predy_resid:  # write out predicted values and residuals
         gui.pred_res, gui.header_pr, counter = collect_predy_resid(\
                                gui.pred_res, gui.header_pr, reg, 'standard',\
                                False, 0, 0)
+    output = [reg]
     if gui.w_list and gui.spat_diag:
-        output = []
-        if regime_err_sep: #Run regression again to account for different W. 
-            reg.name_w = gui.w_list[0].name
-            SUMMARY.spat_diag_instruments(reg=reg, w=w_list[0])
-            SUMMARY.summary(reg=reg, vm=gui.vc_matrix, instruments=True,\
-                                nonspat_diag=False, spat_diag=True)
-            output.append(reg)
+        if gui.regime_err_sep: #Run regression again to account for different W. 
             for w in gui.w_list[1:]:
-                reg_spat = COPY.copy(reg)
-                reg_spat.name_w = w.name
-                SUMMARY.spat_diag_instruments(reg=reg_spat, w=w)
-                SUMMARY.summary(reg=reg_spat, vm=gui.vc_matrix, instruments=True,\
-                                nonspat_diag=False, spat_diag=True)
+                reg_spat = TSLS_Regimes(y=gui.y, x=gui.x, yend=gui.ye, q=gui.h, name_w=w.name, w=w,\
+                    regimes=gui.r, name_regimes=gui.name_r, regime_err_sep=gui.regime_err_sep,\
+                    spat_diag=gui.spat_diag, vm=gui.vc_matrix, cores=gui.cores,\
+                    name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
+                    name_q=gui.name_h, name_ds=gui.name_ds, sig2n_k=gui.sig2n_k_tsls)
                 output.append(reg_spat)       
         else: #Re-use results.
-            for w in gui.w_list:
+            for w in gui.w_list[1:]:
                 # add spatial diagnostics for each W
                 reg_spat = COPY.copy(reg)
                 reg_spat.name_w = w.name
@@ -1046,14 +1096,25 @@ def get_TSLS_regimes(gui):
                 SUMMARY.summary(reg=reg_spat, vm=gui.vc_matrix, instruments=True,\
                                 nonspat_diag=False, spat_diag=True)
                 output.append(reg_spat)
-    else:
-        output = [reg]
     robust_regs = get_white_hac_standard(reg, gui)
     for rob_reg in robust_regs:
-        SUMMARY.beta_diag(rob_reg, rob_reg.robust)
-        SUMMARY.build_coefs_body_instruments(rob_reg)
-        SUMMARY.summary(reg=rob_reg, vm=gui.vc_matrix, instruments=True,\
-                        nonspat_diag=False, spat_diag=gui.spat_diag)
+        rob_reg.w,rob_reg.name_w = None,None
+        if gui.regime_err_sep:
+            for m in rob_reg.multi_robust:
+                rob_reg.multi_robust[m].w,rob_reg.multi_robust[m].name_w = None,None
+                SUMMARY.beta_diag(rob_reg.multi_robust[m], rob_reg.multi_robust[m].robust)
+                SUMMARY.build_coefs_body_instruments(rob_reg.multi_robust[m])
+            rob_reg.chow = REGI.Chow(rob_reg)
+            SUMMARY.summary_chow(rob_reg)
+            SUMMARY.summary_multi(reg=rob_reg, multireg=rob_reg.multi_robust, vm=gui.vc_matrix,\
+                    instruments=True, nonspat_diag=False, spat_diag=False)
+        else:
+            SUMMARY.beta_diag(rob_reg, rob_reg.robust)
+            SUMMARY.build_coefs_body_instruments(rob_reg)
+            rob_reg.chow = REGI.Chow(rob_reg)
+            SUMMARY.summary_chow(rob_reg)
+            SUMMARY.summary(reg=rob_reg, vm=gui.vc_matrix, instruments=True,\
+                            nonspat_diag=False, spat_diag=False)
     output.extend(robust_regs)
     return output
     
@@ -1072,10 +1133,21 @@ def get_GM_Lag_endog_regimes(gui):
         output.append(reg)
     robust_regs = get_white_hac_lag(reg, gui, output)
     for rob_reg in robust_regs:
-        SUMMARY.beta_diag_lag(rob_reg, rob_reg.robust)
-        SUMMARY.build_coefs_body_instruments(rob_reg)
-        SUMMARY.summary(reg=rob_reg, vm=gui.vc_matrix, instruments=True,\
-                        nonspat_diag=False, spat_diag=False)
+        if gui.regime_err_sep:
+            for m in rob_reg.multi_robust:
+                SUMMARY.beta_diag_lag(rob_reg.multi_robust[m], rob_reg.multi_robust[m].robust)
+                SUMMARY.build_coefs_body_instruments(rob_reg.multi_robust[m])
+            rob_reg.chow = REGI.Chow(rob_reg)
+            SUMMARY.summary_chow(rob_reg)
+            SUMMARY.summary_multi(reg=rob_reg, multireg=rob_reg.multi_robust, vm=gui.vc_matrix,\
+                    instruments=True, nonspat_diag=False, spat_diag=gui.spat_diag)
+        else:
+            SUMMARY.beta_diag_lag(rob_reg, rob_reg.robust)
+            SUMMARY.build_coefs_body_instruments(rob_reg)
+            rob_reg.chow = REGI.Chow(rob_reg)
+            SUMMARY.summary_chow(rob_reg)
+            SUMMARY.summary(reg=rob_reg, vm=gui.vc_matrix, instruments=True,\
+                            nonspat_diag=False, spat_diag=gui.spat_diag)
     output.extend(robust_regs)
     return output
 
@@ -1093,10 +1165,21 @@ def get_GM_Lag_noEndog_regimes(gui):
         output.append(reg)
     robust_regs = get_white_hac_lag(reg, gui, output)
     for rob_reg in robust_regs:
-        SUMMARY.beta_diag_lag(rob_reg, rob_reg.robust)
-        SUMMARY.build_coefs_body_instruments(rob_reg)
-        SUMMARY.summary(reg=rob_reg, vm=gui.vc_matrix, instruments=True,\
-                        nonspat_diag=False, spat_diag=False)
+        if gui.regime_err_sep:
+            for m in rob_reg.multi_robust:
+                SUMMARY.beta_diag_lag(rob_reg.multi_robust[m], rob_reg.multi_robust[m].robust)
+                SUMMARY.build_coefs_body_instruments(rob_reg.multi_robust[m])
+            rob_reg.chow = REGI.Chow(rob_reg)
+            SUMMARY.summary_chow(rob_reg)
+            SUMMARY.summary_multi(reg=rob_reg, multireg=rob_reg.multi_robust, vm=gui.vc_matrix,\
+                    instruments=True, nonspat_diag=False, spat_diag=gui.spat_diag)
+        else:
+            SUMMARY.beta_diag_lag(rob_reg, rob_reg.robust)
+            SUMMARY.build_coefs_body_instruments(rob_reg)
+            rob_reg.chow = REGI.Chow(rob_reg)
+            SUMMARY.summary_chow(rob_reg)
+            SUMMARY.summary(reg=rob_reg, vm=gui.vc_matrix, instruments=True,\
+                            nonspat_diag=False, spat_diag=gui.spat_diag)
     output.extend(robust_regs)
     return output
 
