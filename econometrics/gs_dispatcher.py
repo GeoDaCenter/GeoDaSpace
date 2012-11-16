@@ -123,6 +123,11 @@ class Spmodel:
     method      : string
                   If 'gm' computes models using GM estimators, if 'ml' uses
                   maximum-likelihood instead.
+                  ##########################
+                  Note to Phil: The method is currently defaulted to 'gm',
+                  but we want to have it not defaulted to anything, to
+                  ensure the GUI is sending all the info.
+                  ##########################
 
     Returns
     -------
@@ -461,7 +466,7 @@ class Spmodel:
                 instrument_lags, lag_user_inst,\
                 vc_matrix, predy_resid,\
                 ols_diag, moran,\
-                regime_err_sep, regime_lag_sep, cores, method):
+                regime_err_sep, regime_lag_sep, cores, method='gm'):
 
         self.name_ds = name_ds
         self.w_list = w_list
@@ -542,7 +547,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
             instrument_lags, lag_user_inst,\
             vc_matrix, predy_resid,\
             ols_diag, moran,\
-            regime_err_sep, regime_lag_sep, cores, method):
+            regime_err_sep, regime_lag_sep, cores, method='gm'):
     """
     spmodel originally ran the dispatcher. The class Spmodel now runs the
     dispatcher, and was created when this module was refactored for ease of
@@ -559,7 +564,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                 instrument_lags, lag_user_inst,\
                 vc_matrix, predy_resid,\
                 ols_diag, moran,\
-                regime_err_sep, regime_lag_sep, cores, method)
+                regime_err_sep, regime_lag_sep, cores, method='gm')
     return result.output
 
 ##############################################################################
