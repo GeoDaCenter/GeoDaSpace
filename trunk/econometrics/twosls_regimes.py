@@ -4,6 +4,7 @@ import user_output as USER
 import multiprocessing as mp
 from utils import sphstack, set_warn
 from twosls import BaseTSLS
+from robust import hac_multi
 import summary_output as SUMMARY
 
 class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
@@ -279,7 +280,7 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         pool = mp.Pool(cores)
         results_p = {}
         for r in self.regimes_set:
-            results_p[r] = pool.apply_async(_work,args=(self.y,x,regi_ids,r,yend,q,robust,gwk,sig2n_k,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_gwk,self.name_regimes))
+            results_p[r] = pool.apply_async(_work,args=(self.y,x,regi_ids,r,yend,q,robust,sig2n_k,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes))
         self.kryd = 0
         self.kr = x.shape[1]+yend.shape[1]+1
         self.kf = 0
@@ -310,17 +311,22 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
             self.name_z += results[r].name_z
             self.name_h += results[r].name_h
             counter += 1
-        self.chow = REGI.Chow(self)            
         self.multi = results
+        self.hac_var = sphstack(x,q)
+        if robust == 'hac':
+            hac_multi(self,gwk)
+        self.chow = REGI.Chow(self)
         SUMMARY.TSLS_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=spat_diag, regimes=True)
 
-def _work(y,x,regi_ids,r,yend,q,robust,gwk,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_gwk,name_regimes):
+def _work(y,x,regi_ids,r,yend,q,robust,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_regimes):
     y_r = y[regi_ids[r]]
     x_r = x[regi_ids[r]]
     yend_r = yend[regi_ids[r]]
     q_r = q[regi_ids[r]]
     x_constant = USER.check_constant(x_r)
-    model = BaseTSLS(y_r, x_constant, yend_r, q_r, robust=robust, gwk=gwk, sig2n_k=sig2n_k)
+    if robust == 'hac':
+        robust = None
+    model = BaseTSLS(y_r, x_constant, yend_r, q_r, robust=robust, sig2n_k=sig2n_k)
     model.title = "TWO STAGE LEAST SQUARES ESTIMATION - REGIME %s" %r
     model.robust = USER.set_robust(robust)
     model.name_ds = name_ds
@@ -331,7 +337,6 @@ def _work(y,x,regi_ids,r,yend,q,robust,gwk,sig2n_k,name_ds,name_y,name_x,name_ye
     model.name_q = ['%s_%s'%(str(r), i) for i in name_q]
     model.name_h = model.name_x + model.name_q
     model.name_w = name_w
-    model.name_gwk = name_gwk
     model.name_regimes = name_regimes
     return model
 

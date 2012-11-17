@@ -10,7 +10,8 @@ import summary_output as SUMMARY
 import multiprocessing as mp
 from twosls_regimes import TSLS_Regimes
 from twosls import BaseTSLS
-from utils import set_endog, set_endog_sparse, sp_att, set_warn
+from utils import set_endog, set_endog_sparse, sp_att, set_warn, sphstack
+from robust import hac_multi
 
 class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
     """
@@ -471,7 +472,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         results_p = {}
         for r in self.regimes_set:
             w_r = w_i[r].sparse
-            results_p[r] = pool.apply_async(_work,args=(y,x,regi_ids,r,yend,q,w_r,w_lags,lag_q,robust,gwk,sig2n_k,self.name_ds,name_y,name_x,name_yend,name_q,self.name_w,self.name_gwk,name_regimes, ))
+            results_p[r] = pool.apply_async(_work,args=(y,x,regi_ids,r,yend,q,w_r,w_lags,lag_q,robust,sig2n_k,self.name_ds,name_y,name_x,name_yend,name_q,self.name_w,name_regimes, ))
         self.kryd = 0
         self.kr = len(cols2regi) + 1
         self.kf = 0
@@ -505,9 +506,14 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
             self.name_q += results[r].name_q
             self.name_z += results[r].name_z
             self.name_h += results[r].name_h
+            if r == self.regimes_set[0]:
+                self.hac_var = np.zeros((self.n,results[r].h.shape[1]),float)
+            self.hac_var[regi_ids[r],] = results[r].h                
             counter += 1
-        self.chow = REGI.Chow(self)            
         self.multi = results
+        if robust == 'hac':
+            hac_multi(self,gwk,constant=True)
+        self.chow = REGI.Chow(self)
         SUMMARY.GM_Lag_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=spat_diag, regimes=True)
 
     def sp_att_reg(self, w_i, regi_ids, wy):
@@ -522,8 +528,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                           wy[regi_ids[r]],lambd)
             counter += 1
 
-
-def _work(y,x,regi_ids,r,yend,q,w_r,w_lags,lag_q,robust,gwk,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_gwk,name_regimes):
+def _work(y,x,regi_ids,r,yend,q,w_r,w_lags,lag_q,robust,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_regimes):
     y_r = y[regi_ids[r]]
     x_r = x[regi_ids[r]]
     if yend != None:
@@ -536,7 +541,9 @@ def _work(y,x,regi_ids,r,yend,q,w_r,w_lags,lag_q,robust,gwk,sig2n_k,name_ds,name
         q_r = q
     yend_r, q_r = set_endog_sparse(y_r, x_r, w_r, yend_r, q_r, w_lags, lag_q)
     x_constant = USER.check_constant(x_r)
-    model = BaseTSLS(y_r, x_constant, yend_r, q_r, robust=robust, gwk=gwk, sig2n_k=sig2n_k)
+    if robust == 'hac':
+        robust = None
+    model = BaseTSLS(y_r, x_constant, yend_r, q_r, robust=robust, sig2n_k=sig2n_k)
     model.title = "SPATIAL TWO STAGE LEAST SQUARES ESTIMATION - REGIME %s" %r
     model.robust = USER.set_robust(robust)
     model.name_ds = name_ds
@@ -547,7 +554,6 @@ def _work(y,x,regi_ids,r,yend,q,w_r,w_lags,lag_q,robust,gwk,sig2n_k,name_ds,name
     model.name_q = ['%s_%s'%(str(r), i) for i in name_q]
     model.name_h = model.name_x + model.name_q
     model.name_w = name_w
-    model.name_gwk = name_gwk
     model.name_regimes = name_regimes
     return model
     
