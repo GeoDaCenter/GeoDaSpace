@@ -10,6 +10,7 @@ import user_output as USER
 import multiprocessing as mp
 from ols import BaseOLS
 from utils import set_warn
+from robust import hac_multi
 import summary_output as SUMMARY
 import numpy as np
 
@@ -336,7 +337,7 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
         pool = mp.Pool(cores)
         results_p = {}
         for r in self.regimes_set:
-            results_p[r] = pool.apply_async(_work,args=(self.y,x,regi_ids,r,robust,gwk,sig2n_k,self.name_ds,self.name_y,name_x,self.name_w,self.name_gwk,self.name_regimes))
+            results_p[r] = pool.apply_async(_work,args=(self.y,x,regi_ids,r,robust,sig2n_k,self.name_ds,self.name_y,name_x,self.name_w,self.name_regimes))
         self.kryd = 0
         self.kr = x.shape[1]+1
         self.kf = 0
@@ -363,22 +364,26 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
             self.name_y += results[r].name_y
             self.name_x += results[r].name_x
             counter += 1
-        self.chow = REGI.Chow(self)            
         self.multi = results
+        self.hac_var = x
+        if robust == 'hac':
+            hac_multi(self,gwk)
+        self.chow = REGI.Chow(self)            
         SUMMARY.OLS_multi(reg=self, multireg=self.multi, vm=vm, nonspat_diag=nonspat_diag, spat_diag=spat_diag, moran=moran, regimes=True)
 
-def _work(y,x,regi_ids,r,robust,gwk,sig2n_k,name_ds,name_y,name_x,name_w,name_gwk,name_regimes):
+def _work(y,x,regi_ids,r,robust,sig2n_k,name_ds,name_y,name_x,name_w,name_regimes):
     y_r = y[regi_ids[r]]
     x_r = x[regi_ids[r]]
     x_constant = USER.check_constant(x_r)
-    model = BaseOLS(y_r, x_constant, robust=robust, gwk=gwk, sig2n_k=sig2n_k)
+    if robust == 'hac':
+        robust = None
+    model = BaseOLS(y_r, x_constant, robust=robust, sig2n_k=sig2n_k)
     model.title = "ORDINARY LEAST SQUARES ESTIMATION - REGIME %s" %r
     model.robust = USER.set_robust(robust)
     model.name_ds = name_ds
     model.name_y = '%s_%s'%(str(r), name_y)
     model.name_x = ['%s_%s'%(str(r), i) for i in name_x]
     model.name_w = name_w
-    model.name_gwk = name_gwk
     model.name_regimes = name_regimes
     return model
             

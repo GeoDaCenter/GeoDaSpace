@@ -6,6 +6,7 @@ import numpy as np
 import numpy.linalg as la
 from pysal import lag_spatial
 from utils import spdot, spbroadcast
+from user_output import check_constant
 
 def robust_vm(reg, gwk=None):
     """
@@ -105,7 +106,6 @@ def robust_vm(reg, gwk=None):
         psi0 = spdot(xu.T,gwkxu)
     else:
         psi0 = spdot(xu.T,xu)
-        
     if tsls:
         psi1 = spdot(reg.varb,reg.zthhthi)
         psi = spdot(psi1,np.dot(psi0,psi1.T))
@@ -114,6 +114,43 @@ def robust_vm(reg, gwk=None):
         
     return psi
     
+def hac_multi(reg, gwk, constant=False):
+    """
+    HAC robust estimation of the variance-covariance matrix for multi-regression object 
+        
+    Parameters
+    ----------
+    
+    reg             : Regression object (OLS or TSLS)
+                      output instance from a regression model
+
+    gwk             : PySAL weights object
+                      Spatial weights based on kernel functions
+                      
+    Returns
+    --------
+    
+    psi             : kxk array
+                      Robust estimation of the variance-covariance
+
+    """
+    if not constant:
+        reg.hac_var = check_constant(reg.hac_var)
+    xu = spbroadcast(reg.hac_var, reg.u)       
+    gwkxu = lag_spatial(gwk,xu)
+    psi0 = spdot(xu.T,gwkxu)
+    counter = 0
+    for m in reg.multi:
+        reg.multi[m].robust = 'hac'
+        reg.multi[m].name_gwk = reg.name_gwk
+        try:
+            psi1 = spdot(reg.multi[m].varb,reg.multi[m].zthhthi)
+            reg.multi[m].vm = spdot(psi1,np.dot(psi0,psi1.T))
+        except:
+            reg.multi[m].vm = spdot(reg.multi[m].xtxi,np.dot(psi0,reg.multi[m].xtxi))
+        reg.vm[(counter*reg.kr):((counter+1)*reg.kr),(counter*reg.kr):((counter+1)*reg.kr)] = reg.multi[m].vm
+        counter += 1
+
 def _test():
     import doctest
     doctest.testmod()

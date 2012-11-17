@@ -642,16 +642,20 @@ def get_white_hac_standard(reg, gui):
     the initial regression run. Standard models (OLS, TSLS).
     """
     robust_regs = []
+    multireg = False
+    if hasattr(reg, 'multi'):
+        multireg = True
     if gui.white:
         # compute White std errors
-        reg_robust = COPY.copy(reg)
-        reg_robust._cache = {}
-        reg_robust.multi_robust = {}
-        try:
+        if multireg:
+            reg_robust = COPY.deepcopy(reg)
+            reg_robust._cache = {}
             for m in reg_robust.multi:
-                reg_robust.multi_robust[m] = get_robust(reg_robust.multi[m], 'white')
+                reg_robust.multi[m] = get_robust(reg_robust.multi[m], 'white')
             robust_regs.append(robust_vm_multi(reg_robust))
-        except:
+        else:
+            reg_robust = COPY.copy(reg)
+            reg_robust._cache = {}
             robust_regs.append(get_robust(reg_robust, 'white'))
     if gui.hac:
         if len(gui.wk_list) == 0:
@@ -659,16 +663,17 @@ def get_white_hac_standard(reg, gui):
         for gwk in gui.wk_list:
             # compute HAC std errors
             USER.check_robust('hac', gwk)
-            reg_robust = COPY.copy(reg)
-            reg_robust._cache = {}
-            reg_robust.multi_robust = {}
-            try:
-                for m in reg_robust.multi:
-                    pass
-                    #reg_robust.multi_robust[m] = get_robust(reg_robust.multi[m], 'hac', gwk)
-                #robust_regs.append(robust_vm_multi(reg_robust))
-            except:
+            if multireg:
+                reg_robust = COPY.deepcopy(reg)
+                reg_robust._cache = {}
+                reg_robust.name_gwk = gwk.name
+                ROBUST.hac_multi(reg_robust, gwk)
+                robust_regs.append(reg_robust)
+            else:
+                reg_robust = COPY.copy(reg)
+                reg_robust._cache = {}
                 robust_regs.append(get_robust(reg_robust, 'hac', gwk))
+    
     return robust_regs
 
 def get_white_hac_lag(reg, gui, output):    
@@ -677,17 +682,21 @@ def get_white_hac_lag(reg, gui, output):
     the initial regression run. GM_Lag models.
     """
     robust_regs = []
+    multireg = False
+    if hasattr(reg, 'multi'):
+        multireg = True
     if gui.white:
         for reg in output:
             # compute White std errors
-            reg_robust = COPY.copy(reg)
-            reg_robust._cache = {}
-            try:
-                reg_robust.multi_robust = {}
+            if multireg:
+                reg_robust = COPY.deepcopy(reg)
+                reg_robust._cache = {}
                 for m in reg_robust.multi:
-                    reg_robust.multi_robust[m] = get_robust(reg_robust.multi[m], 'white')
+                    reg_robust.multi[m] = get_robust(reg_robust.multi[m], 'white')
                 robust_regs.append(robust_vm_multi(reg_robust))
-            except:
+            else:
+                reg_robust = COPY.copy(reg)
+                reg_robust._cache = {}
                 robust_regs.append(get_robust(reg_robust, 'white'))
     if gui.hac:
         if len(gui.wk_list) == 0:
@@ -696,22 +705,22 @@ def get_white_hac_lag(reg, gui, output):
             for gwk in gui.wk_list:
                 # compute HAC std errors
                 USER.check_robust('hac', gwk)
-                reg_robust = COPY.copy(reg)
-                reg_robust._cache = {}
-                try:
-                    reg_robust.multi_robust = {}
-                    for m in reg_robust.multi:
-                        pass
-                        #reg_robust.multi_robust[m] = get_robust(reg_robust.multi[m], 'hac', gwk)
-                    #robust_regs.append(robust_vm_multi(reg_robust))
-                except:
+                if multireg:
+                    reg_robust = COPY.deepcopy(reg)
+                    reg_robust._cache = {}
+                    reg_robust.name_gwk = gwk.name
+                    ROBUST.hac_multi(reg_robust, gwk, constant=True)
+                    robust_regs.append(reg_robust)
+                else:
+                    reg_robust = COPY.copy(reg)
+                    reg_robust._cache = {}
                     robust_regs.append(get_robust(reg_robust, 'hac', gwk))
     return robust_regs
 
 def robust_vm_multi(reg):
     counter = 0
     for r in reg.regimes_set:
-        reg.vm[(counter*reg.kr):((counter+1)*reg.kr),(counter*reg.kr):((counter+1)*reg.kr)] = reg.multi_robust[r].vm
+        reg.vm[(counter*reg.kr):((counter+1)*reg.kr),(counter*reg.kr):((counter+1)*reg.kr)] = reg.multi[r].vm
         counter += 1
     return reg    
 
@@ -1055,12 +1064,12 @@ def get_OLS_regimes(gui):
     for rob_reg in robust_regs:
         rob_reg.w,rob_reg.name_w = None,None
         if gui.regime_err_sep:
-            for m in rob_reg.multi_robust:
-                rob_reg.multi_robust[m].w,rob_reg.multi_robust[m].name_w = None,None
-                SUMMARY.beta_diag_ols(rob_reg.multi_robust[m], rob_reg.multi_robust[m].robust)
+            for m in rob_reg.multi:
+                rob_reg.multi[m].w,rob_reg.multi[m].name_w = None,None
+                SUMMARY.beta_diag_ols(rob_reg.multi[m], rob_reg.multi[m].robust)
             rob_reg.chow = REGI.Chow(rob_reg)
             SUMMARY.summary_chow(rob_reg)
-            SUMMARY.summary_multi(reg=rob_reg, multireg=rob_reg.multi_robust, vm=gui.vc_matrix,\
+            SUMMARY.summary_multi(reg=rob_reg, multireg=rob_reg.multi, vm=gui.vc_matrix,\
                     instruments=False, nonspat_diag=gui.ols_diag, spat_diag=False)
         else:
             SUMMARY.beta_diag_ols(rob_reg, rob_reg.robust)
@@ -1109,13 +1118,13 @@ def get_TSLS_regimes(gui):
     for rob_reg in robust_regs:
         rob_reg.w,rob_reg.name_w = None,None
         if gui.regime_err_sep:
-            for m in rob_reg.multi_robust:
-                rob_reg.multi_robust[m].w,rob_reg.multi_robust[m].name_w = None,None
-                SUMMARY.beta_diag(rob_reg.multi_robust[m], rob_reg.multi_robust[m].robust)
-                SUMMARY.build_coefs_body_instruments(rob_reg.multi_robust[m])
+            for m in rob_reg.multi:
+                rob_reg.multi[m].w,rob_reg.multi[m].name_w = None,None
+                SUMMARY.beta_diag(rob_reg.multi[m], rob_reg.multi[m].robust)
+                SUMMARY.build_coefs_body_instruments(rob_reg.multi[m])
             rob_reg.chow = REGI.Chow(rob_reg)
             SUMMARY.summary_chow(rob_reg)
-            SUMMARY.summary_multi(reg=rob_reg, multireg=rob_reg.multi_robust, vm=gui.vc_matrix,\
+            SUMMARY.summary_multi(reg=rob_reg, multireg=rob_reg.multi, vm=gui.vc_matrix,\
                     instruments=True, nonspat_diag=False, spat_diag=False)
         else:
             SUMMARY.beta_diag(rob_reg, rob_reg.robust)
@@ -1143,12 +1152,12 @@ def get_GM_Lag_endog_regimes(gui):
     robust_regs = get_white_hac_lag(reg, gui, output)
     for rob_reg in robust_regs:
         if gui.regime_err_sep:
-            for m in rob_reg.multi_robust:
-                SUMMARY.beta_diag_lag(rob_reg.multi_robust[m], rob_reg.multi_robust[m].robust)
-                SUMMARY.build_coefs_body_instruments(rob_reg.multi_robust[m])
+            for m in rob_reg.multi:
+                SUMMARY.beta_diag_lag(rob_reg.multi[m], rob_reg.multi[m].robust)
+                SUMMARY.build_coefs_body_instruments(rob_reg.multi[m])
             rob_reg.chow = REGI.Chow(rob_reg)
             SUMMARY.summary_chow(rob_reg)
-            SUMMARY.summary_multi(reg=rob_reg, multireg=rob_reg.multi_robust, vm=gui.vc_matrix,\
+            SUMMARY.summary_multi(reg=rob_reg, multireg=rob_reg.multi, vm=gui.vc_matrix,\
                     instruments=True, nonspat_diag=False, spat_diag=gui.spat_diag)
         else:
             SUMMARY.beta_diag_lag(rob_reg, rob_reg.robust)
@@ -1175,12 +1184,12 @@ def get_GM_Lag_noEndog_regimes(gui):
     robust_regs = get_white_hac_lag(reg, gui, output)
     for rob_reg in robust_regs:
         if gui.regime_err_sep:
-            for m in rob_reg.multi_robust:
-                SUMMARY.beta_diag_lag(rob_reg.multi_robust[m], rob_reg.multi_robust[m].robust)
-                SUMMARY.build_coefs_body_instruments(rob_reg.multi_robust[m])
+            for m in rob_reg.multi:
+                SUMMARY.beta_diag_lag(rob_reg.multi[m], rob_reg.multi[m].robust)
+                SUMMARY.build_coefs_body_instruments(rob_reg.multi[m])
             rob_reg.chow = REGI.Chow(rob_reg)
             SUMMARY.summary_chow(rob_reg)
-            SUMMARY.summary_multi(reg=rob_reg, multireg=rob_reg.multi_robust, vm=gui.vc_matrix,\
+            SUMMARY.summary_multi(reg=rob_reg, multireg=rob_reg.multi, vm=gui.vc_matrix,\
                     instruments=True, nonspat_diag=False, spat_diag=gui.spat_diag)
         else:
             SUMMARY.beta_diag_lag(rob_reg, rob_reg.robust)
@@ -1429,7 +1438,3 @@ def _test():
 
 if __name__ == '__main__':
     _test()
-
-
-
-
