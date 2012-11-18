@@ -63,6 +63,8 @@ class xrcGMM_REGRESSION(wx.Frame):
         self.MT_LAG = xrc.XRCCTRL(self, "MT_LAG")
         self.MT_ERR = xrc.XRCCTRL(self, "MT_ERR")
         self.MT_LAGERR = xrc.XRCCTRL(self, "MT_LAGERR")
+        self.METH_GMM = xrc.XRCCTRL(self, "METH_GMM")
+        self.METH_ML = xrc.XRCCTRL(self, "METH_ML")
         self.ST_LM = xrc.XRCCTRL(self, "ST_LM")
         self.SEWhiteCheckBox = xrc.XRCCTRL(self, "SEWhiteCheckBox")
         self.SEHACCheckBox = xrc.XRCCTRL(self, "SEHACCheckBox")
@@ -616,6 +618,41 @@ def __init_resources():
                               </object>
                               <option>1</option>
                               <flag>wxALL|wxEXPAND|wxGROW|wxALIGN_CENTRE|wxADJUST_MINSIZE</flag>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxBoxSizer">
+                                <object class="sizeritem">
+                                  <object class="wxStaticBoxSizer">
+                                    <object class="sizeritem">
+                                      <object class="wxRadioButton" name="METH_GMM">
+                                        <label>GMM</label>
+                                        <XRCED>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxTOP|wxEXPAND</flag>
+                                      <border>4</border>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxRadioButton" name="METH_ML">
+                                        <label>ML</label>
+                                        <XRCED>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxTOP|wxEXPAND</flag>
+                                      <border>4</border>
+                                    </object>
+                                    <label>Method</label>
+                                    <orient>wxVERTICAL</orient>
+                                  </object>
+                                  <option>1</option>
+                                  <flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+                                  <border>3</border>
+                                </object>
+                                <orient>wxVERTICAL</orient>
+                              </object>
+                              <flag>wxALL|wxEXPAND</flag>
                             </object>
                             <object class="sizeritem">
                               <object class="wxBoxSizer">

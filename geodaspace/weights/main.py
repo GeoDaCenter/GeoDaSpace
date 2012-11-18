@@ -4,7 +4,6 @@ import control
 from control import ENABLE_CONTIGUITY_WEIGHTS, ENABLE_DISTANCE_WEIGHTS, ENABLE_KERNEL_WEIGTHS
 from control import WEIGHT_TYPES_FILTER,WEIGHT_FILTER_TO_HANDLER
 from model import GeoDaSpace_W_Obj
-import os
 import pysal
 
 class mainGuiFrame(xrcmainGUI):

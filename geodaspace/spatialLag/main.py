@@ -1,4 +1,3 @@
-import os.path
 import wx
 from geodaspace.spatialLag.rc import SpatialLag_xrc
 from geodaspace.abstractmodel import AbstractModel
