@@ -154,7 +154,9 @@ class guiRegModel(abstractmodel.AbstractModel):
         self.data['spec'] = {'y':"",'YE':[],'H':[],'R':"",'S':"",'T':"",'X':[]}
         self.data['mWeights'] = []
         self.data['kWeights'] = []
+        #self.data['method'] = ''  #pas
         self.data['modelType'] = {'mType':0,'endogenous':False,'method':0}
+        #self.data['modelType']['method'] = 0
         self.data['modelType']['error'] = {'classic':True,'white':False,'hac':False,'het':False}
         self.data['modelType']['spatial_tests'] = {'lm':True}
         config = {}
@@ -253,12 +255,14 @@ class guiRegModel(abstractmodel.AbstractModel):
         #if self.data['modelType']['spatial_tests']['lm'] and not self.getMWeightsEnabled():
         #    return False,'LM Test requires Model Weights, please add or create a weights file, or disable "LM".'
         return True,None
+
     @staticmethod
     def get_col(db,col_name,allowMissing=False):
         col = db.by_col(col_name)
         if pysal.MISSINGVALUE== None and pysal.MISSINGVALUE in col:
             raise ValueError, "Data column \"%s\" contains missing values."%col_name
         return col
+
     def run(self,path=None, predy_resid=None):
         """ Runs the Model """
         print self.verify()
@@ -309,6 +313,12 @@ class guiRegModel(abstractmodel.AbstractModel):
 
         mtypes = {0: 'Standard', 1: 'Spatial Lag', 2: 'Spatial Error', 3: 'Spatial Lag+Error'}
         model_type = mtypes[data['modelType']['mType']]
+        print model_type 
+
+        # estimation methods
+        method_types = {0: 'gm', 1: 'ml'}
+        method = method_types[data['modelType']['method']]
+        print method
 
         # R
         if data['spec']['R']:
@@ -339,7 +349,7 @@ class guiRegModel(abstractmodel.AbstractModel):
         fname = os.path.basename(data['fname'])
         results = spmodel(fname, w_list, wk_list, y, name_y, x, x_names, ye, ye_names,
                  h, h_names, r, name_r, s, name_s, t, name_t,
-                 model_type, #data['modelType']['endogenous'],
+                 model_type,  #data['modelType']['endogenous'],
                  #data['modelType']['spatial_tests']['lm'],
                  LM_TEST,
                  data['modelType']['error']['white'], data['modelType']['error']['hac'], data['modelType']['error']['het'],
@@ -350,7 +360,7 @@ class guiRegModel(abstractmodel.AbstractModel):
                  config['output_vm_summary'], predy_resid,
                  config['other_ols_diagnostics'], config['other_residualMoran'],
                  config['regimes_regime_error'], config['regimes_regime_lag'], config['other_numcores']
-                 )
+                 , method)
         print results
         for r in results:
             path.write(r.summary)
