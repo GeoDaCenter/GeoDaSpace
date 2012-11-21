@@ -205,6 +205,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         #self.T_TextCtrl.SetDropTarget(NullDropTarget(self.T_TextCtrl))
 
         self.X_ListBox.SetDropTarget(ListBoxDropTarget(self.X_ListBox))
+
         # The Model
         self.model = M_regression.guiRegModel()
         self.model.data['config'] = self.config.GetPrefs()
@@ -266,11 +267,22 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.MT_LAG.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)
         self.MT_ERR.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)
         self.MT_LAGERR.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)
+        # these radio buttons are all linked together, as is, so that selecting
+        # gmm or ml leaves no value in MTypes above --> bug
+        #self.METH_GMM.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)  #pas
+        #self.METH_ML.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)   #pas
+
         #self.ModelTypeRadioBox.Bind(wx.EVT_RADIOBOX, self.updateModelType)
         #self.ENDO_CHECK.Bind(wx.EVT_CHECKBOX, self.updateModelType)
         #self.EndogenousRadioBox.Bind(wx.EVT_RADIOBOX, self.updateModelType)
         #self.MethodsRadioBox.Bind(wx.EVT_RADIOBOX, self.updateModelType)
         #self.SEClassicCheckBox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
+        
+        #self.gm_checkbox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
+        self.ml_checkbox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
+
+        #self.MethodsRadioBox.Bind(wx.EVT_RADIOBOX, self.updateMethodType)
+
         self.SEWhiteCheckBox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
         self.SEHACCheckBox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
         self.SEHETCheckBox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
@@ -300,6 +312,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                            self.MT_LAG,
                            self.MT_ERR,
                            self.MT_LAGERR]
+
+        #self.METHOD = [self.METH_GMM, self.METH_ML]  #pas
         self.populate(None)
 
     def _startDrag(self, evt):
@@ -401,6 +415,11 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     self.SEHACCheckBox.SetValue(False)
                     m['modelType']['error']['hac'] = False
                     self.SEHACCheckBox.Disable()
+                if m['modelType']['mType'] == 3:  # a spatial lag+error model
+                    self.ml_checkbox.SetValue(False)
+                    self.ml_checkbox.Disable()
+                else:
+                    self.ml_checkbox.Enable()
             # model.verify is now called on Run, and an error msg displays why the model won't run.
             #if self.model.verify():
             #    self.RunButton.Enable()
@@ -550,10 +569,19 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             self.populate(self.model)
             raise
 
+    '''
+    def updateMethodType(self, evt):
+        method_dict = {}
+        method_dict['est_method'] = self.MethodsRadioBox.GetSelection()
+        return method_dict
+    '''
+
     def updateModelType(self, evt):
         modelSetup = {}
         modelSetup['mType'] = [m.GetValue()
-                               for m in self.MODELTYPES].index(True)
+                               for m in self.MODELTYPES].index(True)  # return element that is true -- only one can be true
+
+        modelSetup['method'] = self.ml_checkbox.GetValue() 
         #modelSetup['mType'] = self.ModelTypeRadioBox.GetSelection() # Zero Base
         #modelSetup['endogenous'] = self.EndogenousRadioBox.GetSelection()
         #modelSetup['endogenous'] = self.ENDO_CHECK.GetValue()
@@ -566,7 +594,9 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         modelSetup['spatial_tests'] = {}
         modelSetup['spatial_tests']['lm'] = self.ST_LM.GetValue()
         self.model.setModelType(modelSetup)
+        print modelSetup
 
+    #TODO: add 'method' check here
     def setModelType(self, setup):
         """ Compares the ModelType settings in self.model with the settings in the GUI form...
             These should only differ when model is loaded from file or changed programatically """
@@ -578,8 +608,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         #if not setup['endogenous'] == self.ENDO_CHECK.GetValue():
             #self.EndogenousRadioBox.SetSelection(setup['endogenous'])
         #    self.ENDO_CHECK.SetValue(setup['endogenous'])
-        #if not setup['method'] == self.MethodsRadioBox.GetSelection():
-        #    self.MethodsRadioBox.SetSelection(setup['method'])
+        #if not setup['method'] == self.ml_checkbox.GetValue():
+        #    self.ml_checkbox.SetValue(setup['method'])
         #if not setup['error']['classic'] == self.SEClassicCheckBox.GetValue():
         #    self.SEClassicCheckBox.SetValue(setup['error']['classic'])
         if not setup['error']['white'] == self.SEWhiteCheckBox.GetValue():
