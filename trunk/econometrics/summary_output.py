@@ -568,8 +568,8 @@ def summary_coefs_intro(reg):
             strSummary += "White Standard Errors\n"
         elif reg.__summary['summary_std_err'].lower() == 'hac':
             strSummary += "HAC Standard Errors; Kernel Weights: " + reg.name_gwk +"\n"
-        elif reg.__summary['summary_std_err'].lower() == 'het':
-            strSummary += "Heteroskedastic Corrected Standard Errors\n"
+        #elif reg.__summary['summary_std_err'].lower() == 'het':
+            #strSummary += "Heteroskedastic Corrected Standard Errors\n"
     strSummary += "------------------------------------------------------------------------------------\n"
     strSummary += "            Variable     Coefficient       Std.Error     %1s-Statistic     Probability\n" %(reg.__summary['summary_zt'])
     strSummary += "------------------------------------------------------------------------------------\n"
