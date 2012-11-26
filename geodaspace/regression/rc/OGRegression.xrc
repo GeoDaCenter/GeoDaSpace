@@ -456,14 +456,34 @@
                                       <flag>wxTOP</flag>
                                       <border>4</border>
                                     </object>
-                                    <object class="spacer">
-                                      <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
-                                      <border>5</border>
-                                      <size>5,5d</size>
+                                  </object>
+                                  <option>1</option>
+                                  <flag>wxBOTTOM|wxLEFT|wxRIGHT|wxGROW</flag>
+                                  <border>3</border>
+                                </object>
+                              </object>
+                              <option>1</option>
+                              <flag>wxALL|wxEXPAND|wxGROW|wxALIGN_CENTRE|wxADJUST_MINSIZE</flag>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxBoxSizer">
+                                <object class="sizeritem">
+                                  <object class="wxStaticBoxSizer">
+                                    <object class="sizeritem">
+                                      <object class="wxRadioButton" name="GMM_radiobutton">
+                                        <label>GMM</label>
+                                        <value>1</value>
+                                        <style>wxRB_GROUP</style>
+                                        <XRCED>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxTOP|wxEXPAND</flag>
+                                      <border>4</border>
                                     </object>
                                     <object class="sizeritem">
-                                      <object class="wxCheckBox" name="ml_checkbox">
-                                        <label>Use Max. Likelihood (GMM default)</label>
+                                      <object class="wxRadioButton" name="ML_radiobutton">
+                                        <label>ML</label>
                                         <XRCED>
                                           <assign_var>1</assign_var>
                                         </XRCED>

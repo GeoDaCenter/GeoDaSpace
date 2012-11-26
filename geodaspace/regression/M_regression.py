@@ -156,7 +156,7 @@ class guiRegModel(abstractmodel.AbstractModel):
         self.data['kWeights'] = []
         #self.data['method'] = ''  #pas
         self.data['modelType'] = {'mType':0,'endogenous':False,'method':0}
-        #self.data['modelType']['method'] = 0
+        self.data['modelType']['method'] = 0
         self.data['modelType']['error'] = {'classic':True,'white':False,'hac':False,'het':False}
         self.data['modelType']['spatial_tests'] = {'lm':True}
         config = {}

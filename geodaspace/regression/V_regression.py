@@ -269,8 +269,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.MT_LAGERR.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)
         # these radio buttons are all linked together, as is, so that selecting
         # gmm or ml leaves no value in MTypes above --> bug
-        #self.METH_GMM.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)  #pas
-        #self.METH_ML.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)   #pas
+        self.GMM_radiobutton.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)  #pas
+        self.ML_radiobutton.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)   #pas
 
         #self.ModelTypeRadioBox.Bind(wx.EVT_RADIOBOX, self.updateModelType)
         #self.ENDO_CHECK.Bind(wx.EVT_CHECKBOX, self.updateModelType)
@@ -279,7 +279,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         #self.SEClassicCheckBox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
         
         #self.gm_checkbox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
-        self.ml_checkbox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
+        #self.ml_checkbox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
 
         #self.MethodsRadioBox.Bind(wx.EVT_RADIOBOX, self.updateMethodType)
 
@@ -313,7 +313,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                            self.MT_ERR,
                            self.MT_LAGERR]
 
-        #self.METHOD = [self.METH_GMM, self.METH_ML]  #pas
+        self.METHOD = [self.GMM_radiobutton, self.ML_radiobutton]  #pas
         self.populate(None)
 
     def _startDrag(self, evt):
@@ -416,10 +416,11 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     m['modelType']['error']['hac'] = False
                     self.SEHACCheckBox.Disable()
                 if m['modelType']['mType'] == 3:  # a spatial lag+error model
-                    self.ml_checkbox.SetValue(False)
-                    self.ml_checkbox.Disable()
+                    self.ML_radiobutton.SetValue(False)
+                    self.GMM_radiobutton.SetValue(True)
+                    self.ML_radiobutton.Disable()
                 else:
-                    self.ml_checkbox.Enable()
+                    self.ML_radiobutton.Enable()
             # model.verify is now called on Run, and an error msg displays why the model won't run.
             #if self.model.verify():
             #    self.RunButton.Enable()
@@ -581,7 +582,9 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         modelSetup['mType'] = [m.GetValue()
                                for m in self.MODELTYPES].index(True)  # return element that is true -- only one can be true
 
-        modelSetup['method'] = self.ml_checkbox.GetValue() 
+        modelSetup['method'] = [m.GetValue()
+                               for m in self.METHOD].index(True)
+        #modelSetup['method'] = self.ml_checkbox.GetValue() 
         #modelSetup['mType'] = self.ModelTypeRadioBox.GetSelection() # Zero Base
         #modelSetup['endogenous'] = self.EndogenousRadioBox.GetSelection()
         #modelSetup['endogenous'] = self.ENDO_CHECK.GetValue()
@@ -603,6 +606,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         #if not setup['mType'] == self.ModelTypeRadioBox.GetSelection():
         if not setup['mType'] == [m.GetValue() for m in self.MODELTYPES].index(True):
             self.MODELTYPES[setup['mType']].SetValue(True)
+        if not setup['method'] == [m.GetValue() for m in self.METHOD].index(True):
+            self.METHOD[setup['method']].SetValue(True)
             #self.ModelTypeRadioBox.SetSelection(setup['mType'])
         #if not setup['endogenous'] == self.EndogenousRadioBox.GetSelection():
         #if not setup['endogenous'] == self.ENDO_CHECK.GetValue():
