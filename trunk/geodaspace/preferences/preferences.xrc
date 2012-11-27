@@ -426,6 +426,63 @@
             </object>
             <label>Output</label>
           </object>
+          
+          <size>450,300</size>
+          <XRCED>
+            <assign_var>1</assign_var>
+          </XRCED>
+          <object class="notebookpage">
+            <object class="wxPanel" name="regimes">
+              <object class="wxBoxSizer">
+                <orient>wxVERTICAL</orient>
+                <object class="sizeritem">
+                  <object class="wxFlexGridSizer">
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="RegimeErrorLabel">
+                        <label>Error by regimes</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="RegimeError">
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="RegimeLagLabel">
+                        <label>Spatial lag by regimes</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="RegimeLag">
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
+                    </object>
+                    <cols>2</cols>
+                    <rows>2</rows>
+                    <vgap>20</vgap>
+                    <hgap>10</hgap>
+                  </object>
+                  <flag>wxALL|wxALIGN_CENTRE</flag>
+                  <border>15</border>
+                </object>
+              </object>
+            </object>
+            <label>Regimes</label>
+          </object>
           <object class="notebookpage">
             <object class="wxPanel" name="other">
               <object class="wxBoxSizer">
@@ -570,62 +627,6 @@
               </XRCED>
             </object>
             <label>Other</label>
-          </object>
-          <size>450,300</size>
-          <XRCED>
-            <assign_var>1</assign_var>
-          </XRCED>
-          <object class="notebookpage">
-            <object class="wxPanel" name="regimes">
-              <object class="wxBoxSizer">
-                <orient>wxVERTICAL</orient>
-                <object class="sizeritem">
-                  <object class="wxFlexGridSizer">
-                    <object class="sizeritem">
-                      <object class="wxStaticText" name="RegimeErrorLabel">
-                        <label>Error by regimes</label>
-                        <XRCED>
-                          <assign_var>1</assign_var>
-                        </XRCED>
-                      </object>
-                    </object>
-                    <object class="sizeritem">
-                      <object class="wxCheckBox" name="RegimeError">
-                        <XRCED>
-                          <events>EVT_CHECKBOX</events>
-                          <assign_var>1</assign_var>
-                        </XRCED>
-                      </object>
-                      <flag>wxALIGN_CENTRE</flag>
-                    </object>
-                    <object class="sizeritem">
-                      <object class="wxStaticText" name="RegimeLagLabel">
-                        <label>Spatial lag by regimes</label>
-                        <XRCED>
-                          <assign_var>1</assign_var>
-                        </XRCED>
-                      </object>
-                    </object>
-                    <object class="sizeritem">
-                      <object class="wxCheckBox" name="RegimeLag">
-                        <XRCED>
-                          <events>EVT_CHECKBOX</events>
-                          <assign_var>1</assign_var>
-                        </XRCED>
-                      </object>
-                      <flag>wxALIGN_CENTRE</flag>
-                    </object>
-                    <cols>2</cols>
-                    <rows>2</rows>
-                    <vgap>20</vgap>
-                    <hgap>10</hgap>
-                  </object>
-                  <flag>wxALL|wxALIGN_CENTRE</flag>
-                  <border>15</border>
-                </object>
-              </object>
-            </object>
-            <label>Regimes</label>
           </object>
         </object>
         <option>1</option>
