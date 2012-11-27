@@ -35,6 +35,7 @@ WHITE_TOOL_TIP = "White, H. (1980), Econometrica"
 HAC_TOOL_TIP = "Kelejian, H. and Prucha, I. (2007), Journal of Econometrics"  # HAC
 #HET_TOOL_TIP = "Consistent Estimator Under Heteroskedastic Error Terms. -Kelejian , H. and Prucha, I. (Forthcoming), Journal of Econometrics" #HET
 HET_TOOL_TIP = "Kelejian, H. and Prucha, I. (2010), Journal of Econometrics"  # HET
+ML_TOOL_TIP = "(Coming soon)"
 
 myEVT_LIST_BOX_UPDATE = wx.NewEventType()
 EVT_LIST_BOX_UPDATE = wx.PyEventBinder(myEVT_LIST_BOX_UPDATE, 1)
@@ -271,6 +272,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         # gmm or ml leaves no value in MTypes above --> bug
         self.GMM_radiobutton.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)  #pas
         self.ML_radiobutton.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)   #pas
+        self.ML_radiobutton.SetToolTipString(ML_TOOL_TIP)
 
         #self.ModelTypeRadioBox.Bind(wx.EVT_RADIOBOX, self.updateModelType)
         #self.ENDO_CHECK.Bind(wx.EVT_CHECKBOX, self.updateModelType)
@@ -421,6 +423,23 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     self.ML_radiobutton.Disable()
                 else:
                     self.ML_radiobutton.Enable()
+                if m['modelType']['method'] == 1:  #max likelihood, ml
+                    self.SEWhiteCheckBox.SetValue(False)
+                    self.SEWhiteCheckBox.Disable()
+                    self.SEHETCheckBox.SetValue(False)
+                    self.SEHETCheckBox.Disable()
+                    self.SEHACCheckBox.SetValue(False)
+                    self.SEHACCheckBox.Disable()
+                    self.YE_ListBox.Disable()
+                    self.H_ListBox.Disable()
+                else:
+                    self.YE_ListBox.Enable()
+                    self.H_ListBox.Enable()
+                if len(m['spec']['H']) > 0 or len(m['spec']['YE']) > 0:
+                    self.ML_radiobutton.SetValue(False)
+                    self.ML_radiobutton.Disable()
+
+
             # model.verify is now called on Run, and an error msg displays why the model won't run.
             #if self.model.verify():
             #    self.RunButton.Enable()
