@@ -54,7 +54,7 @@ class BaseGM_Error_Hom(RegressionPropsY):
     A1           : string
                    If A1='het', then the matrix A1 is defined as in Arraiz et
                    al. If A1='hom', then as in Anselin (2011) (default).  If
-                   A1='hom_sc', then as in Drukker, Egger and Prucha (2010)
+                   A1='hom_sc' (default), then as in Drukker, Egger and Prucha (2010)
                    and Drukker, Prucha and Raciborski (2010).
 
     Attributes
@@ -134,7 +134,7 @@ class BaseGM_Error_Hom(RegressionPropsY):
     '''
 
     def __init__(self, y, x, w,\
-                 max_iter=1, epsilon=0.00001, A1='het'):
+                 max_iter=1, epsilon=0.00001, A1='hom_sc'):
         if A1 == 'hom':
             wA1 = get_A1_hom(w)
         elif A1 == 'hom_sc':
@@ -204,7 +204,7 @@ class GM_Error_Hom(BaseGM_Error_Hom):
     A1           : string
                    If A1='het', then the matrix A1 is defined as in Arraiz et
                    al. If A1='hom', then as in Anselin (2011).  If
-                   A1='hom_sc', then as in Drukker, Egger and Prucha (2010)
+                   A1='hom_sc' (default), then as in Drukker, Egger and Prucha (2010)
                    and Drukker, Prucha and Raciborski (2010).
     vm           : boolean
                    If True, include variance-covariance matrix in summary
@@ -361,8 +361,9 @@ class GM_Error_Hom(BaseGM_Error_Hom):
      [  0.4129   0.1835]]
 
     '''
+    
     def __init__(self, y, x, w,\
-                 max_iter=1, epsilon=0.00001, A1='het',\
+                 max_iter=1, epsilon=0.00001, A1='hom_sc',\
                  vm=False, name_y=None, name_x=None,\
                  name_w=None, name_ds=None):
 
@@ -413,7 +414,7 @@ class BaseGM_Endog_Error_Hom(RegressionPropsY):
     A1           : string
                    If A1='het', then the matrix A1 is defined as in Arraiz et
                    al. If A1='hom', then as in Anselin (2011).  If
-                   A1='hom_sc', then as in Drukker, Egger and Prucha (2010)
+                   A1='hom_sc' (default), then as in Drukker, Egger and Prucha (2010)
                    and Drukker, Prucha and Raciborski (2010).
 
     Attributes
@@ -501,7 +502,7 @@ class BaseGM_Endog_Error_Hom(RegressionPropsY):
     
     '''
     def __init__(self, y, x, yend, q, w,\
-                 max_iter=1, epsilon=0.00001, A1='het'):
+                 max_iter=1, epsilon=0.00001, A1='hom_sc'):
 
         if A1 == 'hom':
             wA1 = get_A1_hom(w)
@@ -581,7 +582,7 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom):
     A1           : string
                    If A1='het', then the matrix A1 is defined as in Arraiz et
                    al. If A1='hom', then as in Anselin (2011).  If
-                   A1='hom_sc', then as in Drukker, Egger and Prucha (2010)
+                   A1='hom_sc' (default), then as in Drukker, Egger and Prucha (2010)
                    and Drukker, Prucha and Raciborski (2010).
     vm           : boolean
                    If True, include variance-covariance matrix in summary
@@ -780,7 +781,7 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom):
 
     '''
     def __init__(self, y, x, yend, q, w,\
-                 max_iter=1, epsilon=0.00001, A1='het',\
+                 max_iter=1, epsilon=0.00001, A1='hom_sc',\
                  vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None,\
                  name_w=None, name_ds=None):
@@ -844,7 +845,7 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom):
     A1           : string
                    If A1='het', then the matrix A1 is defined as in Arraiz et
                    al. If A1='hom', then as in Anselin (2011).  If
-                   A1='hom_sc', then as in Drukker, Egger and Prucha (2010)
+                   A1='hom_sc' (default), then as in Drukker, Egger and Prucha (2010)
                    and Drukker, Prucha and Raciborski (2010).
 
 
@@ -956,7 +957,7 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom):
     '''
     def __init__(self, y, x, yend=None, q=None,\
                  w=None, w_lags=1, lag_q=True,\
-                 max_iter=1, epsilon=0.00001, A1='het'):
+                 max_iter=1, epsilon=0.00001, A1='hom_sc'):
     
         BaseGM_Endog_Error_Hom.__init__(self, y=y, x=x, w=w, yend=yend, q=q, A1=A1,\
                                         max_iter=max_iter, epsilon=epsilon)
@@ -1001,7 +1002,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom):
     A1           : string
                    If A1='het', then the matrix A1 is defined as in Arraiz et
                    al. If A1='hom', then as in Anselin (2011).  If
-                   A1='hom_sc', then as in Drukker, Egger and Prucha (2010)
+                   A1='hom_sc' (default), then as in Drukker, Egger and Prucha (2010)
                    and Drukker, Prucha and Raciborski (2010).
     vm           : boolean
                    If True, include variance-covariance matrix in summary
@@ -1214,7 +1215,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom):
     '''
     def __init__(self, y, x, yend=None, q=None,\
                  w=None, w_lags=1, lag_q=True,\
-                 max_iter=1, epsilon=0.00001, A1='het',\
+                 max_iter=1, epsilon=0.00001, A1='hom_sc',\
                  vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None,\
                  name_w=None, name_ds=None):
