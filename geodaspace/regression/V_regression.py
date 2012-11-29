@@ -591,12 +591,6 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             self.populate(self.model)
             raise
 
-    '''
-    def updateMethodType(self, evt):
-        method_dict = {}
-        method_dict['est_method'] = self.MethodsRadioBox.GetSelection()
-        return method_dict
-    '''
 
     def updateModelType(self, evt):
         modelSetup = {}
@@ -618,7 +612,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         modelSetup['spatial_tests'] = {}
         modelSetup['spatial_tests']['lm'] = self.ST_LM.GetValue()
         self.model.setModelType(modelSetup)
-        print modelSetup
+        #print modelSetup
 
     #TODO: add 'method' check here
     def setModelType(self, setup):
