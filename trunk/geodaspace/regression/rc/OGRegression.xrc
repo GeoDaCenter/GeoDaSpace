@@ -299,13 +299,13 @@
                                 <object class="sizeritem">
                                   <object class="wxStaticText">
                                     <label>R</label>
-                                    <tooltip>Regime (Coming Soon)</tooltip>
+                                    <tooltip>Regime Indicators</tooltip>
                                   </object>
                                   <flag>wxALL|wxALIGN_CENTRE|wxALIGN_CENTRE_VERTICAL|wxADJUST_MINSIZE</flag>
                                 </object>
                                 <object class="sizeritem">
                                   <object class="wxTextCtrl" name="R_TextCtrl">
-                                    <tooltip>Regime (Coming Soon)</tooltip>
+                                    <tooltip>Regime Indicators</tooltip>
                                     <XRCED>
                                       <assign_var>1</assign_var>
                                     </XRCED>
@@ -488,17 +488,20 @@
                                           <assign_var>1</assign_var>
                                         </XRCED>
                                       </object>
+                                      <flag>wxTOP|wxEXPAND</flag>
+                                      <border>4</border>
                                     </object>
+                                    <label>Method</label>
+                                    <orient>wxVERTICAL</orient>
                                   </object>
                                   <option>1</option>
-                                  <flag>wxBOTTOM|wxLEFT|wxRIGHT|wxGROW</flag>
+                                  <flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
                                   <border>3</border>
                                 </object>
+                                <orient>wxVERTICAL</orient>
                               </object>
-                              <option>1</option>
-                              <flag>wxALL|wxEXPAND|wxGROW|wxALIGN_CENTRE|wxADJUST_MINSIZE</flag>
+                              <flag>wxALL|wxEXPAND</flag>
                             </object>
-                            
                             <object class="sizeritem">
                               <object class="wxBoxSizer">
                                 <orient>wxVERTICAL</orient>

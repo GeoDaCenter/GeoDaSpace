@@ -36,7 +36,7 @@ HAC_TOOL_TIP = "Kelejian, H. and Prucha, I. (2007), Journal of Econometrics"  # 
 #HET_TOOL_TIP = "Consistent Estimator Under Heteroskedastic Error Terms. -Kelejian , H. and Prucha, I. (Forthcoming), Journal of Econometrics" #HET
 HET_TOOL_TIP = "Kelejian, H. and Prucha, I. (2010), Journal of Econometrics"  # HET
 ML_TOOL_TIP = "(Coming soon)"
-R_TOOL_TIP = "Regime indicators"
+#R_TOOL_TIP = "Regime indicators"
 
 myEVT_LIST_BOX_UPDATE = wx.NewEventType()
 EVT_LIST_BOX_UPDATE = wx.PyEventBinder(myEVT_LIST_BOX_UPDATE, 1)
@@ -243,7 +243,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.H_ListBox.Bind(wx.EVT_MOUSE_EVENTS, self._startDrag)
         self.R_TextCtrl.Bind(wx.EVT_TEXT, self.updateSpec)
         self.R_TextCtrl.Bind(wx.EVT_LEFT_DCLICK, self.clearTextBox)
-        self.R_TextCtrl.SetToolTipString(R_TOOL_TIP)
+        #self.R_TextCtrl.SetToolTipString(R_TOOL_TIP)
         #self.S_TextCtrl.Bind(wx.EVT_TEXT, self.updateSpec)
         #self.S_TextCtrl.Bind(wx.EVT_LEFT_DCLICK,self.clearTextBox)
         self.T_TextCtrl.Bind(wx.EVT_TEXT, self.updateSpec)
