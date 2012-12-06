@@ -453,13 +453,13 @@ def __init_resources():
                                 <object class="sizeritem">
                                   <object class="wxStaticText">
                                     <label>R</label>
-                                    <tooltip>Regime (Coming Soon)</tooltip>
+                                    <tooltip>Regime Indicators</tooltip>
                                   </object>
                                   <flag>wxALL|wxALIGN_CENTRE|wxALIGN_CENTRE_VERTICAL|wxADJUST_MINSIZE</flag>
                                 </object>
                                 <object class="sizeritem">
                                   <object class="wxTextCtrl" name="R_TextCtrl">
-                                    <tooltip>Regime (Coming Soon)</tooltip>
+                                    <tooltip>Regime Indicators</tooltip>
                                     <XRCED>
                                       <assign_var>1</assign_var>
                                     </XRCED>
