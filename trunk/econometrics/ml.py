@@ -5,7 +5,6 @@ Maximum likelihood estimation of spatial process models
 TODO
 ----
 
- - check ORD versus FULL likelihood results with sparse implementation for ORD
  - asymptotic standard errors for ML_Lag
  - ML_error likelihood
  - ML_error partial
@@ -405,6 +404,11 @@ def ML_Lag(y, w, X, precrit=0.0000001, verbose=False, like='full'):
     bml = b1 - (ro * b2)
     b = [ro,bml]
 
+    xb = np.dot(X, bml)
+    eml = y - ro * wy - xb
+    sig2 = (eml**2).sum() / w.n
+    
+
     # Likelihood evaluation
 
     if like.upper() == 'ORD':
@@ -413,7 +417,41 @@ def ML_Lag(y, w, X, precrit=0.0000001, verbose=False, like='full'):
     elif like.upper() == 'FULL':
         llik = log_like_lag_full(w, b, X, y)
 
-    return (b, tr1, llik)
+
+    # Information matrix
+    xb = np.dot(X, bml)
+    e = y - ro * wy - xb
+    sig2 = (e**2).sum() / w.n
+    omega = sig2 * np.eye(w.n)
+    omega_i = np.linalg.inv(omega)
+    xomega = np.dot(X.T, omega_i)
+    ibb = np.dot(xomega, X)
+
+    W = w.full()[0]
+    A = np.eye(w.n) - ro * W
+    A_inv = np.linalg.inv(A)
+    ibp = np.dot(xomega, W)
+    ibp = np.dot(ibp, A_inv)
+    ibp = np.dot(ibp, xb)
+
+    # need ipp
+
+
+
+    results = {}
+    results['betas'] = bml
+    results['rho'] = ro
+    results['llik'] = llik
+    results['sig2'] = sig2
+
+    results['ibb'] = ibb
+    results['ibp'] = ibp
+
+
+    #results['X'] = X
+    #results['wy'] = wy
+    #results['xb'] = xb
+    return results
 
 
 
