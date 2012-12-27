@@ -6,6 +6,7 @@ TODO
 ----
 
  - asymptotic standard errors for ML_Lag
+   - standard errors are not quite correct
  - ML_error likelihood
  - ML_error partial
  - ML_error estimation
@@ -301,6 +302,9 @@ def ML_Lag(y, w, X, precrit=0.0000001, verbose=False, like='full'):
     """
     Maximum likelihood estimation of spatial lag model
 
+    Parameters
+    ----------
+
     y: dependent variable (nx1 array)
 
     w: spatial weights object
@@ -313,6 +317,12 @@ def ML_Lag(y, w, X, precrit=0.0000001, verbose=False, like='full'):
 
     like: method to use for evaluating concentrated likelihood function
     (FULL|ORD) where FULL=Brute Force, ORD = eigenvalue based jacobian
+
+    Returns
+    -------
+
+    Results: dictionary with estimates, standard errors and t-values
+    (temporary for development)
     """
 
     # step 1 OLS of X on y yields b1
@@ -419,23 +429,56 @@ def ML_Lag(y, w, X, precrit=0.0000001, verbose=False, like='full'):
 
 
     # Information matrix
+    # From Anselin (1988) pg 64-65
+
+
+
+    # (6.25)
     xb = np.dot(X, bml)
     e = y - ro * wy - xb
     sig2 = (e**2).sum() / w.n
     omega = sig2 * np.eye(w.n)
     omega_i = np.linalg.inv(omega)
     xomega = np.dot(X.T, omega_i)
-    ibb = np.dot(xomega, X)
+    ibb = np.dot(xomega, X) 
 
+    # (6.26)
     W = w.full()[0]
     A = np.eye(w.n) - ro * W
     A_inv = np.linalg.inv(A)
-    ibp = np.dot(xomega, W)
-    ibp = np.dot(ibp, A_inv)
+    WA_inv = np.dot(W, A_inv)
+    ibp = np.dot(xomega, WA_inv)
     ibp = np.dot(ibp, xb)
 
-    # need ipp
+    # (6.27)
+    k = X.shape[1]
+    ibl = np.zeros((k,1)) 
 
+    # (6.28)
+    ibaT = np.zeros((k,1))
+
+    # (6.29) ipp
+    t1 = np.trace(np.dot(WA_inv, WA_inv))
+    t2 = np.dot(omega,WA_inv)
+    t2 = np.dot(t2.T,omega_i)
+    WA_invXB = np.dot(WA_inv, xb)
+    ipp = t1 + np.trace(t2) + np.dot(WA_invXB.T, np.dot(omega_i, WA_invXB))
+
+    # (6.30) ipl 
+    ipl = np.trace(np.dot(omega_i, np.dot(WA_inv, omega)))
+    ipl = ipl + np.trace(np.dot(W, A_inv))
+
+    # (6.31) ipa
+    ipa = np.trace(np.dot(omega_i, WA_invXB))
+
+    # (6.32) ill
+    ill = 2. * w.n
+
+    # (6.33)  ila
+    ila = w.n
+
+    # (6.34) 
+    iaa = w.n/2.
 
 
     results = {}
@@ -443,14 +486,42 @@ def ML_Lag(y, w, X, precrit=0.0000001, verbose=False, like='full'):
     results['rho'] = ro
     results['llik'] = llik
     results['sig2'] = sig2
-
     results['ibb'] = ibb
     results['ibp'] = ibp
+    results['ipp'] = ipp
+    results['ipl'] = ipl
+    results['ipa'] = ipa
+    results['ill'] = ill
+    results['ila'] = ila
+    results['iaa'] = iaa
 
+    dim = k + 3 
+    Info = np.zeros((dim,dim))
+    Info[0:k,0:k] = ibb
+    Info[0:k,k+1] =  ibp.flatten()
+    Info[k,k] = ipp
+    Info[k+1,k+1] = ill
+    Info[k+2, k+2] = iaa
+    Info[k,k+1] = ipl
+    Info[k+1,k] = ipl
+    Info[k,k+2] = ipa
+    Info[k+2,k] = ipa
+    Info[k+1,k+2] = ila
+    Info[k+2,k+1] = ila
+    results['Info'] = Info
 
-    #results['X'] = X
-    #results['wy'] = wy
-    #results['xb'] = xb
+    # asymptotic vcv
+    AVCV = np.linalg.inv(Info)
+    results['AVCV'] = AVCV
+    se_b = np.sqrt(np.diag(AVCV)[0:k])
+    se_b.shape = (k,1)
+    t_b = bml/se_b
+    se_rho = np.sqrt(AVCV[k,k])
+    t_rho = ro / se_rho
+    results['se_b'] = se_b
+    results['t_b'] = t_b
+    results['se_rho'] = se_rho
+    results['t_rho'] = t_rho
     return results
 
 
