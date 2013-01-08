@@ -60,9 +60,13 @@ elif sys.platform == 'win32':
     setup( zipfile=None,
            windows=[ {"script": "geodaspace/GeoDaSpace.py", 
                       "icon_resources": [(1, "geodaspace/icons/geodaspace.ico")]}],
+                                
            data_files=[('Microsoft.VC90.CRT',glob('Microsoft.VC90.CRT/*.*'))],
+           # remove the dll_excludes entry if you want to support Win95/98
            options = {'py2exe': { 
-                        'includes': ['scipy.io.matlab.streams']
+                        'includes': ['scipy.io.matlab.streams'],
+                        'dll_excludes': ['w9xpopen.exe'],
+                        'excludes' : ['Tkconstants', 'Tkinter', 'tcl'],                        
                         } },
            packages= pkgs,
            name='GeoDaSpace',
