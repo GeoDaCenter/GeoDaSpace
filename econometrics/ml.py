@@ -171,6 +171,7 @@ def symmetrize(w):
 def ML_Error(y, w, X, precrit=0.0000001, verbose=False, like='full'):
 
     n = w.n
+    n,k = X.shape
     yy = (y**2).sum()
     yl = ps.lag_spatial(w,y)
     ylyl = (yl**2).sum()
@@ -428,100 +429,59 @@ def ML_Lag(y, w, X, precrit=0.0000001, verbose=False, like='full'):
         llik = log_like_lag_full(w, b, X, y)
 
 
-    # Information matrix
-    # From Anselin (1988) pg 64-65
+    # Information matrix 
+    # Ipp IpB  Ips
+    # IBp IBB  IBs
+    # Isp IsB  Iss
 
-
-
-    # (6.25)
-    xb = np.dot(X, bml)
-    e = y - ro * wy - xb
-    sig2 = (e**2).sum() / w.n
-    omega = sig2 * np.eye(w.n)
-    omega_i = np.linalg.inv(omega)
-    xomega = np.dot(X.T, omega_i)
-    ibb = np.dot(xomega, X) 
-
-    # (6.26)
+    # Ipp
+    n,k = X.shape
     W = w.full()[0]
-    A = np.eye(w.n) - ro * W
-    A_inv = np.linalg.inv(A)
-    WA_inv = np.dot(W, A_inv)
-    ibp = np.dot(xomega, WA_inv)
-    ibp = np.dot(ibp, xb)
+    A_inv = np.linalg.inv(np.eye(w.n) - ro * W)
+    WA = np.dot(W, A_inv)
+    tr1 = np.trace(WA)
+    tr1 = tr1**2
+    tr2 = np.trace(np.dot(WA.T, WA))
+    WAXB = np.dot(WA,xb)
+    Ipp = tr1 + tr2 + np.dot(WAXB.T, WAXB)/sig2
 
-    # (6.27)
-    k = X.shape[1]
-    ibl = np.zeros((k,1)) 
+    I = np.eye(w.n)
+    IpB = np.dot(X.T, WAXB).T / sig2
+    Ips = np.trace(WA) / sig2
 
-    # (6.28)
-    ibaT = np.zeros((k,1))
+    IBp = IpB.T
+    IBB = np.dot(X.T,X) / sig2
 
-    # (6.29) ipp
-    t1 = np.trace(np.dot(WA_inv, WA_inv))
-    t2 = np.dot(omega,WA_inv)
-    t2 = np.dot(t2.T,omega_i)
-    WA_invXB = np.dot(WA_inv, xb)
-    ipp = t1 + np.trace(t2) + np.dot(WA_invXB.T, np.dot(omega_i, WA_invXB))
-
-    # (6.30) ipl 
-    ipl = np.trace(np.dot(omega_i, np.dot(WA_inv, omega)))
-    ipl = ipl + np.trace(np.dot(W, A_inv))
-
-    # (6.31) ipa
-    ipa = np.trace(np.dot(omega_i, WA_invXB))
-
-    # (6.32) ill
-    ill = 2. * w.n
-
-    # (6.33)  ila
-    ila = w.n
-
-    # (6.34) 
-    iaa = w.n/2.
-
+    Isp = Ips
+    Iss = n / (2 * sig2 * sig2)
 
     results = {}
     results['betas'] = bml
     results['rho'] = ro
     results['llik'] = llik
     results['sig2'] = sig2
-    results['ibb'] = ibb
-    results['ibp'] = ibp
-    results['ipp'] = ipp
-    results['ipl'] = ipl
-    results['ipa'] = ipa
-    results['ill'] = ill
-    results['ila'] = ila
-    results['iaa'] = iaa
-
-    dim = k + 3 
+    dim = k + 2 
     Info = np.zeros((dim,dim))
-    Info[0:k,0:k] = ibb
-    Info[0:k,k+1] =  ibp.flatten()
-    Info[k,k] = ipp
-    Info[k+1,k+1] = ill
-    Info[k+2, k+2] = iaa
-    Info[k,k+1] = ipl
-    Info[k+1,k] = ipl
-    Info[k,k+2] = ipa
-    Info[k+2,k] = ipa
-    Info[k+1,k+2] = ila
-    Info[k+2,k+1] = ila
-    results['Info'] = Info
-
-    # asymptotic vcv
-    AVCV = np.linalg.inv(Info)
-    results['AVCV'] = AVCV
-    se_b = np.sqrt(np.diag(AVCV)[0:k])
+    Info[0,0] = Ipp
+    Info[0,1:k+1] = IpB
+    Info[0,k+1] = Ips
+    Info[1:k+1,0 ] = IpB
+    Info[1:k+1, 1:k+1] = IBB
+    Info[k+1,0 ] = Ips
+    Info[k+1, k+1] = Iss
+    VCV = np.linalg.inv(Info)
+    se_b = np.sqrt(np.diag(VCV)[1:k+1])
     se_b.shape = (k,1)
-    t_b = bml/se_b
-    se_rho = np.sqrt(AVCV[k,k])
-    t_rho = ro / se_rho
+    z_b = bml/se_b
+    se_rho = np.sqrt(VCV[0,0])
+    z_rho = ro / se_rho
+    se_sig2 = np.sqrt(VCV[k+1,k+1])
     results['se_b'] = se_b
-    results['t_b'] = t_b
+    results['z_b'] = z_b
     results['se_rho'] = se_rho
-    results['t_rho'] = t_rho
+    results['z_rho'] = z_rho
+    results['se_sig2'] = se_sig2
+    results['VCV'] = VCV
     return results
 
 
