@@ -142,7 +142,7 @@ def _logJacobian(w, rho):
     """
     Log determinant of I-\rho W
 
-    Brute force initially
+    Brute force 
     """
 
     return np.log(np.linalg.det(np.eye(w.n) - rho * w.full()[0]))
