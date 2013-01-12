@@ -5,8 +5,9 @@ Maximum likelihood estimation of spatial process models
 TODO
 ----
 
- - asymptotic standard errors for ml_lag and ml_error do no exactly match
+ - asymptotic standard errors for ml_lag do no exactly match
    opengeoda
+ - ml_error vcv
  - ml_error likelihood
  - document
  - write tests
@@ -61,17 +62,6 @@ def log_like_lag_full(w,b,X,y):
     ldet = _logJacobian(w, r)
     return log_like_lag(ldet, w, b, X, y)
 
-
-def c_log_like_lag_full(r, e1, e2, w):
-    """
-    Log concentrated likelihood for the lag model using full evaluation
-    """
-    n = w.n
-    e1re2 = e1 - r*e2
-    ldet = _logJacobian(w, r)
-
-    return -(n/2.)  * np.log( (e1re2**2).sum() / n  ) + ldet
-
 def log_like_lag_ord(w, b, X, y, evals):
     r = b[0]
     revals = r * evals
@@ -94,51 +84,17 @@ def log_like_lag(ldet, w, b, X, y):
     ln2pi = np.log(2*np.pi)
     return ldet - n/2. * ln2pi - n/2. * np.log(sig2) - e2/(2 * sig2)
 
-
-
-def c_log_like_lag_ord(r, e1, e2, evals):
-    """
-    Log concentrated likelihood for the lag model using Ord (1975)
-    approximation
-
-    Parameters
-    ----------
-
-    r: estimate of rho
-
-    e1: ols residuals of y on X 
-
-    e2: ols residuals of Wy on X
-
-    evals: vector of eigenvalues of W
-
-
-    Returns
-    -------
-
-    lc: scalar value of concentrated likelihood
-
-    """
+def log_lik_error(ldet, w, b, lam, X, y):
     n = w.n
-    e1re2 = e1 - r*e2
-    revals = r * evals
-    return -(n/2.)  * np.log( (e1re2**2).sum() / n  ) + np.log(1-revals).sum()
-
-def log_lik_error(ldet, w, b, X, y):
-    n = w.n
-    lam = b[0] #lambda is python keyword
     yl = ps.lag_spatial(w,y)
     ys = y - lam * yl
-    XS = X - lam * ps.lag_spatial(X,w)
+    XS = X - lam * ps.lag_spatial(w, X)
     iXSXS = np.linalg.inv(np.dot(XS.T, XS))
-    b = np.dot(iXSXS, np.dot(XS.T, ys))
     es = y  - ys - np.dot(X,b) + np.dot(XS,b)
-    es2 = (e**2).sum()
+    es2 = (es**2).sum()
     sig2 = es2 / n
     ln2pi = np.log(2*np.pi)
     return  ldet - n/2. * ln2pi - n/2. * np.log(sig2) - es2 / (2 * sig2)
-
-
 
 def _logJacobian(w, rho):
     """
@@ -150,7 +106,7 @@ def _logJacobian(w, rho):
     return np.log(np.linalg.det(np.eye(w.n) - rho * w.full()[0]))
 
 def symmetrize(w):
-    """Generate symmetric matrix that has same eigenvalues as unsymmetric row
+    """Generate symmetric matrix that has same eigenvalues as an asymmetric row
     standardized matrix w
 
     Parameters
@@ -169,76 +125,6 @@ def symmetrize(w):
     D12 = SPARSE.spdiags(np.sqrt(1./d),[0],w.n,w.n)
     w.transform = current
     return D12*w.sparse*D12
-
-def ml_error(y, X, w, precrit=0.0000001, verbose=False, like='full'):
-
-    n = w.n
-    n,k = X.shape
-    yy = (y**2).sum()
-    yl = ps.lag_spatial(w, y)
-    ylyl = (yl**2).sum()
-    Xy = np.dot(X.T,y)
-    Xl = ps.lag_spatial(w, X)
-    Xly = np.dot(Xl.T,y) + np.dot(X.T, yl)
-    Xlyl = np.dot(Xl.T, yl)
-    XX = np.dot(X.T, X)
-    XlX = np.dot(Xl.T,X) + np.dot(X.T, Xl)
-    XlXl = np.dot(Xl.T, Xl)
-    yly = np.dot(yl.T, y)
-    yyl = np.dot(y.T, yl)
-    ylyl = np.dot(yl.T, yl)
-
-
-    lam = 0
-    dlik, b, sig2, tr, dd = defer(w, lam, yy, yyl, ylyl, Xy, Xly, Xlyl, XX, XlX,
-            XlXl)
-
-    #roots = SPARSE.linalg.eigsh(symmetrize(w))[0]
-    #maxroot = 1. / roots.max()
-    #minroot = 1. / roots.min()
-
-    roots = np.linalg.eigvals(w.full()[0])
-    maxroot = 1./roots.max()
-    minroot = 1./roots.min()
-    delta = 0.0001
-
-
-
-    if dlik > 0:
-        ll = lam
-        ul = maxroot - delta
-    else:
-        ul = lam
-        ll = minroot + delta
-
-    # bisection
-    t = 10
-
-    lam0 = (ll + ul) /2.
-    i = 0
-
-    if verbose:
-        line ="\nMaximum Likelihood Estimation of Spatial error Model"
-        print line
-        line ="%-5s\t%12s\t%12s\t%12s\t%12s"%("Iter.","LL","LAMBDA","UL","dlik")
-        print line
-
-    while abs(t - lam0)  > precrit:
-        if verbose:
-            print "%d\t%12.8f\t%12.8f\t%12.8f\t%12.8f"  % (i,ll, lam0, ul, dlik)
-        i += 1
-
-        dlik, b, sig2, tr, dd = defer(w, lam0, yy, yyl, ylyl, Xy, Xly, Xlyl,
-                XX, XlX, XlXl)
-        if dlik > 0:
-            ll = lam0
-        else:
-            ul = lam0
-        t = lam0
-        lam0 = (ul + ll)/ 2.
- 
-    return b, lam0
-
 
 def defer(w, lam, yy, yyl, ylyl, Xy, Xly, Xlyl, XX, XlX, XlXl):
     """
@@ -300,6 +186,108 @@ def defer(w, lam, yy, yyl, ylyl, Xy, Xly, Xlyl, XX, XlX, XlXl):
     dlik = -0.5 * dlik / sig2 - tr
     return (dlik[0][0], b, sig2, tr, dd)
 
+def ml_error(y, X, w, precrit=0.0000001, verbose=False, like='full'):
+    """
+    Maximum likelihood of spatial error model
+
+    Parameters
+    ----------
+    y: dependent variable (nx1 array)
+
+    w: spatial weights object
+
+    X: explanatory variables (nxk array)
+
+    precrit: convergence criterion
+
+    verbose: boolen to print iterations in estimation
+
+    like: method to use for evaluating concentrated likelihood function
+    (FULL|ORD) where FULL=Brute Force, ORD = eigenvalue based jacobian
+
+    Returns
+    -------
+
+    Results: dictionary with estimates, standard errors, vcv, and z-values
+
+    """
+    n = w.n
+    n,k = X.shape
+    yy = (y**2).sum()
+    yl = ps.lag_spatial(w, y)
+    ylyl = (yl**2).sum()
+    Xy = np.dot(X.T,y)
+    Xl = ps.lag_spatial(w, X)
+    Xly = np.dot(Xl.T,y) + np.dot(X.T, yl)
+    Xlyl = np.dot(Xl.T, yl)
+    XX = np.dot(X.T, X)
+    XlX = np.dot(Xl.T,X) + np.dot(X.T, Xl)
+    XlXl = np.dot(Xl.T, Xl)
+    yly = np.dot(yl.T, y)
+    yyl = np.dot(y.T, yl)
+    ylyl = np.dot(yl.T, yl)
+
+
+    lam = 0
+    dlik, b, sig2, tr, dd = defer(w, lam, yy, yyl, ylyl, Xy, Xly, Xlyl, XX, XlX,
+            XlXl)
+
+    roots = np.linalg.eigvals(w.full()[0])
+    maxroot = 1./roots.max()
+    minroot = 1./roots.min()
+    delta = 0.0001
+
+
+
+    if dlik > 0:
+        ll = lam
+        ul = maxroot - delta
+    else:
+        ul = lam
+        ll = minroot + delta
+
+    # bisection
+    t = 10
+
+    lam0 = (ll + ul) /2.
+    i = 0
+
+    if verbose:
+        line ="\nMaximum Likelihood Estimation of Spatial error Model"
+        print line
+        line ="%-5s\t%12s\t%12s\t%12s\t%12s"%("Iter.","LL","LAMBDA","UL","dlik")
+        print line
+
+    while abs(t - lam0)  > precrit:
+        if verbose:
+            print "%d\t%12.8f\t%12.8f\t%12.8f\t%12.8f"  % (i,ll, lam0, ul, dlik)
+        i += 1
+
+        dlik, b, sig2, tr, dd = defer(w, lam0, yy, yyl, ylyl, Xy, Xly, Xlyl,
+                XX, XlX, XlXl)
+        if dlik > 0:
+            ll = lam0
+        else:
+            ul = lam0
+        t = lam0
+        lam0 = (ul + ll)/ 2.
+
+    #if like.upper() == 'ORD':
+    #    evals = SPARSE.linalg.eighsh(symmetrize(w))[0]
+    #    llik = log_lik_error_ord(w, b, X, y, evals)
+    #elif like.upper() == 'FULL':
+    #    llik = log_like_error_full(w, b, X, y)
+
+    ldet = _logJacobian(w, lam0)
+    llik = log_lik_error(ldet, w, b, lam0, X, y)
+
+
+
+    results = {}
+    results['betas'] = b
+    results['lambda'] = lam0
+    results['llik'] = llik
+    return results
 
 def ml_lag(y, X, w,  precrit=0.0000001, verbose=False, like='full'):
     """
@@ -324,8 +312,7 @@ def ml_lag(y, X, w,  precrit=0.0000001, verbose=False, like='full'):
     Returns
     -------
 
-    Results: dictionary with estimates, standard errors and t-values
-    (temporary for development)
+    Results: dictionary with estimates, standard errors, vcv, and z-values
     """
 
     # step 1 OLS of X on y yields b1
@@ -485,8 +472,6 @@ def ml_lag(y, X, w,  precrit=0.0000001, verbose=False, like='full'):
     results['se_sig2'] = se_sig2
     results['VCV'] = VCV
     return results
-
-
 
 if __name__ == '__main__':
 
