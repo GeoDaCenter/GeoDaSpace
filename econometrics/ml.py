@@ -5,11 +5,13 @@ Maximum likelihood estimation of spatial process models
 TODO
 ----
 
- - asymptotic standard errors for ML_Lag
-   - standard errors are not quite correct
- - ML_error likelihood
- - ML_error partial
- - ML_error estimation
+ - asymptotic standard errors for ml_lag and ml_error do no exactly match
+   opengeoda
+ - ml_error likelihood
+ - document
+ - write tests
+ - wrapper classes
+ - integration with spreg
 
 """
 
@@ -127,7 +129,7 @@ def log_lik_error(ldet, w, b, X, y):
     lam = b[0] #lambda is python keyword
     yl = ps.lag_spatial(w,y)
     ys = y - lam * yl
-    XS = X - lam * ps.lag_spatial(w,X)
+    XS = X - lam * ps.lag_spatial(X,w)
     iXSXS = np.linalg.inv(np.dot(XS.T, XS))
     b = np.dot(iXSXS, np.dot(XS.T, ys))
     es = y  - ys - np.dot(X,b) + np.dot(XS,b)
@@ -168,15 +170,15 @@ def symmetrize(w):
     w.transform = current
     return D12*w.sparse*D12
 
-def ML_Error(y, w, X, precrit=0.0000001, verbose=False, like='full'):
+def ml_error(y, X, w, precrit=0.0000001, verbose=False, like='full'):
 
     n = w.n
     n,k = X.shape
     yy = (y**2).sum()
-    yl = ps.lag_spatial(w,y)
+    yl = ps.lag_spatial(w, y)
     ylyl = (yl**2).sum()
     Xy = np.dot(X.T,y)
-    Xl = ps.lag_spatial(w,X)
+    Xl = ps.lag_spatial(w, X)
     Xly = np.dot(Xl.T,y) + np.dot(X.T, yl)
     Xlyl = np.dot(Xl.T, yl)
     XX = np.dot(X.T, X)
@@ -216,7 +218,7 @@ def ML_Error(y, w, X, precrit=0.0000001, verbose=False, like='full'):
     i = 0
 
     if verbose:
-        line ="\nMaximum Likelihood Estimation of Spatial Error Model"
+        line ="\nMaximum Likelihood Estimation of Spatial error Model"
         print line
         line ="%-5s\t%12s\t%12s\t%12s\t%12s"%("Iter.","LL","LAMBDA","UL","dlik")
         print line
@@ -299,7 +301,7 @@ def defer(w, lam, yy, yyl, ylyl, Xy, Xly, Xlyl, XX, XlX, XlXl):
     return (dlik[0][0], b, sig2, tr, dd)
 
 
-def ML_Lag(y, w, X, precrit=0.0000001, verbose=False, like='full'):
+def ml_lag(y, X, w,  precrit=0.0000001, verbose=False, like='full'):
     """
     Maximum likelihood estimation of spatial lag model
 
@@ -391,7 +393,7 @@ def ML_Lag(y, w, X, precrit=0.0000001, verbose=False, like='full'):
     t = rols
     ro = (ll+ul) / 2.
     if verbose:
-        line ="\nMaximum Likelihood Estimation of Spatial Lag Model"
+        line ="\nMaximum Likelihood Estimation of Spatial lag Model"
         print line
         line ="%-5s\t%12s\t%12s\t%12s\t%12s"%("Iter.","LL","RHO","UL","DFR")
         print line
@@ -499,6 +501,6 @@ if __name__ == '__main__':
     w = ps.rook_from_shapefile(ps.examples.get_path("columbus.shp"))
     w.transform = 'r'
     X = np.hstack((np.ones((w.n,1)),X))
-    bml = ML_Lag(y,w,X, verbose=True, like='ORD')
-    bmlf = ML_Lag(y,w,X, verbose=True, like='FULL')
-    bmle = ML_Error(y,w,X, verbose=True)
+    bml = ml_lag(y,X,w, verbose=True, like='ORD')
+    bmlf = ml_lag(y,X,w, verbose=True, like='FULL')
+    bmle = ml_error(y,X,w, verbose=True)
