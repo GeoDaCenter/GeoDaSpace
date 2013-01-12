@@ -7,7 +7,8 @@ TODO
 
  - asymptotic standard errors for ml_lag do no exactly match
    opengeoda
- - ml_error vcv
+ - asymptotic standard errors for ml_error do no exactly match
+   opengeoda
  - ml_error likelihood
  - document
  - write tests
@@ -21,7 +22,6 @@ __author__ = "Serge Rey srey@asu.edu, Luc Anselin luc.anselin@asu.edu"
 import numpy as np
 import pysal as ps
 import scipy.sparse as SPARSE
-
 
 def defl_lag(r, w, e1, e2):
     """
@@ -272,21 +272,52 @@ def ml_error(y, X, w, precrit=0.0000001, verbose=False, like='full'):
         t = lam0
         lam0 = (ul + ll)/ 2.
 
-    #if like.upper() == 'ORD':
-    #    evals = SPARSE.linalg.eighsh(symmetrize(w))[0]
-    #    llik = log_lik_error_ord(w, b, X, y, evals)
-    #elif like.upper() == 'FULL':
-    #    llik = log_like_error_full(w, b, X, y)
 
+    # TODO change to mirror full v. ord ala lag
     ldet = _logJacobian(w, lam0)
     llik = log_lik_error(ldet, w, b, lam0, X, y)
 
+    # VCV Matrix
+    # l = lambda
+    # B = betas
+    # s = sigma2
+
+    # Vl  ClB Cls
+    # CBl VB  CBs
+    # Csl CsB Vs
+
+    # Vll
+    n,k = X.shape
+    W = w.full()[0]
+    B_inv = np.linalg.inv(np.eye(n) - lam0 * W)
+    WB = np.dot(W, B_inv)
+    trWB = np.trace(WB)
+    Vl = trWB**2 + np.trace(np.dot(WB.T, WB))
+
+    # Cls
+    Cls = trWB / sig2
+
+    # Vs
+    Vs = n / (2.0 * sig2 * sig2)
+
+    # VB
+    XL = X - lam0 * ps.lag_spatial(w, X)
+    VB = sig2 * np.linalg.inv(np.dot(XL.T, XL))
 
 
     results = {}
     results['betas'] = b
     results['lambda'] = lam0
     results['llik'] = llik
+    results['sig2'] = sig2
+    results['VB'] = VB
+    results['Vl'] = Vl
+    results['Vs'] = Vs
+    results['Cls'] = Cls
+
+    results['std.error_B'] = np.sqrt(np.diag(VB))
+    results['std.error_l'] = np.sqrt(Vl)
+    
     return results
 
 def ml_lag(y, X, w,  precrit=0.0000001, verbose=False, like='full'):
@@ -482,7 +513,6 @@ if __name__ == '__main__':
     X.append(db.by_col("INC"))
     X.append(db.by_col("HOVAL"))
     X = np.array(X).T
-    #w = ps.open(ps.examples.get_path("columbus.gal")).read()
     w = ps.rook_from_shapefile(ps.examples.get_path("columbus.shp"))
     w.transform = 'r'
     X = np.hstack((np.ones((w.n,1)),X))
