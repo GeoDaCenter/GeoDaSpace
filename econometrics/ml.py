@@ -84,17 +84,18 @@ def log_like_lag(ldet, w, b, X, y):
     ln2pi = np.log(2*np.pi)
     return ldet - n/2. * ln2pi - n/2. * np.log(sig2) - e2/(2 * sig2)
 
-def log_lik_error(ldet, w, b, lam, X, y):
+def log_lik_error(ldet, w, b, lam, X, y, sig2):
+    # anselin and bera (1998) eq 34
     n = w.n
-    yl = ps.lag_spatial(w,y)
-    ys = y - lam * yl
-    XS = X - lam * ps.lag_spatial(w, X)
-    iXSXS = np.linalg.inv(np.dot(XS.T, XS))
-    es = y  - ys - np.dot(X,b) + np.dot(XS,b)
-    es2 = (es**2).sum()
-    sig2 = es2 / n
-    ln2pi = np.log(2*np.pi)
-    return  ldet - n/2. * ln2pi - n/2. * np.log(sig2) - es2 / (2 * sig2)
+    A = np.identity(n) - lam * w.full()[0]
+    omega_i = np.dot(A.T, A)
+    e = y - np.dot(X,b)
+    t4 =  np.dot(e.T, np.dot(omega_i, e)) / (2 * sig2)
+    t1 = 1/2. * ldet
+    t2 = n/2. * np.log(2*np.pi)
+    t3 = n/2. * np.log(sig2)
+    return  -t1 - t2 - t3 - t4
+
 
 
 def _logJacobian(w, rho):
@@ -149,8 +150,9 @@ def defer(w, lam, yy, yyl, ylyl, Xy, Xly, Xlyl, XX, XlX, XlXl):
 
     Xly:  (WX)'y
 
-
     Xlyl:  (WX)'Wy
+
+    XX: (X'X)
 
     XlX: (WX)' X
 
@@ -276,7 +278,7 @@ def ml_error(y, X, w, precrit=0.0000001, verbose=False, like='full'):
 
     # TODO change to mirror full v. ord ala lag
     ldet = _logJacobian(w, lam0)
-    llik = log_lik_error(ldet, w, b, lam0, X, y)
+    llik = log_lik_error(ldet, w, b, lam0, X, y, sig2)
 
     # Info Matrix 
     # l = lambda
