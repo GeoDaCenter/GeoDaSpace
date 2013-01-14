@@ -9,7 +9,6 @@ TODO
    opengeoda
  - asymptotic standard errors for ml_error do no exactly match
    opengeoda
- - ml_error likelihood
  - document
  - write tests
  - wrapper classes
@@ -57,18 +56,8 @@ def defl_lag(r, w, e1, e2):
     dfl = n * (num/den) - tr
     return dfl[0][0], tr
 
-def log_like_lag_full(w,b,X,y):
-    r = b[0]
-    ldet = _logJacobian(w, r)
-    return log_like_lag(ldet, w, b, X, y)
 
-def log_like_lag_ord(w, b, X, y, evals):
-    r = b[0]
-    revals = r * evals
-    ldet = np.log(1-revals).sum()
-    return log_like_lag(ldet, w, b, X, y)
-
-def log_like_lag(ldet, w, b, X, y):
+def log_lik_lag(ldet, w, b, X, y):
     n = w.n
     r = b[0]    # ml estimate of rho
     b = b[1:]   # ml for betas
@@ -98,14 +87,38 @@ def log_lik_error(ldet, w, b, lam, X, y, sig2):
 
 
 
-def _logJacobian(w, rho):
+def _logJacobian(w, rho, method='FULL'):
     """
     Log determinant of I-\rho W
 
-    Brute force 
-    """
+    Parameters
+    ----------
 
-    return np.log(np.linalg.det(np.eye(w.n) - rho * w.full()[0]))
+    w: spatial weights object
+
+    rho: value of spatial parameter
+
+    method: approach to evaluate determinant
+            Full = brute force
+            Ord = Ord eigenvalue approximation
+
+    Returns
+    -------
+
+    scalar value of the log determinant of I - \rho W
+    """
+    METHOD = method.upper()
+    if METHOD == 'FULL':
+        return np.log(np.linalg.det(np.eye(w.n) - rho * w.full()[0]))
+    elif METHOD == 'ORD':
+        # Ord approximation
+        evals = SPARSE.linalg.eigsh(symmetrize(w))[0]
+        revals = rho * evals
+        ldet = np.log(1-revals).sum()
+        return ldet
+    else:
+        print 'Unsupported method for log Jacobian: ', method
+
 
 def symmetrize(w):
     """Generate symmetric matrix that has same eigenvalues as an asymmetric row
@@ -189,7 +202,7 @@ def defer(w, lam, yy, yyl, ylyl, Xy, Xly, Xlyl, XX, XlX, XlXl):
     dlik = -0.5 * dlik / sig2 - tr
     return (dlik[0][0], b, sig2, tr, dd)
 
-def ml_error(y, X, w, precrit=0.0000001, verbose=False, like='full'):
+def ml_error(y, X, w, precrit=0.0000001, verbose=False, method='full'):
     """
     Maximum likelihood of spatial error model
 
@@ -205,7 +218,7 @@ def ml_error(y, X, w, precrit=0.0000001, verbose=False, like='full'):
 
     verbose: boolen to print iterations in estimation
 
-    like: method to use for evaluating concentrated likelihood function
+    method: method to use for evaluating jacobian term in  concentrated likelihood function
     (FULL|ORD) where FULL=Brute Force, ORD = eigenvalue based jacobian
 
     Returns
@@ -276,8 +289,7 @@ def ml_error(y, X, w, precrit=0.0000001, verbose=False, like='full'):
         lam0 = (ul + ll)/ 2.
 
 
-    # TODO change to mirror full v. ord ala lag
-    ldet = _logJacobian(w, lam0)
+    ldet = _logJacobian(w, lam0, method)
     llik = log_lik_error(ldet, w, b, lam0, X, y, sig2)
 
     # Info Matrix 
@@ -324,10 +336,11 @@ def ml_error(y, X, w, precrit=0.0000001, verbose=False, like='full'):
     results['sig2'] = sig2
     results['std.error_B'] = np.sqrt(np.diag(VB))
     results['std.error_l'] = np.sqrt(Varls[0,0])
+    results['method'] = method
     
     return results
 
-def ml_lag(y, X, w,  precrit=0.0000001, verbose=False, like='full'):
+def ml_lag(y, X, w,  precrit=0.0000001, verbose=False, method='full'):
     """
     Maximum likelihood estimation of spatial lag model
 
@@ -344,7 +357,7 @@ def ml_lag(y, X, w,  precrit=0.0000001, verbose=False, like='full'):
 
     verbose: boolen to print iterations in estimation
 
-    like: method to use for evaluating concentrated likelihood function
+    method: method to use for evaluating jacobian term in  concentrated likelihood function
     (FULL|ORD) where FULL=Brute Force, ORD = eigenvalue based jacobian
 
     Returns
@@ -446,15 +459,9 @@ def ml_lag(y, X, w,  precrit=0.0000001, verbose=False, like='full'):
     eml = y - ro * wy - xb
     sig2 = (eml**2).sum() / w.n
     
-
     # Likelihood evaluation
-
-    if like.upper() == 'ORD':
-        evals = SPARSE.linalg.eigsh(symmetrize(w))[0]
-        llik = log_like_lag_ord(w, b, X, y, evals)
-    elif like.upper() == 'FULL':
-        llik = log_like_lag_full(w, b, X, y)
-
+    ldet = _logJacobian(w, ro, method)
+    llik = log_lik_lag(ldet, w, b, X, y)
 
     # Information matrix 
     # Ipp IpB  Ips
@@ -509,6 +516,7 @@ def ml_lag(y, X, w,  precrit=0.0000001, verbose=False, like='full'):
     results['z_rho'] = z_rho
     results['se_sig2'] = se_sig2
     results['VCV'] = VCV
+    results['method'] = method
     return results
 
 if __name__ == '__main__':
@@ -523,6 +531,7 @@ if __name__ == '__main__':
     w = ps.rook_from_shapefile(ps.examples.get_path("columbus.shp"))
     w.transform = 'r'
     X = np.hstack((np.ones((w.n,1)),X))
-    bml = ml_lag(y,X,w, verbose=True, like='ORD')
-    bmlf = ml_lag(y,X,w, verbose=True, like='FULL')
-    bmle = ml_error(y,X,w, verbose=True)
+    lag_ord = ml_lag(y,X,w, verbose=True, method='ORD')
+    lag_full = ml_lag(y,X,w, verbose=True, method='FULL')
+    error_full = ml_error(y,X,w, verbose=True, method='FULL')
+    error_ord = ml_error(y,X,w, verbose=True, method='ORD')
