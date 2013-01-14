@@ -726,14 +726,14 @@ def collect_predy_resid(pred_res, header_pr, reg, model, spatial, ws, counter):
     else:
         lead = model
     if spatial:
-        pred_res = np.hstack((pred_res, reg.predy, reg.u, reg.predy_sp, reg.resid_sp))
-        header_pr += ','+lead+'predy,'+lead+'resid,'+lead+'predy_sp,'+lead+'resid_sp'
+        pred_res = np.hstack((pred_res, reg.predy, reg.u, reg.predy_e, reg.e_pred))
+        header_pr += ','+lead+'predy,'+lead+'resid,'+lead+'predy_e,'+lead+'e_pred'
     else:
         pred_res = np.hstack((pred_res, reg.predy, reg.u))
-        header_pr += ','+lead+'_predy,'+lead+'_resid'
+        header_pr += ','+lead+'predy,'+lead+'resid'
     return pred_res, header_pr, counter
 
-def run_predy_resid(gui, reg, model, spatial):
+def run_predy_resid(gui, reg, model, spatial, counter):
     if gui.predy_resid:  # write out predicted values and residuals
         gui.pred_res, gui.header_pr, counter = collect_predy_resid(\
                                gui.pred_res, gui.header_pr, reg, model,\
@@ -765,7 +765,7 @@ def get_OLS(gui):
                sig2n_k=gui.sig2n_k_ols)
     if gui.predy_resid:  # write out predicted values and residuals
         gui.pred_res, gui.header_pr, counter = collect_predy_resid(\
-                               gui.pred_res, gui.header_pr, reg, 'standard',\
+                               gui.pred_res, gui.header_pr, reg, 'standard_',\
                                False, 0, 0)
     if gui.w_list and gui.spat_diag:
         output = []
@@ -794,7 +794,7 @@ def get_TSLS(gui):
                 name_q=gui.name_h, name_ds=gui.name_ds, sig2n_k=gui.sig2n_k_tsls)
     if gui.predy_resid:  # write out predicted values and residuals
         gui.pred_res, gui.header_pr, counter = collect_predy_resid(\
-                               gui.pred_res, gui.header_pr, reg, 'standard',\
+                               gui.pred_res, gui.header_pr, reg, 'standard_',\
                                False, 0, 0)
     if gui.w_list and gui.spat_diag:
         output = []
@@ -826,8 +826,9 @@ def get_GM_Lag_endog(gui):
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, sig2n_k=gui.sig2n_k_gmlag,\
               spat_diag=gui.spat_diag, name_w=w.name)
-        run_predy_resid(gui, reg, '', True)
+        run_predy_resid(gui, reg, '', True, counter)
         output.append(reg)
+        counter += 1
     robust_regs = get_white_hac_lag(reg, gui, output)
     for rob_reg in robust_regs:
         SUMMARY.beta_diag_lag(rob_reg, rob_reg.robust)
@@ -845,8 +846,9 @@ def get_GM_Lag_noEndog(gui):
               w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               sig2n_k=gui.sig2n_k_gmlag, spat_diag=gui.spat_diag, name_w=w.name)
-        run_predy_resid(gui, reg, '', True)
+        run_predy_resid(gui, reg, '', True, counter)
         output.append(reg)
+        counter += 1
     robust_regs = get_white_hac_lag(reg, gui, output)
     for rob_reg in robust_regs:
         SUMMARY.beta_diag_lag(rob_reg, rob_reg.robust)
@@ -864,8 +866,9 @@ def get_GM_Endog_Error_Hom(gui):
               vm=gui.vc_matrix, max_iter=gui.max_iter, epsilon=gui.stop_crit,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, '', False)
+        run_predy_resid(gui, reg, '', False, counter)
         output.append(reg)
+        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Endog_Error_Het(gui))
     return output
@@ -878,8 +881,9 @@ def get_GM_Error_Hom(gui):
               max_iter=gui.max_iter, epsilon=gui.stop_crit,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               name_w=w.name)
-        run_predy_resid(gui, reg, '', False)
+        run_predy_resid(gui, reg, '', False, counter)
         output.append(reg)
+        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Error_Het(gui))
     return output
@@ -892,8 +896,9 @@ def get_GM_Endog_Error(gui):
               vm=gui.vc_matrix,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, '', False)
+        run_predy_resid(gui, reg, '', False, counter)
         output.append(reg)
+        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Endog_Error_Het(gui))
     return output
@@ -905,8 +910,9 @@ def get_GM_Error(gui):
         reg = GM_Error(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               name_w=w.name)
-        run_predy_resid(gui, reg, '', False)
+        run_predy_resid(gui, reg, '', False, counter)
         output.append(reg)
+        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Error_Het(gui))
     return output
@@ -920,8 +926,9 @@ def get_GM_Endog_Error_Het(gui):
               step1c=gui.step1c, inv_method=gui.comp_inverse,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, 'het_', False)
+        run_predy_resid(gui, reg, 'het_', False, counter)
         output.append(reg)
+        counter += 1
     return output
 
 def get_GM_Error_Het(gui):
@@ -933,8 +940,9 @@ def get_GM_Error_Het(gui):
               step1c=gui.step1c,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               name_w=w.name)
-        run_predy_resid(gui, reg, 'het_', False)
+        run_predy_resid(gui, reg, 'het_', False, counter)
         output.append(reg)
+        counter += 1
     return output
 
 def get_GM_Combo_Hom_endog(gui):
@@ -946,8 +954,9 @@ def get_GM_Combo_Hom_endog(gui):
               max_iter=gui.max_iter, epsilon=gui.stop_crit,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, '', True)
+        run_predy_resid(gui, reg, '', True, counter)
         output.append(reg)
+        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Combo_Het_endog(gui))
     return output
@@ -961,8 +970,9 @@ def get_GM_Combo_Hom_noEndog(gui):
               max_iter=gui.max_iter, epsilon=gui.stop_crit,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               name_w=w.name)
-        run_predy_resid(gui, reg, '', True)
+        run_predy_resid(gui, reg, '', True, counter)
         output.append(reg)
+        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Combo_Het_noEndog(gui))
     return output
@@ -975,8 +985,9 @@ def get_GM_Combo_endog(gui):
               vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, '', True)
+        run_predy_resid(gui, reg, '', True, counter)
         output.append(reg)
+        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Combo_Het_endog(gui))
     return output
@@ -989,8 +1000,9 @@ def get_GM_Combo_noEndog(gui):
               w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               name_w=w.name)
-        run_predy_resid(gui, reg, '', True)
+        run_predy_resid(gui, reg, '', True, counter)
         output.append(reg)
+        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Combo_Het_noEndog(gui))
     return output
@@ -1005,8 +1017,9 @@ def get_GM_Combo_Het_endog(gui):
               step1c=gui.step1c, inv_method=gui.comp_inverse,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, 'het_', True)
+        run_predy_resid(gui, reg, 'het_', True, counter)
         output.append(reg)
+        counter += 1
     return output
 
 def get_GM_Combo_Het_noEndog(gui):
@@ -1019,8 +1032,9 @@ def get_GM_Combo_Het_noEndog(gui):
               step1c=gui.step1c, inv_method=gui.comp_inverse,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               name_w=w.name)
-        run_predy_resid(gui, reg, 'het_', True)
+        run_predy_resid(gui, reg, 'het_', True, counter)
         output.append(reg)
+        counter += 1
     return output
 
 def get_OLS_regimes(gui):
@@ -1035,7 +1049,7 @@ def get_OLS_regimes(gui):
                sig2n_k=gui.sig2n_k_ols, regime_err_sep=gui.regime_err_sep, name_w=name_w0)
     if gui.predy_resid:  # write out predicted values and residuals
         gui.pred_res, gui.header_pr, counter = collect_predy_resid(\
-                               gui.pred_res, gui.header_pr, reg, 'standard',\
+                               gui.pred_res, gui.header_pr, reg, 'standard_',\
                                False, 0, 0)
     output = [reg]
     if gui.w_list and gui.spat_diag:
@@ -1088,7 +1102,7 @@ def get_TSLS_regimes(gui):
                 name_q=gui.name_h, name_ds=gui.name_ds, sig2n_k=gui.sig2n_k_tsls)
     if gui.predy_resid:  # write out predicted values and residuals
         gui.pred_res, gui.header_pr, counter = collect_predy_resid(\
-                               gui.pred_res, gui.header_pr, reg, 'standard',\
+                               gui.pred_res, gui.header_pr, reg, 'standard_',\
                                False, 0, 0)
     output = [reg]
     if gui.w_list and gui.spat_diag:
@@ -1142,8 +1156,9 @@ def get_GM_Lag_endog_regimes(gui):
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, sig2n_k=gui.sig2n_k_gmlag,\
               spat_diag=gui.spat_diag, name_w=w.name)
-        run_predy_resid(gui, reg, '', True)
+        run_predy_resid(gui, reg, '', True, counter)
         output.append(reg)
+        counter += 1
     robust_regs = get_white_hac_lag(reg, gui, output)
     for rob_reg in robust_regs:
         if gui.regime_err_sep:
@@ -1174,8 +1189,9 @@ def get_GM_Lag_noEndog_regimes(gui):
               w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               sig2n_k=gui.sig2n_k_gmlag, spat_diag=gui.spat_diag, name_w=w.name)
-        run_predy_resid(gui, reg, '', True)
+        run_predy_resid(gui, reg, '', True, counter)
         output.append(reg)
+        counter += 1
     robust_regs = get_white_hac_lag(reg, gui, output)
     for rob_reg in robust_regs:
         if gui.regime_err_sep:
@@ -1206,8 +1222,9 @@ def get_GM_Endog_Error_Hom_regimes(gui):
               vm=gui.vc_matrix, max_iter=gui.max_iter, epsilon=gui.stop_crit,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, '', False)
+        run_predy_resid(gui, reg, '', False, counter)
         output.append(reg)
+        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Endog_Error_Het_regimes(gui))
     return output
@@ -1222,8 +1239,9 @@ def get_GM_Error_Hom_regimes(gui):
               max_iter=gui.max_iter, epsilon=gui.stop_crit,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               name_w=w.name)
-        run_predy_resid(gui, reg, '', False)
+        run_predy_resid(gui, reg, '', False, counter)
         output.append(reg)
+        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Error_Het_regimes(gui))
     return output
@@ -1238,8 +1256,9 @@ def get_GM_Endog_Error_regimes(gui):
               vm=gui.vc_matrix,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, '', False)
+        run_predy_resid(gui, reg, '', False, counter)
         output.append(reg)
+        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Endog_Error_Het_regimes(gui))
     return output
@@ -1253,8 +1272,9 @@ def get_GM_Error_regimes(gui):
               regime_err_sep=gui.regime_err_sep, cores=gui.cores,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               name_w=w.name)
-        run_predy_resid(gui, reg, '', False)
+        run_predy_resid(gui, reg, '', False, counter)
         output.append(reg)
+        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Error_Het_regimes(gui))
     return output
@@ -1270,8 +1290,9 @@ def get_GM_Endog_Error_Het_regimes(gui):
               step1c=gui.step1c, inv_method=gui.comp_inverse,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, 'het_', False)
+        run_predy_resid(gui, reg, 'het_', False, counter)
         output.append(reg)
+        counter += 1
     return output
 
 def get_GM_Error_Het_regimes(gui):
@@ -1285,8 +1306,9 @@ def get_GM_Error_Het_regimes(gui):
               step1c=gui.step1c,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               name_w=w.name)
-        run_predy_resid(gui, reg, 'het_', False)
+        run_predy_resid(gui, reg, 'het_', False, counter)
         output.append(reg)
+        counter += 1
     return output
 
 def get_GM_Combo_Hom_endog_regimes(gui):
@@ -1300,8 +1322,9 @@ def get_GM_Combo_Hom_endog_regimes(gui):
               max_iter=gui.max_iter, epsilon=gui.stop_crit,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, '', True)
+        run_predy_resid(gui, reg, '', True, counter)
         output.append(reg)
+        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Combo_Het_endog_regimes(gui))
     return output
@@ -1317,8 +1340,9 @@ def get_GM_Combo_Hom_noEndog_regimes(gui):
               max_iter=gui.max_iter, epsilon=gui.stop_crit,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               name_w=w.name)
-        run_predy_resid(gui, reg, '', True)
+        run_predy_resid(gui, reg, '', True, counter)
         output.append(reg)
+        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Combo_Het_noEndog_regimes(gui))
     return output
@@ -1333,8 +1357,9 @@ def get_GM_Combo_endog_regimes(gui):
               vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, '', True)
+        run_predy_resid(gui, reg, '', True, counter)
         output.append(reg)
+        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Combo_Het_endog_regimes(gui))
     return output
@@ -1349,8 +1374,9 @@ def get_GM_Combo_noEndog_regimes(gui):
               w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               name_w=w.name)
-        run_predy_resid(gui, reg, '', True)
+        run_predy_resid(gui, reg, '', True, counter)
         output.append(reg)
+        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Combo_Het_noEndog_regimes(gui))
     return output
@@ -1367,8 +1393,9 @@ def get_GM_Combo_Het_endog_regimes(gui):
               step1c=gui.step1c, inv_method=gui.comp_inverse,\
               name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
               name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, 'het_', True)
+        run_predy_resid(gui, reg, 'het_', True, counter)
         output.append(reg)
+        counter += 1
     return output
 
 def get_GM_Combo_Het_noEndog_regimes(gui):
@@ -1383,8 +1410,9 @@ def get_GM_Combo_Het_noEndog_regimes(gui):
               step1c=gui.step1c, inv_method=gui.comp_inverse,\
               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
               name_w=w.name)
-        run_predy_resid(gui, reg, 'het_', True)
+        run_predy_resid(gui, reg, 'het_', True, counter)
         output.append(reg)
+        counter += 1
     return output
 
 def get_ML(gui):
