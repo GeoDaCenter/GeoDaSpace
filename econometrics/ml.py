@@ -96,6 +96,7 @@ def log_lik_error(ldet, w, b, lam, X, y):
     ln2pi = np.log(2*np.pi)
     return  ldet - n/2. * ln2pi - n/2. * np.log(sig2) - es2 / (2 * sig2)
 
+
 def _logJacobian(w, rho):
     """
     Log determinant of I-\rho W
@@ -277,7 +278,7 @@ def ml_error(y, X, w, precrit=0.0000001, verbose=False, like='full'):
     ldet = _logJacobian(w, lam0)
     llik = log_lik_error(ldet, w, b, lam0, X, y)
 
-    # VCV Matrix
+    # Info Matrix 
     # l = lambda
     # B = betas
     # s = sigma2
@@ -303,6 +304,15 @@ def ml_error(y, X, w, precrit=0.0000001, verbose=False, like='full'):
     # VB
     XL = X - lam0 * ps.lag_spatial(w, X)
     VB = sig2 * np.linalg.inv(np.dot(XL.T, XL))
+    
+    #Variance for l and s is inverse of 2x2 information matrix
+    Infols = np.zeros((2,2))
+    Infols[0,0] = Vl
+    Infols[1,0] = Cls
+    Infols[0,1] = Cls
+    Infols[1,1] = Vs
+    Varls = np.linalg.inv(Infols)
+    
 
 
     results = {}
@@ -310,13 +320,8 @@ def ml_error(y, X, w, precrit=0.0000001, verbose=False, like='full'):
     results['lambda'] = lam0
     results['llik'] = llik
     results['sig2'] = sig2
-    results['VB'] = VB
-    results['Vl'] = Vl
-    results['Vs'] = Vs
-    results['Cls'] = Cls
-
     results['std.error_B'] = np.sqrt(np.diag(VB))
-    results['std.error_l'] = np.sqrt(Vl)
+    results['std.error_l'] = np.sqrt(Varls[0,0])
     
     return results
 
