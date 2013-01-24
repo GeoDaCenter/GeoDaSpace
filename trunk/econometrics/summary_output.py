@@ -212,6 +212,7 @@ def GM_Error_Hom(reg, vm, w, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
     beta_diag(reg, None)
+    summary_iteration(reg)
     # build coefficients table body
     beta_position = summary_coefs_somex(reg, reg.z_stat)
     summary_coefs_lambda(reg, reg.z_stat)
@@ -225,6 +226,7 @@ def GM_Error_Hom_multi(reg, multireg, vm, regimes=False):
         mreg = multireg[m]
         mreg.__summary = {}
         # compute diagnostics and organize summary output
+        summary_iteration(mreg)
         beta_diag(mreg, None)
         # build coefficients table body
         beta_position = summary_coefs_somex(mreg, mreg.z_stat)
@@ -240,6 +242,7 @@ def GM_Endog_Error_Hom(reg, vm, w, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
     beta_diag(reg, None)
+    summary_iteration(reg)
     # build coefficients table body
     summary_coefs_yend(reg, reg.z_stat, lambd=True)
     summary_coefs_lambda(reg, reg.z_stat)
@@ -255,6 +258,7 @@ def GM_Endog_Error_Hom_multi(reg, multireg, vm, regimes=False):
         mreg.__summary = {}
         # compute diagnostics and organize summary output
         beta_diag(mreg, None)
+        summary_iteration(mreg)
         # build coefficients table body
         summary_coefs_yend(mreg, mreg.z_stat, lambd=True)
         summary_coefs_lambda(mreg, mreg.z_stat)
@@ -270,6 +274,7 @@ def GM_Error_Het(reg, vm, w, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
     beta_diag(reg, 'het')
+    summary_iteration(reg)
     # build coefficients table body
     beta_position = summary_coefs_somex(reg, reg.z_stat)
     summary_coefs_lambda(reg, reg.z_stat)
@@ -284,6 +289,7 @@ def GM_Error_Het_multi(reg, multireg, vm, regimes=False):
         mreg.__summary = {}
         # compute diagnostics and organize summary output
         beta_diag(mreg, 'het')
+        summary_iteration(mreg)
         # build coefficients table body
         beta_position = summary_coefs_somex(mreg, mreg.z_stat)
         summary_coefs_lambda(mreg, mreg.z_stat)
@@ -298,6 +304,7 @@ def GM_Endog_Error_Het(reg, vm, w, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
     beta_diag(reg, 'het')
+    summary_iteration(reg)
     # build coefficients table body
     summary_coefs_yend(reg, reg.z_stat, lambd=True)
     summary_coefs_lambda(reg, reg.z_stat)
@@ -313,6 +320,7 @@ def GM_Endog_Error_Het_multi(reg, multireg, vm, regimes=False):
         mreg.__summary = {}
         # compute diagnostics and organize summary output
         beta_diag(mreg, 'het')
+        summary_iteration(mreg)
         # build coefficients table body
         summary_coefs_yend(mreg, mreg.z_stat, lambd=True)
         summary_coefs_lambda(mreg, mreg.z_stat)
@@ -342,6 +350,7 @@ def GM_Combo_Hom(reg, vm, w, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
     beta_diag_lag(reg, None)
+    summary_iteration(reg)
     # build coefficients table body
     summary_coefs_yend(reg, reg.z_stat, lambd=True)
     summary_coefs_lambda(reg, reg.z_stat)
@@ -355,6 +364,7 @@ def GM_Combo_Het(reg, vm, w, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
     beta_diag_lag(reg, 'het')
+    summary_iteration(reg)
     # build coefficients table body
     summary_coefs_yend(reg, reg.z_stat, lambd=True)
     summary_coefs_lambda(reg, reg.z_stat)
@@ -400,7 +410,7 @@ def beta_diag_ols(reg, robust):
     # organize summary output
     reg.__summary['summary_std_err'] = robust
     reg.__summary['summary_zt'] = 't'
-    reg.__summary['summary_r2'] = "%-20s:%12.6f\n%-20s:%12.4f\n" % ('R-squared',reg.r2,'Adjusted R-squared',reg.ar2)
+    reg.__summary['summary_r2'] = "%-20s:%12.4f\n%-20s:%12.4f\n" % ('R-squared',reg.r2,'Adjusted R-squared',reg.ar2)
     # build coefficients table body
     position = summary_coefs_allx(reg, reg.t_stat)
 
@@ -412,7 +422,7 @@ def beta_diag(reg, robust):
     # organize summary output
     reg.__summary['summary_std_err'] = robust
     reg.__summary['summary_zt'] = 'z'
-    reg.__summary['summary_r2'] = "%-20s:%12.6f\n" % ('Pseudo R-squared',reg.pr2)
+    reg.__summary['summary_r2'] = "%-20s:%12.4f\n" % ('Pseudo R-squared',reg.pr2)
 
 def beta_diag_lag(reg, robust):
     # compute diagnostics
@@ -459,6 +469,10 @@ def summary(reg, vm, instruments, short_intro=False, nonspat_diag=False, spat_di
     summary += reg.__summary['summary_r2']
     if nonspat_diag:
         summary += reg.__summary['summary_nonspat_diag_1']
+    try:
+        summary += reg.__summary['summary_other_top']
+    except:
+        pass
     summary += summary_coefs_intro(reg)
     summary += reg.__summary['summary_coefs']
     summary += "------------------------------------------------------------------------------------\n"
@@ -493,6 +507,10 @@ def summary_multi(reg, multireg, vm, instruments, short_intro=False, nonspat_dia
         summary += mreg.__summary['summary_r2']
         if nonspat_diag:
             summary += mreg.__summary['summary_nonspat_diag_1']
+        try:
+            summary += reg.__summary['summary_other_top']
+        except:
+            pass
         summary += summary_coefs_intro(mreg)
         summary += mreg.__summary['summary_coefs']
         summary += "------------------------------------------------------------------------------------\n"
@@ -558,7 +576,7 @@ def summary_intro(reg,short):
     if not short:
         strSummary += "%-20s:%12.4f               %-22s:%12d\n" % ('Mean dependent var',reg.mean_y,'Number of Variables',reg.k)
         strSummary += "%-20s:%12.4f               %-22s:%12d\n" % ('S.D. dependent var',reg.std_y,'Degrees of Freedom',reg.n-reg.k)
-    strSummary += '\n'
+    #strSummary += '\n'
     return strSummary
 
 def summary_coefs_intro(reg):
@@ -637,6 +655,22 @@ def summary_coefs_instruments(reg):
     inst2 += insts
     reg.__summary['summary_coefs_instruments'] = inst2
 
+def summary_iteration(reg):
+    """Reports the number of iterations computed.
+    """
+    try:
+        if reg.step1c:
+            step1c = 'Yes'
+        else:
+            step1c = 'No'
+        txt = "%-20s:%12s               %-22s:%12s\n" % ('N. of iterations',reg.iteration,'Step1c computed:',step1c)
+    except:
+        txt = "%-20s:%12s\n" % ('N. of iterations',reg.iteration)        
+    try:
+        reg.__summary['summary_other_top'] += txt
+    except:
+        reg.__summary['summary_other_top'] = txt
+        
 def summary_regimes(reg,chow=True):
     """Lists the regimes variable used.
     """
@@ -686,17 +720,17 @@ def summary_coefs_slopes(reg):
         strSummary += "%20s    %12.7f    %12.7f    %12.7f    %12.7f\n"   \
                      % (reg.name_x[i+1],reg.slopes[i][0],reg.slopes_std_err[i],reg.slopes_z_stat[i][0],reg.slopes_z_stat[i][1])
     return strSummary+"\n\n"
-
+"""
 def summary_r2(reg, ols, spatial_lag):
     if ols:
-        strSummary = "%-20s:%12.6f\n%-20s:%12.4f\n" % ('R-squared',reg.r2,'Adjusted R-squared',reg.ar2)
+        strSummary = "%-20s:%12.4f\n%-20s:%12.4f\n" % ('R-squared',reg.r2,'Adjusted R-squared',reg.ar2)
     else:
-        strSummary = "%-20s:%12.6f\n" % ('Pseudo R-squared',reg.pr2)
+        strSummary = "%-20s:%12.4f\n" % ('Pseudo R-squared',reg.pr2)
         if spatial_lag:
             if reg.pr2_e != None: 
-                strSummary += "%-20s:%12.6f\n" % ('Spatial Pseudo R-squared',reg.pr2_e)
+                strSummary += "%-20s:%12.4f\n" % ('Spatial Pseudo R-squared',reg.pr2_e)
     return strSummary
-
+"""
 def summary_nonspat_diag_1(reg):
     strSummary = ""
     strSummary += "%-20s:%12.3f               %-22s:%12.4f\n" % ('Sum squared residual',reg.utu,'F-statistic',reg.f_stat[0])

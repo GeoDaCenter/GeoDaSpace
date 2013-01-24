@@ -70,7 +70,7 @@ class BaseGM_Error_Het(RegressionPropsY):
     iter_stop    : string
                    Stop criterion reached during iteration of steps 2a and 2b
                    from Arraiz et al.
-    iterations   : integer
+    iteration    : integer
                    Number of iterations of steps 2a and 2b from Arraiz et al.
     mean_y       : float
                    Mean of dependent variable
@@ -117,6 +117,7 @@ class BaseGM_Error_Het(RegressionPropsY):
     def __init__(self, y, x, w,\
                  max_iter=1, epsilon=0.00001, step1c=False):
 
+        self.step1c = step1c
         #1a. OLS --> \tilde{betas}
         ols = OLS.BaseOLS(y=y, x=x)
         self.x, self.y, self.n, self.k, self.xtx = ols.x, ols.y, ols.n, ols.k, ols.xtx
@@ -225,7 +226,7 @@ class GM_Error_Het(BaseGM_Error_Het):
     iter_stop    : string
                    Stop criterion reached during iteration of steps 2a and 2b
                    from Arraiz et al.
-    iterations   : integer
+    iteration    : integer
                    Number of iterations of steps 2a and 2b from Arraiz et al.
     mean_y       : float
                    Mean of dependent variable
@@ -434,7 +435,7 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
     iter_stop    : string
                    Stop criterion reached during iteration of steps 2a and 2b
                    from Arraiz et al.
-    iterations   : integer
+    iteration    : integer
                    Number of iterations of steps 2a and 2b from Arraiz et al.
     mean_y       : float
                    Mean of dependent variable
@@ -487,6 +488,7 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
                  max_iter=1, epsilon=0.00001,
                  step1c=False, inv_method='power_exp'):
     
+        self.step1c = step1c
         #1a. reg --> \tilde{betas} 
         tsls = TSLS.BaseTSLS(y=y, x=x, yend=yend, q=q)
         self.x, self.z, self.h, self.y = tsls.x, tsls.z, tsls.h, tsls.y
@@ -623,7 +625,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
     iter_stop    : string
                    Stop criterion reached during iteration of steps 2a and 2b
                    from Arraiz et al.
-    iterations   : integer
+    iteration    : integer
                    Number of iterations of steps 2a and 2b from Arraiz et al.
     mean_y       : float
                    Mean of dependent variable
@@ -868,7 +870,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     iter_stop    : string
                    Stop criterion reached during iteration of steps 2a and 2b
                    from Arraiz et al.
-    iterations   : integer
+    iteration    : integer
                    Number of iterations of steps 2a and 2b from Arraiz et al.
     mean_y       : float
                    Mean of dependent variable
@@ -1044,7 +1046,7 @@ class GM_Combo_Het(BaseGM_Combo_Het):
     iter_stop    : string
                    Stop criterion reached during iteration of steps 2a and 2b
                    from Arraiz et al.
-    iterations   : integer
+    iteration    : integer
                    Number of iterations of steps 2a and 2b from Arraiz et al.
     mean_y       : float
                    Mean of dependent variable

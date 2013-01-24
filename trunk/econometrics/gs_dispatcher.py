@@ -121,8 +121,8 @@ class Spmodel:
                     Amount of cores to be used for multiprocessing tasks.
                     Default: None, which is same as maximum number possible.
     method      : string
-                  If 'gm' computes models using GM estimators, if 'ml' uses
-                  maximum-likelihood instead.
+                  If 'gm' computes models using GM estimators. If 'ml' uses
+                  maximum-likelihood. If 'ols', computes OLS.
 
     Returns
     -------
@@ -164,7 +164,7 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm')
+        white=False, hac=False, kp_het=False, inf_lambda=False, method='ols')
     >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
@@ -177,7 +177,7 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=True, hac=False, kp_het=False, inf_lambda=False, method='gm')
+        white=True, hac=False, kp_het=False, inf_lambda=False, method='ols')
     >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[wk], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
@@ -190,7 +190,7 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=True, kp_het=False, inf_lambda=False, method='gm')
+        white=False, hac=True, kp_het=False, inf_lambda=False, method='ols')
     >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
@@ -860,61 +860,65 @@ def get_GM_Lag_noEndog(gui):
 
 def get_GM_Endog_Error_Hom(gui):
     output = []
-    counter = 1
-    for w in gui.w_list:
-        reg = GM_Endog_Error_Hom(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
-              vm=gui.vc_matrix, max_iter=gui.max_iter, epsilon=gui.stop_crit,\
-              name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
-              name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, '', False, counter)
-        output.append(reg)
-        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Endog_Error_Het(gui))
+    else:
+        counter = 1
+        for w in gui.w_list:
+            reg = GM_Endog_Error_Hom(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
+                  vm=gui.vc_matrix, max_iter=gui.max_iter, epsilon=gui.stop_crit,\
+                  name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
+                  name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
+            run_predy_resid(gui, reg, '', False, counter)
+            output.append(reg)
+            counter += 1        
     return output
     
 def get_GM_Error_Hom(gui):
     output = []
-    counter = 1
-    for w in gui.w_list:
-        reg = GM_Error_Hom(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
-              max_iter=gui.max_iter, epsilon=gui.stop_crit,\
-              name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
-              name_w=w.name)
-        run_predy_resid(gui, reg, '', False, counter)
-        output.append(reg)
-        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Error_Het(gui))
+    else:
+        counter = 1
+        for w in gui.w_list:
+            reg = GM_Error_Hom(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
+                  max_iter=gui.max_iter, epsilon=gui.stop_crit,\
+                  name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
+                  name_w=w.name)
+            run_predy_resid(gui, reg, '', False, counter)
+            output.append(reg)
+            counter += 1        
     return output
 
 def get_GM_Endog_Error(gui):
     output = []
-    counter = 1
-    for w in gui.w_list:
-        reg = GM_Endog_Error(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
-              vm=gui.vc_matrix,\
-              name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
-              name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, '', False, counter)
-        output.append(reg)
-        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Endog_Error_Het(gui))
+    else:
+        counter = 1
+        for w in gui.w_list:
+            reg = GM_Endog_Error(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
+                  vm=gui.vc_matrix,\
+                  name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
+                  name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
+            run_predy_resid(gui, reg, '', False, counter)
+            output.append(reg)
+            counter += 1        
     return output
 
 def get_GM_Error(gui):
     output = []
-    counter = 1
-    for w in gui.w_list:
-        reg = GM_Error(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
-              name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
-              name_w=w.name)
-        run_predy_resid(gui, reg, '', False, counter)
-        output.append(reg)
-        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Error_Het(gui))
+    else:
+        counter = 1
+        for w in gui.w_list:
+            reg = GM_Error(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
+                  name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
+                  name_w=w.name)
+            run_predy_resid(gui, reg, '', False, counter)
+            output.append(reg)
+            counter += 1
     return output
 
 def get_GM_Endog_Error_Het(gui):
@@ -947,64 +951,68 @@ def get_GM_Error_Het(gui):
 
 def get_GM_Combo_Hom_endog(gui):
     output = []
-    counter = 1
-    for w in gui.w_list:
-        reg = GM_Combo_Hom(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
-              vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
-              max_iter=gui.max_iter, epsilon=gui.stop_crit,\
-              name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
-              name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, '', True, counter)
-        output.append(reg)
-        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Combo_Het_endog(gui))
+    else:
+        counter = 1
+        for w in gui.w_list:
+            reg = GM_Combo_Hom(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
+                  vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
+                  max_iter=gui.max_iter, epsilon=gui.stop_crit,\
+                  name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
+                  name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
+            run_predy_resid(gui, reg, '', True, counter)
+            output.append(reg)
+            counter += 1        
     return output
 
 def get_GM_Combo_Hom_noEndog(gui):
     output = []
-    counter = 1
-    for w in gui.w_list:
-        reg = GM_Combo_Hom(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
-              w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
-              max_iter=gui.max_iter, epsilon=gui.stop_crit,\
-              name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
-              name_w=w.name)
-        run_predy_resid(gui, reg, '', True, counter)
-        output.append(reg)
-        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Combo_Het_noEndog(gui))
+    else:
+        counter = 1
+        for w in gui.w_list:
+            reg = GM_Combo_Hom(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
+                  w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
+                  max_iter=gui.max_iter, epsilon=gui.stop_crit,\
+                  name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
+                  name_w=w.name)
+            run_predy_resid(gui, reg, '', True, counter)
+            output.append(reg)
+            counter += 1        
     return output
 
 def get_GM_Combo_endog(gui):
     output = []
-    counter = 1
-    for w in gui.w_list:
-        reg = GM_Combo(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
-              vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
-              name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
-              name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, '', True, counter)
-        output.append(reg)
-        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Combo_Het_endog(gui))
+    else:
+        counter = 1
+        for w in gui.w_list:
+            reg = GM_Combo(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
+                  vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
+                  name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
+                  name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
+            run_predy_resid(gui, reg, '', True, counter)
+            output.append(reg)
+            counter += 1        
     return output
 
 def get_GM_Combo_noEndog(gui):
     output = []
-    counter = 1
-    for w in gui.w_list:
-        reg = GM_Combo(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
-              w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
-              name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
-              name_w=w.name)
-        run_predy_resid(gui, reg, '', True, counter)
-        output.append(reg)
-        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Combo_Het_noEndog(gui))
+    else:
+        counter = 1
+        for w in gui.w_list:
+            reg = GM_Combo(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
+                  w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
+                  name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
+                  name_w=w.name)
+            run_predy_resid(gui, reg, '', True, counter)
+            output.append(reg)
+            counter += 1
     return output
 
 def get_GM_Combo_Het_endog(gui):
@@ -1214,69 +1222,73 @@ def get_GM_Lag_noEndog_regimes(gui):
 
 def get_GM_Endog_Error_Hom_regimes(gui):
     output = []
-    counter = 1
-    for w in gui.w_list:
-        reg = GM_Endog_Error_Hom_Regimes(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
-              regimes=gui.r, name_regimes=gui.name_r,\
-              regime_err_sep=gui.regime_err_sep, cores=gui.cores,\
-              vm=gui.vc_matrix, max_iter=gui.max_iter, epsilon=gui.stop_crit,\
-              name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
-              name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, '', False, counter)
-        output.append(reg)
-        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Endog_Error_Het_regimes(gui))
+    else:
+        counter = 1
+        for w in gui.w_list:
+            reg = GM_Endog_Error_Hom_Regimes(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
+                  regimes=gui.r, name_regimes=gui.name_r,\
+                  regime_err_sep=gui.regime_err_sep, cores=gui.cores,\
+                  vm=gui.vc_matrix, max_iter=gui.max_iter, epsilon=gui.stop_crit,\
+                  name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
+                  name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
+            run_predy_resid(gui, reg, '', False, counter)
+            output.append(reg)
+            counter += 1        
     return output
     
 def get_GM_Error_Hom_regimes(gui):
     output = []
-    counter = 1
-    for w in gui.w_list:
-        reg = GM_Error_Hom_Regimes(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
-              regimes=gui.r, name_regimes=gui.name_r,\
-              regime_err_sep=gui.regime_err_sep, cores=gui.cores,\
-              max_iter=gui.max_iter, epsilon=gui.stop_crit,\
-              name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
-              name_w=w.name)
-        run_predy_resid(gui, reg, '', False, counter)
-        output.append(reg)
-        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Error_Het_regimes(gui))
+    else:
+        counter = 1
+        for w in gui.w_list:
+            reg = GM_Error_Hom_Regimes(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
+                  regimes=gui.r, name_regimes=gui.name_r,\
+                  regime_err_sep=gui.regime_err_sep, cores=gui.cores,\
+                  max_iter=gui.max_iter, epsilon=gui.stop_crit,\
+                  name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
+                  name_w=w.name)
+            run_predy_resid(gui, reg, '', False, counter)
+            output.append(reg)
+            counter += 1        
     return output
 
 def get_GM_Endog_Error_regimes(gui):
     output = []
-    counter = 1
-    for w in gui.w_list:
-        reg = GM_Endog_Error_Regimes(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
-              regimes=gui.r, name_regimes=gui.name_r,\
-              regime_err_sep=gui.regime_err_sep, cores=gui.cores,\
-              vm=gui.vc_matrix,\
-              name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
-              name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, '', False, counter)
-        output.append(reg)
-        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Endog_Error_Het_regimes(gui))
+    else:
+        counter = 1
+        for w in gui.w_list:
+            reg = GM_Endog_Error_Regimes(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
+                  regimes=gui.r, name_regimes=gui.name_r,\
+                  regime_err_sep=gui.regime_err_sep, cores=gui.cores,\
+                  vm=gui.vc_matrix,\
+                  name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
+                  name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
+            run_predy_resid(gui, reg, '', False, counter)
+            output.append(reg)
+            counter += 1        
     return output
 
 def get_GM_Error_regimes(gui):
     output = []
-    counter = 1
-    for w in gui.w_list:
-        reg = GM_Error_Regimes(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
-              regimes=gui.r, name_regimes=gui.name_r,\
-              regime_err_sep=gui.regime_err_sep, cores=gui.cores,\
-              name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
-              name_w=w.name)
-        run_predy_resid(gui, reg, '', False, counter)
-        output.append(reg)
-        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Error_Het_regimes(gui))
+    else:
+        counter = 1
+        for w in gui.w_list:
+            reg = GM_Error_Regimes(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
+                  regimes=gui.r, name_regimes=gui.name_r,\
+                  regime_err_sep=gui.regime_err_sep, cores=gui.cores,\
+                  name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
+                  name_w=w.name)
+            run_predy_resid(gui, reg, '', False, counter)
+            output.append(reg)
+            counter += 1        
     return output
 
 def get_GM_Endog_Error_Het_regimes(gui):
@@ -1313,72 +1325,76 @@ def get_GM_Error_Het_regimes(gui):
 
 def get_GM_Combo_Hom_endog_regimes(gui):
     output = []
-    counter = 1
-    for w in gui.w_list:
-        reg = GM_Combo_Hom_Regimes(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
-              regimes=gui.r, name_regimes=gui.name_r,\
-              regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep, cores=gui.cores,\
-              vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
-              max_iter=gui.max_iter, epsilon=gui.stop_crit,\
-              name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
-              name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, '', True, counter)
-        output.append(reg)
-        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Combo_Het_endog_regimes(gui))
+    else:
+        counter = 1
+        for w in gui.w_list:
+            reg = GM_Combo_Hom_Regimes(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
+                  regimes=gui.r, name_regimes=gui.name_r,\
+                  regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep, cores=gui.cores,\
+                  vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
+                  max_iter=gui.max_iter, epsilon=gui.stop_crit,\
+                  name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
+                  name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
+            run_predy_resid(gui, reg, '', True, counter)
+            output.append(reg)
+            counter += 1        
     return output
 
 def get_GM_Combo_Hom_noEndog_regimes(gui):
     output = []
-    counter = 1
-    for w in gui.w_list:
-        reg = GM_Combo_Hom_Regimes(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
-              regimes=gui.r, name_regimes=gui.name_r,\
-              regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep, cores=gui.cores,\
-              w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
-              max_iter=gui.max_iter, epsilon=gui.stop_crit,\
-              name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
-              name_w=w.name)
-        run_predy_resid(gui, reg, '', True, counter)
-        output.append(reg)
-        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Combo_Het_noEndog_regimes(gui))
+    else:
+        counter = 1
+        for w in gui.w_list:
+            reg = GM_Combo_Hom_Regimes(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
+                  regimes=gui.r, name_regimes=gui.name_r,\
+                  regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep, cores=gui.cores,\
+                  w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
+                  max_iter=gui.max_iter, epsilon=gui.stop_crit,\
+                  name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
+                  name_w=w.name)
+            run_predy_resid(gui, reg, '', True, counter)
+            output.append(reg)
+            counter += 1        
     return output
 
 def get_GM_Combo_endog_regimes(gui):
     output = []
-    counter = 1
-    for w in gui.w_list:
-        reg = GM_Combo_Regimes(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
-              regimes=gui.r, name_regimes=gui.name_r,\
-              regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep, cores=gui.cores,\
-              vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
-              name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
-              name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
-        run_predy_resid(gui, reg, '', True, counter)
-        output.append(reg)
-        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Combo_Het_endog_regimes(gui))
+    else:
+        counter = 1
+        for w in gui.w_list:
+            reg = GM_Combo_Regimes(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,\
+                  regimes=gui.r, name_regimes=gui.name_r,\
+                  regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep, cores=gui.cores,\
+                  vm=gui.vc_matrix, w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
+                  name_y=gui.name_y, name_x=gui.name_x, name_yend=gui.name_ye,\
+                  name_q=gui.name_h, name_ds=gui.name_ds, name_w=w.name)
+            run_predy_resid(gui, reg, '', True, counter)
+            output.append(reg)
+            counter += 1        
     return output
 
 def get_GM_Combo_noEndog_regimes(gui):
     output = []
-    counter = 1
-    for w in gui.w_list:
-        reg = GM_Combo_Regimes(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
-              regimes=gui.r, name_regimes=gui.name_r,\
-              regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep, cores=gui.cores,\
-              w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
-              name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
-              name_w=w.name)
-        run_predy_resid(gui, reg, '', True, counter)
-        output.append(reg)
-        counter += 1
     if gui.kp_het:
         output.extend(get_GM_Combo_Het_noEndog_regimes(gui))
+    else:
+        counter = 1
+        for w in gui.w_list:
+            reg = GM_Combo_Regimes(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,\
+                  regimes=gui.r, name_regimes=gui.name_r,\
+                  regime_err_sep=gui.regime_err_sep, regime_lag_sep=gui.regime_lag_sep, cores=gui.cores,\
+                  w_lags=gui.instrument_lags, lag_q=gui.lag_user_inst,\
+                  name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,\
+                  name_w=w.name)
+            run_predy_resid(gui, reg, '', True, counter)
+            output.append(reg)
+            counter += 1        
     return output
 
 def get_GM_Combo_Het_endog_regimes(gui):
@@ -1432,8 +1448,9 @@ long as all the keys have the same number of elements.
 """
 # model_getter[(model_type, endog, inf_lambda, regimes, method)] = model
 model_getter = Wildcard_Dict()
+model_getter[('Standard', False, '*', False, 'ols')] = get_OLS
+model_getter[('Standard', False, '*', True, 'ols')] = get_OLS_regimes
 model_getter[('Standard', True, '*', False, 'gm')] = get_TSLS
-model_getter[('Standard', False, '*', False, 'gm')] = get_OLS
 model_getter[('Spatial Lag', True, '*', False, 'gm')] = get_GM_Lag_endog
 model_getter[('Spatial Lag', False, '*', False, 'gm')] = get_GM_Lag_noEndog
 model_getter[('Spatial Error', True, True, False, 'gm')] = get_GM_Endog_Error_Hom
@@ -1445,7 +1462,6 @@ model_getter[('Spatial Lag+Error', False, True, False, 'gm')] = get_GM_Combo_Hom
 model_getter[('Spatial Lag+Error', True, False, False, 'gm')] = get_GM_Combo_endog
 model_getter[('Spatial Lag+Error', False, False, False, 'gm')] = get_GM_Combo_noEndog
 model_getter[('Standard', True, '*', True, 'gm')] = get_TSLS_regimes
-model_getter[('Standard', False, '*', True, 'gm')] = get_OLS_regimes
 model_getter[('Spatial Lag', True, '*', True, 'gm')] = get_GM_Lag_endog_regimes
 model_getter[('Spatial Lag', False, '*', True, 'gm')] = get_GM_Lag_noEndog_regimes
 model_getter[('Spatial Error', True, True, True, 'gm')] = get_GM_Endog_Error_Hom_regimes
@@ -1464,7 +1480,6 @@ model_getter[('Spatial Error', False, '*', False, 'ml')] = get_ML
 model_getter[('Spatial Error', False, '*', True, 'ml')] = get_ML
 model_getter[('Spatial Lag+Error', False, '*', False, 'ml')] = get_ML
 model_getter[('Spatial Lag+Error', False, '*', True, 'ml')] = get_ML
-
 
 
 def _test():

@@ -119,7 +119,7 @@ class GM_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     iter_stop    : string
                    Stop criterion reached during iteration of steps 2a and 2b
                    from Arraiz et al.
-    iterations   : integer
+    iteration    : integer
                    Number of iterations of steps 2a and 2b from Arraiz et al.
     mean_y       : float
                    Mean of dependent variable
@@ -521,7 +521,7 @@ class GM_Endog_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     iter_stop    : string
                    Stop criterion reached during iteration of steps 2a and 2b
                    from Arraiz et al.
-    iterations   : integer
+    iteration    : integer
                    Number of iterations of steps 2a and 2b from Arraiz et al.
     mean_y       : float
                    Mean of dependent variable
@@ -989,7 +989,7 @@ class GM_Combo_Hom_Regimes(GM_Endog_Error_Hom_Regimes):
     iter_stop    : string
                    Stop criterion reached during iteration of steps 2a and 2b
                    from Arraiz et al.
-    iterations   : integer
+    iteration    : integer
                    Number of iterations of steps 2a and 2b from Arraiz et al.
     mean_y       : float
                    Mean of dependent variable
