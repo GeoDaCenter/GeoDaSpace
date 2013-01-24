@@ -98,7 +98,7 @@ class GM_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     iter_stop    : string
                    Stop criterion reached during iteration of steps 2a and 2b
                    from Arraiz et al.
-    iterations   : integer
+    iteration    : integer
                    Number of iterations of steps 2a and 2b from Arraiz et al.
     mean_y       : float
                    Mean of dependent variable
@@ -272,7 +272,7 @@ class GM_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         self.name_y = USER.set_name_y(name_y)
         self.name_w = USER.set_name_w(name_w, w)
         self.name_regimes = USER.set_name_ds(name_regimes)
-        self.n = n
+        self.n,self.step1c = n,step1c
 
         x_constant = USER.check_constant(x)
         name_x = USER.set_name_x(name_x, x)
@@ -502,7 +502,7 @@ class GM_Endog_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     iter_stop    : string
                    Stop criterion reached during iteration of steps 2a and 2b
                    from Arraiz et al.
-    iterations   : integer
+    iteration    : integer
                    Number of iterations of steps 2a and 2b from Arraiz et al.
     mean_y       : float
                    Mean of dependent variable
@@ -696,7 +696,7 @@ class GM_Endog_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_regimes = USER.set_name_ds(name_regimes)
         self.name_w = USER.set_name_w(name_w, w)
-        self.n = n
+        self.n,self.step1c = n,step1c
         
         x_constant = USER.check_constant(x)
         name_x = USER.set_name_x(name_x, x)
@@ -970,7 +970,7 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
     iter_stop    : string
                    Stop criterion reached during iteration of steps 2a and 2b
                    from Arraiz et al.
-    iterations   : integer
+    iteration    : integer
                    Number of iterations of steps 2a and 2b from Arraiz et al.
     mean_y       : float
                    Mean of dependent variable
@@ -1186,6 +1186,7 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
                  name_w=None, name_ds=None, name_regimes=None):
     
         n = USER.check_arrays(y, x)
+        self.step1c = step1c
         USER.check_y(y, n)
         USER.check_weights(w, y)
         name_x = USER.set_name_x(name_x, x,constant=True)
