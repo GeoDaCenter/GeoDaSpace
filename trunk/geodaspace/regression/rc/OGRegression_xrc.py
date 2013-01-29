@@ -63,6 +63,7 @@ class xrcGMM_REGRESSION(wx.Frame):
         self.MT_LAG = xrc.XRCCTRL(self, "MT_LAG")
         self.MT_ERR = xrc.XRCCTRL(self, "MT_ERR")
         self.MT_LAGERR = xrc.XRCCTRL(self, "MT_LAGERR")
+        self.OLS_radiobutton = xrc.XRCCTRL(self, "OLS_radiobutton")
         self.GMM_radiobutton = xrc.XRCCTRL(self, "GMM_radiobutton")
         self.ML_radiobutton = xrc.XRCCTRL(self, "ML_radiobutton")
         self.ST_LM = xrc.XRCCTRL(self, "ST_LM")
@@ -624,10 +625,20 @@ def __init_resources():
                                 <object class="sizeritem">
                                   <object class="wxStaticBoxSizer">
                                     <object class="sizeritem">
-                                      <object class="wxRadioButton" name="GMM_radiobutton">
-                                        <label>GMM</label>
+                                      <object class="wxRadioButton" name="OLS_radiobutton">
+                                        <label>OLS</label>
                                         <value>1</value>
                                         <style>wxRB_GROUP</style>
+                                        <XRCED>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxTOP|wxEXPAND</flag>
+                                      <border>4</border>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxRadioButton" name="GMM_radiobutton">
+                                        <label>GMM</label>
                                         <XRCED>
                                           <assign_var>1</assign_var>
                                         </XRCED>

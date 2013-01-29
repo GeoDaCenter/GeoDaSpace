@@ -272,6 +272,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.MT_LAGERR.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)
         # these radio buttons are all linked together, as is, so that selecting
         # gmm or ml leaves no value in MTypes above --> bug
+        self.OLS_radiobutton.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)  #pas
         self.GMM_radiobutton.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)  #pas
         self.ML_radiobutton.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)   #pas
         self.ML_radiobutton.SetToolTipString(ML_TOOL_TIP)
@@ -317,7 +318,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                            self.MT_ERR,
                            self.MT_LAGERR]
 
-        self.METHOD = [self.GMM_radiobutton, self.ML_radiobutton]  #pas
+        self.METHOD = [self.OLS_radiobutton, self.GMM_radiobutton, self.ML_radiobutton]  #pas
         self.populate(None)
 
     def _startDrag(self, evt):
@@ -425,7 +426,19 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     self.ML_radiobutton.Disable()
                 else:
                     self.ML_radiobutton.Enable()
-                if m['modelType']['method'] == 1:  #max likelihood, ml
+                if not m['modelType']['mType'] == 0:  # anything but standard, no OLS
+                    self.GMM_radiobutton.SetValue(True)
+                    self.OLS_radiobutton.SetValue(False)
+                    self.OLS_radiobutton.Disable()
+                else:
+                    self.OLS_radiobutton.Enable()
+                if m['modelType']['method'] == 0:  # ols
+                    self.YE_ListBox.Disable()
+                    self.H_ListBox.Disable()
+                else:
+                    self.YE_ListBox.Enable()
+                    self.H_ListBox.Enable()
+                if m['modelType']['method'] == 2:  #max likelihood, ml
                     self.SEWhiteCheckBox.SetValue(False)
                     self.SEWhiteCheckBox.Disable()
                     self.SEHETCheckBox.SetValue(False)
