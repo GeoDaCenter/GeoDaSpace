@@ -270,8 +270,6 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.MT_LAG.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)
         self.MT_ERR.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)
         self.MT_LAGERR.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)
-        # these radio buttons are all linked together, as is, so that selecting
-        # gmm or ml leaves no value in MTypes above --> bug
         self.OLS_radiobutton.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)  #pas
         self.GMM_radiobutton.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)  #pas
         self.ML_radiobutton.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)   #pas
@@ -414,30 +412,38 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     self.SEHETCheckBox.SetValue(False)
                     m['modelType']['error']['het'] = False
 
+
                 if m['modelType']['mType'] == 0 or m['modelType']['mType'] == 1:  # Standard or SpatialLag
                     self.SEHACCheckBox.Enable()
                 else:
                     self.SEHACCheckBox.SetValue(False)
                     m['modelType']['error']['hac'] = False
                     self.SEHACCheckBox.Disable()
+
                 if m['modelType']['mType'] == 3:  # a spatial lag+error model
                     self.ML_radiobutton.SetValue(False)
                     self.GMM_radiobutton.SetValue(True)
+                    m['modelType']['method'] = 1
                     self.ML_radiobutton.Disable()
                 else:
                     self.ML_radiobutton.Enable()
-                if not m['modelType']['mType'] == 0:  # anything but standard, no OLS
-                    self.GMM_radiobutton.SetValue(True)
-                    self.OLS_radiobutton.SetValue(False)
+
+                if not m['modelType']['mType'] == 0:  # Standard 
                     self.OLS_radiobutton.Disable()
                 else:
                     self.OLS_radiobutton.Enable()
+
                 if m['modelType']['method'] == 0:  # ols
-                    self.YE_ListBox.Disable()
-                    self.H_ListBox.Disable()
+                    self.MT_STD.SetValue(True)
+                    m['modelType']['mType'] = 0
+                    self.MT_LAG.Disable()
+                    self.MT_ERR.Disable()
+                    self.MT_LAGERR.Disable()
                 else:
-                    self.YE_ListBox.Enable()
-                    self.H_ListBox.Enable()
+                    self.MT_LAG.Enable()
+                    self.MT_ERR.Enable()
+                    self.MT_LAGERR.Enable()
+
                 if m['modelType']['method'] == 2:  #max likelihood, ml
                     self.SEWhiteCheckBox.SetValue(False)
                     self.SEWhiteCheckBox.Disable()
@@ -445,11 +451,14 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     self.SEHETCheckBox.Disable()
                     self.SEHACCheckBox.SetValue(False)
                     self.SEHACCheckBox.Disable()
+
+                if not m['modelType']['method'] == 1:
                     self.YE_ListBox.Disable()
                     self.H_ListBox.Disable()
                 else:
                     self.YE_ListBox.Enable()
                     self.H_ListBox.Enable()
+
                 if len(m['spec']['H']) > 0 or len(m['spec']['YE']) > 0:
                     self.ML_radiobutton.SetValue(False)
                     self.ML_radiobutton.Disable()
@@ -625,7 +634,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         modelSetup['spatial_tests'] = {}
         modelSetup['spatial_tests']['lm'] = self.ST_LM.GetValue()
         self.model.setModelType(modelSetup)
-        #print modelSetup
+        print modelSetup
 
     #TODO: add 'method' check here
     def setModelType(self, setup):

@@ -316,7 +316,8 @@ class guiRegModel(abstractmodel.AbstractModel):
         print model_type 
 
         # estimation methods
-        method_types = {0: 'gm', 1: 'ml'}
+        #method_types = {0: 'gm', 1: 'ml'}
+        method_types = {0: 'ols', 1: 'gm', 2: 'ml'}
         method = method_types[data['modelType']['method']]
         print method
 
