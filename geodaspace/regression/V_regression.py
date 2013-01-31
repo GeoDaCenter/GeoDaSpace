@@ -460,6 +460,10 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     self.H_ListBox.Enable()
 
                 if len(m['spec']['H']) > 0 or len(m['spec']['YE']) > 0:
+                    self.OLS_radiobutton.SetValue(False)
+                    self.OLS_radiobutton.Disable()
+                    self.GMM_radiobutton.SetValue(True)
+                    m['modelType']['mType'] = 1
                     self.ML_radiobutton.SetValue(False)
                     self.ML_radiobutton.Disable()
 
