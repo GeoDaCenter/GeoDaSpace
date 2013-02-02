@@ -412,6 +412,10 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     self.SEHETCheckBox.SetValue(False)
                     m['modelType']['error']['het'] = False
 
+                if m['config']['gmm_inferenceOnLambda'] == False:
+                    self.SEHETCheckBox.Disable()
+                    self.SEHETCheckBox.SetValue(False)
+                    m['modelType']['error']['het'] = False
 
                 if m['modelType']['mType'] == 0 or m['modelType']['mType'] == 1:  # Standard or SpatialLag
                     self.SEHACCheckBox.Enable()
