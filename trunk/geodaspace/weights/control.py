@@ -349,11 +349,8 @@ class weightsDialog(xrcDIALOGWEIGHTS):
                 w.meta['savedAs']=path
                 return True
             else:
-                res = wx.MessageDialog(self, "Are you sure you don't want to save your weights object to a file?\nUnsaved weights object may be lost.", "Warning", style=wx.YES_NO|wx.NO_DEFAULT).ShowModal()
-                if res == wx.ID_YES:
-                    return False
-                else:
-                    return self.save()
+                res = wx.MessageDialog(self, "This weights object will only be available in the current GeoDaSpace session", "Warning",
+                        style=wx.OK|wx.ICON_HAND).ShowModal()
         except:
             self.warn("An unknown error occurred while trying to save the weights object.")
             if DEBUG: raise
