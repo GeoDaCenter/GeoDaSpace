@@ -157,6 +157,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             tmpParent.Destroy()
         # end fix
         self.config = preferencesDialog(self)
+        self.config.model.addListener(self.able)  #pas tik 149
         self.SetIcon(icons.getGeoDaIcon())
         self.modelFileName = None
         self.BASE_TITLE = self.GetTitle()
@@ -389,6 +390,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             #self.EnableMethods()
             m = self.model.data
             if m['fname']:
+                m['config'] = self.config.GetPrefs()  #tik 149
                 #if m['modelType']['endogenous'] == True: #Yes
                 #    self.YE_ListBox.Enable()
                 #    self.H_ListBox.Enable()
