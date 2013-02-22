@@ -443,7 +443,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
 
                     self.GMM_radiobutton.Enable()
                     self.GMM_radiobutton.SetValue(True)
-                    m['modelType']['method'] == 1
+                    m['modelType']['method'] = 1
 
                     self.ML_radiobutton.SetValue(False)
                     
@@ -452,7 +452,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
 
                     self.OLS_radiobutton.SetValue(True)
                     self.OLS_radiobutton.Enable()
-                    m['modelType']['method'] == 0
+                    m['modelType']['method'] = 0
 
                     self.GMM_radiobutton.Disable()
                     self.GMM_radiobutton.SetValue(False)
