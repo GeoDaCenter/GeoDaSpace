@@ -52,7 +52,7 @@ if sys.platform == 'darwin':
            name='GeoDaSpace',
            version=geodaspace.version.version,
          )
-    os.rename('dist/GeoDaSpace.app','dist/GeoDaSpace_OSX_%s.app'%geodaspace.version.version)
+    os.rename('dist/GeoDaSpace.app','dist/GeoDaSpace OSX %s.app'%geodaspace.version.version)
 elif sys.platform == 'win32':
     import py2exe
     from glob import glob
@@ -65,11 +65,11 @@ elif sys.platform == 'win32':
            # remove the dll_excludes entry if you want to support Win95/98
            options = {'py2exe': { 
                         'includes': ['scipy.io.matlab.streams'],
-                        'dll_excludes': ['w9xpopen.exe'],
-                        'excludes' : ['Tkconstants', 'Tkinter', 'tcl'],                        
+                        #'dll_excludes': ['w9xpopen.exe'],
+                        #'excludes' : ['Tkconstants', 'Tkinter', 'tcl'],                        
                         } },
            packages= pkgs,
            name='GeoDaSpace',
            version=geodaspace.version.version,
          )
-    os.rename('dist/GeoDaSpace.exe','dist/GeoDaSpace_Windows_%s.exe'%geodaspace.version.version)
+    os.rename('dist/GeoDaSpace.exe','dist/GeoDaSpace Windows %s.exe'%geodaspace.version.version)
