@@ -457,21 +457,24 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     self.SEHETCheckBox.Disable()
                     self.SEHACCheckBox.SetValue(False)
                     self.SEHACCheckBox.Disable()
-
+                '''
                 if not m['modelType']['method'] == 1:
                     self.YE_ListBox.Disable()
                     self.H_ListBox.Disable()
                 else:
                     self.YE_ListBox.Enable()
                     self.H_ListBox.Enable()
-
+                '''    
                 if len(m['spec']['H']) > 0 or len(m['spec']['YE']) > 0:
-                    self.OLS_radiobutton.SetValue(False)
-                    self.OLS_radiobutton.Disable()
-                    self.GMM_radiobutton.SetValue(True)
-                    m['modelType']['mType'] = 1
+                    #self.OLS_radiobutton.SetValue(False)
+                    #self.OLS_radiobutton.Disable()
+                    #self.GMM_radiobutton.SetValue(True)
+                    #m['modelType']['mType'] = 1
                     self.ML_radiobutton.SetValue(False)
                     self.ML_radiobutton.Disable()
+                
+
+
 
 
             # model.verify is now called on Run, and an error msg displays why the model won't run.
