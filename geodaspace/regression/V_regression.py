@@ -466,12 +466,25 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     self.H_ListBox.Enable()
                 '''    
                 if len(m['spec']['H']) > 0 or len(m['spec']['YE']) > 0:
-                    #self.OLS_radiobutton.SetValue(False)
-                    #self.OLS_radiobutton.Disable()
-                    #self.GMM_radiobutton.SetValue(True)
+                    self.OLS_radiobutton.SetValue(False)
+                    self.OLS_radiobutton.Disable()
+                    self.GMM_radiobutton.SetValue(True)
+                    m['modelType']['method'] =1
                     #m['modelType']['mType'] = 1
-                    self.ML_radiobutton.SetValue(False)
+                    #self.ML_radiobutton.SetValue(False)
                     self.ML_radiobutton.Disable()
+                    self.MT_LAG.Enable()
+                    self.MT_ERR.Enable()
+                    self.MT_LAGERR.Enable()
+                elif len(m['spec']['H']) == 0 and len(m['spec']['YE']) == 0 and m['modelType']['mType'] == 0:
+                        m['modelType']['method'] = 0
+                        self.OLS_radiobutton.SetValue(True)
+                        #self.GMM_radiobutton.Disable()
+
+                else:
+                    self.OLS_radiobutton.Enable()
+                    self.ML_radiobutton.Enable()
+
                 
 
 
