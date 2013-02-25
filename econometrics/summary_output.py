@@ -663,7 +663,7 @@ def summary_iteration(reg):
             step1c = 'Yes'
         else:
             step1c = 'No'
-        txt = "%-20s:%12s               %-22s:%12s\n" % ('N. of iterations',reg.iteration,'Step1c computed:',step1c)
+        txt = "%-20s:%12s               %-22s:%12s\n" % ('N. of iterations',reg.iteration,'Step1c computed',step1c)
     except:
         txt = "%-20s:%12s\n" % ('N. of iterations',reg.iteration)        
     try:
