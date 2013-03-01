@@ -63,6 +63,8 @@ elif sys.platform == 'win32':
                                 
            data_files=[('Microsoft.VC90.CRT',glob('Microsoft.VC90.CRT/*.*'))],
            # remove the dll_excludes entry if you want to support Win95/98
+           # remove the excludes entry if you want to include tk/tcl libs
+
            options = {'py2exe': { 
                         'includes': ['scipy.io.matlab.streams'],
                         #'dll_excludes': ['w9xpopen.exe'],
