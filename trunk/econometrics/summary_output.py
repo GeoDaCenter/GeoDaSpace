@@ -1,6 +1,7 @@
 """Internal helper files for user output."""
 
-__author__ = "Luc Anselin luc.anselin@asu.edu, David C. Folch david.folch@asu.edu, Jing Yao jingyao@asu.edu"
+__author__ = "Luc Anselin luc.anselin@asu.edu, David C. Folch david.folch@asu.edu, Pedro V. Amaral pedro.amaral@asu.edu, Jing Yao jingyao@asu.edu"
+
 import textwrap as TW
 import numpy as np
 import copy as COPY
@@ -95,7 +96,7 @@ def TSLS(reg, vm, w, spat_diag, regimes=False):
         summary_regimes(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag)
 
-def TSLS_multi(reg, multireg, vm, spat_diag, regimes=False):
+def TSLS_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False):
     for m in multireg:
         mreg = multireg[m]
         mreg.__summary = {}
@@ -108,9 +109,12 @@ def TSLS_multi(reg, multireg, vm, spat_diag, regimes=False):
         build_coefs_body_instruments(mreg)
         if regimes:
             summary_regimes(mreg,chow=False)
+        if sur:
+            summary_sur(mreg)
         multireg[m].__summary = mreg.__summary
     reg.__summary = {}
-    summary_chow(reg)
+    if regimes:
+        summary_chow(reg)
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag)
 
@@ -129,7 +133,7 @@ def GM_Lag(reg, vm, w, spat_diag, regimes=False):
     summary_warning(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag)
 
-def GM_Lag_multi(reg, multireg, vm, spat_diag, regimes=False):
+def GM_Lag_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False):
     for m in multireg:
         mreg = multireg[m]
         mreg.__summary = {}
@@ -143,9 +147,12 @@ def GM_Lag_multi(reg, multireg, vm, spat_diag, regimes=False):
         summary_coefs_instruments(mreg)
         if regimes:
             summary_regimes(mreg,chow=False)
+        if sur:
+            summary_sur(mreg)            
         multireg[m].__summary = mreg.__summary
     reg.__summary = {}
-    summary_chow(reg)
+    if regimes:
+        summary_chow(reg)
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag)
 
@@ -680,6 +687,14 @@ def summary_regimes(reg,chow=True):
         reg.__summary['summary_other_mid'] = "Regimes variable: %s\n" %reg.name_regimes
     if chow:
         summary_chow(reg)
+        
+def summary_sur(reg):
+    """Lists the equation ID variable used.
+    """
+    try:
+        reg.__summary['summary_other_mid'] += "Equation ID: %s\n" %reg.name_multiID
+    except:
+        reg.__summary['summary_other_mid'] = "Equation ID: %s\n" %reg.name_multiID
 
 def summary_chow(reg):
     reg.__summary['summary_chow'] = "\nREGIMES DIAGNOSTICS - CHOW TEST\n"

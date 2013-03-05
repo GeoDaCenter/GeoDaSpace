@@ -172,7 +172,8 @@ class BaseTSLS(RegressionPropsY, RegressionPropsVM):
         
         # attributes used in property 
         self.hth = hth     # Required for condition index
-        self.hthi =hthi    # Used in error models
+        self.hthi = hthi   # Used in error models
+        self.htz = zth.T
       
         if robust:
             self.vm = ROBUST.robust_vm(reg=self, gwk=gwk)

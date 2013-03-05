@@ -7,6 +7,12 @@ from twosls import BaseTSLS
 from robust import hac_multi
 import summary_output as SUMMARY
 
+"""
+Two-stage Least Squares estimation with regimes.
+"""
+
+__author__ = "Luc Anselin luc.anselin@asu.edu, Pedro V. Amaral pedro.amaral@asu.edu, David C. Folch david.folch@asu.edu"
+
 class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
     """
     Two stage least squares (2SLS) with regimes
@@ -24,13 +30,7 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
     q            : array
                    Two dimensional array with n rows and one column for each
                    external exogenous variable to use as instruments (note: 
-                   this should not contain any variables from x); cannot be
-                   used in combination with h
-    h            : array
-                   Two dimensional array with n rows and one column for each
-                   exogenous variable to use as instruments (note: this 
-                   can contain variables from x); cannot be used in 
-                   combination with q
+                   this should not contain any variables from x)
     regimes      : list
                    List of n values with the mapping of each
                    observation to a regime. Assumed to be aligned with 'x'.
@@ -62,7 +62,26 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
                    matrix must have ones along the main diagonal.
     sig2n_k      : boolean
                    If True, then use n-k to estimate sigma^2. If False, use n.
-
+    cores        : integer
+                   Number of cores to be used in the estimation (default: maximum available)
+    vm           : boolean
+                   If True, include variance-covariance matrix in summary
+    name_y       : string
+                   Name of dependent variable for use in output
+    name_x       : list of strings
+                   Names of independent variables for use in output
+    name_yend    : list of strings
+                   Names of endogenous variables for use in output
+    name_q       : list of strings
+                   Names of instruments for use in output
+    name_regimes : string
+                   Name of regimes variable for use in output
+    name_w       : string
+                   Name of weights matrix for use in output
+    name_gwk     : string
+                   Name of kernel weights matrix for use in output
+    name_ds      : string
+                   Name of dataset for use in output
 
     Attributes
     ----------
