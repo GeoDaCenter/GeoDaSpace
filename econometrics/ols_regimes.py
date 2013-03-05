@@ -1,9 +1,8 @@
-"""This is a place holder that has all the unique stuff from ols.py and
-test_ols.py related to regimes."""
-
-
-#'''
-#commenting out entire code so the testing module doesn't find it :)
+"""
+Ordinary Least Squares regression with regimes.
+"""
+ 
+__author__ = "Luc Anselin luc.anselin@asu.edu, Pedro V. Amaral pedro.amaral@asu.edu, Daniel Arribas-Bel darribas@asu.edu"
 
 import regimes as REGI
 import user_output as USER

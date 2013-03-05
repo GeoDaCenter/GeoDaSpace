@@ -5,6 +5,13 @@ import itertools as iter
 from scipy.stats import f, chisqprob
 import numpy.linalg as la
 
+"""
+Tools for different regimes procedure estimations
+"""
+
+__author__ = "Luc Anselin luc.anselin@asu.edu, \
+        Daniel Arribas-Bel darribas@asu.edu, \
+        Pedro V. Amaral pedro.amaral@asu.edu"
 
 class Chow:
     '''
