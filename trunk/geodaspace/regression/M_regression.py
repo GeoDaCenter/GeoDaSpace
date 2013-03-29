@@ -173,13 +173,13 @@ class guiRegModel(abstractmodel.AbstractModel):
             self.fileType = fileType
             if fileType == 'csv':
                 if headerOnly:
-                    f = pysal.open(self.data['fname'],'r')
+                    f = pysal.open(self.data['fname'],'rU')
                     db = {}
                     db['header'] = f.header
                     f.close()
                     return db
                 else:
-                    return pysal.open(self.data['fname'],'r')
+                    return pysal.open(self.data['fname'],'rU')
             elif fileType == 'dbf':
                 db = pysal.open( self.data['fname'] , 'r')
                 header = []
@@ -187,7 +187,7 @@ class guiRegModel(abstractmodel.AbstractModel):
                 if headerOnly:
                     for field,spec in zip(db.header, db.field_spec):
                         typ = spec[0].lower()
-                        if typ in  ['d','n']:
+                        if typ in  ['d','n', 'f']:
                             header.append(field)
                     return {'header':header}
                 else:
