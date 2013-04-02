@@ -173,13 +173,13 @@ class guiRegModel(abstractmodel.AbstractModel):
             self.fileType = fileType
             if fileType == 'csv':
                 if headerOnly:
-                    f = pysal.open(self.data['fname'],'r')
+                    f = pysal.open(self.data['fname'],'rU')
                     db = {}
                     db['header'] = f.header
                     f.close()
                     return db
                 else:
-                    return pysal.open(self.data['fname'],'r')
+                    return pysal.open(self.data['fname'],'rU')
             elif fileType == 'dbf':
                 db = pysal.open( self.data['fname'] , 'r')
                 header = []
@@ -285,7 +285,15 @@ class guiRegModel(abstractmodel.AbstractModel):
         wk_list = [w.w for w in data['kWeights'] if w.enabled]
         for w,name in zip(wk_list,wk_names):
             w.name = name
-        db = pysal.open( data['fname'] ,'r')
+        if 'fname' in self.data:
+            fileType = self.data['fname'].rsplit('.')[-1].lower()
+            self.fileType = fileType
+            if fileType == 'csv':
+                db = pysal.open( data['fname'], 'rU')
+            else:
+                db = pysal.open( data['fname'] ,'r')
+        else:
+            return None
         # y
         name_y = data['spec']['y']
         y = np.array([self.get_col(db,name_y)]).T
