@@ -6,6 +6,7 @@ from utils import sphstack, set_warn
 from twosls import BaseTSLS
 from robust import hac_multi
 import summary_output as SUMMARY
+from platform import system
 
 """
 Two-stage Least Squares estimation with regimes.
@@ -299,7 +300,12 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         pool = mp.Pool(cores)
         results_p = {}
         for r in self.regimes_set:
-            results_p[r] = pool.apply_async(_work,args=(self.y,x,regi_ids,r,yend,q,robust,sig2n_k,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes))
+            if system() == 'Windows':
+                is_win = True
+                results_p[r] = _work(*(self.y,x,regi_ids,r,yend,q,robust,sig2n_k,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes))
+            else:
+                results_p[r] = pool.apply_async(_work,args=(self.y,x,regi_ids,r,yend,q,robust,sig2n_k,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes))
+                is_win = False
         self.kryd = 0
         self.kr = x.shape[1]+yend.shape[1]+1
         self.kf = 0
@@ -308,13 +314,17 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         self.betas = np.zeros((self.nr*self.kr,1),float)
         self.u = np.zeros((self.n,1),float)
         self.predy = np.zeros((self.n,1),float)
-        pool.close()
-        pool.join()
+        if not is_win:
+            pool.close()
+            pool.join()
         results = {}
         self.name_y, self.name_x, self.name_yend, self.name_q, self.name_z, self.name_h = [],[],[],[],[],[]
         counter = 0
         for r in self.regimes_set:
-            results[r] = results_p[r].get()
+            if is_win:
+                results[r] = results_p[r]
+            else:
+                results[r] = results_p[r].get()
             if w_i:
                 results[r].w = w_i[r]
             else:

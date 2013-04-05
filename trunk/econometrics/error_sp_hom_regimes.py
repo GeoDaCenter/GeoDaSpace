@@ -19,6 +19,8 @@ from pysal.spreg.error_sp_hom import BaseGM_Error_Hom, BaseGM_Endog_Error_Hom, m
 import regimes as REGI
 import user_output as USER
 import summary_output as SUMMARY
+from platform import system
+
 
 class GM_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     '''
@@ -378,7 +380,12 @@ class GM_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         results_p = {}
         for r in self.regimes_set:
             w_r = w_i[r].sparse
-            results_p[r] = pool.apply_async(_work_error,args=(y,x,regi_ids,r,w_r,max_iter,epsilon,A1,self.name_ds,self.name_y,name_x+['lambda'],self.name_w,self.name_regimes, ))
+            if system() == 'Windows':
+                is_win = True
+                results_p[r] = _work_error(*(y,x,regi_ids,r,w_r,max_iter,epsilon,A1,self.name_ds,self.name_y,name_x+['lambda'],self.name_w,self.name_regimes))
+            else:
+                results_p[r] = pool.apply_async(_work_error,args=(y,x,regi_ids,r,w_r,max_iter,epsilon,A1,self.name_ds,self.name_y,name_x+['lambda'],self.name_w,self.name_regimes, ))
+                is_win = False
         self.kryd = 0
         self.kr = len(cols2regi)+1
         self.kf = 0
@@ -389,12 +396,16 @@ class GM_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         self.predy = np.zeros((self.n,1),float)
         self.e_filtered = np.zeros((self.n,1),float)
         self.name_y, self.name_x = [],[]
-        pool.close()
-        pool.join()
+        if not is_win:
+            pool.close()
+            pool.join()
         results = {}
         counter = 0
         for r in self.regimes_set:
-            results[r] = results_p[r].get()
+            if is_win:
+                results[r] = results_p[r]
+            else:
+                results[r] = results_p[r].get()
             results[r].w = w_i[r]
             self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
             self.betas[(counter*self.kr):((counter+1)*self.kr),] = results[r].betas
@@ -825,7 +836,12 @@ class GM_Endog_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         results_p = {}
         for r in self.regimes_set:
             w_r = w_i[r].sparse
-            results_p[r] = pool.apply_async(_work_endog_error,args=(y,x,yend,q,regi_ids,r,w_r,max_iter,epsilon,A1,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes, ))
+            if system() == 'Windows':
+                is_win = True
+                results_p[r] = _work_endog_error(*(y,x,yend,q,regi_ids,r,w_r,max_iter,epsilon,A1,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes))
+            else:
+                results_p[r] = pool.apply_async(_work_endog_error,args=(y,x,yend,q,regi_ids,r,w_r,max_iter,epsilon,A1,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes, ))
+                is_win = False
         self.kryd,self.kf = 0,0
         self.kr = len(cols2regi)+1
         self.nr = len(self.regimes_set)
@@ -834,13 +850,17 @@ class GM_Endog_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         self.u = np.zeros((self.n,1),float)
         self.predy = np.zeros((self.n,1),float)
         self.e_filtered = np.zeros((self.n,1),float)
-        pool.close()
-        pool.join()
+        if not is_win:
+            pool.close()
+            pool.join()
         results = {}
         self.name_y, self.name_x, self.name_yend, self.name_q, self.name_z, self.name_h = [],[],[],[],[],[]
         counter = 0
         for r in self.regimes_set:
-            results[r] = results_p[r].get()
+            if is_win:
+                results[r] = results_p[r]
+            else:
+                results[r] = results_p[r].get()
             results[r].w = w_i[r]
             self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
             self.betas[(counter*self.kr):((counter+1)*self.kr),] = results[r].betas

@@ -11,7 +11,7 @@ import summary_output as SUMMARY
 import user_output as USER
 from utils import spdot, set_endog_sparse, sp_att
 from twosls import BaseTSLS
-
+from platform import system
 
 class GM_Endog_SUR():
     '''
@@ -230,13 +230,16 @@ class GM_Endog_SUR():
 
         #Running 2SLS for each equation separately
         stp2 = {}
-        for r in eq_set:
-            #stp2[r] = _run_stp1(y,x,yend,q,eq_ids,r,sig2n_k,ws,w_lags,lag_q)
-            stp2[r] = pool.apply_async(_run_stp1,args=(y,x,yend,q,eq_ids,r,sig2n_k,ws,w_lags,lag_q, ))
-        pool.close()
-        pool.join()
-        results_stp2 = dict((r, stp2[r].get()) for r in eq_set)
-        #results_stp2 = stp2
+        if system() == 'Windows':
+            for r in eq_set:
+                stp2[r] = _run_stp1(y,x,yend,q,eq_ids,r,sig2n_k,ws,w_lags,lag_q)
+            results_stp2 = stp2
+        else:
+            for r in eq_set:
+                stp2[r] = pool.apply_async(_run_stp1,args=(y,x,yend,q,eq_ids,r,sig2n_k,ws,w_lags,lag_q, ))
+            pool.close()
+            pool.join()
+            results_stp2 = dict((r, stp2[r].get()) for r in eq_set)
 
         if not w:
             self.n = results_stp2[eq_set[0]].n
