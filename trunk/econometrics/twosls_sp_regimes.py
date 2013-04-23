@@ -455,8 +455,9 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
             if regime_lag_sep:
                 self.sp_att_reg(w_i, regi_ids, yend2[:,-1].reshape(self.n,1))
             else:
-                self.predy_e, self.e_pred = sp_att(w,self.y,self.predy,\
+                self.predy_e, self.e_pred, warn = sp_att(w,self.y,self.predy,\
                           yend2[:,-1].reshape(self.n,1),self.betas[-1])
+                set_warn(self,warn)
             self.regime_lag_sep=regime_lag_sep
             self.title = "SPATIAL TWO STAGE LEAST SQUARES - REGIMES"
             SUMMARY.GM_Lag(reg=self, w=w, vm=vm, spat_diag=spat_diag, regimes=True)
@@ -505,7 +506,8 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                 results[r] = results_p[r]
             else:
                 results[r] = results_p[r].get()
-            results[r].predy_e, results[r].e_pred = sp_att(w_i[r],results[r].y,results[r].predy, results[r].yend[:,-1].reshape(results[r].n,1),results[r].betas[-1])
+            results[r].predy_e, results[r].e_pred, warn = sp_att(w_i[r],results[r].y,results[r].predy, results[r].yend[:,-1].reshape(results[r].n,1),results[r].betas[-1])
+            set_warn(results[r],warn)
             results[r].w = w_i[r]
             self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
             self.betas[(counter*self.kr):((counter+1)*self.kr),] = results[r].betas
@@ -536,7 +538,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         counter = 1
         for r in self.regimes_set:
             lambd = self.betas[(self.kr-self.kryd)*self.nr+counter*self.kryd-1]
-            self.predy_e[regi_ids[r],], self.e_pred[regi_ids[r],] = sp_att(w_i[r],\
+            self.predy_e[regi_ids[r],], self.e_pred[regi_ids[r],], warn = sp_att(w_i[r],\
                           self.y[regi_ids[r]],self.predy[regi_ids[r]],\
                           wy[regi_ids[r]],lambd)
             counter += 1

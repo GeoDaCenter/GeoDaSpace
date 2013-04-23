@@ -547,19 +547,16 @@ def iter_msg(iteration,max_iter):
     return iter_stop
 
 def sp_att(w,y,predy,w_y,rho):
+    xb = predy - rho*w_y
     if np.abs(rho)<1:
-        xb = predy - rho*w_y
-        predy_sp = inverse_prod(w, xb, rho) 
-        resid_sp = y - predy_sp
-        return predy_sp, resid_sp
+        predy_sp = inverse_prod(w, xb, rho)
+        warn = None
     else:
-        t = ("WARNING: Estimate for rho is outside the boundary of (-1, 1)."
-        "`predy_sp` and `resid_sp` are not returned. This may cause problems"
-        "in subsequent steps.")
-        warn(t, RuntimeWarning)
-        print t
-        return None, None
-
+        warn = "Warning: Estimate for rho is outside the boundary of (-1, 1)."
+        predy_sp = inverse_prod(w, xb, rho, inv_method="true_inv")
+    resid_sp = y - predy_sp
+    return predy_sp, resid_sp, warn
+    
 def spdot(a,b, array_out=True):
     """
     Matrix multiplication function to deal with sparse and dense objects

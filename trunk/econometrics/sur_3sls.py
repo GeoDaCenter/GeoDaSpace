@@ -9,7 +9,7 @@ import multiprocessing as mp
 import scipy.sparse as SP
 import summary_output as SUMMARY
 import user_output as USER
-from utils import spdot, set_endog_sparse, sp_att
+from utils import spdot, set_endog_sparse, sp_att, set_warn
 from twosls import BaseTSLS
 from platform import system
 
@@ -519,8 +519,9 @@ class GM_Lag_SUR(GM_Endog_SUR):
                  w_lags=w_lags, lag_q=lag_q)
 
         for r in self.eq_set:
-            self.multi[r].predy_e, self.multi[r].e_pred = sp_att(w,self.multi[r].y,self.multi[r].predy,\
+            self.multi[r].predy_e, self.multi[r].e_pred, warn = sp_att(w,self.multi[r].y,self.multi[r].predy,\
                           self.multi[r].yend[:,-1].reshape(self.n,1),self.multi[r].betas[-1])
+            set_warn(self.multi[r], warn)
         
         title = "SPATIAL THREE-STAGE LEAST SQUARES - EQUATION "
         self.multi = USER.set_name_multi(self.multi,self.eq_set,name_equationID,y,x,name_y,name_x,name_ds,title,name_w,robust=None,endog=(yend,q,name_yend,name_q),sp_lag=(w_lags, lag_q))
@@ -552,7 +553,7 @@ if __name__ == '__main__':
 
     import pysal
     import numpy as np
-    #"""
+    """
     db = pysal.open('examples/swohio.csv','r')
     y_var = 'wage'
     y = np.array([db.by_col(y_var)]).T
@@ -569,7 +570,6 @@ if __name__ == '__main__':
 
     sur1=GM_Endog_SUR(y, x, yend, q, equationID)
     print sur1.summary
-    #"""
     """
     db = pysal.open(pysal.examples.get_path("NAT.dbf"),'r')
     y_var = ['HR80','HR90']

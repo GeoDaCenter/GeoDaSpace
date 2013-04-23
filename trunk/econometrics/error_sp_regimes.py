@@ -1148,8 +1148,9 @@ class GM_Combo_Regimes(GM_Endog_Error_Regimes, REGI.Regimes_Frame):
                 name_ds=name_ds, name_regimes=name_regimes, summ=False)
 
         if regime_err_sep != True:
-            self.predy_e, self.e_pred = sp_att(w,self.y,\
+            self.predy_e, self.e_pred, warn = sp_att(w,self.y,\
                    self.predy,yend2[:,-1].reshape(self.n,1),self.betas[-2])
+            set_warn(self, warn)
             self.regime_lag_sep=regime_lag_sep
             self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES - REGIMES"
             SUMMARY.GM_Combo(reg=self, w=w, vm=vm, regimes=True)
