@@ -1247,8 +1247,9 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
                  name_ds=name_ds, name_regimes=name_regimes, summ=False)
 
         if regime_err_sep != True:
-            self.predy_e, self.e_pred = UTILS.sp_att(w,self.y,\
+            self.predy_e, self.e_pred, warn = UTILS.sp_att(w,self.y,\
                        self.predy,yend2[:,-1].reshape(self.n,1),self.betas[-2])
+            UTILS.set_warn(self,warn)
             self.regime_lag_sep=regime_lag_sep
             self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HET) - REGIMES"
             SUMMARY.GM_Combo_Het(reg=self, w=w, vm=vm, regimes=True)

@@ -349,8 +349,7 @@ class OLS(BaseOLS):
     Dependent Variable  :  home value               Number of Observations:          49
     Mean dependent var  :     38.4362               Number of Variables   :           3
     S.D. dependent var  :     18.4661               Degrees of Freedom    :          46
-    <BLANKLINE>
-    R-squared           :    0.349514
+    R-squared           :      0.3495
     Adjusted R-squared  :      0.3212
     Sum squared residual:   10647.015               F-statistic           :     12.3582
     Sigma-square        :     231.457               Prob(F-statistic)     :   5.064e-05
