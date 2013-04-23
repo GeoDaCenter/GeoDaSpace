@@ -12,7 +12,7 @@ import twosls as TSLS
 import robust as ROBUST
 import user_output as USER
 import summary_output as SUMMARY
-from utils import get_lags, set_endog, sp_att
+from utils import get_lags, set_endog, sp_att, set_warn
 
 __all__ = ["GM_Lag"]
 
@@ -484,8 +484,9 @@ class GM_Lag(BaseGM_Lag):
         BaseGM_Lag.__init__(self, y=y, x=x_constant, w=w.sparse, yend=yend2, q=q2,\
                             w_lags=w_lags, robust=robust, gwk=gwk,\
                             lag_q=lag_q, sig2n_k=sig2n_k)
-        self.predy_e, self.e_pred = sp_att(w,self.y,self.predy,\
+        self.predy_e, self.e_pred, warn = sp_att(w,self.y,self.predy,\
                       yend2[:,-1].reshape(self.n,1),self.betas[-1])
+        set_warn(self,warn)
         self.title = "SPATIAL TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)

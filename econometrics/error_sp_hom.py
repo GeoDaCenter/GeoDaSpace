@@ -22,7 +22,7 @@ from pysal import lag_spatial
 from utils import power_expansion, set_endog, iter_msg, sp_att
 from utils import get_A1_hom, get_A2_hom, get_A1_het, optim_moments
 from utils import get_spFilter, get_lags, _moments2eqs
-from utils import spdot, RegressionPropsY
+from utils import spdot, RegressionPropsY, set_warn
 import twosls as TSLS
 import user_output as USER
 import summary_output as SUMMARY
@@ -1228,8 +1228,9 @@ class GM_Combo_Hom(BaseGM_Combo_Hom):
         BaseGM_Combo_Hom.__init__(self, y=y, x=x_constant, w=w.sparse, yend=yend2, q=q2,\
                     w_lags=w_lags, A1=A1, lag_q=lag_q,\
                     max_iter=max_iter, epsilon=epsilon)
-        self.predy_e, self.e_pred = sp_att(w,self.y,self.predy,\
-                             yend2[:,-1].reshape(self.n,1),self.betas[-2])        
+        self.predy_e, self.e_pred, warn = sp_att(w,self.y,self.predy,\
+                             yend2[:,-1].reshape(self.n,1),self.betas[-2])
+        set_warn(self, warn)
         self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HOM)"        
         self.name_ds = USER.set_name_ds(name_ds)
         self.name_y = USER.set_name_y(name_y)
