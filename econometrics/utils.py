@@ -12,7 +12,6 @@ from scipy import sparse as SP
 import scipy.optimize as op
 import numpy.linalg as la
 from pysal import lag_spatial
-from warnings import warn
 import copy
 
 
@@ -552,7 +551,7 @@ def sp_att(w,y,predy,w_y,rho):
         predy_sp = inverse_prod(w, xb, rho)
         warn = None
     else:
-        warn = "Warning: Estimate for rho is outside the boundary of (-1, 1)."
+        warn = "Warning: Estimate for rho is outside the boundary of (-1, 1). Computation of true inverse of W was required (slow)."
         predy_sp = inverse_prod(w, xb, rho, inv_method="true_inv")
     resid_sp = y - predy_sp
     return predy_sp, resid_sp, warn
