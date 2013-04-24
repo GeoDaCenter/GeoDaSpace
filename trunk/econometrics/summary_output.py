@@ -121,7 +121,7 @@ def TSLS_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False):
 def GM_Lag(reg, vm, w, spat_diag, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
-    beta_diag_lag(reg, reg.robust)
+    beta_diag_lag(reg, reg.robust, error=False)
     if spat_diag:
         # compute diagnostics and organize summary output
         spat_diag_instruments(reg, w)
@@ -138,7 +138,7 @@ def GM_Lag_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False):
         mreg = multireg[m]
         mreg.__summary = {}
         # compute diagnostics and organize summary output
-        beta_diag_lag(mreg, mreg.robust)
+        beta_diag_lag(mreg, mreg.robust, error=False)
         if spat_diag:
             # compute diagnostics and organize summary output
             spat_diag_instruments(mreg, mreg.w)
@@ -431,17 +431,20 @@ def beta_diag(reg, robust):
     reg.__summary['summary_zt'] = 'z'
     reg.__summary['summary_r2'] = "%-20s:%12.4f\n" % ('Pseudo R-squared',reg.pr2)
 
-def beta_diag_lag(reg, robust):
+def beta_diag_lag(reg, robust, error=True):
     # compute diagnostics
     reg.std_err = diagnostics.se_betas(reg)
     reg.z_stat = diagnostics.t_stat(reg, z_stat=True)
     reg.pr2 = diagnostics_tsls.pr2_aspatial(reg)
-    reg.pr2_e = diagnostics_tsls.pr2_spatial(reg)
     # organize summary output
     reg.__summary['summary_std_err'] = robust
     reg.__summary['summary_zt'] = 'z'
     reg.__summary['summary_r2'] = "%-20s:      %5.4f\n" % ('Pseudo R-squared',reg.pr2)
-    reg.__summary['summary_r2'] += "%-20s:  %5.4f\n" % ('Spatial Pseudo R-squared',reg.pr2_e)
+    if (error and np.abs(reg.betas[-2])<1) or (not error and np.abs(reg.betas[-1])<1):
+        reg.pr2_e = diagnostics_tsls.pr2_spatial(reg)
+        reg.__summary['summary_r2'] += "%-20s:  %5.4f\n" % ('Spatial Pseudo R-squared',reg.pr2_e)
+    else:
+        reg.__summary['summary_r2'] += "Spatial Pseudo R-squared: omitted due to rho outside the boundary (-1, 1)."
 
 def build_coefs_body_instruments(reg):
     beta_position = summary_coefs_allx(reg, reg.z_stat)

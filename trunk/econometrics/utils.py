@@ -550,10 +550,14 @@ def sp_att(w,y,predy,w_y,rho):
     if np.abs(rho)<1:
         predy_sp = inverse_prod(w, xb, rho)
         warn = None
+        resid_sp = y - predy_sp #Note 1: Here if omitting pseudo-R2; If not, see Note 2.
     else:
-        warn = "Warning: Estimate for rho is outside the boundary of (-1, 1). Computation of true inverse of W was required (slow)."
-        predy_sp = inverse_prod(w, xb, rho, inv_method="true_inv")
-    resid_sp = y - predy_sp
+        #warn = "Warning: Estimate for rho is outside the boundary (-1, 1). Computation of true inverse of W was required (slow)."
+        #predy_sp = inverse_prod(w, xb, rho, inv_method="true_inv")        
+        warn = "*** WARNING: Estimate for spatial lag coefficient is outside the boundary (-1, 1). ***"
+        predy_sp = np.zeros(y.shape,float)
+        resid_sp = np.zeros(y.shape,float)
+    #resid_sp = y - predy_sp #Note 2: Here if computing true inverse; If not, see Note 1.
     return predy_sp, resid_sp, warn
     
 def spdot(a,b, array_out=True):
