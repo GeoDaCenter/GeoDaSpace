@@ -2,10 +2,10 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "GeoDaSpace"
-#define MyAppVersion "0.7.9"
+#define MyAppVersion "0.8.0"
 #define MyAppPublisher "GeoDa Center for Geospatial Analysis and Computation"
 #define MyAppURL "http://geodacenter.asu.edu"
-#define MyAppExeName "GeoDaSpace Windows 0.7.9.exe"
+#define MyAppExeName "GeoDaSpace Windows 0.8.0.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -22,7 +22,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
-LicenseFile=C:\Documents and Settings\GeoDa Center\Desktop\geodacenter_spreg\trunk\geodaspace\GeoDaSpace_License.txt
+LicenseFile=C:\Documents and Settings\GeoDa Center\Desktop\spreg\trunk\geodaspace\GeoDaSpace_License.txt
 OutputBaseFilename=setup
 Compression=lzma
 SolidCompression=yes
@@ -35,10 +35,10 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
 
 [Files]
-Source: "C:\Documents and Settings\GeoDa Center\Desktop\geodacenter_spreg\trunk\dist\GeoDaSpace Windows 0.7.9.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Documents and Settings\GeoDa Center\Desktop\geodacenter_spreg\trunk\dist\Microsoft.VC90.CRT\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "C:\Documents and Settings\GeoDa Center\Desktop\geodacenter_spreg\trunk\dist\tcl\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "C:\Documents and Settings\GeoDa Center\Desktop\geodacenter_spreg\trunk\dist\w9xpopen.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Documents and Settings\GeoDa Center\Desktop\spreg\trunk\dist\GeoDaSpace Windows 0.8.0.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Documents and Settings\GeoDa Center\Desktop\spreg\trunk\dist\Microsoft.VC90.CRT\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Documents and Settings\GeoDa Center\Desktop\spreg\trunk\dist\tcl\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Documents and Settings\GeoDa Center\Desktop\spreg\trunk\dist\w9xpopen.exe"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
