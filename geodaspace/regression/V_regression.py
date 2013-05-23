@@ -1,12 +1,12 @@
-#Standard
+# Standard
 import cPickle
 import os.path
 import StringIO
 import sys
 import traceback
-#Custom
+# Custom
 import wx
-#Local
+# Local
 import geodaspace
 from geodaspace import textwindow
 from geodaspace.icons import icons
@@ -20,23 +20,25 @@ import M_regression
 import pysal
 
 ### NOTE: Tooltips are also set in the XRC for windows platforms, these only work on MAC
-#MODEL_TYPE_TOOL_TIPS = {
+# MODEL_TYPE_TOOL_TIPS = {
 #    0:"Estimates Standard OLS Model (No Space)", #Standard
 #    1:"Estimated using S2SLS -Kelejian, H. and Prucha, I., (1998), Journal of Real Estate, Finance and Economics", #Spatial Lag
 #    2:"Estimated using GM estimator -Kelejian, H. and Prucha, I., (1999), International Economic Review", #Spatial Error
 #    3:"Estimated using GM estimator -Kelejian, H. and Prucha, I., (1999), International Economic Review", #Spatial Lag+Error
 #    4:"This is the Tool Tip for Regimes", #Regimes
 #}
-#ENDOGENOUS_TOOL_TIPS = {
+# ENDOGENOUS_TOOL_TIPS = {
 #    0:"Choose this option if you have additional endogenous variables within your set of explanatory variables. Drag your additional endogenous variables to the box labeled YE. Instruments for these variables should be defined in the box labeled H.", #Yes
 #    1:"No endogenous variables within the set of explanatory variables.", #No
 #}
 WHITE_TOOL_TIP = "White, H. (1980), Econometrica"
 HAC_TOOL_TIP = "Kelejian, H. and Prucha, I. (2007), Journal of Econometrics"  # HAC
-#HET_TOOL_TIP = "Consistent Estimator Under Heteroskedastic Error Terms. -Kelejian , H. and Prucha, I. (Forthcoming), Journal of Econometrics" #HET
+# HET_TOOL_TIP = "Consistent Estimator Under Heteroskedastic Error Terms.
+# -Kelejian , H. and Prucha, I. (Forthcoming), Journal of Econometrics"
+# #HET
 HET_TOOL_TIP = "Kelejian, H. and Prucha, I. (2010), Journal of Econometrics"  # HET
 ML_TOOL_TIP = "(Coming soon)"
-#R_TOOL_TIP = "Regime indicators"
+# R_TOOL_TIP = "Regime indicators"
 
 myEVT_LIST_BOX_UPDATE = wx.NewEventType()
 EVT_LIST_BOX_UPDATE = wx.PyEventBinder(myEVT_LIST_BOX_UPDATE, 1)
@@ -94,23 +96,23 @@ class ListBoxDropTarget(wx.TextDropTarget):
 
     def OnData(self, x, y, default):  # Called on drop
         if self.targetListBox.IsEnabled():
-            #Find index to insert Drop Item(s)
+            # Find index to insert Drop Item(s)
             hitidx = self.targetListBox.HitTest((x, y))
             if hitidx == wx.NOT_FOUND:
                 hitidx = self.targetListBox.GetCount()
-            #Get Drop Item(s)
+            # Get Drop Item(s)
             self.GetData()
             text = self.text_obj.GetData()
             itms = text.split(',')
             n = len(itms)
-            #Remove duplicates items to make way to new items.
+            # Remove duplicates items to make way to new items.
             for itm in itms:
                 idx = self.targetListBox.FindString(itm)
                 if idx != wx.NOT_FOUND:
                     self.targetListBox.Delete(idx)
                     if idx < hitidx:
                         hitidx -= 1
-            #Insert Drop Item(s).
+            # Insert Drop Item(s).
             self.targetListBox.InsertItems(itms, hitidx)
             # Fire my custom event type
             evt = ListBoxUpdateEvent(
@@ -153,45 +155,49 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             tmpParent = wx.Panel(drop_target_parent)
             box.Reparent(tmpParent)
             box.Reparent(drop_target_parent)
-                #moves the box to the bottom of the stack
+                # moves the box to the bottom of the stack
             tmpParent.Destroy()
         # end fix
         self.config = preferencesDialog(self)
-        self.config.model.addListener(self.able)  #pas tik 149
+        self.config.model.addListener(self.able)  # pas tik 149
         self.SetIcon(icons.getGeoDaIcon())
         self.modelFileName = None
         self.BASE_TITLE = self.GetTitle()
-        #print "BASE_TITLE: ",self.BASE_TITLE
+        # print "BASE_TITLE: ",self.BASE_TITLE
         self.CreateStatusBar()
         self.GetStatusBar().SetStatusText(
             "GeoDaSpace " + geodaspace.version.get_long_version())
 
-        #initialize the scrollbars, fix for issue #48
+        # initialize the scrollbars, fix for issue #48
         w, h = self.Size
         self.scroll.SetScrollbars(1, 1, w, h)
 
-        ### NOTE: Tooltips are also set in the XRC for windows platforms, these only work on MAC
+        # NOTE: Tooltips are also set in the XRC for windows platforms, these
+        # only work on MAC
         self.SEHACCheckBox.SetToolTipString(HAC_TOOL_TIP)
         self.SEHETCheckBox.SetToolTipString(HET_TOOL_TIP)
         self.SEWhiteCheckBox.SetToolTipString(WHITE_TOOL_TIP)
-        #for i,radioButton in enumerate(self.ModelTypeRadioBox.GetChildren()):
+        # for i,radioButton in enumerate(self.ModelTypeRadioBox.GetChildren()):
         #    if i in MODEL_TYPE_TOOL_TIPS:
         #        radioButton.SetToolTipString(MODEL_TYPE_TOOL_TIPS[i])
-        #for i,radioButton in enumerate(self.EndogenousRadioBox.GetChildren()):
+        # for i,radioButton in enumerate(self.EndogenousRadioBox.GetChildren()):
         #    if i in ENDOGENOUS_TOOL_TIPS:
         #        radioButton.SetToolTipString(ENDOGENOUS_TOOL_TIPS[i])
 
-        # Setup the Weights Dialog for future use, remember to clear the queue after use.
+        # Setup the Weights Dialog for future use, remember to clear the queue
+        # after use.
         self.wQueue = []
-        #self.weightsFrame = weights.control.mxWeightsControl(self,results=self.wQueue)
-        self.modelWeightsDialog = weights.control.weightsDialog(self, requireSave=True, style=ENABLE_CONTIGUITY_WEIGHTS | ENABLE_DISTANCE_WEIGHTS)
+        # self.weightsFrame =
+        # weights.control.mxWeightsControl(self,results=self.wQueue)
+        self.modelWeightsDialog = weights.control.weightsDialog(
+            self, requireSave=True, style=ENABLE_CONTIGUITY_WEIGHTS | ENABLE_DISTANCE_WEIGHTS)
         self.kernelWeightsDialog = weights.control.weightsDialog(
             self, requireSave=True, style=ENABLE_KERNEL_WEIGTHS)
         self.weightsPropDlg = weights.control.weightsPropertiesDialog(self)
-        #self.resultText = MyStringIO()
+        # self.resultText = MyStringIO()
         self.textFrame = textwindow.TextWindow(self)
-        #self.textFrame = myTextFrame(self)
-        #self.textFrame.Show()
+        # self.textFrame = myTextFrame(self)
+        # self.textFrame.Show()
 
         self.varSelector = None
         self.createSpatialLag = None
@@ -201,11 +207,11 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.H_ListBox.SetDropTarget(ListBoxDropTarget(self.H_ListBox))
 
         self.R_TextCtrl.SetDropTarget(TextCtrlDropTarget(self.R_TextCtrl))
-        #self.R_TextCtrl.SetDropTarget(NullDropTarget(self.R_TextCtrl))
-        #self.S_TextCtrl.SetDropTarget(TextCtrlDropTarget(self.S_TextCtrl))
+        # self.R_TextCtrl.SetDropTarget(NullDropTarget(self.R_TextCtrl))
+        # self.S_TextCtrl.SetDropTarget(TextCtrlDropTarget(self.S_TextCtrl))
         self.S_TextCtrl.SetDropTarget(NullDropTarget(self.S_TextCtrl))
         self.T_TextCtrl.SetDropTarget(TextCtrlDropTarget(self.T_TextCtrl))
-        #self.T_TextCtrl.SetDropTarget(NullDropTarget(self.T_TextCtrl))
+        # self.T_TextCtrl.SetDropTarget(NullDropTarget(self.T_TextCtrl))
 
         self.X_ListBox.SetDropTarget(ListBoxDropTarget(self.X_ListBox))
 
@@ -213,7 +219,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.model = M_regression.guiRegModel()
         self.model.data['config'] = self.config.GetPrefs()
         self.model.addListener(self.populate)
-        #self.model.addListener(self.verbose)
+        # self.model.addListener(self.verbose)
         # The Bindings
         self.Bind(wx.EVT_BUTTON, self.DataOpenButtonClick, self.DATA_INPUTFILE)
         self.Bind(wx.EVT_BUTTON, self.OpenWeightsButtonClick,
@@ -227,9 +233,9 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.Bind(wx.EVT_BUTTON, self.run, self.RunButton)
         self.Bind(wx.EVT_BUTTON, self.saveModel, self.SaveButton)
         self.Bind(wx.EVT_BUTTON, self.close, self.CloseButton)
-        #self.DATAFILE.Bind(wx.EVT_COMBOBOX,self.setDataFile)
-        #self.DATAFILE.Bind(wx.EVT_TEXT_ENTER,self.setDataFile)
-        #self.IDVAR.Bind(wx.EVT_CHOICE,self.setIDVar)
+        # self.DATAFILE.Bind(wx.EVT_COMBOBOX,self.setDataFile)
+        # self.DATAFILE.Bind(wx.EVT_TEXT_ENTER,self.setDataFile)
+        # self.IDVAR.Bind(wx.EVT_CHOICE,self.setIDVar)
 
         self.Y_TextCtrl.Bind(wx.EVT_TEXT, self.updateSpec)
         self.Y_TextCtrl.Bind(wx.EVT_LEFT_DCLICK, self.clearTextBox)
@@ -244,9 +250,9 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.H_ListBox.Bind(wx.EVT_MOUSE_EVENTS, self._startDrag)
         self.R_TextCtrl.Bind(wx.EVT_TEXT, self.updateSpec)
         self.R_TextCtrl.Bind(wx.EVT_LEFT_DCLICK, self.clearTextBox)
-        #self.R_TextCtrl.SetToolTipString(R_TOOL_TIP)
-        #self.S_TextCtrl.Bind(wx.EVT_TEXT, self.updateSpec)
-        #self.S_TextCtrl.Bind(wx.EVT_LEFT_DCLICK,self.clearTextBox)
+        # self.R_TextCtrl.SetToolTipString(R_TOOL_TIP)
+        # self.S_TextCtrl.Bind(wx.EVT_TEXT, self.updateSpec)
+        # self.S_TextCtrl.Bind(wx.EVT_LEFT_DCLICK,self.clearTextBox)
         self.T_TextCtrl.Bind(wx.EVT_TEXT, self.updateSpec)
         self.T_TextCtrl.Bind(wx.EVT_LEFT_DCLICK, self.clearTextBox)
         self.X_ListBox.Bind(EVT_LIST_BOX_UPDATE, self.updateSpec)
@@ -265,27 +271,30 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.KWeights_ListBox.Bind(wx.EVT_CHAR, self.updateWeights)
         self.Bind(wx.EVT_BUTTON, self.updateWeights, self.PropKWeightsButton)
 
-        #self.Bind(wx.EVT_RADIOBUTTON,self.updateModelType)
+        # self.Bind(wx.EVT_RADIOBUTTON,self.updateModelType)
 
         self.MT_STD.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)
         self.MT_LAG.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)
         self.MT_ERR.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)
         self.MT_LAGERR.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)
-        self.OLS_radiobutton.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)  #pas
-        self.GMM_radiobutton.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)  #pas
-        self.ML_radiobutton.Bind(wx.EVT_RADIOBUTTON, self.updateModelType)   #pas
+        self.OLS_radiobutton.Bind(
+            wx.EVT_RADIOBUTTON, self.updateModelType)  # pas
+        self.GMM_radiobutton.Bind(
+            wx.EVT_RADIOBUTTON, self.updateModelType)  # pas
+        self.ML_radiobutton.Bind(
+            wx.EVT_RADIOBUTTON, self.updateModelType)  # pas
         self.ML_radiobutton.SetToolTipString(ML_TOOL_TIP)
 
-        #self.ModelTypeRadioBox.Bind(wx.EVT_RADIOBOX, self.updateModelType)
-        #self.ENDO_CHECK.Bind(wx.EVT_CHECKBOX, self.updateModelType)
-        #self.EndogenousRadioBox.Bind(wx.EVT_RADIOBOX, self.updateModelType)
-        #self.MethodsRadioBox.Bind(wx.EVT_RADIOBOX, self.updateModelType)
-        #self.SEClassicCheckBox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
-        
-        #self.gm_checkbox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
-        #self.ml_checkbox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
+        # self.ModelTypeRadioBox.Bind(wx.EVT_RADIOBOX, self.updateModelType)
+        # self.ENDO_CHECK.Bind(wx.EVT_CHECKBOX, self.updateModelType)
+        # self.EndogenousRadioBox.Bind(wx.EVT_RADIOBOX, self.updateModelType)
+        # self.MethodsRadioBox.Bind(wx.EVT_RADIOBOX, self.updateModelType)
+        # self.SEClassicCheckBox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
 
-        #self.MethodsRadioBox.Bind(wx.EVT_RADIOBOX, self.updateMethodType)
+        # self.gm_checkbox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
+        # self.ml_checkbox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
+
+        # self.MethodsRadioBox.Bind(wx.EVT_RADIOBOX, self.updateMethodType)
 
         self.SEWhiteCheckBox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
         self.SEHACCheckBox.Bind(wx.EVT_CHECKBOX, self.updateModelType)
@@ -317,7 +326,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                            self.MT_ERR,
                            self.MT_LAGERR]
 
-        self.METHOD = [self.OLS_radiobutton, self.GMM_radiobutton, self.ML_radiobutton]  #pas
+        self.METHOD = [
+            self.OLS_radiobutton, self.GMM_radiobutton, self.ML_radiobutton]  # pas
         self.populate(None)
 
     def _startDrag(self, evt):
@@ -344,15 +354,15 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         evt.Skip()
 
     def close(self, evt=None):
-        #print "close"
+        # print "close"
         if self.textFrame.Close():
             self.Destroy()
 
     def able(self):
-        #self.tooltips()
+        # self.tooltips()
         """ Disables and/or Enables parts of the form, based on the status of the model """
         if self.model.state == self.model.STATE_EMPTY:
-            #self.Panel.Disable()
+            # self.Panel.Disable()
             self.Panel_Weights.Disable()
             self.Panel_Spec.Disable()
             self.Panel_Estimation.Disable()
@@ -365,7 +375,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             self.RegressionToolBar.EnableTool(
                 wx.xrc.XRCID("ToolSaveModelAs"), False)
         else:
-            #self.Panel.Enable()
+            # self.Panel.Enable()
             self.Panel_Weights.Enable()
             self.Panel_Spec.Enable()
             self.Panel_Estimation.Enable()
@@ -378,28 +388,28 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             self.RegressionToolBar.EnableTool(
                 wx.xrc.XRCID("ToolSaveModelAs"), True)
             # Not implemented yet
-            #self.ModelTypeRadioBox.EnableItem(4,False) #Regimes.Disable()
-            #self.R_TextCtrl.Disable()
+            # self.ModelTypeRadioBox.EnableItem(4,False) #Regimes.Disable()
+            # self.R_TextCtrl.Disable()
             self.S_TextCtrl.Disable()
-            #self.T_TextCtrl.Disable()
+            # self.T_TextCtrl.Disable()
 
             # Fixed, always on.
-            #self.SEClassicCheckBox.Disable()
-            #self.SEWhiteCheckBox.Disable()
+            # self.SEClassicCheckBox.Disable()
+            # self.SEWhiteCheckBox.Disable()
 
-            #self.EnableMethods()
+            # self.EnableMethods()
             m = self.model.data
             if m['fname']:
-                m['config'] = self.config.GetPrefs()  #tik 149
-                #if m['modelType']['endogenous'] == True: #Yes
+                m['config'] = self.config.GetPrefs()  # tik 149
+                # if m['modelType']['endogenous'] == True: #Yes
                 #    self.YE_ListBox.Enable()
                 #    self.H_ListBox.Enable()
-                #else: #No
+                # else: #No
                 #    self.YE_ListBox.Disable()
                 #    self.H_ListBox.Disable()
 
                 if m['modelType']['mType'] == 2 or m['modelType']['mType'] == 3:  # an error model
-                    #No White in Error Models
+                    # No White in Error Models
                     self.SEWhiteCheckBox.Disable()
                     self.SEWhiteCheckBox.SetValue(False)
                     m['modelType']['error']['white'] = False
@@ -426,7 +436,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     m['modelType']['error']['hac'] = False
                     self.SEHACCheckBox.Disable()
 
-                if m['modelType']['method'] == 2:  #max likelihood, ml
+                if m['modelType']['method'] == 2:  # max likelihood, ml
                     self.SEWhiteCheckBox.SetValue(False)
                     self.SEWhiteCheckBox.Disable()
                     self.SEHETCheckBox.SetValue(False)
@@ -434,10 +444,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     self.SEHACCheckBox.SetValue(False)
                     self.SEHACCheckBox.Disable()
 
-
-
                 if len(m['spec']['H']) > 0 or len(m['spec']['YE']) > 0 or m['modelType']['mType'] != 0:
-                    
+
                     self.OLS_radiobutton.SetValue(False)
                     self.OLS_radiobutton.Disable()
 
@@ -446,7 +454,6 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     m['modelType']['method'] = 1
 
                     self.ML_radiobutton.SetValue(False)
-                    
 
                 else:
 
@@ -459,17 +466,11 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
 
                     self.ML_radiobutton.SetValue(False)
 
-                
-
-
-
-
             # model.verify is now called on Run, and an error msg displays why the model won't run.
-            #if self.model.verify():
+            # if self.model.verify():
             #    self.RunButton.Enable()
-            #else:
+            # else:
             #    self.RunButton.Disable()
-
     def setTitle(self):
         if self.modelFileName:
             fname = os.path.split(self.modelFileName)[1]
@@ -488,7 +489,9 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
     def saveWeights(self):
         for w in self.model.data['mWeights'] + self.model.data['kWeights']:
             if not w.saved:
-                dialog = wx.MessageDialog(self, "Would you like to save the weights file now?", 'Weights object (%s) must be saved to disk or removed to continue saving model.' % (w.name), style=wx.YES_NO | wx.CENTRE)
+                dialog = wx.MessageDialog(
+                    self, "Would you like to save the weights file now?",
+                    'Weights object (%s) must be saved to disk or removed to continue saving model.' % (w.name), style=wx.YES_NO | wx.CENTRE)
                 result = dialog.ShowModal()
                 if result == wx.ID_YES:
                     self.modelWeightsDialog.SetW(w.w)
@@ -503,7 +506,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             return False
         fname = self.model.data['fname']
         suggestion = os.path.split(fname)[1].split('.')[0] + '.mdl'
-        fileDialog = wx.FileDialog(self, defaultFile=suggestion, message="Save Model As...", wildcard="*.mdl", style=wx.SAVE + wx.OVERWRITE_PROMPT)
+        fileDialog = wx.FileDialog(
+            self, defaultFile=suggestion, message="Save Model As...", wildcard="*.mdl", style=wx.SAVE + wx.OVERWRITE_PROMPT)
         result = fileDialog.ShowModal()
         if result == wx.ID_OK:
             path = fileDialog.GetPath()
@@ -514,9 +518,9 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             f.close()
             self.modelFileName = path
             self.setTitle()
-            #print "saveModelAs, path...",path
+            # print "saveModelAs, path...",path
         else:
-            #print "canceled"
+            # print "canceled"
             pass
 
     def saveModel(self, evt):
@@ -531,7 +535,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             self.saveModelAs(evt)
 
     def locateMissingFile(self, oldPath):
-        confirmDialog = wx.MessageDialog(self, "%s does not exist, would you like to locate the correct file?" % oldPath, 'The file could not be located!', style=wx.YES_NO | wx.CENTRE)
+        confirmDialog = wx.MessageDialog(self, "%s does not exist, would you like to locate the correct file?" %
+                                         oldPath, 'The file could not be located!', style=wx.YES_NO | wx.CENTRE)
         result = confirmDialog.ShowModal()
         if result == wx.ID_YES:
             if '\\' in oldPath:
@@ -603,16 +608,16 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                 self.newVarSelector()
                 if changed:
                     self.model.update()  # sets modified flag
-                #print "openModel, path... ",path
+                # print "openModel, path... ",path
             else:
                 print "canceled"
         except:
-            confirmDialog = wx.MessageDialog(self, "The model file could not be loaded.", 'Invalid Model File!', style=wx.OK | wx.CENTRE)
+            confirmDialog = wx.MessageDialog(
+                self, "The model file could not be loaded.", 'Invalid Model File!', style=wx.OK | wx.CENTRE)
             result = confirmDialog.ShowModal()
             self.model.reset()
             self.populate(self.model)
             raise
-
 
     def updateModelType(self, evt):
         modelSetup = {}
@@ -620,14 +625,15 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                                for m in self.MODELTYPES].index(True)  # return element that is true -- only one can be true
 
         modelSetup['method'] = [m.GetValue()
-                               for m in self.METHOD].index(True)
-        #modelSetup['method'] = self.ml_checkbox.GetValue() 
-        #modelSetup['mType'] = self.ModelTypeRadioBox.GetSelection() # Zero Base
-        #modelSetup['endogenous'] = self.EndogenousRadioBox.GetSelection()
-        #modelSetup['endogenous'] = self.ENDO_CHECK.GetValue()
-        #modelSetup['method'] = self.MethodsRadioBox.GetSelection()
+                                for m in self.METHOD].index(True)
+        # modelSetup['method'] = self.ml_checkbox.GetValue()
+        # modelSetup['mType'] = self.ModelTypeRadioBox.GetSelection() # Zero Base
+        # modelSetup['endogenous'] = self.EndogenousRadioBox.GetSelection()
+        # modelSetup['endogenous'] = self.ENDO_CHECK.GetValue()
+        # modelSetup['method'] = self.MethodsRadioBox.GetSelection()
         modelSetup['error'] = {}
-        modelSetup['error']['classic'] = True  # self.SEClassicCheckBox.GetValue() #True or False
+        modelSetup['error'][
+            'classic'] = True  # self.SEClassicCheckBox.GetValue() #True or False
         modelSetup['error']['white'] = self.SEWhiteCheckBox.GetValue()
         modelSetup['error']['hac'] = self.SEHACCheckBox.GetValue()
         modelSetup['error']['het'] = self.SEHETCheckBox.GetValue()
@@ -636,23 +642,23 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.model.setModelType(modelSetup)
         print modelSetup
 
-    #TODO: add 'method' check here
+    # TODO: add 'method' check here
     def setModelType(self, setup):
         """ Compares the ModelType settings in self.model with the settings in the GUI form...
             These should only differ when model is loaded from file or changed programatically """
-        #if not setup['mType'] == self.ModelTypeRadioBox.GetSelection():
+        # if not setup['mType'] == self.ModelTypeRadioBox.GetSelection():
         if not setup['mType'] == [m.GetValue() for m in self.MODELTYPES].index(True):
             self.MODELTYPES[setup['mType']].SetValue(True)
         if not setup['method'] == [m.GetValue() for m in self.METHOD].index(True):
             self.METHOD[setup['method']].SetValue(True)
-            #self.ModelTypeRadioBox.SetSelection(setup['mType'])
-        #if not setup['endogenous'] == self.EndogenousRadioBox.GetSelection():
-        #if not setup['endogenous'] == self.ENDO_CHECK.GetValue():
-            #self.EndogenousRadioBox.SetSelection(setup['endogenous'])
+            # self.ModelTypeRadioBox.SetSelection(setup['mType'])
+        # if not setup['endogenous'] == self.EndogenousRadioBox.GetSelection():
+        # if not setup['endogenous'] == self.ENDO_CHECK.GetValue():
+            # self.EndogenousRadioBox.SetSelection(setup['endogenous'])
         #    self.ENDO_CHECK.SetValue(setup['endogenous'])
-        #if not setup['method'] == self.ml_checkbox.GetValue():
+        # if not setup['method'] == self.ml_checkbox.GetValue():
         #    self.ml_checkbox.SetValue(setup['method'])
-        #if not setup['error']['classic'] == self.SEClassicCheckBox.GetValue():
+        # if not setup['error']['classic'] == self.SEClassicCheckBox.GetValue():
         #    self.SEClassicCheckBox.SetValue(setup['error']['classic'])
         if not setup['error']['white'] == self.SEWhiteCheckBox.GetValue():
             self.SEWhiteCheckBox.SetValue(setup['error']['white'])
@@ -664,7 +670,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             self.ST_LM.SetValue(setup['spatial_tests']['lm'])
 
     def updateSpec(self, evt):
-        #print "updateSpec, evt... ",evt
+        # print "updateSpec, evt... ",evt
         spec = {}
         spec['y'] = self.Y_TextCtrl.GetValue()
 
@@ -683,7 +689,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         spec['H'] = H
 
         spec['R'] = self.R_TextCtrl.GetValue()
-        #spec['S'] = self.S_TextCtrl.GetValue()
+        # spec['S'] = self.S_TextCtrl.GetValue()
         spec['T'] = self.T_TextCtrl.GetValue()
 
         ## X
@@ -693,33 +699,34 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                 X.append(var)
         spec['X'] = X
 
-        #print "Setting Model Spec as... ",spec
-        #print "form X_ListBox contains, ",self.X_ListBox.GetItems()
-        #print "form X_ListBox contains Strings, ",self.X_ListBox.GetStrings()
+        # print "Setting Model Spec as... ",spec
+        # print "form X_ListBox contains, ",self.X_ListBox.GetItems()
+        # print "form X_ListBox contains Strings, ",self.X_ListBox.GetStrings()
 
         # This code block was used to support removing weights objects...
-        #mwFiles = self.MWeights_ListBox.GetItems()
-        #newWeights = []
-        #for p in mwFiles:
+        # mwFiles = self.MWeights_ListBox.GetItems()
+        # newWeights = []
+        # for p in mwFiles:
         #    tmp = [w for w in self.model.data['mWeights'] if p in w]
         #    if tmp:
         #        newWeights.append(tmp[0])
-        #self.model.data['mWeights'] = newWeights
+        # self.model.data['mWeights'] = newWeights
 
-        #kwFiles = self.KWeights_ListBox.GetItems()
-        #newWeights = []
-        #for p in kwFiles:
+        # kwFiles = self.KWeights_ListBox.GetItems()
+        # newWeights = []
+        # for p in kwFiles:
         #    tmp = [w for w in self.model.data['kWeights'] if p in w]
         #    if tmp:
         #        newWeights.append(tmp[0])
-        #self.model.data['kWeights'] = newWeights
+        # self.model.data['kWeights'] = newWeights
 
         self.model.setSpec(spec)
 
     def setSpec(self, spec):
-        #print "Setting Form Spec as... ",spec
+        # print "Setting Form Spec as... ",spec
         if not spec['y'] == self.Y_TextCtrl.GetValue():
-            # TextCtrl.SetValue triggers an event, which interupts the form update.
+            # TextCtrl.SetValue triggers an event, which interupts the form
+            # update.
             self.Y_TextCtrl.SetEvtHandlerEnabled(False)
             self.Y_TextCtrl.SetValue(spec['y'])
             self.Y_TextCtrl.SetEvtHandlerEnabled(True)
@@ -729,7 +736,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             self.H_ListBox.SetItems(spec['H'])
         if not spec['R'] == self.R_TextCtrl.GetValue():
             self.R_TextCtrl.SetValue(spec['R'])
-        #if not spec['S'] == self.S_TextCtrl.GetValue():
+        # if not spec['S'] == self.S_TextCtrl.GetValue():
         #    self.S_TextCtrl.SetValue(spec['S'])
         if not spec['T'] == self.T_TextCtrl.GetValue():
             self.T_TextCtrl.SetValue(spec['T'])
@@ -778,7 +785,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                 print "We shouldn't be here"
                 return
             if count == 0:
-                dialog = wx.MessageDialog(self, "Please open or create a weights object first.", "Weights Properties...", wx.OK | wx.ICON_ERROR)
+                dialog = wx.MessageDialog(
+                    self, "Please open or create a weights object first.", "Weights Properties...", wx.OK | wx.ICON_ERROR)
                 dialog.ShowModal()
                 return
             else:
@@ -809,7 +817,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                                             self.spatialLag, id=wx.xrc.XRCID("ToolSpatialLag"))
         self.varSelector.panel.ToolBar.EnableTool(
             wx.xrc.XRCID("ToolSpatialLag"), True)
-        #self.varSelector.populate(self.model.getVariables())
+        # self.varSelector.populate(self.model.getVariables())
         self.varSelector.CenterOnParent()
         self.varSelector.Show()
 
@@ -817,13 +825,14 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         if self.createSpatialLag:
             self.createSpatialLag.Hide()
             self.createSpatialLag.Destroy()
-        #print self.varSelector.getSelected()
+        # print self.varSelector.getSelected()
         weights = set(self.model.data['mWeights'])
         weights = weights.union(set(self.model.data['kWeights']))
-        #print weights
+        # print weights
         vars = self.model.getVariables()
         self.spLagQueue = []
-        self.createSpatialLag = spatialLag.C_CreateSpatialLag(dataFile=self.model.data['fname'], wtFiles=weights, vars=vars, results=self.spLagQueue, dialogMode=True)
+        self.createSpatialLag = spatialLag.C_CreateSpatialLag(dataFile=self.model.data[
+                                                              'fname'], wtFiles=weights, vars=vars, results=self.spLagQueue, dialogMode=True)
         for var in self.varSelector.getSelected():
             self.createSpatialLag.addRow(varIDX=vars.index(var))
 
@@ -895,7 +904,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         if self.kernelWeightsDialog.ShowModal() == wx.ID_OK:
             self.model.addKWeightsFile(obj=self.kernelWeightsDialog.GetW())
         #    print "added"
-        #else:
+        # else:
         #    print "failed"
 
     def OpenWeightsButtonClick(self, evt):
@@ -906,11 +915,13 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         else:
             raise RuntimeError("Unexpected evt object")
         pathHint = os.path.split(self.model.data['fname'])[0]
-        #filter = "Weights File (*.gal; *.gwt)|*.gal;*.gwt" #"|*.gal|GWT file|*.gwt|XML Weights|*.xml"
+        # filter = "Weights File (*.gal; *.gwt)|*.gal;*.gwt" #"|*.gal|GWT
+        # file|*.gwt|XML Weights|*.xml"
         filter = "Common Weights Types|"
         filter += ';'.join([x for i, x in enumerate(WEIGHT_TYPES_FILTER.split(
             '|')[1::2]) if WEIGHT_FILTER_TO_HANDLER[i] is None])
-        fileDialog = wx.FileDialog(self, defaultDir=pathHint, message="Choose Weights File", wildcard=filter + '|' + WEIGHT_TYPES_FILTER)
+        fileDialog = wx.FileDialog(
+            self, defaultDir=pathHint, message="Choose Weights File", wildcard=filter + '|' + WEIGHT_TYPES_FILTER)
         if target == 'model_w':
             fileDialog.SetFilterIndex(0)  # default to gal
         elif target == 'kernel_w':
@@ -934,12 +945,13 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                 elif target == 'kernel_w':
                     self.model.addKWeightsFile(obj=W)
             except:
-                dialog = wx.MessageDialog(self, "An error occurred while trying to read your weights object, please check the file: %s" % path, "Could not extract weights object:", wx.OK | wx.ICON_ERROR)
+                dialog = wx.MessageDialog(self, "An error occurred while trying to read your weights object, please check the file: %s" %
+                                          path, "Could not extract weights object:", wx.OK | wx.ICON_ERROR)
                 dialog.ShowModal()
                 raise
         else:
             print "canceled"
-    #def OpenKWeightsButtonClick(self,evt):
+    # def OpenKWeightsButtonClick(self,evt):
     #    pathHint = os.path.split(self.model.data['fname'])[0]
     #    filter = "Kernel Weights File (*.kwt)|*.kwt" #"|*.gal|GWT file|*.gwt|XML Weights|*.xml"
     #    fileDialog = wx.FileDialog(self,defaultDir=pathHint,message="Choose Weights File",wildcard=filter)
@@ -962,7 +974,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         if self.model.checkKW(obj):
             pass
         else:
-            dialog = wx.MessageDialog(self, "Please use distance based weights with sufficient # of neighbors (see manual).", "Kernel Weights Warning:", wx.OK | wx.ICON_ERROR)
+            dialog = wx.MessageDialog(
+                self, "Please use distance based weights with sufficient # of neighbors (see manual).", "Kernel Weights Warning:", wx.OK | wx.ICON_ERROR)
             dialog.ShowModal()
 
     def DataOpenButtonClick(self, evt):
@@ -975,11 +988,12 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             self.setDataFile(path)
         else:
             print "canceled"
-    #def setIDVar(self,e):
-    #    self.model.setIDVar(self.IDVAR.GetSelection()) # -1 for the "Use Record Order Option"
+    # def setIDVar(self,e):
+    # self.model.setIDVar(self.IDVAR.GetSelection()) # -1 for the "Use Record
+    # Order Option"
 
     def setDataFile(self, path, passive=False):
-        #if not path:
+        # if not path:
         #    path = self.model.dataFiles[self.DATAFILE.GetSelection()]
         self.model.setDataFile(path, passive)
         self.newVarSelector()
@@ -987,24 +1001,24 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
     def populate(self, model):
         m = self.model
         dfile = m.getDataFile()
-        #if self.DATAFILE.FindString(dfile) == wx.NOT_FOUND and dfile:
+        # if self.DATAFILE.FindString(dfile) == wx.NOT_FOUND and dfile:
         #    self.DATAFILE.Append(dfile)
         self.DATAFILE.SetValue(dfile)
-        #vars = m.getVariables()
-        #vars.insert(0,'Use Record Order')
-        #if vars:
+        # vars = m.getVariables()
+        # vars.insert(0,'Use Record Order')
+        # if vars:
         #    self.IDVAR.Clear()
         #    self.IDVAR.AppendItems(vars)
         #    self.IDVAR.SetSelection(m.getIDVar()) #+1 for the "Use Record Order" option
-        #vars.pop(0)
+        # vars.pop(0)
         self.setModelType(m.getModelType())
         mw = m.getMWeightsFiles()
-        #if mw:
+        # if mw:
         self.MWeights_ListBox.SetItems([w.name for w in mw])
         self.MWeights_ListBox.SetCheckedStrings(
             [w.name for w in mw if w.enabled])
         kw = m.getKWeightsFiles()
-        #if kw:
+        # if kw:
         self.KWeights_ListBox.SetItems([w.name for w in kw])
         self.KWeights_ListBox.SetCheckedStrings(
             [w.name for w in kw if w.enabled])
@@ -1021,12 +1035,13 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
     def run(self, evt):
         num_fixed = self.model.setMWeightsTransform('R')
         if num_fixed > 0:
-            dialog = wx.MessageDialog(self, "The transform of %d model weights object(s) was set to \"R: Row-standardization (global sum=n)\"" % num_fixed, "Model Weights Changed:", wx.OK | wx.ICON_INFORMATION).ShowModal()
-        #fname = self.model.data['fname']
-        #suggestion = os.path.split(fname)[1].split('.')[0]+'.txt'
-        #fileDialog = wx.FileDialog(self,defaultFile=suggestion,message="Save Results As...",wildcard="*.txt",style=wx.SAVE+wx.OVERWRITE_PROMPT)
-        #result = fileDialog.ShowModal()
-        #if result == wx.ID_OK:
+            dialog = wx.MessageDialog(self, "The transform of %d model weights object(s) was set to \"R: Row-standardization (global sum=n)\"" %
+                                      num_fixed, "Model Weights Changed:", wx.OK | wx.ICON_INFORMATION).ShowModal()
+        # fname = self.model.data['fname']
+        # suggestion = os.path.split(fname)[1].split('.')[0]+'.txt'
+        # fileDialog = wx.FileDialog(self,defaultFile=suggestion,message="Save Results As...",wildcard="*.txt",style=wx.SAVE+wx.OVERWRITE_PROMPT)
+        # result = fileDialog.ShowModal()
+        # if result == wx.ID_OK:
         #    path = fileDialog.GetPath()
         #    if not '.' in path:
         #        path += '.txt'
@@ -1035,7 +1050,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             fname = self.model.data['fname']
             suggestion = os.path.split(
                 fname)[1].split('.')[0] + '_predY_resid.csv'
-            fileDialog = wx.FileDialog(self, defaultFile=suggestion, message="Save Predicted Values and Residuals As...", wildcard="*.csv", style=wx.SAVE + wx.OVERWRITE_PROMPT)
+            fileDialog = wx.FileDialog(
+                self, defaultFile=suggestion, message="Save Predicted Values and Residuals As...", wildcard="*.csv", style=wx.SAVE + wx.OVERWRITE_PROMPT)
             if fileDialog.ShowModal() == wx.ID_OK:
                 predy_resid = fileDialog.GetPath()
                 print predy_resid
@@ -1048,12 +1064,14 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             try:
                 result = self.model.run(self.textFrame, predy_resid)
             except MemoryError:
-                dialog = wx.MessageDialog(self, "Your dataset is too large to perform this computation on 32Bit. You can try running it using the PySAL spreg library and a 64Bit version of Python", "Memory Error:", wx.OK | wx.ICON_ERROR)
+                dialog = wx.MessageDialog(
+                    self, "Your dataset is too large to perform this computation on 32Bit. You can try running it using the PySAL spreg library and a 64Bit version of Python", "Memory Error:", wx.OK | wx.ICON_ERROR)
                 res = dialog.ShowModal()
                 return False
             except Exception:
                 et, e, tb = sys.exc_info()
-                dialog = wx.MessageDialog(self, "\"%s\"\nDisplay detailed error message in results window?" % str(e), "Model Error:", wx.YES_NO | wx.ICON_ERROR)
+                dialog = wx.MessageDialog(self, "\"%s\"\nDisplay detailed error message in results window?" % str(
+                    e), "Model Error:", wx.YES_NO | wx.ICON_ERROR)
                 res = dialog.ShowModal()
                 if res == wx.ID_YES:
                     traceback.print_tb(tb, file=self.textFrame)
@@ -1068,32 +1086,36 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                 dialog.ShowModal()
                 return False
             self.results.extend(result)
-            #self.textFrame.write(50*'='+'\n')
-            #self.resultText.seek(0)
-            #self.textFrame.Text.SetValue(self.resultText.read())
+            # self.textFrame.write(50*'='+'\n')
+            # self.resultText.seek(0)
+            # self.textFrame.Text.SetValue(self.resultText.read())
             self.textFrame.Text.SetInsertionPoint(pos)
-            #self.textFrame.SetModified(True)
+            # self.textFrame.SetModified(True)
             self.textFrame.Show()
             self.textFrame.Raise()
-            #dialog = wx.MessageDialog(self,"Your model ran successfully! The results have been saved in,\n%s"%path,"Success",wx.OK|wx.ICON_INFORMATION)
-            #dialog.ShowModal()
+            # dialog = wx.MessageDialog(self,"Your model ran successfully! The results have been saved in,\n%s"%path,"Success",wx.OK|wx.ICON_INFORMATION)
+            # dialog.ShowModal()
         except KeyError:
-            #commonly caused by no or incorrectly set ID Var.
-            dialog = wx.MessageDialog(self, "Please check that the ID variable of your weights file matches your data file or create a new weights file in GeoDaWeights.", "The model failed to run. ", wx.OK | wx.ICON_ERROR)
+            # commonly caused by no or incorrectly set ID Var.
+            dialog = wx.MessageDialog(
+                self, "Please check that the ID variable of your weights file matches your data file or create a new weights file in GeoDaWeights.", "The model failed to run. ", wx.OK | wx.ICON_ERROR)
             dialog.ShowModal()
             raise
         except AttributeError:
-            #commonly caused by no weights.
+            # commonly caused by no weights.
             if self.model.data['modelType']['error']['hac'] and not self.model.data['kWeights']:
-                dialog = wx.MessageDialog(self, "Kernel weights are required for HAC Standard Errors, please specify your kernel weights and try again.", "The model failed to run.", wx.OK | wx.ICON_ERROR)
+                dialog = wx.MessageDialog(
+                    self, "Kernel weights are required for HAC Standard Errors, please specify your kernel weights and try again.", "The model failed to run.", wx.OK | wx.ICON_ERROR)
                 dialog.ShowModal()
             else:
-                dialog = wx.MessageDialog(self, "Please be sure that you have specified your weights files correctly.", "The model failed to run. ", wx.OK | wx.ICON_ERROR)
+                dialog = wx.MessageDialog(
+                    self, "Please be sure that you have specified your weights files correctly.", "The model failed to run. ", wx.OK | wx.ICON_ERROR)
                 dialog.ShowModal()
             raise
         except:
-            dialog = wx.MessageDialog(self, "The model failed to run. Please Try Again.", "Error", wx.OK | wx.ICON_ERROR)
+            dialog = wx.MessageDialog(
+                self, "The model failed to run. Please Try Again.", "Error", wx.OK | wx.ICON_ERROR)
             dialog.ShowModal()
             raise
-        #else:
+        # else:
         #    print "canceled"
