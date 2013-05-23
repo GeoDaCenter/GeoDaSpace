@@ -288,8 +288,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
 
     def gmm_inferenceOnLambda(self, evtName=None, evt=None, value=None):
         if evt:
-            self.model.gmm_inferenceOnLambda = self.inferenceOnLambda.GetValue(
-            )
+            self.model.gmm_inferenceOnLambda = self.inferenceOnLambda.GetValue()
         elif value != None:
             self.inferenceOnLambda.SetValue(self.model.gmm_inferenceOnLambda)
 
