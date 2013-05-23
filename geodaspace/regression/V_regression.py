@@ -159,7 +159,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             tmpParent.Destroy()
         # end fix
         self.config = preferencesDialog(self)
-        self.config.model.addListener(self.able)  # pas tik 149
+        self.config.model.addListener(self.updateModelType)  # pas tik 149,156
         self.SetIcon(icons.getGeoDaIcon())
         self.modelFileName = None
         self.BASE_TITLE = self.GetTitle()
@@ -408,7 +408,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                 #    self.YE_ListBox.Disable()
                 #    self.H_ListBox.Disable()
 
-                if m['modelType']['mType'] == 2 or m['modelType']['mType'] == 3:  # an error model
+                if m['modelType']['mType'] == 2 or 3:  # an error model
                     # No White in Error Models
                     self.SEWhiteCheckBox.Disable()
                     self.SEWhiteCheckBox.SetValue(False)
@@ -429,7 +429,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     self.SEHETCheckBox.SetValue(False)
                     m['modelType']['error']['het'] = False
 
-                if m['modelType']['mType'] == 0 or m['modelType']['mType'] == 1:  # Standard or SpatialLag
+                if m['modelType']['mType'] == 0 or 1:  # Standard or SpatialLag
                     self.SEHACCheckBox.Enable()
                 else:
                     self.SEHACCheckBox.SetValue(False)
