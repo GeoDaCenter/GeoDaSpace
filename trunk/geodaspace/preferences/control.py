@@ -27,7 +27,8 @@ OTHER_PAGE = 4
 
 class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
     """
-    GeoDaSpace Preference Dialog -- Displays a Dialog for editing GeoDaSpace Preferences
+    GeoDaSpace Preference Dialog --
+    Displays a Dialog for editing GeoDaSpace Preferences
 
     Display using ShowModal, which will return, wx.ID_OK or wx.ID_CANCEL
 
@@ -53,11 +54,12 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
 
     """
     # DEFAULTS = {
-    #    'sig2n_k': {'other': False, 'ols': True, 'gmlag': False, '2sls': False},
-    #    'gmm': {'epsilon': 1e-05, 'inferenceOnLambda': True, 'max_iter': 1, 'step1c': False, 'inv_method': 'power_exp'},
-    #    'instruments': {'lag_q': True, 'w_lags': 1},
-    #    'other': {'ols_diagnostics': True, 'numcores': 0, 'residualMoran': False},
-    #    'output': {'save_pred_residuals': False, 'vm_summary': False}}
+    # 'sig2n_k': {'other': False, 'ols': True, 'gmlag': False, '2sls': False},
+    # 'gmm': {'epsilon': 1e-05, 'inferenceOnLambda': True, 'max_iter': 1,
+    # 'step1c': False, 'inv_method': 'power_exp'},
+    # 'instruments': {'lag_q': True, 'w_lags': 1},
+    # 'other':{'ols_diagnostics': True, 'numcores': 0, 'residualMoran': False},
+    # 'output': {'save_pred_residuals': False, 'vm_summary': False}}
 
     def __init__(self, parent=None):
         self.__mod = False
@@ -71,7 +73,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         for widget in tips:
             try:
                 getattr(self, widget).SetToolTipString(tips[widget])
-                getattr(self, widget+'Label').SetToolTipString(tips[widget])
+                getattr(self, widget + 'Label').SetToolTipString(tips[widget])
             except:
                 print "could not set tool tip for %s" % widget
 
@@ -194,12 +196,13 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         """ Display an error message to the user """
         dlg = wx.MessageDialog(
             self, msg, tagline, style=wx.OK | wx.ICON_ERROR).ShowModal()
-        return
+        return dlg
 
     def cancel(self, evtName=None, evt=None, value=None):
         if self.modified:
             dlg = wx.MessageDialog(self, "Unsaved changes will be lost.",
-                                   "Are you sure you wish to cancel?", style=wx.YES_NO | wx.ICON_QUESTION)
+                                   "Are you sure you wish to cancel?",
+                                   style=wx.YES_NO | wx.ICON_QUESTION)
             if dlg.ShowModal() == wx.ID_YES:
                 self.reset_model()
                 if self.IsModal():
@@ -239,7 +242,8 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
 
     def restore(self, evtName=None, evt=None, value=None):
         dlg = wx.MessageDialog(self, "All unsaved preferences will be lost.",
-                               "Are you sure you wish to restore defaults?", style=wx.CANCEL | wx.OK | wx.ICON_QUESTION)
+                               "Are you sure you wish to restore defaults?",
+                               style=wx.CANCEL | wx.OK | wx.ICON_QUESTION)
         if dlg.ShowModal() == wx.ID_OK:
             self.model.reset()
             self.modified = True
@@ -247,28 +251,28 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
     def sig2n_k_ols(self, evtName=None, evt=None, value=None):
         if evt:
             self.model.sig2n_k_ols = self.OLSNk.GetValue()
-        elif value != None:
+        elif value is not None:
             self.OLSNk.SetValue(self.model.sig2n_k_ols)
             self.OLSN.SetValue(not self.model.sig2n_k_ols)
 
     def sig2n_k_2sls(self, evtName=None, evt=None, value=None):
         if evt:
             self.model.sig2n_k_2sls = self.twoSLSNk.GetValue()
-        elif value != None:
+        elif value is not None:
             self.twoSLSNk.SetValue(self.model.sig2n_k_2sls)
             self.twoSLSN.SetValue(not self.model.sig2n_k_2sls)
 
     def sig2n_k_gm(self, evtName=None, evt=None, value=None):
         if evt:
             self.model.sig2n_k_gmlag = self.GMlagNk.GetValue()
-        elif value != None:
+        elif value is not None:
             self.GMlagNk.SetValue(self.model.sig2n_k_gmlag)
             self.GMlagN.SetValue(not self.model.sig2n_k_gmlag)
 
     def gmm_max_iter(self, evtName=None, evt=None, value=None):
         if evt:
             self.model.gmm_max_iter = self.MaxIterations.GetValue()
-        elif value != None:
+        elif value is not None:
             self.MaxIterations.SetValue(self.model.gmm_max_iter)
 
     def gmm_epsilon(self, evtName=None, evt=None, value=None):
@@ -278,7 +282,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
                     self.StoppingCriterion.GetValue())
             except:
                 pass
-        elif value != None:
+        elif value is not None:
             try:
                 curval = float(self.StoppingCriterion.GetValue())
             except:
@@ -288,70 +292,71 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
 
     def gmm_inferenceOnLambda(self, evtName=None, evt=None, value=None):
         if evt:
-            self.model.gmm_inferenceOnLambda = self.inferenceOnLambda.GetValue()
-        elif value != None:
+            self.model.gmm_inferenceOnLambda = self.inferenceOnLambda.GetValue(
+            )
+        elif value is not None:
             self.inferenceOnLambda.SetValue(self.model.gmm_inferenceOnLambda)
 
     def gmm_inv_method(self, evtName=None, evt=None, value=None):
         if evt:
             self.model.gmm_inv_method = INV_METHODS[
                 self.CompInverse.GetSelection()]
-        elif value != None:
+        elif value is not None:
             self.CompInverse.SetSelection(
                 INV_METHODS.index(self.model.gmm_inv_method))
 
     def gmm_step1c(self, evtName=None, evt=None, value=None):
         if evt:
             self.model.gmm_step1c = self.Step1c.GetValue()
-        elif value != None:
+        elif value is not None:
             self.Step1c.SetValue(self.model.gmm_step1c)
 
     def instruments_w_lags(self, evtName=None, evt=None, value=None):
         if evt:
             self.model.instruments_w_lags = self.NumSpatialLags.GetValue()
-        elif value != None:
+        elif value is not None:
             self.NumSpatialLags.SetValue(self.model.instruments_w_lags)
 
     def instruments_lag_q(self, evtName=None, evt=None, value=None):
         if evt:
             self.model.instruments_lag_q = self.IncludeLagsofUserInst.GetValue(
             )
-        elif value != None:
+        elif value is not None:
             self.IncludeLagsofUserInst.SetValue(self.model.instruments_lag_q)
 
     def output_vm_summary(self, evtName=None, evt=None, value=None):
         if evt:
             self.model.output_vm_summary = self.ShowVarCovarMatrix.GetValue()
-        elif value != None:
+        elif value is not None:
             self.ShowVarCovarMatrix.SetValue(self.model.output_vm_summary)
 
     def output_save_pred_residuals(self, evtName=None, evt=None, value=None):
         if evt:
-            self.model.output_save_pred_residuals = self.saveValuesResiduals.GetValue(
-            )
-        elif value != None:
+            self.model.output_save_pred_residuals = \
+                self.saveValuesResiduals.GetValue()
+        elif value is not None:
             self.saveValuesResiduals.SetValue(
                 self.model.output_save_pred_residuals)
 
     def output_show_detailed_spec(self, evtName=None, evt=None, value=None):
         if evt:
-            self.model.output_show_detailed_spec = self.showDetailedModelSpec.GetValue(
-            )
-        elif value != None:
+            self.model.output_show_detailed_spec = \
+                self.showDetailedModelSpec.GetValue()
+        elif value is not None:
             self.showDetailedModelSpec.SetValue(
                 self.model.output_show_detailed_spec)
 
     def other_ols_diagnostics(self, evtName=None, evt=None, value=None):
         if evt:
             self.model.other_ols_diagnostics = self.OLSdiagnostics.GetValue()
-        elif value != None:
+        elif value is not None:
             self.OLSdiagnostics.SetValue(self.model.other_ols_diagnostics)
 
     def other_numcores(self, evtName=None, evt=None, value=None):
         if evt:
             self.model.other_numcores = CPU_OPTIONS[
                 self.numcores.GetSelection()]
-        elif value != None:
+        elif value is not None:
             if value < 1:  # default, USE ALL
                 self.numcores.SetSelection(0)
             else:
@@ -360,14 +365,14 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
     def other_residualMoran(self, evtName=None, evt=None, value=None):
         if evt:
             self.model.other_residualMoran = self.residualMoran.GetValue()
-        elif value != None:
+        elif value is not None:
             self.residualMoran.SetValue(self.model.other_residualMoran)
 
     def other_missingValueCheck(self, evtName=None, evt=None, value=None):
         if evt:
-            self.model.other_missingValueCheck = self.missingValueCheck.GetValue(
-            )
-        elif value != None:
+            self.model.other_missingValueCheck = \
+                self.missingValueCheck.GetValue()
+        elif value is not None:
             self.missingValueCheck.SetValue(self.model.other_missingValueCheck)
 
     def other_missingValue(self, evtName=None, evt=None, value=None):
@@ -377,7 +382,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
                     self.missingValue.GetValue())
             except:
                 pass
-        elif value != None:
+        elif value is not None:
             try:
                 curval = float(self.missingValue.GetValue())
             except:
@@ -388,7 +393,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
     def regimes_regime_error(self, evtName=None, evt=None, value=None):
         if evt:
             self.model.regimes_regime_error = self.RegimeError.GetValue()
-        elif value != None:
+        elif value is not None:
             self.RegimeError.SetValue(self.model.regimes_regime_error)
             if value:
                 self.model.regimes_regime_lag = True
@@ -399,8 +404,8 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
     def regimes_regime_lag(self, evtName=None, evt=None, value=None):
         if evt:
             self.model.regimes_regime_lag = self.RegimeLag.GetValue()
-        elif value != None:
-            if value == False and self.model.regimes_regime_error == True:
+        elif value is not None:
+            if value is False and self.model.regimes_regime_error is True:
                 self.model.regimes_regime_lag = True
             else:
                 self.RegimeLag.SetValue(value)
