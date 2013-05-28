@@ -1,6 +1,7 @@
 # system
 import os
 import math
+import sys
 # 3rd Party
 import wx
 import pysal
@@ -625,15 +626,18 @@ class weightsDialog(xrcDIALOGWEIGHTS):
             try:
                 W = pysal.threshold_continuousW_from_shapefile(
                         sfile, cutoff, alpha=- 1 * power, idVariable=var, radius=radius)
-            except:
-                return self.warn("Exception: Cannot compute inverse distance \n for elements at same location (distance=0)")
-            W.meta = {'shape file': sfile,
+                W.meta = {'shape file': sfile,
                       'id variable': var,
                       'method': 'distance',
                       'method options': ['Inverse', cutoff, power]}
-            if radius:
-                W.meta['Sphere Radius'] = radius
-            self.SetW(W)
+                if radius:
+                    W.meta['Sphere Radius'] = radius
+                self.SetW(W)
+            except Exception:
+                et, e, tb = sys.exc_info()
+                d = wx.MessageDialog(self, "\"%s\"\n\nCheck for duplicates."
+                                     % str(e), "Error", wx.OK | wx.ICON_ERROR)
+                d.ShowModal()
 
     def run_adaptive_kernel(self, sfile, var):
         """ Invoked by main run method. """
