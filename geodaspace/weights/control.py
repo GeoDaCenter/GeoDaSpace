@@ -635,7 +635,7 @@ class weightsDialog(xrcDIALOGWEIGHTS):
                 self.SetW(W)
             except Exception:
                 et, e, tb = sys.exc_info()
-                d = wx.MessageDialog(self, "\"%s\"\n\nCheck for duplicates."
+                d = wx.MessageDialog(self, "\"%s\"\n"
                                      % str(e), "Error", wx.OK | wx.ICON_ERROR)
                 d.ShowModal()
 
