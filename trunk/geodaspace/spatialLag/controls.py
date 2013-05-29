@@ -22,6 +22,7 @@ class C_spLagVariable(SpatialLag_xrc.xrcSpLagVariable):
         self.newVarNameCtrl.Bind(
             wx.EVT_TEXT, self.__newVarName)  # SetValue(newVarName)
         # self.warn.Bind(wx.EVT_MOTION,self.info)
+
     # def info(self,evt):
     #    print evt
     #    print self.warn

@@ -1,5 +1,5 @@
 import os.path
-import wx
+#import wx
 from geodaspace.abstractmodel import AbstractModel
 import pysal
 
