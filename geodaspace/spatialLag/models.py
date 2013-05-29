@@ -2,7 +2,7 @@ import os.path
 #import wx
 from geodaspace.abstractmodel import AbstractModel
 import pysal
-
+import csv
 
 DTYPE = 'listvars'
 FORMATHEADER = 0
@@ -84,21 +84,31 @@ class M_CreateSpatialLag(AbstractModel):
             xid = [db.header.index(i) for i in vars]
             X = [db[:, i] for i in xid]
             W = self.loadWeights()
-
-            new_header = db.header + names
-            new_spec = db.field_spec + [('N', 20, 10) for n in names]
-            data = db.read()
-            db.close()
-            newdb = pysal.open(path, 'w')
-            newdb.header = new_header
-            newdb.field_spec = new_spec
-
             lag = [pysal.lag_spatial(W, y) for y in X]
             lag = zip(*lag)  # transpose
             lag = map(list, lag)
-            for i, row in enumerate(data):
-                newdb.write(row + lag[i])
-            newdb.close()
+            new_header = db.header + names
+
+            if path.endswith('.dbf'):
+                new_spec = db.field_spec + [('N', 20, 10) for n in names]
+                data = db.read()
+                db.close()
+                newdb = pysal.open(path, 'w')
+                newdb.header = new_header
+                newdb.field_spec = new_spec
+                for i, row in enumerate(data):
+                    newdb.write(row + lag[i])
+                newdb.close()
+
+            elif path.endswith('.csv'):
+                data = db.read()
+                db.close()
+                newdb = pysal.open(path, 'wb')
+                writer = csv.writer(newdb)
+                writer.writerow(new_header)
+                for i, row in enumerate(data):
+                    writer.writerow(row + lag[i])
+                newdb.close()
 
     def db(self):
         return pysal.open(self.data['dataFile'], 'r')
