@@ -796,7 +796,7 @@ class BaseGM_Combo(BaseGM_Endog_Error):
 
         """
     def __init__(self, y, x, yend=None, q=None,\
-                 w=w, w_lags=1, lag_q=True):
+                 w=None, w_lags=1, lag_q=True):
 
         BaseGM_Endog_Error.__init__(self, y=y, x=x, w=w, yend=yend, q=q)
 
