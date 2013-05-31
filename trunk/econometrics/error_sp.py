@@ -88,7 +88,7 @@ class BaseGM_Error(RegressionPropsY):
     >>> x = np.hstack((np.ones(y.shape),x))
     >>> w = pysal.open(pysal.examples.get_path("columbus.gal"), 'r').read() 
     >>> w.transform='r'
-    >>> model = BaseGM_Error(y, x, w.sparse)
+    >>> model = BaseGM_Error(y, x, w=w.sparse)
     >>> np.around(model.betas, decimals=6)
     array([[ 47.694635],
            [  0.710453],
@@ -136,8 +136,7 @@ class GM_Error(BaseGM_Error):
                    Two dimensional array with n rows and one column for each
                    independent (exogenous) variable, excluding the constant
     w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+                   Spatial weights object (always needed)   
     vm           : boolean
                    If True, include variance-covariance matrix in summary
                    results
@@ -270,7 +269,7 @@ class GM_Error(BaseGM_Error):
     have the names of the variables printed in the output summary, we will
     have to pass them in as well, although this is optional.
 
-    >>> model = GM_Error(y, x, w, name_y='hoval', name_x=['income', 'crime'], name_ds='columbus')
+    >>> model = GM_Error(y, x, w=w, name_y='hoval', name_x=['income', 'crime'], name_ds='columbus')
 
     Once we have run the model, we can explore a little bit the output. The
     regression object we have created has many attributes so take your time to
@@ -397,7 +396,7 @@ class BaseGM_Endog_Error(RegressionPropsY):
     >>> q = np.array([dbf.by_col('DISCBD')]).T
     >>> w = pysal.open(pysal.examples.get_path("columbus.gal"), 'r').read() 
     >>> w.transform='r'
-    >>> model = BaseGM_Endog_Error(y, x, yend, q, w.sparse)
+    >>> model = BaseGM_Endog_Error(y, x, yend, q, w=w.sparse)
     >>> np.around(model.betas, decimals=5)
     array([[ 82.57297],
            [  0.58096],
@@ -453,8 +452,7 @@ class GM_Endog_Error(BaseGM_Endog_Error):
                    external exogenous variable to use as instruments (note: 
                    this should not contain any variables from x)
     w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+                   Spatial weights object (always needed)   
     vm           : boolean
                    If True, include variance-covariance matrix in summary
                    results
@@ -616,7 +614,7 @@ class GM_Endog_Error(BaseGM_Endog_Error):
     have the names of the variables printed in the output summary, we will
     have to pass them in as well, although this is optional.
 
-    >>> model = GM_Endog_Error(y, x, yend, q, w, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
+    >>> model = GM_Endog_Error(y, x, yend, q, w=w, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
 
     Once we have run the model, we can explore a little bit the output. The
     regression object we have created has many attributes so take your time to
@@ -786,7 +784,7 @@ class BaseGM_Combo(BaseGM_Endog_Error):
     >>> q = np.array(q).T
     >>> yd2, q2 = pysal.spreg.utils.set_endog(y, X, w, yd, q, w_lags, True)
     >>> X = np.hstack((np.ones(y.shape),X))
-    >>> reg = BaseGM_Combo(y, X, yd2, q2, w.sparse)
+    >>> reg = BaseGM_Combo(y, X, yd2, q2, w=w.sparse)
     >>> betas = np.array([['CONSTANT'],['INC'],['HOVAL'],['W_CRIME']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas[:-1], np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)))
     [['CONSTANT' '50.0944' '14.3593']
@@ -821,7 +819,7 @@ class GM_Combo(BaseGM_Combo):
                    external exogenous variable to use as instruments (note: 
                    this should not contain any variables from x)
     w            : pysal W object
-                   Spatial weights object (always necessary)   
+                   Spatial weights object (always needed)   
     w_lags       : integer
                    Orders of W to include as instruments for the spatially
                    lagged dependent variable. For example, w_lags=1, then
@@ -1028,7 +1026,7 @@ class GM_Combo(BaseGM_Combo):
 
     And then we can run and explore the model analogously to the previous combo:
 
-    >>> reg = GM_Combo(y, X, yd, q, w, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
+    >>> reg = GM_Combo(y, X, yd, q, w=w, name_x=['inc'], name_y='crime', name_yend=['hoval'], name_q=['discbd'], name_ds='columbus')
     >>> print reg.name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
     >>> names = np.array(reg.name_z).reshape(5,1)
@@ -1042,7 +1040,7 @@ class GM_Combo(BaseGM_Combo):
     lambda:  [ 0.254]
     """
     def __init__(self, y, x, yend=None, q=None,\
-                 w=w, w_lags=1, lag_q=True,\
+                 w=None, w_lags=1, lag_q=True,\
                  vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None,\
                  name_w=None, name_ds=None):
