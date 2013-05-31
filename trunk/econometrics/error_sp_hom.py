@@ -956,7 +956,7 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom):
 
     '''
     def __init__(self, y, x, yend=None, q=None,\
-                 w=None, w_lags=1, lag_q=True,\
+                 w=w, w_lags=1, lag_q=True,\
                  max_iter=1, epsilon=0.00001, A1='hom_sc'):
     
         BaseGM_Endog_Error_Hom.__init__(self, y=y, x=x, w=w, yend=yend, q=q, A1=A1,\
@@ -983,8 +983,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom):
                    external exogenous variable to use as instruments (note: 
                    this should not contain any variables from x)
     w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+                   Spatial weights object (always necessary)   
     w_lags       : integer
                    Orders of W to include as instruments for the spatially
                    lagged dependent variable. For example, w_lags=1, then
@@ -1214,7 +1213,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom):
 
     '''
     def __init__(self, y, x, yend=None, q=None,\
-                 w=None, w_lags=1, lag_q=True,\
+                 w=w, w_lags=1, lag_q=True,\
                  max_iter=1, epsilon=0.00001, A1='hom_sc',\
                  vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None,\

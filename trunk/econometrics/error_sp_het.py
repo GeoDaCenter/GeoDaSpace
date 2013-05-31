@@ -940,7 +940,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     """
 
     def __init__(self, y, x, yend=None, q=None,\
-                 w=None, w_lags=1, lag_q=True,\
+                 w=w, w_lags=1, lag_q=True,\
                  max_iter=1, epsilon=0.00001,\
                  step1c=False, inv_method='power_exp'):
 
@@ -968,8 +968,7 @@ class GM_Combo_Het(BaseGM_Combo_Het):
                    external exogenous variable to use as instruments (note: 
                    this should not contain any variables from x)
     w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+                   Spatial weights object (always needed)   
     w_lags       : integer
                    Orders of W to include as instruments for the spatially
                    lagged dependent variable. For example, w_lags=1, then
@@ -1203,7 +1202,7 @@ class GM_Combo_Het(BaseGM_Combo_Het):
     
     """
     def __init__(self, y, x, yend=None, q=None,\
-                 w=None, w_lags=1, lag_q=True,\
+                 w=w, w_lags=1, lag_q=True,\
                  max_iter=1, epsilon=0.00001,\
                  step1c=False, inv_method='power_exp',\
                  vm=False, name_y=None, name_x=None,\
