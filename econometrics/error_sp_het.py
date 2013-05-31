@@ -176,8 +176,7 @@ class GM_Error_Het(BaseGM_Error_Het):
                    Two dimensional array with n rows and one column for each
                    independent (exogenous) variable, excluding the constant
     w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+                   Spatial weights object   
     max_iter     : int
                    Maximum number of iterations of steps 2a and 2b from Arraiz
                    et al. Note: epsilon provides an additional stop condition.
@@ -323,7 +322,7 @@ class GM_Error_Het(BaseGM_Error_Het):
     have the names of the variables printed in the output summary, we will
     have to pass them in as well, although this is optional.
 
-    >>> reg = GM_Error_Het(y, X, w, step1c=True, name_y='home value', name_x=['income', 'crime'], name_ds='columbus')
+    >>> reg = GM_Error_Het(y, X, w=w, step1c=True, name_y='home value', name_x=['income', 'crime'], name_ds='columbus')
    
     Once we have run the model, we can explore a little bit the output. The
     regression object we have created has many attributes so take your time to
@@ -476,7 +475,7 @@ class BaseGM_Endog_Error_Het(RegressionPropsY):
     >>> q = np.array(q).T
     >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     >>> w.transform = 'r'
-    >>> reg = BaseGM_Endog_Error_Het(y, X, yd, q, w.sparse, step1c=True)
+    >>> reg = BaseGM_Endog_Error_Het(y, X, yd, q, w=w.sparse, step1c=True)
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[ 55.3971  28.8901]
      [  0.4656   0.7731]
@@ -558,8 +557,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
                    external exogenous variable to use as instruments (note: 
                    this should not contain any variables from x)
     w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+                   Spatial weights object   
     max_iter     : int
                    Maximum number of iterations of steps 2a and 2b from Arraiz
                    et al. Note: epsilon provides an additional stop condition.
@@ -746,7 +744,7 @@ class GM_Endog_Error_Het(BaseGM_Endog_Error_Het):
     have the names of the variables printed in the output summary, we will
     have to pass them in as well, although this is optional.
 
-    >>> reg = GM_Endog_Error_Het(y, X, yd, q, w, step1c=True, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
+    >>> reg = GM_Endog_Error_Het(y, X, yd, q, w=w, step1c=True, name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
    
     Once we have run the model, we can explore a little bit the output. The
     regression object we have created has many attributes so take your time to
@@ -929,7 +927,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     >>> q = np.array(q).T
     >>> yd2, q2 = pysal.spreg.utils.set_endog(y, X, w, yd, q, w_lags, True)
     >>> X = np.hstack((np.ones(y.shape),X))
-    >>> reg = BaseGM_Combo_Het(y, X, yd2, q2, w.sparse, step1c=True)
+    >>> reg = BaseGM_Combo_Het(y, X, yd2, q2, w=w.sparse, step1c=True)
     >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['lag_hoval'],['lambda']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
     [['CONSTANT' '113.91292' '64.38815']
@@ -940,7 +938,7 @@ class BaseGM_Combo_Het(BaseGM_Endog_Error_Het):
     """
 
     def __init__(self, y, x, yend=None, q=None,\
-                 w=w, w_lags=1, lag_q=True,\
+                 w=None, w_lags=1, lag_q=True,\
                  max_iter=1, epsilon=0.00001,\
                  step1c=False, inv_method='power_exp'):
 
@@ -1202,7 +1200,7 @@ class GM_Combo_Het(BaseGM_Combo_Het):
     
     """
     def __init__(self, y, x, yend=None, q=None,\
-                 w=w, w_lags=1, lag_q=True,\
+                 w=None, w_lags=1, lag_q=True,\
                  max_iter=1, epsilon=0.00001,\
                  step1c=False, inv_method='power_exp',\
                  vm=False, name_y=None, name_x=None,\

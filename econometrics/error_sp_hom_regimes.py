@@ -39,8 +39,7 @@ class GM_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
                    List of n values with the mapping of each
                    observation to a regime. Assumed to be aligned with 'x'.
     w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+                   Spatial weights object   
     constant_regi: [False, 'one', 'many']
                    Switcher controlling the constant term setup. It may take
                    the following values:                    
@@ -250,7 +249,7 @@ class GM_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     have the names of the variables printed in the output summary, we will
     have to pass them in as well, although this is optional.
 
-    >>> reg = GM_Error_Hom_Regimes(y, x, regimes, w, name_y=y_var, name_x=x_var, name_ds='NAT')
+    >>> reg = GM_Error_Hom_Regimes(y, x, regimes, w=w, name_y=y_var, name_x=x_var, name_ds='NAT')
    
     Once we have run the model, we can explore a little bit the output. The
     regression object we have created has many attributes so take your time to
@@ -443,8 +442,7 @@ class GM_Endog_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
                    List of n values with the mapping of each
                    observation to a regime. Assumed to be aligned with 'x'.
     w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+                   Spatial weights object   
     constant_regi: [False, 'one', 'many']
                    Switcher controlling the constant term setup. It may take
                    the following values:
@@ -677,7 +675,7 @@ class GM_Endog_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     have the names of the variables printed in the output summary, we will
     have to pass them in as well, although this is optional.
 
-    >>> reg = GM_Endog_Error_Hom_Regimes(y, x, yend, q, regimes, w, A1='hom_sc', name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='NAT.dbf')
+    >>> reg = GM_Endog_Error_Hom_Regimes(y, x, yend, q, regimes, w=w, A1='hom_sc', name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='NAT.dbf')
    
     Once we have run the model, we can explore a little bit the output. The
     regression object we have created has many attributes so take your time to
@@ -1188,7 +1186,7 @@ class GM_Combo_Hom_Regimes(GM_Endog_Error_Hom_Regimes):
 
     And then we can run and explore the model analogously to the previous combo:
 
-    >>> reg = GM_Combo_Hom_Regimes(y, x, regimes, yd, q, w, A1='hom_sc', name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='NAT')
+    >>> reg = GM_Combo_Hom_Regimes(y, x, regimes, yd, q, w=w, A1='hom_sc', name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='NAT')
     >>> print reg.name_z
     ['0_CONSTANT', '0_PS90', '0_UE90', '1_CONSTANT', '1_PS90', '1_UE90', '0_RD90', '1_RD90', '_Global_W_HR90', 'lambda']
     >>> print reg.betas
@@ -1210,7 +1208,7 @@ class GM_Combo_Hom_Regimes(GM_Endog_Error_Hom_Regimes):
 
     '''
     def __init__(self, y, x, regimes, yend=None, q=None,\
-                 w=w, w_lags=1, lag_q=True, cores=None,\
+                 w=None, w_lags=1, lag_q=True, cores=None,\
                  max_iter=1, epsilon=0.00001, A1='het',\
                  constant_regi='many', cols2regi='all',\
                  regime_err_sep=False, regime_lag_sep=False,\

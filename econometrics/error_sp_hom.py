@@ -120,7 +120,7 @@ class BaseGM_Error_Hom(RegressionPropsY):
 
     Model commands
 
-    >>> reg = BaseGM_Error_Hom(y, X, w.sparse, A1='hom_sc')
+    >>> reg = BaseGM_Error_Hom(y, X, w=w.sparse, A1='hom_sc')
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[ 47.9479  12.3021]
      [  0.7063   0.4967]
@@ -192,8 +192,7 @@ class GM_Error_Hom(BaseGM_Error_Hom):
                    Two dimensional array with n rows and one column for each
                    independent (exogenous) variable, excluding the constant
     w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+                   Spatial weights object   
     max_iter     : int
                    Maximum number of iterations of steps 2a and 2b from Arraiz
                    et al. Note: epsilon provides an additional stop condition.
@@ -343,7 +342,7 @@ class GM_Error_Hom(BaseGM_Error_Hom):
     have the names of the variables printed in the output summary, we will
     have to pass them in as well, although this is optional.
 
-    >>> reg = GM_Error_Hom(y, X, w, A1='hom_sc', name_y='home value', name_x=['income', 'crime'], name_ds='columbus')
+    >>> reg = GM_Error_Hom(y, X, w=w, A1='hom_sc', name_y='home value', name_x=['income', 'crime'], name_ds='columbus')
    
     Once we have run the model, we can explore a little bit the output. The
     regression object we have created has many attributes so take your time to
@@ -492,7 +491,7 @@ class BaseGM_Endog_Error_Hom(RegressionPropsY):
     >>> q = np.array(q).T
     >>> w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     >>> w.transform = 'r'
-    >>> reg = BaseGM_Endog_Error_Hom(y, X, yd, q, w.sparse, A1='hom_sc')
+    >>> reg = BaseGM_Endog_Error_Hom(y, X, yd, q, w=w.sparse, A1='hom_sc')
     >>> print np.around(np.hstack((reg.betas,np.sqrt(reg.vm.diagonal()).reshape(4,1))),4)
     [[ 55.3658  23.496 ]
      [  0.4643   0.7382]
@@ -570,8 +569,7 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom):
                    external exogenous variable to use as instruments (note: 
                    this should not contain any variables from x)
     w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+                   Spatial weights object   
     max_iter     : int
                    Maximum number of iterations of steps 2a and 2b from Arraiz
                    et al. Note: epsilon provides an additional stop condition.
@@ -760,7 +758,7 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom):
     have the names of the variables printed in the output summary, we will
     have to pass them in as well, although this is optional.
 
-    >>> reg = GM_Endog_Error_Hom(y, X, yd, q, w, A1='hom_sc', name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
+    >>> reg = GM_Endog_Error_Hom(y, X, yd, q, w=w, A1='hom_sc', name_x=['inc'], name_y='hoval', name_yend=['crime'], name_q=['discbd'], name_ds='columbus')
    
     Once we have run the model, we can explore a little bit the output. The
     regression object we have created has many attributes so take your time to
@@ -945,7 +943,7 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom):
     >>> q = np.array(q).T
     >>> yd2, q2 = pysal.spreg.utils.set_endog(y, X, w, yd, q, w_lags, True)
     >>> X = np.hstack((np.ones(y.shape),X))
-    >>> reg = BaseGM_Combo_Hom(y, X, yd2, q2, w.sparse, A1='hom_sc')
+    >>> reg = BaseGM_Combo_Hom(y, X, yd2, q2, w=w.sparse, A1='hom_sc')
     >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['W_hoval'],['lambda']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
     [['CONSTANT' '111.7705' '67.75191']
@@ -956,7 +954,7 @@ class BaseGM_Combo_Hom(BaseGM_Endog_Error_Hom):
 
     '''
     def __init__(self, y, x, yend=None, q=None,\
-                 w=w, w_lags=1, lag_q=True,\
+                 w=None, w_lags=1, lag_q=True,\
                  max_iter=1, epsilon=0.00001, A1='hom_sc'):
     
         BaseGM_Endog_Error_Hom.__init__(self, y=y, x=x, w=w, yend=yend, q=q, A1=A1,\
@@ -1201,7 +1199,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom):
 
     And then we can run and explore the model analogously to the previous combo:
 
-    >>> reg = GM_Combo_Hom(y, X, yd, q, w, A1='hom_sc', \
+    >>> reg = GM_Combo_Hom(y, X, yd, q, w=w, A1='hom_sc', \
             name_ds='columbus')
     >>> betas = np.array([['CONSTANT'],['inc'],['crime'],['W_hoval'],['lambda']])
     >>> print np.hstack((betas, np.around(np.hstack((reg.betas, np.sqrt(reg.vm.diagonal()).reshape(5,1))),5)))
@@ -1213,7 +1211,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom):
 
     '''
     def __init__(self, y, x, yend=None, q=None,\
-                 w=w, w_lags=1, lag_q=True,\
+                 w=None, w_lags=1, lag_q=True,\
                  max_iter=1, epsilon=0.00001, A1='hom_sc',\
                  vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None,\

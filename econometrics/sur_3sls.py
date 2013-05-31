@@ -1,5 +1,5 @@
 """
-Spatial Seemingly Unrelated Regression (SUR) estimation.
+Spatial Seemingly Unrelated Regressions (SUR) estimation.
 """
 __author__ = "Luc Anselin luc.anselin@asu.edu, Pedro V. Amaral pedro.amaral@asu.edu"
 
@@ -225,8 +225,7 @@ class GM_Endog_SUR():
             if w_lags:
                 raise Exception, "W matrix required to run spatial lag model."
             ws = None
-        eq_ids = dict((r, list(np.where(np.array(equationID) == r)[0])) for r in eq_set)
-        pool = mp.Pool(cores)
+        eq_ids = dict((r, list(np.where(np.array(equationID) == r)[0])) for r in eq_set)        
 
         #Running 2SLS for each equation separately
         stp2 = {}
@@ -235,6 +234,7 @@ class GM_Endog_SUR():
                 stp2[r] = _run_stp1(y,x,yend,q,eq_ids,r,sig2n_k,ws,w_lags,lag_q)
             results_stp2 = stp2
         else:
+            pool = mp.Pool(cores)
             for r in eq_set:
                 stp2[r] = pool.apply_async(_run_stp1,args=(y,x,yend,q,eq_ids,r,sig2n_k,ws,w_lags,lag_q, ))
             pool.close()
