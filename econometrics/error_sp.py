@@ -796,7 +796,7 @@ class BaseGM_Combo(BaseGM_Endog_Error):
 
         """
     def __init__(self, y, x, yend=None, q=None,\
-                 w=None, w_lags=1, lag_q=True):
+                 w=w, w_lags=1, lag_q=True):
 
         BaseGM_Endog_Error.__init__(self, y=y, x=x, w=w, yend=yend, q=q)
 
@@ -821,8 +821,7 @@ class GM_Combo(BaseGM_Combo):
                    external exogenous variable to use as instruments (note: 
                    this should not contain any variables from x)
     w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+                   Spatial weights object (always necessary)   
     w_lags       : integer
                    Orders of W to include as instruments for the spatially
                    lagged dependent variable. For example, w_lags=1, then
@@ -1043,7 +1042,7 @@ class GM_Combo(BaseGM_Combo):
     lambda:  [ 0.254]
     """
     def __init__(self, y, x, yend=None, q=None,\
-                 w=None, w_lags=1, lag_q=True,\
+                 w=w, w_lags=1, lag_q=True,\
                  vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None,\
                  name_w=None, name_ds=None):

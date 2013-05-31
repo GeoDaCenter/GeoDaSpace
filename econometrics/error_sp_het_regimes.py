@@ -890,8 +890,7 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
                    List of n values with the mapping of each
                    observation to a regime. Assumed to be aligned with 'x'.
     w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+                   Spatial weights object (always needed)   
     constant_regi: [False, 'one', 'many']
                    Switcher controlling the constant term setup. It may take
                    the following values:
@@ -1196,7 +1195,7 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
 
     """
     def __init__(self, y, x, regimes, yend=None, q=None,\
-                 w=None, w_lags=1, lag_q=True,\
+                 w=w, w_lags=1, lag_q=True,\
                  max_iter=1, epsilon=0.00001, step1c=False,\
                  cores=None, inv_method='power_exp',\
                  constant_regi='many', cols2regi='all',\
