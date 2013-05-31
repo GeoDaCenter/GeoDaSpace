@@ -804,8 +804,7 @@ class GM_Combo_Regimes(GM_Endog_Error_Regimes, REGI.Regimes_Frame):
                    external exogenous variable to use as instruments (note: 
                    this should not contain any variables from x)
     w            : pysal W object
-                   Spatial weights object (note: if provided then spatial
-                   diagnostics are computed)   
+                   Spatial weights object (always needed)   
     constant_regi: [False, 'one', 'many']
                    Switcher controlling the constant term setup. It may take
                    the following values:
@@ -1102,7 +1101,7 @@ class GM_Combo_Regimes(GM_Endog_Error_Regimes, REGI.Regimes_Frame):
     lambda:  [ 0.1868]
     """
     def __init__(self, y, x, regimes, yend=None, q=None,\
-                 w=None, w_lags=1, lag_q=True, cores=None,\
+                 w=w, w_lags=1, lag_q=True, cores=None,\
                  constant_regi='many', cols2regi='all',\
                  regime_err_sep=False, regime_lag_sep=False,\
                  vm=False, name_y=None, name_x=None,\
