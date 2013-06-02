@@ -131,7 +131,7 @@ def GM_Lag(reg, vm, w, spat_diag, regimes=False):
         # compute diagnostics and organize summary output
         spat_diag_instruments(reg, w)
     # build coefficients table body
-    summary_coefs_yend(reg, reg.z_stat)
+    summary_coefs_allx(reg, reg.z_stat)
     summary_coefs_instruments(reg)
     if regimes:
         summary_regimes(reg)
@@ -148,7 +148,7 @@ def GM_Lag_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False):
             # compute diagnostics and organize summary output
             spat_diag_instruments(mreg, mreg.w)
         # build coefficients table body
-        summary_coefs_yend(mreg, mreg.z_stat)
+        summary_coefs_allx(mreg, mreg.z_stat)
         summary_coefs_instruments(mreg)
         if regimes:
             summary_regimes(mreg,chow=False)
@@ -195,7 +195,7 @@ def GM_Endog_Error(reg, vm, w, regimes=False):
     # compute diagnostics and organize summary output
     beta_diag(reg, None)
     # build coefficients table body
-    summary_coefs_yend(reg, reg.z_stat, lambd=True)
+    summary_coefs_allx(reg, reg.z_stat, lambd=True)
     summary_coefs_lambda(reg, reg.z_stat)
     summary_coefs_instruments(reg)
     if regimes:
@@ -210,7 +210,7 @@ def GM_Endog_Error_multi(reg, multireg, vm, regimes=False):
         # compute diagnostics and organize summary output
         beta_diag(mreg, None)
         # build coefficients table body
-        summary_coefs_yend(mreg, mreg.z_stat, lambd=True)
+        summary_coefs_allx(mreg, mreg.z_stat, lambd=True)
         summary_coefs_lambda(mreg, mreg.z_stat)
         summary_coefs_instruments(mreg)
         if regimes:
@@ -256,7 +256,7 @@ def GM_Endog_Error_Hom(reg, vm, w, regimes=False):
     beta_diag(reg, None)
     summary_iteration(reg)
     # build coefficients table body
-    summary_coefs_yend(reg, reg.z_stat, lambd=True)
+    summary_coefs_allx(reg, reg.z_stat, lambd=True)
     summary_coefs_lambda(reg, reg.z_stat)
     summary_coefs_instruments(reg)
     if regimes:
@@ -272,7 +272,7 @@ def GM_Endog_Error_Hom_multi(reg, multireg, vm, regimes=False):
         beta_diag(mreg, None)
         summary_iteration(mreg)
         # build coefficients table body
-        summary_coefs_yend(mreg, mreg.z_stat, lambd=True)
+        summary_coefs_allx(mreg, mreg.z_stat, lambd=True)
         summary_coefs_lambda(mreg, mreg.z_stat)
         summary_coefs_instruments(mreg)
         if regimes:
@@ -318,7 +318,7 @@ def GM_Endog_Error_Het(reg, vm, w, regimes=False):
     beta_diag(reg, 'het')
     summary_iteration(reg)
     # build coefficients table body
-    summary_coefs_yend(reg, reg.z_stat, lambd=True)
+    summary_coefs_allx(reg, reg.z_stat, lambd=True)
     summary_coefs_lambda(reg, reg.z_stat)
     summary_coefs_instruments(reg)
     if regimes:
@@ -334,7 +334,7 @@ def GM_Endog_Error_Het_multi(reg, multireg, vm, regimes=False):
         beta_diag(mreg, 'het')
         summary_iteration(mreg)
         # build coefficients table body
-        summary_coefs_yend(mreg, mreg.z_stat, lambd=True)
+        summary_coefs_allx(mreg, mreg.z_stat, lambd=True)
         summary_coefs_lambda(mreg, mreg.z_stat)
         summary_coefs_instruments(mreg)
         if regimes:
@@ -349,7 +349,7 @@ def GM_Combo(reg, vm, w, regimes=False):
     # compute diagnostics and organize summary output
     beta_diag_lag(reg, None)
     # build coefficients table body
-    summary_coefs_yend(reg, reg.z_stat, lambd=True)
+    summary_coefs_allx(reg, reg.z_stat, lambd=True)
     summary_coefs_lambda(reg, reg.z_stat)
     summary_coefs_instruments(reg)
     summary_warning(reg)
@@ -364,7 +364,7 @@ def GM_Combo_Hom(reg, vm, w, regimes=False):
     beta_diag_lag(reg, None)
     summary_iteration(reg)
     # build coefficients table body
-    summary_coefs_yend(reg, reg.z_stat, lambd=True)
+    summary_coefs_allx(reg, reg.z_stat, lambd=True)
     summary_coefs_lambda(reg, reg.z_stat)
     summary_coefs_instruments(reg)
     if regimes:
@@ -378,7 +378,7 @@ def GM_Combo_Het(reg, vm, w, regimes=False):
     beta_diag_lag(reg, 'het')
     summary_iteration(reg)
     # build coefficients table body
-    summary_coefs_yend(reg, reg.z_stat, lambd=True)
+    summary_coefs_allx(reg, reg.z_stat, lambd=True)
     summary_coefs_lambda(reg, reg.z_stat)
     summary_coefs_instruments(reg)
     if regimes:
@@ -453,7 +453,7 @@ def beta_diag_lag(reg, robust, error=True):
 
 def build_coefs_body_instruments(reg):
     beta_position = summary_coefs_allx(reg, reg.z_stat)
-    summary_coefs_yend(reg, reg.z_stat)
+    summary_coefs_allx(reg, reg.z_stat)
     summary_coefs_instruments(reg)
 
 def spat_diag_ols(reg, w, moran):
@@ -581,7 +581,7 @@ def _get_var_indices(reg, lambd=False):
             indices += (np.argsort(var_names[reg.kr*reg.nr:last_v])+reg.kr*reg.nr).tolist()
     except:
         indices = [0]+(np.argsort(var_names[1:last_v])+1).tolist()
-    return indices
+    return var_names, indices
 
 ##############################################################################
 
@@ -630,12 +630,12 @@ def summary_coefs_intro(reg):
     strSummary += "------------------------------------------------------------------------------------\n"
     return strSummary
 
-def summary_coefs_allx(reg, zt_stat):
+def summary_coefs_allx(reg, zt_stat, lambd=False):
     strSummary = ""
-    indices = _get_var_indices(reg, lambd=False)
+    var_names, indices = _get_var_indices(reg, lambd)
     for i in indices:        
         strSummary += "%20s    %12.7f    %12.7f    %12.7f    %12.7f\n"   \
-                     % (reg.name_x[i],reg.betas[i][0],reg.std_err[i],zt_stat[i][0],zt_stat[i][1])
+                     % (var_names[i],reg.betas[i][0],reg.std_err[i],zt_stat[i][0],zt_stat[i][1])
     reg.__summary['summary_coefs'] = strSummary
     return i
 
@@ -644,14 +644,13 @@ def summary_coefs_somex(reg, zt_stat):
     the lambda term
     """
     strSummary = ""
-    indices = _get_var_indices(reg, lambd=True)
+    var_names, indices = _get_var_indices(reg, lambd=True)
     for i in indices:        
         strSummary += "%20s    %12.7f    %12.7f    %12.7f    %12.7f\n"   \
                      % (reg.name_x[i],reg.betas[i][0],reg.std_err[i],zt_stat[i][0],zt_stat[i][1])
     reg.__summary['summary_coefs'] = strSummary
     return i
-
-
+"""
 def summary_coefs_yend(reg, zt_stat, lambd=False):
     strSummary = ""
     indices = _get_var_indices(reg, lambd) 
@@ -659,7 +658,7 @@ def summary_coefs_yend(reg, zt_stat, lambd=False):
         strSummary += "%20s    %12.7f    %12.7f    %12.7f    %12.7f\n"   \
                      % (reg.name_z[i],reg.betas[i][0],reg.std_err[i],zt_stat[i][0],zt_stat[i][1])              
     reg.__summary['summary_coefs'] = strSummary
-    
+"""    
 def summary_coefs_lambda(reg, zt_stat):
     try:
         name_var = reg.name_z
