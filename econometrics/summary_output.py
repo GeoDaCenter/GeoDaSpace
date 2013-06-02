@@ -51,7 +51,7 @@ def OLS(reg, vm, w, nonspat_diag, spat_diag, moran, regimes=False):
         summary_regimes(reg)
     summary(reg=reg, vm=vm, instruments=False, nonspat_diag=nonspat_diag, spat_diag=spat_diag)
 
-def OLS_multi(reg, multireg, vm, nonspat_diag, spat_diag, moran, regimes=False):
+def OLS_multi(reg, multireg, vm, nonspat_diag, spat_diag, moran, regimes=False, sur=False):
     for m in multireg:
         mreg = multireg[m]
         mreg.__summary = {}
@@ -77,9 +77,14 @@ def OLS_multi(reg, multireg, vm, nonspat_diag, spat_diag, moran, regimes=False):
             spat_diag_ols(mreg, mreg.w, moran)
         if regimes:
             summary_regimes(mreg,chow=False)
+        if sur:
+            summary_sur(mreg)
         multireg[m].__summary = mreg.__summary
     reg.__summary = {}
-    summary_chow(reg)
+    if regimes:
+        summary_chow(reg)
+    if sur:
+        summary_sur(reg,u_cov=True)
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=False, nonspat_diag=nonspat_diag, spat_diag=spat_diag)
 
@@ -556,6 +561,28 @@ def summary_multi(reg, multireg, vm, instruments, short_intro=False, nonspat_dia
     summary += summary_close()
     reg.summary = summary
 
+def _get_var_indices(reg, lambd=False):
+    try:
+        var_names = reg.name_z
+    except:
+        var_names = reg.name_x
+    last_v = len(var_names)
+    if lambd:
+        last_v += -1
+    indices = []
+    try:
+        for i in range(reg.nr):
+            j = i*(reg.kr-reg.kryd)
+            jyd = (reg.kr-reg.kryd)*reg.nr + i*reg.kryd
+            name_reg = var_names[j+1:j+reg.kr-reg.kryd]+var_names[jyd:jyd+reg.kryd]
+            name_reg.sort()
+            indices += [j] + [var_names.index(ind) for ind in name_reg]
+        if last_v>len(indices):
+            indices += (np.argsort(var_names[reg.kr*reg.nr:last_v])+reg.kr*reg.nr).tolist()
+    except:
+        indices = [0]+(np.argsort(var_names[1:last_v])+1).tolist()
+    return indices
+
 ##############################################################################
 
 
@@ -605,7 +632,7 @@ def summary_coefs_intro(reg):
 
 def summary_coefs_allx(reg, zt_stat):
     strSummary = ""
-    indices = [0]+(np.argsort(reg.name_x[1:])+1).tolist()
+    indices = _get_var_indices(reg, lambd=False)
     for i in indices:        
         strSummary += "%20s    %12.7f    %12.7f    %12.7f    %12.7f\n"   \
                      % (reg.name_x[i],reg.betas[i][0],reg.std_err[i],zt_stat[i][0],zt_stat[i][1])
@@ -617,7 +644,7 @@ def summary_coefs_somex(reg, zt_stat):
     the lambda term
     """
     strSummary = ""
-    indices = [0]+(np.argsort(reg.name_x[1:-1])+1).tolist()
+    indices = _get_var_indices(reg, lambd=True)
     for i in indices:        
         strSummary += "%20s    %12.7f    %12.7f    %12.7f    %12.7f\n"   \
                      % (reg.name_x[i],reg.betas[i][0],reg.std_err[i],zt_stat[i][0],zt_stat[i][1])
@@ -627,10 +654,7 @@ def summary_coefs_somex(reg, zt_stat):
 
 def summary_coefs_yend(reg, zt_stat, lambd=False):
     strSummary = ""
-    if lambd:
-        indices = [0]+(np.argsort(reg.name_z[1:-1])+1).tolist()
-    else:
-        indices = [0]+(np.argsort(reg.name_z[1:])+1).tolist() 
+    indices = _get_var_indices(reg, lambd) 
     for i in indices:
         strSummary += "%20s    %12.7f    %12.7f    %12.7f    %12.7f\n"   \
                      % (reg.name_z[i],reg.betas[i][0],reg.std_err[i],zt_stat[i][0],zt_stat[i][1])              
@@ -691,13 +715,25 @@ def summary_regimes(reg,chow=True):
     if chow:
         summary_chow(reg)
         
-def summary_sur(reg):
+def summary_sur(reg,u_cov=False):
     """Lists the equation ID variable used.
     """
-    try:
-        reg.__summary['summary_other_mid'] += "Equation ID: %s\n" %reg.name_multiID
-    except:
-        reg.__summary['summary_other_mid'] = "Equation ID: %s\n" %reg.name_multiID
+    if u_cov:
+        str_ucv = "\nERROR COVARIANCE MATRIX\n"
+        for i in range(reg.u_cov.shape[0]):
+            for j in range(reg.u_cov.shape[1]):
+                str_ucv += "%12.6f" % (reg.u_cov[i][j]) 
+            str_ucv += "\n"
+        try:
+            reg.__summary['summary_other_end'] += str_ucv
+        except:
+            reg.__summary['summary_other_end'] = str_ucv
+    else:
+        try:
+            reg.__summary['summary_other_mid'] += "Equation ID: %s\n" %reg.name_multiID
+        except:
+            reg.__summary['summary_other_mid'] = "Equation ID: %s\n" %reg.name_multiID
+        reg.__summary['summary_r2'] += "%-20s: %3.4f\n" % ('Log-Likelihood',reg.logl)
 
 def summary_chow(reg):
     reg.__summary['summary_chow'] = "\nREGIMES DIAGNOSTICS - CHOW TEST\n"
