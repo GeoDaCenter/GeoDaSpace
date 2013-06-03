@@ -266,7 +266,7 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
     >>> r_var = 'SOUTH'
     >>> regimes = db.by_col(r_var)
 
-    >>> olsr = OLS_Regimes(y, x, regimes, nonspat_diag=False, name_y=y_var, name_x=x_var, name_regimes=r_var, name_ds='NAT')
+    >>> olsr = OLS_Regimes(y, x, regimes, nonspat_diag=False, name_y=y_var, name_x=['APS90','UE90'], name_regimes=r_var, name_ds='NAT')
     >>> olsr.betas
     array([[ 0.39642899],
            [ 0.65583299],
@@ -279,6 +279,37 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
             0.04908804])
     >>> olsr.cols2regi
     'all'
+    >>> print olsr.summary
+    REGRESSION
+    ----------
+    SUMMARY OF OUTPUT: ORDINARY LEAST SQUARES - REGIMES
+    ---------------------------------------------------
+    Data set            :         NAT
+    Dependent Variable  :        HR90               Number of Observations:        3085
+    Mean dependent var  :      6.1829               Number of Variables   :           6
+    S.D. dependent var  :      6.6414               Degrees of Freedom    :        3079
+    R-squared           :      0.2851
+    Adjusted R-squared  :      0.2839
+    <BLANKLINE>
+    ------------------------------------------------------------------------------------
+                Variable     Coefficient       Std.Error     t-Statistic     Probability
+    ------------------------------------------------------------------------------------
+              0_CONSTANT       0.3964290       0.3188044       1.2434867       0.2137832
+                 0_APS90       0.6558330       0.1241320       5.2833494       0.0000001
+                  0_UE90       0.4870394       0.0466153      10.4480471       0.0000000
+              1_CONSTANT       5.5983500       0.3871674      14.4597677       0.0000000
+                 1_APS90       1.1621045       0.1788887       6.4962431       0.0000000
+                  1_UE90       0.5316389       0.0490880      10.8303144       0.0000000
+    ------------------------------------------------------------------------------------
+    Regimes variable: SOUTH
+    <BLANKLINE>
+    REGIMES DIAGNOSTICS - CHOW TEST
+                     VARIABLE        DF        VALUE           PROB
+                     CONSTANT         1      107.579486        0.0000000
+                        APS90         1        5.406269        0.0200646
+                         UE90         1        0.434056        0.5100055
+                  Global test         3      719.076563        0.0000000
+    ================================ END OF REPORT =====================================
     """
     def __init__(self, y, x, regimes,\
                  w=None, robust=None, gwk=None, sig2n_k=True,\
@@ -415,6 +446,6 @@ if __name__ == '__main__':
     regimes = db.by_col(r_var)
     w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    olsr = OLS_Regimes(y, x, regimes, w=w, constant_regi='many', nonspat_diag=False, spat_diag=True, name_y=y_var, name_x=x_var, name_ds='columbus', name_regimes=r_var, name_w='columbus.gal')
+    olsr = OLS_Regimes(y, x, regimes, w=w, constant_regi='many', nonspat_diag=False, spat_diag=True, name_y=y_var, name_x=['AINC','HOVAL'], name_ds='columbus', name_regimes=r_var, name_w='columbus.gal')
     print olsr.summary
 
