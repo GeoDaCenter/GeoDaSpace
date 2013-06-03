@@ -7,4 +7,11 @@ from twosls_sp import *
 from error_sp import *
 from error_sp_het import *
 from error_sp_hom import *
+from ols_regimes import *
+from twosls_regimes import *
+from twosls_sp_regimes import *
+from error_sp_regimes import *
+from error_sp_het_regimes import *
+from error_sp_hom_regimes import *
 from probit import *
+from sur_3sls import *
