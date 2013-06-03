@@ -349,9 +349,9 @@ class TestGMLag_Regimes(unittest.TestCase):
        [ 0.01377251,  0.9065777 ]])
         np.testing.assert_array_almost_equal(reg.chow.regi, chow_regi, 7)
         self.assertAlmostEqual(reg.chow.joint[0], 0.63336222761359162, 7)
-        self.assertListEqual(reg.name_x, ['0.0_CONSTANT', '0.0_INC', '1.0_CONSTANT', '1.0_INC'])
-        self.assertListEqual(reg.name_yend, ['0.0_HOVAL', '1.0_HOVAL', '_Global_W_CRIME'])
-        self.assertListEqual(reg.name_q, ['0.0_DISCBD', '0.0_W_INC', '0.0_W_DISCBD', '1.0_DISCBD', '1.0_W_INC', '1.0_W_DISCBD'])
+        self.assertListEqual(reg.name_x, ['0_CONSTANT', '0_INC', '1_CONSTANT', '1_INC'])
+        self.assertListEqual(reg.name_yend, ['0_HOVAL', '1_HOVAL', '_Global_W_CRIME'])
+        self.assertListEqual(reg.name_q, ['0_DISCBD', '0_W_INC', '0_W_DISCBD', '1_DISCBD', '1_W_INC', '1_W_DISCBD'])
         self.assertEqual(reg.name_y, y_var)
 
 if __name__ == '__main__':

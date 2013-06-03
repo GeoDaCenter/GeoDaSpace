@@ -69,7 +69,7 @@ class TestOLS_regimes(unittest.TestCase):
         np.testing.assert_equal(ols.name_ds,  'columbus')
         np.testing.assert_equal(ols.name_gwk,  None)
         np.testing.assert_equal(ols.name_w,  'columbus.gal')
-        np.testing.assert_equal(ols.name_x,  ['0.0_CONSTANT', '0.0_INC', '0.0_HOVAL', '1.0_CONSTANT', '1.0_INC', '1.0_HOVAL'])
+        np.testing.assert_equal(ols.name_x,  ['0_CONSTANT', '0_INC', '0_HOVAL', '1_CONSTANT', '1_INC', '1_HOVAL'])
         np.testing.assert_equal(ols.name_y,  'CRIME')
         np.testing.assert_array_almost_equal(ols.predy[3], np.array([
             51.05003696]),7)
