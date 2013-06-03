@@ -174,7 +174,7 @@ class Spmodel:
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', ols_diag=True, spat_diag=True, moran=False,\
-        vc_matrix=False, predy_resid=False,\
+        white_test=False, vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -187,7 +187,7 @@ class Spmodel:
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', ols_diag=True, spat_diag=False, moran=False,\
-        vc_matrix=False, predy_resid=False,\
+        white_test=False, vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -200,7 +200,7 @@ class Spmodel:
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=True, moran=False,\
-        vc_matrix=True, predy_resid=False,\
+        white_test=False, vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -213,7 +213,7 @@ class Spmodel:
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=True, moran=False,\
-        vc_matrix=True, predy_resid=False,\
+        white_test=False, vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -226,7 +226,7 @@ class Spmodel:
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=True, moran=False,\
-        vc_matrix=False, predy_resid=False,\
+        white_test=False, vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -239,7 +239,7 @@ class Spmodel:
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', ols_diag=True, spat_diag=False, moran=False,\
-        vc_matrix=True, predy_resid=False,\
+        white_test=False, vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -252,7 +252,7 @@ class Spmodel:
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', ols_diag=True, spat_diag=True, moran=False,\
-        vc_matrix=False, predy_resid=False,\
+        white_test=False, vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -265,7 +265,7 @@ class Spmodel:
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', ols_diag=True, spat_diag=False, moran=False,\
-        vc_matrix=False, predy_resid=False,\
+        white_test=False, vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -278,7 +278,7 @@ class Spmodel:
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', ols_diag=True, spat_diag=False, moran=False,\
-        vc_matrix=False, predy_resid=False,\
+        white_test=False, vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -291,7 +291,7 @@ class Spmodel:
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', ols_diag=True, spat_diag=False, moran=False,\
-        vc_matrix=False, predy_resid=False,\
+        white_test=False, vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -304,7 +304,7 @@ class Spmodel:
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', ols_diag=True, spat_diag=False, moran=False,\
-        vc_matrix=True, predy_resid=False,\
+        white_test=False, vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -326,7 +326,7 @@ class Spmodel:
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', ols_diag=True, spat_diag=True, moran=False,\
-        vc_matrix=True, predy_resid=False,\
+        white_test=False, vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -339,7 +339,7 @@ class Spmodel:
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', ols_diag=True, spat_diag=False, moran=False,\
-        vc_matrix=False, predy_resid=False,\
+        white_test=False, vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -352,7 +352,7 @@ class Spmodel:
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', ols_diag=True, spat_diag=True, moran=False,\
-        vc_matrix=True, predy_resid=False,\
+        white_test=False, vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -365,7 +365,7 @@ class Spmodel:
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=False, moran=False,\
-        vc_matrix=False, predy_resid=False,\
+        white_test=False, vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -378,7 +378,7 @@ class Spmodel:
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=False, moran=False,\
-        vc_matrix=False, predy_resid=False,\
+        white_test=False, vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -391,7 +391,7 @@ class Spmodel:
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag', ols_diag=True, spat_diag=False, moran=False,\
-        vc_matrix=False, predy_resid=False,\
+        white_test=False, vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -404,7 +404,7 @@ class Spmodel:
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', ols_diag=True, spat_diag=True, moran=False,\
-        vc_matrix=True, predy_resid=False,\
+        white_test=False, vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -417,7 +417,7 @@ class Spmodel:
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Error', ols_diag=True, spat_diag=True, moran=False,\
-        vc_matrix=False, predy_resid=False,\
+        white_test=False, vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -430,7 +430,7 @@ class Spmodel:
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', ols_diag=True, spat_diag=False, moran=False,\
-        vc_matrix=False, predy_resid=False,\
+        white_test=False, vc_matrix=False, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -443,7 +443,7 @@ class Spmodel:
         ye=yd, name_ye=['hoval'], h=q, name_h=['discbd'],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Spatial Lag+Error', ols_diag=True, spat_diag=False, moran=False,\
-        vc_matrix=True, predy_resid=False,\
+        white_test=False, vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
