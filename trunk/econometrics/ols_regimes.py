@@ -75,6 +75,10 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
                    If 'all' (default), all the variables vary by regime.
     regime_err_sep  : boolean
                    If True, a separate regression is run for each regime.
+    cores        : integer
+                   Specifies the number of cores to be used in multiprocessing
+                   Default: all cores available (specified as cores=None).
+                   Note: Multiprocessing currently not available on Windows.
     name_y       : string
                    Name of dependent variable for use in output
     name_x       : list of strings
