@@ -216,9 +216,9 @@ class TestTSLS(unittest.TestCase):
        [  -0.08001296,    0.13575504,  -14.6998294 ,   -1.28225201,\
           -0.05193056,    0.79845124]])
         np.testing.assert_array_almost_equal(reg.vm, vm, 7)
-        self.assertEqual(reg.name_x, ['0.0_CONSTANT', '0.0_inc', '1.0_CONSTANT', '1.0_inc'])
-        self.assertEqual(reg.name_yend, ['0.0_hoval', '1.0_hoval'])
-        self.assertEqual(reg.name_q, ['0.0_discbd', '1.0_discbd'])
+        self.assertEqual(reg.name_x, ['0_CONSTANT', '0_inc', '1_CONSTANT', '1_inc'])
+        self.assertEqual(reg.name_yend, ['0_hoval', '1_hoval'])
+        self.assertEqual(reg.name_q, ['0_discbd', '1_discbd'])
         self.assertEqual(reg.name_y, name_y)
         self.assertEqual(reg.name_w, name_w)
         self.assertEqual(reg.name_gwk, name_gwk)
