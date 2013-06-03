@@ -27,8 +27,8 @@ class GM_Endog_SUR():
                    endogenous variable
     q            : array
                    Two dimensional array with n*n_eq rows and one column for each
-                   external exogenous variable to use as instruments (note: 
-                   this should not contain any variables from x);                   
+                   external exogenous variable to use as instruments  
+                   (note: this should not contain any variables from x);                   
     equationID   : list
                    List of n*n_eq values with the mapping of each
                    observation to a regime. Assumed to be aligned with 'x'.  

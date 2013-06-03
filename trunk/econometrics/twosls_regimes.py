@@ -263,8 +263,7 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
             self.y = y
             if cols2regi == 'all':
                 cols2regi = [True] * (x.shape[1]+yend.shape[1])
-            self.regimes_set = list(set(regimes))
-            self.regimes_set.sort()
+            self.regimes_set = REGI._get_regimes_set(regimes)
             if w:
                 w_i,regi_ids,warn = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True, min_n=len(self.cols2regi)+1)
                 set_warn(self,warn)

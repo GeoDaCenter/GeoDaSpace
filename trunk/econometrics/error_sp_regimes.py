@@ -323,8 +323,7 @@ class GM_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     def _error_regimes_multi(self, y, x, regimes, w, cores,\
                  cols2regi, vm, name_x):
 
-        self.regimes_set = list(set(regimes))
-        self.regimes_set.sort()
+        self.regimes_set = REGI._get_regimes_set(regimes)
         w_i,regi_ids,warn = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True)
         set_warn(self, warn)
         pool = mp.Pool(cores)
@@ -725,8 +724,7 @@ class GM_Endog_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     def _endog_error_regimes_multi(self, y, x, regimes, w, yend, q, cores,\
                  cols2regi, regi_w, vm, name_x, name_yend, name_q):
 
-        self.regimes_set = list(set(regimes))
-        self.regimes_set.sort()
+        self.regimes_set = REGI._get_regimes_set(regimes)
         if regi_w:
             w_i,regi_ids = regi_w[0:2]
         else:
@@ -1123,8 +1121,7 @@ class GM_Combo_Regimes(GM_Endog_Error_Regimes, REGI.Regimes_Frame):
 
         if regime_lag_sep == True:
             cols2regi += [True]
-            self.regimes_set = list(set(regimes))
-            self.regimes_set.sort()
+            self.regimes_set = REGI._get_regimes_set(regimes)
             regi_w = (REGI.w_regimes(w, regimes, self.regimes_set, transform=regime_err_sep, get_ids=regime_err_sep))
             w = REGI.w_regimes_union(w, regi_w[0], self.regimes_set)
             set_warn(self, regi_w[2])

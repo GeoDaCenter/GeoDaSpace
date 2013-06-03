@@ -732,7 +732,10 @@ def summary_sur(reg,u_cov=False):
             reg.__summary['summary_other_mid'] += "Equation ID: %s\n" %reg.name_multiID
         except:
             reg.__summary['summary_other_mid'] = "Equation ID: %s\n" %reg.name_multiID
-        reg.__summary['summary_r2'] += "%-20s: %3.4f\n" % ('Log-Likelihood',reg.logl)
+        try:
+            reg.__summary['summary_r2'] += "%-20s: %3.4f\n" % ('Log-Likelihood',reg.logl)
+        except:
+            pass
 
 def summary_chow(reg):
     reg.__summary['summary_chow'] = "\nREGIMES DIAGNOSTICS - CHOW TEST\n"

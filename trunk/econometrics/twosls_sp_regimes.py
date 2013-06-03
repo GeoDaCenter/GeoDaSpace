@@ -421,8 +421,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                 cols2regi = [True] * (x.shape[1])     
         if regime_lag_sep == True:
             cols2regi += [True]
-            self.regimes_set = list(set(regimes))
-            self.regimes_set.sort()
+            self.regimes_set = REGI._get_regimes_set(regimes)
             w_i,regi_ids,warn = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True, min_n=len(cols2regi)+1)
             set_warn(self,warn)
             if not regime_err_sep:
