@@ -208,8 +208,7 @@ class Regimes_Frame:
         try:
             x = regimeX_setup(x, regimes, cols2regi, self.regimes_set, constant=constant_regi)            
         except AttributeError:
-            self.regimes_set = list(set(regimes))
-            self.regimes_set.sort()
+            self.regimes_set = _get_regimes_set(regimes)
             x = regimeX_setup(x, regimes, cols2regi, self.regimes_set, constant=constant_regi)
 
         kr = len(np.where(np.array(cols2regi)==True)[0])
@@ -543,6 +542,15 @@ def x2xsp(x, regimes, regimes_set):
     indptr[:-1] = list(np.arange(n) * k)
     indptr[-1] = n*k
     return SP.csr_matrix((data, indices, indptr))
+
+def _get_regimes_set(regimes):
+    regimes_set = list(set(regimes))
+    if isinstance(regimes_set[0], float):
+        regimes_set1 = list(set(map(int, regimes_set)))
+        if len(regimes_set1) == len(regimes_set):
+            regimes_set = regimes_set1
+    regimes_set.sort()
+    return regimes_set
 
 def _test():
     import doctest
