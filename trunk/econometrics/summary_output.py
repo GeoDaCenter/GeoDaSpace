@@ -25,7 +25,7 @@ are called directly from the user class. Each one mixes and matches smaller
 functions located later in this module.
 """
 
-def OLS(reg, vm, w, nonspat_diag, spat_diag, moran, regimes=False):
+def OLS(reg, vm, w, nonspat_diag, spat_diag, moran, white_test, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
     beta_diag_ols(reg, reg.robust)
@@ -40,7 +40,8 @@ def OLS(reg, vm, w, nonspat_diag, spat_diag, moran, regimes=False):
         reg.jarque_bera = diagnostics.jarque_bera(reg)
         reg.breusch_pagan = diagnostics.breusch_pagan(reg)
         reg.koenker_bassett = diagnostics.koenker_bassett(reg)
-        reg.white = diagnostics.white(reg)
+        if white_test:
+            reg.white = diagnostics.white(reg)
         # organize summary output
         reg.__summary['summary_nonspat_diag_1'] = summary_nonspat_diag_1(reg)
         reg.__summary['summary_nonspat_diag_2'] = summary_nonspat_diag_2(reg)
@@ -51,7 +52,7 @@ def OLS(reg, vm, w, nonspat_diag, spat_diag, moran, regimes=False):
         summary_regimes(reg)
     summary(reg=reg, vm=vm, instruments=False, nonspat_diag=nonspat_diag, spat_diag=spat_diag)
 
-def OLS_multi(reg, multireg, vm, nonspat_diag, spat_diag, moran, regimes=False, sur=False):
+def OLS_multi(reg, multireg, vm, nonspat_diag, spat_diag, moran, white_test, regimes=False, sur=False):
     for m in multireg:
         mreg = multireg[m]
         mreg.__summary = {}
@@ -68,7 +69,8 @@ def OLS_multi(reg, multireg, vm, nonspat_diag, spat_diag, moran, regimes=False, 
             mreg.jarque_bera = diagnostics.jarque_bera(mreg)
             mreg.breusch_pagan = diagnostics.breusch_pagan(mreg)
             mreg.koenker_bassett = diagnostics.koenker_bassett(mreg)
-            mreg.white = diagnostics.white(mreg)
+            if white_test:
+                mreg.white = diagnostics.white(mreg)
             # organize summary output
             mreg.__summary['summary_nonspat_diag_1'] = summary_nonspat_diag_1(mreg)
             mreg.__summary['summary_nonspat_diag_2'] = summary_nonspat_diag_2(mreg)
@@ -809,13 +811,16 @@ def summary_nonspat_diag_2(reg):
     strSummary += "TEST                             DF        VALUE           PROB\n"
     strSummary += "%-27s      %2d    %12.6f        %9.7f\n" % ('Breusch-Pagan test',reg.breusch_pagan['df'],reg.breusch_pagan['bp'],reg.breusch_pagan['pvalue'])
     strSummary += "%-27s      %2d    %12.6f        %9.7f\n" % ('Koenker-Bassett test',reg.koenker_bassett['df'],reg.koenker_bassett['kb'],reg.koenker_bassett['pvalue'])
-    if reg.white:
-        strSummary += "\nSPECIFICATION ROBUST TEST\n"
-        if len(reg.white)>3:
-            strSummary += reg.white+'\n'
-        else:
-            strSummary += "TEST                             DF        VALUE           PROB\n"
-            strSummary += "%-27s      %2d    %12.6f        %9.7f\n" %('White',reg.white['df'],reg.white['wh'],reg.white['pvalue'])
+    try:
+        if reg.white:
+            strSummary += "\nSPECIFICATION ROBUST TEST\n"
+            if len(reg.white)>3:
+                strSummary += reg.white+'\n'
+            else:
+                strSummary += "TEST                             DF        VALUE           PROB\n"
+                strSummary += "%-27s      %2d    %12.6f        %9.7f\n" %('White',reg.white['df'],reg.white['wh'],reg.white['pvalue'])
+    except:
+        pass
     return strSummary
 
 def summary_spat_diag_intro():

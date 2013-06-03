@@ -111,6 +111,9 @@ class Spmodel:
     moran       : boolean
                   If True compute Moran's I of the residuals (only affects the
                   OLS case)
+    white_test  : boolean
+                  If True, compute White's specification robust test.
+                  (only affects the OLS case and requires nonspat_diag=True)
     regime_err_sep  : boolean
                       If True, a separate regression is run for each regime.
     regime_lag_sep  : boolean
@@ -158,7 +161,7 @@ class Spmodel:
         ye=[], name_ye=[], h=[], name_h=[],\
         r=None, name_r=None, s=None, name_s=None, t=None, name_t=None,\
         model_type='Standard', ols_diag=True, spat_diag=True, moran=True,\
-        vc_matrix=True, predy_resid=False,\
+        white_test=True, vc_matrix=True, predy_resid=False,\
         max_iter=1, stop_crit=0.00001,\
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
@@ -460,7 +463,7 @@ class Spmodel:
                 max_iter, stop_crit, inf_lambda, comp_inverse, step1c,\
                 instrument_lags, lag_user_inst,\
                 vc_matrix, predy_resid,\
-                ols_diag, moran,\
+                ols_diag, moran, white_test,\
                 regime_err_sep, regime_lag_sep, cores, method):
 
         self.name_ds = name_ds
@@ -499,6 +502,7 @@ class Spmodel:
         self.predy_resid = predy_resid
         self.ols_diag = ols_diag
         self.moran = moran
+        self.white_test = white_test
         self.regime_err_sep = regime_err_sep
         self.regime_lag_sep = regime_lag_sep
         self.cores = cores
@@ -541,7 +545,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
             max_iter, stop_crit, inf_lambda, comp_inverse, step1c,\
             instrument_lags, lag_user_inst,\
             vc_matrix, predy_resid,\
-            ols_diag, moran,\
+            ols_diag, moran, white_test,\
             regime_err_sep, regime_lag_sep, cores, method):
     """
     spmodel originally ran the dispatcher. The class Spmodel now runs the
@@ -558,7 +562,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,\
                 max_iter, stop_crit, inf_lambda, comp_inverse, step1c,\
                 instrument_lags, lag_user_inst,\
                 vc_matrix, predy_resid,\
-                ols_diag, moran,\
+                ols_diag, moran, white_test,\
                 regime_err_sep, regime_lag_sep, cores, method)
     return result.output
 
@@ -760,8 +764,8 @@ compute the betas once even if the user asks for robust standard errors.
 
 def get_OLS(gui):
     reg = OLS(y=gui.y, x=gui.x,\
-               nonspat_diag=gui.ols_diag, spat_diag=False, vm=gui.vc_matrix,\
-               name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,
+               nonspat_diag=gui.ols_diag, white_test=gui.white_test, spat_diag=False,\
+               vm=gui.vc_matrix, name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,
                sig2n_k=gui.sig2n_k_ols)
     if gui.predy_resid:  # write out predicted values and residuals
         gui.pred_res, gui.header_pr, counter = collect_predy_resid(\
@@ -1052,7 +1056,7 @@ def get_OLS_regimes(gui):
     else:
         w0,name_w0 = None,None
     reg = OLS_Regimes(y=gui.y, x=gui.x, regimes=gui.r, name_regimes=gui.name_r, w=w0,\
-               nonspat_diag=gui.ols_diag, spat_diag=gui.spat_diag, vm=gui.vc_matrix,\
+               nonspat_diag=gui.ols_diag, white_test=gui.white_test, spat_diag=gui.spat_diag, vm=gui.vc_matrix,\
                name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds, cores=gui.cores,\
                sig2n_k=gui.sig2n_k_ols, regime_err_sep=gui.regime_err_sep, name_w=name_w0)
     if gui.predy_resid:  # write out predicted values and residuals
@@ -1064,7 +1068,7 @@ def get_OLS_regimes(gui):
         if gui.regime_err_sep: #Run regression again to account for different W. 
             for w in gui.w_list[1:]:
                 reg_spat = OLS_Regimes(y=gui.y, x=gui.x, regimes=gui.r, name_regimes=gui.name_r, w=w,\
-                       nonspat_diag=gui.ols_diag, spat_diag=True, vm=gui.vc_matrix,\
+                       nonspat_diag=gui.ols_diag, white_test=gui.white_test, spat_diag=True, vm=gui.vc_matrix,\
                        name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds, cores=gui.cores,\
                        sig2n_k=gui.sig2n_k_ols, regime_err_sep=gui.regime_err_sep, name_w=w.name)
                 output.append(reg_spat)

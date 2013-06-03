@@ -51,6 +51,9 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
     moran        : boolean
                    If True, compute Moran's I on the residuals. Note:
                    requires spat_diag=True.
+    white_test   : boolean
+                   If True, compute White's specification robust test.
+                   (requires nonspat_diag=True)
     vm           : boolean
                    If True, include variance-covariance matrix in summary
                    results
@@ -313,7 +316,7 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
     """
     def __init__(self, y, x, regimes,\
                  w=None, robust=None, gwk=None, sig2n_k=True,\
-                 nonspat_diag=True, spat_diag=False, moran=False,\
+                 nonspat_diag=True, spat_diag=False, moran=False, white_test=False,\
                  vm=False, constant_regi='many', cols2regi='all',\
                  regime_err_sep=False, cores=None,\
                  name_y=None, name_x=None, name_regimes=None,\
@@ -347,7 +350,7 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
                 w_i = None
             if set(cols2regi) == set([True]):
                 self._ols_regimes_multi(x, w_i, regi_ids, cores,\
-                 gwk, sig2n_k, robust, nonspat_diag, spat_diag, vm, name_x, moran)
+                 gwk, sig2n_k, robust, nonspat_diag, spat_diag, vm, name_x, moran, white_test)
             else:
                 raise Exception, "All coefficients must vary accross regimes if regime_err_sep = True."
         else:
@@ -360,10 +363,10 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
             self.robust = USER.set_robust(robust)
             self.chow = REGI.Chow(self)
             SUMMARY.OLS(reg=self, vm=vm, w=w, nonspat_diag=nonspat_diag,\
-                        spat_diag=spat_diag, moran=moran, regimes=True)
+                        spat_diag=spat_diag, moran=moran, white_test=white_test, regimes=True)
 
     def _ols_regimes_multi(self, x, w_i, regi_ids, cores,\
-                 gwk, sig2n_k, robust, nonspat_diag, spat_diag, vm, name_x, moran):
+                 gwk, sig2n_k, robust, nonspat_diag, spat_diag, vm, name_x, moran, white_test):
         pool = mp.Pool(cores)
         results_p = {}
         for r in self.regimes_set:
@@ -408,7 +411,7 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
         if robust == 'hac':
             hac_multi(self,gwk)
         self.chow = REGI.Chow(self)            
-        SUMMARY.OLS_multi(reg=self, multireg=self.multi, vm=vm, nonspat_diag=nonspat_diag, spat_diag=spat_diag, moran=moran, regimes=True)
+        SUMMARY.OLS_multi(reg=self, multireg=self.multi, vm=vm, nonspat_diag=nonspat_diag, spat_diag=spat_diag, moran=moran, white_test=white_test, regimes=True)
 
 def _work(y,x,regi_ids,r,robust,sig2n_k,name_ds,name_y,name_x,name_w,name_regimes):
     y_r = y[regi_ids[r]]
