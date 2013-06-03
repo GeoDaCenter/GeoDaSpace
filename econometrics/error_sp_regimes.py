@@ -54,6 +54,10 @@ class GM_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     vm           : boolean
                    If True, include variance-covariance matrix in summary
                    results
+    cores        : integer
+                   Specifies the number of cores to be used in multiprocessing
+                   Default: all cores available (specified as cores=None).
+                   Note: Multiprocessing currently not available on Windows.
     name_y       : string
                    Name of dependent variable for use in output
     name_x       : list of strings
@@ -413,6 +417,10 @@ class GM_Endog_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     vm           : boolean
                    If True, include variance-covariance matrix in summary
                    results
+    cores        : integer
+                   Specifies the number of cores to be used in multiprocessing
+                   Default: all cores available (specified as cores=None).
+                   Note: Multiprocessing currently not available on Windows.
     name_y       : string
                    Name of dependent variable for use in output
     name_x       : list of strings
@@ -833,6 +841,10 @@ class GM_Combo_Regimes(GM_Endog_Error_Regimes, REGI.Regimes_Frame):
     vm           : boolean
                    If True, include variance-covariance matrix in summary
                    results
+    cores        : integer
+                   Specifies the number of cores to be used in multiprocessing
+                   Default: all cores available (specified as cores=None).
+                   Note: Multiprocessing currently not available on Windows.
     name_y       : string
                    Name of dependent variable for use in output
     name_x       : list of strings

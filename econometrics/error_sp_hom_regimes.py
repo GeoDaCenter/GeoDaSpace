@@ -75,6 +75,10 @@ class GM_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     vm           : boolean
                    If True, include variance-covariance matrix in summary
                    results
+    cores        : integer
+                   Specifies the number of cores to be used in multiprocessing
+                   Default: all cores available (specified as cores=None).
+                   Note: Multiprocessing currently not available on Windows.
     name_y       : string
                    Name of dependent variable for use in output
     name_x       : list of strings
@@ -470,6 +474,10 @@ class GM_Endog_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
                    al. If A1='hom', then as in Anselin (2011).  If
                    A1='hom_sc', then as in Drukker, Egger and Prucha (2010)
                    and Drukker, Prucha and Raciborski (2010).
+    cores        : integer
+                   Specifies the number of cores to be used in multiprocessing
+                   Default: all cores available (specified as cores=None).
+                   Note: Multiprocessing currently not available on Windows.
     name_y       : string
                    Name of dependent variable for use in output
     name_x       : list of strings
@@ -941,6 +949,10 @@ class GM_Combo_Hom_Regimes(GM_Endog_Error_Hom_Regimes):
     vm           : boolean
                    If True, include variance-covariance matrix in summary
                    results
+    cores        : integer
+                   Specifies the number of cores to be used in multiprocessing
+                   Default: all cores available (specified as cores=None).
+                   Note: Multiprocessing currently not available on Windows.
     name_y       : string
                    Name of dependent variable for use in output
     name_x       : list of strings
