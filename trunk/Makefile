@@ -8,10 +8,13 @@ test:
 doctest:
 	cd doc; make pickle; make doctest
 
-space:
+build:
 	/Library/Frameworks/Python.framework/Versions/2.7/bin/python  build_geodaspace.py
 
+nightly:
+	/Library/Frameworks/Python.framework/Versions/2.7/bin/python  build_geodaspace.py force
+
 clean: 
-	rm -rf dist/*
-	rm -rf build/*
+	rm -rf dist/
+	rm -rf build/
 	find . -name "*.pyc" -exec rm '{}' ';'
