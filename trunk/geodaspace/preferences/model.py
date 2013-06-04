@@ -41,6 +41,8 @@ class preferencesModel(AbstractModel):
 
     other_ols_diagnostics = AbstractModel.abstractProp(
         'other_ols_diagnostics', bool)
+    other_white_test = AbstractModel.abstractProp(
+        'other_white_test', bool)
     other_numcores = AbstractModel.abstractProp('other_numcores', int)
     other_residualMoran = AbstractModel.abstractProp(
         'other_residualMoran', bool)

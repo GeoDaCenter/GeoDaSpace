@@ -426,7 +426,6 @@
             </object>
             <label>Output</label>
           </object>
-          
           <size>450,300</size>
           <XRCED>
             <assign_var>1</assign_var>
@@ -511,6 +510,25 @@
                     <object class="sizeritem">
                       <object class="wxCheckBox" name="OLSdiagnostics">
                         <checked>1</checked>
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="WhiteTestLabel">
+                        <label>White test (OLS only)</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxLEFT</flag>
+                      <border>10</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="WhiteTest">
                         <XRCED>
                           <events>EVT_CHECKBOX</events>
                           <assign_var>1</assign_var>

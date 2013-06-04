@@ -401,16 +401,24 @@ class guiRegModel(abstractmodel.AbstractModel):
             data['modelType']['error']['white'], data['modelType'][
                 'error']['hac'], data['modelType']['error']['het'],
             # config.....
-            config['sig2n_k_ols'], config[
-                'sig2n_k_2sls'], config['sig2n_k_gmlag'],
-            config['gmm_max_iter'], config['gmm_epsilon'], config[
-                'gmm_inferenceOnLambda'], config['gmm_inv_method'], config['gmm_step1c'],
-            config['instruments_w_lags'], config['instruments_lag_q'],
-            config['output_vm_summary'], predy_resid,
-            config['other_ols_diagnostics'], config[
-                'other_residualMoran'],
-            config['regimes_regime_error'], config[
-                'regimes_regime_lag'], config['other_numcores'], method)
+            config['sig2n_k_ols'],
+            config['sig2n_k_2sls'],
+            config['sig2n_k_gmlag'],
+            config['gmm_max_iter'],
+            config['gmm_epsilon'],
+            config['gmm_inferenceOnLambda'],
+            config['gmm_inv_method'],
+            config['gmm_step1c'],
+            config['instruments_w_lags'],
+            config['instruments_lag_q'],
+            config['output_vm_summary'],
+            predy_resid,
+            config['other_ols_diagnostics'],
+            config['other_white_test'],
+            config['other_residualMoran'],
+            config['regimes_regime_error'],
+            config['regimes_regime_lag'],
+            config['other_numcores'], method)
         print results
         for r in results:
             path.write(r.summary)
