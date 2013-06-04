@@ -34,7 +34,7 @@ class GM_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
                    observation to a regime. Assumed to be aligned with 'x'.
     w            : pysal W object
                    Spatial weights object   
-    constant_regi: [False, 'one', 'many']
+    constant_regi: ['one', 'many']
                    Switcher controlling the constant term setup. It may take
                    the following values:
                      *  'one': a vector of ones is appended to x and held
@@ -431,7 +431,7 @@ class GM_Endog_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
                    observation to a regime. Assumed to be aligned with 'x'.
     w            : pysal W object
                    Spatial weights object   
-    constant_regi: [False, 'one', 'many']
+    constant_regi: ['one', 'many']
                    Switcher controlling the constant term setup. It may take
                    the following values:
                      *  'one': a vector of ones is appended to x and held
@@ -555,7 +555,7 @@ class GM_Endog_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     regimes       : list
                     List of n values with the mapping of each
                     observation to a regime. Assumed to be aligned with 'x'.
-    constant_regi : [False, 'one', 'many']
+    constant_regi : ['one', 'many']
                     Ignored if regimes=False. Constant option for regimes.
                     Switcher controlling the constant term setup. It may take
                     the following values:
@@ -895,7 +895,7 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
                    observation to a regime. Assumed to be aligned with 'x'.
     w            : pysal W object
                    Spatial weights object (always needed)   
-    constant_regi: [False, 'one', 'many']
+    constant_regi: ['one', 'many']
                    Switcher controlling the constant term setup. It may take
                    the following values:
                      *  'one': a vector of ones is appended to x and held
@@ -1037,7 +1037,7 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
     regimes       : list
                     List of n values with the mapping of each
                     observation to a regime. Assumed to be aligned with 'x'.
-    constant_regi : [False, 'one', 'many']
+    constant_regi : ['one', 'many']
                     Ignored if regimes=False. Constant option for regimes.
                     Switcher controlling the constant term setup. It may take
                     the following values:

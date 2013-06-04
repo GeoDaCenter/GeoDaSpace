@@ -40,11 +40,9 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                    external exogenous variable to use as instruments (note: 
                    this should not contain any variables from x); cannot be
                    used in combination with h
-    constant_regi: [False, 'one', 'many']
+    constant_regi: ['one', 'many']
                    Switcher controlling the constant term setup. It may take
                    the following values:
-                    
-                     *  False: no constant term is appended in any way
                      *  'one': a vector of ones is appended to x and held
                                constant across regimes
                      * 'many': a vector of ones is appended to x and considered
@@ -206,12 +204,10 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
     regimes      : list
                    List of n values with the mapping of each
                    observation to a regime. Assumed to be aligned with 'x'.
-    constant_regi: [False, 'one', 'many']
+    constant_regi: ['one', 'many']
                    Ignored if regimes=False. Constant option for regimes.
                    Switcher controlling the constant term setup. It may take
                    the following values:
-                    
-                     *  False: no constant term is appended in any way
                      *  'one': a vector of ones is appended to x and held
                                constant across regimes
                      * 'many': a vector of ones is appended to x and considered
