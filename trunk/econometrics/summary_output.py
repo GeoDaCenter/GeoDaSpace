@@ -573,14 +573,26 @@ def _get_var_indices(reg, lambd=False):
         last_v += -1
     indices = []
     try:
-        for i in range(reg.nr):
-            j = i*(reg.kr-reg.kryd)
-            jyd = (reg.kr-reg.kryd)*reg.nr + i*reg.kryd
-            name_reg = var_names[j+1:j+reg.kr-reg.kryd]+var_names[jyd:jyd+reg.kryd]
-            name_reg.sort()
-            indices += [j] + [var_names.index(ind) for ind in name_reg]
-        if last_v>len(indices):
-            indices += (np.argsort(var_names[reg.kr*reg.nr:last_v])+reg.kr*reg.nr).tolist()
+        if reg.constant_regi == 'many':
+            for i in range(reg.nr):
+                j = i*(reg.kr-reg.kryd)
+                jyd = (reg.kr-reg.kryd)*reg.nr + i*reg.kryd
+                name_reg = var_names[j+1:j+reg.kr-reg.kryd]+var_names[jyd:jyd+reg.kryd]
+                name_reg.sort()
+                indices += [j] + [var_names.index(ind) for ind in name_reg]
+            if last_v>len(indices):
+                indices += (np.argsort(var_names[reg.kr*reg.nr:last_v])+reg.kr*reg.nr).tolist()
+        else:
+            for i in range(reg.nr):
+                j = i*(reg.kr-reg.kryd)
+                jyd = (reg.kr-reg.kryd)*reg.nr + i*reg.kryd
+                name_reg = var_names[j:j+reg.kr-reg.kryd]+var_names[jyd:jyd+reg.kryd]
+                name_reg.sort()
+                indices += [var_names.index(ind) for ind in name_reg]
+            indices += [reg.kr*reg.nr]
+            if last_v>len(indices):
+                aft_con = reg.kr*reg.nr+1
+                indices += (np.argsort(var_names[aft_con:last_v])+aft_con).tolist()
     except:
         indices = [0]+(np.argsort(var_names[1:last_v])+1).tolist()
     return var_names, indices
