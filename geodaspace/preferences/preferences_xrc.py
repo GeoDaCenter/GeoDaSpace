@@ -75,6 +75,8 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.other = xrc.XRCCTRL(self, "other")
         self.OLSdiagnosticsLabel = xrc.XRCCTRL(self, "OLSdiagnosticsLabel")
         self.OLSdiagnostics = xrc.XRCCTRL(self, "OLSdiagnostics")
+        self.WhiteTestLabel = xrc.XRCCTRL(self, "WhiteTestLabel")
+        self.WhiteTest = xrc.XRCCTRL(self, "WhiteTest")
         self.residualMoranLabel = xrc.XRCCTRL(self, "residualMoranLabel")
         self.residualMoran = xrc.XRCCTRL(self, "residualMoran")
         self.numcoresLabel = xrc.XRCCTRL(self, "numcoresLabel")
@@ -106,6 +108,7 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_RegimeError, self.RegimeError)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_RegimeLag, self.RegimeLag)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_OLSdiagnostics, self.OLSdiagnostics)
+        self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_WhiteTest, self.WhiteTest)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_residualMoran, self.residualMoran)
         self.Bind(wx.EVT_CHOICE, self.OnChoice_numcores, self.numcores)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_missingValueCheck, self.missingValueCheck)
@@ -228,6 +231,12 @@ class xrcgsPrefsDialog(wx.Dialog):
         # Replace with event handler code
         print "OnCheckbox_OLSdiagnostics()"
 #!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_OLSdiagnostics        
+
+#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_WhiteTest
+    def OnCheckbox_WhiteTest(self, evt):
+        # Replace with event handler code
+        print "OnCheckbox_WhiteTest()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_WhiteTest        
 
 #!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_residualMoran
     def OnCheckbox_residualMoran(self, evt):
@@ -746,7 +755,6 @@ def __init_resources():
             </object>
             <label>Output</label>
           </object>
-          
           <size>450,300</size>
           <XRCED>
             <assign_var>1</assign_var>
@@ -831,6 +839,25 @@ def __init_resources():
                     <object class="sizeritem">
                       <object class="wxCheckBox" name="OLSdiagnostics">
                         <checked>1</checked>
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="WhiteTestLabel">
+                        <label>White test (OLS only)</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxLEFT</flag>
+                      <border>10</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="WhiteTest">
                         <XRCED>
                           <events>EVT_CHECKBOX</events>
                           <assign_var>1</assign_var>
