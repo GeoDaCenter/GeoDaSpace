@@ -318,7 +318,7 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
                  w=None, robust=None, gwk=None, sig2n_k=True,\
                  nonspat_diag=True, spat_diag=False, moran=False, white_test=False,\
                  vm=False, constant_regi='many', cols2regi='all',\
-                 regime_err_sep=False, cores=None,\
+                 regime_err_sep=True, cores=None,\
                  name_y=None, name_x=None, name_regimes=None,\
                  name_w=None, name_gwk=None, name_ds=None):         
         
@@ -449,6 +449,6 @@ if __name__ == '__main__':
     regimes = db.by_col(r_var)
     w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    olsr = OLS_Regimes(y, x, regimes, w=w, constant_regi='many', nonspat_diag=False, spat_diag=True, name_y=y_var, name_x=['AINC','HOVAL'], name_ds='columbus', name_regimes=r_var, name_w='columbus.gal')
+    olsr = OLS_Regimes(y, x, regimes, w=w, constant_regi='many', nonspat_diag=True, spat_diag=True, name_y=y_var, name_x=['AINC','HOVAL'], name_ds='columbus', name_regimes=r_var, name_w='columbus.gal', regime_err_sep=True)
     print olsr.summary
 
