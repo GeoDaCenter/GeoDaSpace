@@ -1,7 +1,7 @@
 import wx
 from view import xrcmainGUI
 import control
-from control import ENABLE_CONTIGUITY_WEIGHTS, ENABLE_DISTANCE_WEIGHTS, ENABLE_KERNEL_WEIGTHS
+from control import ENABLE_CONTIGUITY_WEIGHTS, ENABLE_DISTANCE_WEIGHTS, ENABLE_KERNEL_WEIGHTS
 from control import WEIGHT_TYPES_FILTER, WEIGHT_FILTER_TO_HANDLER
 from model import GeoDaSpace_W_Obj
 import pysal
@@ -19,7 +19,7 @@ class mainGuiFrame(xrcmainGUI):
     def OnButton_KernelWeights(self, evt):
         if not hasattr(self, "kernel_weights_diag"):
             self.kernel_weights_diag = control.weightsDialog(
-                style=ENABLE_KERNEL_WEIGTHS)
+                style=ENABLE_KERNEL_WEIGHTS)
         if self.kernel_weights_diag.ShowModal() == wx.ID_OK:
             my_w = self.kernel_weights_diag.GetW()
             print my_w
