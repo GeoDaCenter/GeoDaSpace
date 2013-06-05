@@ -112,8 +112,8 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         d['output_show_detailed_spec'] = self.output_show_detailed_spec
         d['other_ols_diagnostics'] = self.other_ols_diagnostics
         d['OLSdiagnostics'] = self.other_ols_diagnostics
-        d['other_white_test'] = self.other_white_test
-        d['WhiteTest'] = self.other_white_test
+        d['white_test'] = self.white_test
+        d['WhiteTest'] = self.white_test
         d['other_numcores'] = self.other_numcores
         d['numcores'] = self.other_numcores
         d['other_residualMoran'] = self.other_residualMoran
@@ -354,11 +354,11 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         elif value is not None:
             self.OLSdiagnostics.SetValue(self.model.other_ols_diagnostics)
 
-    def other_white_test(self, evtName=None, evt=None, value=None):
+    def white_test(self, evtName=None, evt=None, value=None):
         if evt:
-            self.model.other_white_test = self.WhiteTest.GetValue()
+            self.model.white_test = self.WhiteTest.GetValue()
         elif value is not None:
-            self.WhiteTest.SetValue(self.model.other_white_test)
+            self.WhiteTest.SetValue(self.model.white_test)
 
     def other_numcores(self, evtName=None, evt=None, value=None):
         if evt:

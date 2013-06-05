@@ -420,7 +420,7 @@ class guiRegModel(abstractmodel.AbstractModel):
             config['output_vm_summary'],
             predy_resid,
             config['other_ols_diagnostics'],
-            config['other_white_test'],
+            config['white_test'],
             config['other_residualMoran'],
             config['regimes_regime_error'],
             config['regimes_regime_lag'],
