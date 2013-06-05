@@ -339,8 +339,7 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
         if regime_err_sep == True:
             name_x = USER.set_name_x(name_x, x)
             self.y = y
-            if cols2regi == 'all':
-                cols2regi = [True] * (x.shape[1])
+            cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, add_cons=False)
             self.regimes_set = REGI._get_regimes_set(regimes)
             if w:
                 w_i,regi_ids,warn = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True, min_n=len(self.cols2regi)+1)
@@ -354,6 +353,7 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
             else:
                 raise Exception, "All coefficients must vary accross regimes if regime_err_sep = True."
         else:
+            cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x)
             name_x = USER.set_name_x(name_x, x,constant=True)
             x, self.name_x = REGI.Regimes_Frame.__init__(self, x,\
                     regimes, constant_regi, cols2regi, name_x)
