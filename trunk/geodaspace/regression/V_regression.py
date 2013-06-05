@@ -770,7 +770,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             self.textFrame.Raise()
 
     def openConfig(self, evt=None):
-        #rs = self.config.ShowModal()
+        rs = self.config.ShowModal()
         self.model.data['config'] = self.config.GetPrefs()
 
     def newVarSelector(self, evt=None):
