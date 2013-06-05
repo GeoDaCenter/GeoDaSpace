@@ -279,8 +279,8 @@ class guiRegModel(abstractmodel.AbstractModel):
         if self.data['spec']['y'] and self.data['spec']['X']:
             pass
         else:
-            return False, 'Model Spec is incomplete.\
-                    Please populate both X and Y'
+            msg = 'Model Spec is incomplete. Please populate both X and Y'
+            return False, msg
         model_type = self.data['modelType']['mType']
         if model_type > 0 and not self.getMWeightsEnabled():
             return False, 'This model specification requires a spatial\

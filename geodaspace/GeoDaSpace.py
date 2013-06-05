@@ -1,6 +1,6 @@
 import wx
-# from geodaspace.regression import variableTools
-# from geodaspace.regression import M_regression
+from geodaspace.regression import variableTools
+from geodaspace.regression import M_regression
 from geodaspace.regression import V_regression
 import sys
 
