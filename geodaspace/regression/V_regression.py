@@ -9,7 +9,7 @@ from geodaspace.icons import icons
 from geodaspace.regression.rc import OGRegression_xrc
 from geodaspace import weights
 from geodaspace.weights.control import ENABLE_CONTIGUITY_WEIGHTS,\
-    ENABLE_DISTANCE_WEIGHTS, ENABLE_KERNEL_WEIGTHS, WEIGHT_TYPES_FILTER,\
+    ENABLE_DISTANCE_WEIGHTS, ENABLE_KERNEL_WEIGHTS, WEIGHT_TYPES_FILTER,\
     WEIGHT_FILTER_TO_HANDLER
 from geodaspace import spatialLag
 from geodaspace.preferences import preferencesDialog
@@ -167,7 +167,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             self, requireSave=True,
             style=ENABLE_CONTIGUITY_WEIGHTS | ENABLE_DISTANCE_WEIGHTS)
         self.kernelWeightsDialog = weights.control.weightsDialog(
-            self, requireSave=True, style=ENABLE_KERNEL_WEIGTHS)
+            self, requireSave=True, style=ENABLE_KERNEL_WEIGHTS)
         self.weightsPropDlg = weights.control.weightsPropertiesDialog(self)
         self.textFrame = textwindow.TextWindow(self)
 
