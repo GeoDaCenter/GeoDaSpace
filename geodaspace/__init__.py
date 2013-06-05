@@ -56,14 +56,16 @@ class AbstractModel(object):
         def fset(self, value, tag=tag, typ=typ, updateAll=updateAll):
             if typ and not isinstance(value, typ):
                 try:
-                    if value == None:
+                    if value is None:
                         value = None
                     else:
                         value = typ(value)
                 except:
-                    raise TypeError("The value '%r' could not be cast as type '%r'" % (
+                    raise TypeError(
+                        "The value '%r' could not be cast as type '%r'" % (
                         value, typ))
-            if self._modelData.get(tag, '') != value:  # Only update on a change!
+            if self._modelData.get(tag, '') != value:
+                # Only update on a change!
                 self._modelData[tag] = value
                 if updateAll:
                     self.update()
@@ -90,9 +92,12 @@ def remapEvtsToDispatcher(instance, dispatcherMethod):
         if name[:2] == 'On' and '_' in name:
             obj = getattr(instance, name)  # grab the object from the instance
             # make sure it is an instancemethod and has the right argSpec
-            if isinstance(obj, types.MethodType) and inspect.getargspec(obj)[0] == ['self', 'evt']:
+            if isinstance(obj, types.MethodType) and \
+               inspect.getargspec(obj)[0] == ['self', 'evt']:
                 if DEBUG:
-                    print "remapping instance.%s(evt) to instance.dispatch('%s',evt)" % (name, name)
+                    print(
+                        "remapping instance.%s(evt) to instance.dispatch(\
+                        '%s', evt)" % (name, name))
                 setattr(instance, name, evt(dispatcherMethod, name))
 
 

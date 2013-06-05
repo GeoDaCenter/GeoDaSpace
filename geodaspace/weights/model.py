@@ -203,7 +203,8 @@ class weightsModel(AbstractModel):
         if self.shapes:
             if self.distMethod == 0:  # 'Euclidean Distance'
                 x, y, X, Y = self.shapes.bbox
-                self._propData['bbox_diag'] = ((X - x) ** 2 + (Y - y) ** 2) ** (0.5)
+                self._propData['bbox_diag'] = ((
+                    X - x) ** 2 + (Y - y) ** 2) ** (0.5)
                 return self._propData['bbox_diag']
             elif self.distMethod == 1:  # 'Arc Distance (miles)'
                 x, y, X, Y = self.shapes.bbox

@@ -625,11 +625,11 @@ class weightsDialog(xrcDIALOGWEIGHTS):
             print "Inverse on %s, ids=%r, cutoff=%f, power=%d" % (sfile, var, cutoff, power)
             try:
                 W = pysal.threshold_continuousW_from_shapefile(
-                        sfile, cutoff, alpha=- 1 * power, idVariable=var, radius=radius)
+                    sfile, cutoff, alpha=- 1 * power, idVariable=var, radius=radius)
                 W.meta = {'shape file': sfile,
-                      'id variable': var,
-                      'method': 'distance',
-                      'method options': ['Inverse', cutoff, power]}
+                          'id variable': var,
+                          'method': 'distance',
+                          'method options': ['Inverse', cutoff, power]}
                 if radius:
                     W.meta['Sphere Radius'] = radius
                 self.SetW(W)
