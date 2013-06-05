@@ -28,7 +28,7 @@ class preferencesModel(AbstractModel):
         'instruments_lag_q': True,
         'instruments_w_lags': 1,
         'other_ols_diagnostics': True,
-        'other_white_test': False,
+        'white_test': False,
         'other_numcores': CPU_COUNT,
         'other_residualMoran': False,
         'other_missingValueCheck': False,
@@ -53,8 +53,8 @@ class preferencesModel(AbstractModel):
     instruments_w_lags = AbstractModel.abstractProp('instruments_w_lags', int)
     other_ols_diagnostics = AbstractModel.abstractProp(
         'other_ols_diagnostics', bool)
-    other_white_test = AbstractModel.abstractProp(
-        'other_white_test', bool)
+    white_test = AbstractModel.abstractProp(
+        'white_test', bool)
     other_numcores = AbstractModel.abstractProp('other_numcores', int)
     other_residualMoran = AbstractModel.abstractProp(
         'other_residualMoran', bool)
