@@ -592,12 +592,10 @@ def _get_var_indices(reg, lambd=False):
                 indices += [var_names.index(ind) for ind in name_reg]
         if reg.constant_regi == 'one':
             indices += [krex*reg.nr]
-        if reg.kf > 0:
+        if len(indices) < last_v:
             name_reg = var_names[krex*reg.nr+1-j_con:krex*reg.nr+reg.kf-kfyd]+var_names[reg.kr*reg.nr+reg.kf-kfyd:reg.kr*reg.nr+reg.kf]
             name_reg.sort()
             indices += [var_names.index(ind) for ind in name_reg]
-        #if len(indices) > len(var_names):
-        #    indices += (np.argsort(var_names[len(indices):last_v])+len(indices)).tolist()
     except:
         indices = [0]+(np.argsort(var_names[1:last_v])+1).tolist()
     return var_names, indices
