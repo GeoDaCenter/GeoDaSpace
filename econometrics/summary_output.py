@@ -569,8 +569,10 @@ def _get_var_indices(reg, lambd=False):
     except:
         var_names = reg.name_x
     last_v = len(var_names)
+    kf = reg.kf
     if lambd:
         last_v += -1
+        kf += -1
     indices = []
     try:
         krex = reg.kr-reg.kryd
@@ -583,7 +585,7 @@ def _get_var_indices(reg, lambd=False):
             j_con = 1
         for i in range(reg.nr):
             j = i*krex
-            jyd = krex*reg.nr + i*reg.kryd + reg.kf - kfyd
+            jyd = krex*reg.nr + i*reg.kryd + kf - kfyd
             name_reg = var_names[j+j_con:j+krex]+var_names[jyd:jyd+reg.kryd]
             name_reg.sort()
             if reg.constant_regi == 'many':
@@ -593,7 +595,7 @@ def _get_var_indices(reg, lambd=False):
         if reg.constant_regi == 'one':
             indices += [krex*reg.nr]
         if len(indices) < last_v:
-            name_reg = var_names[krex*reg.nr+1-j_con:krex*reg.nr+reg.kf-kfyd]+var_names[reg.kr*reg.nr+reg.kf-kfyd:reg.kr*reg.nr+reg.kf]
+            name_reg = var_names[krex*reg.nr+1-j_con:krex*reg.nr+kf-kfyd]+var_names[reg.kr*reg.nr+kf-kfyd:reg.kr*reg.nr+kf]
             name_reg.sort()
             indices += [var_names.index(ind) for ind in name_reg]
     except:
