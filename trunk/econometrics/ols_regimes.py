@@ -353,7 +353,7 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
             else:
                 raise Exception, "All coefficients must vary accross regimes if regime_err_sep = True."
         else:
-            cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x)
+            cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, add_cons=False)
             name_x = USER.set_name_x(name_x, x,constant=True)
             x, self.name_x = REGI.Regimes_Frame.__init__(self, x,\
                     regimes, constant_regi, cols2regi, name_x)

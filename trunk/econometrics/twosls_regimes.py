@@ -273,7 +273,7 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
             else:
                 raise Exception, "All coefficients must vary accross regimes if regime_err_sep = True."
         else:
-            cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, yend=yend)
+            cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, yend=yend, add_cons=False)
             name_x = USER.set_name_x(name_x, x,constant=True)
             q, self.name_q = REGI.Regimes_Frame.__init__(self, q, \
                     regimes, constant_regi=None, cols2regi='all', names=name_q)
