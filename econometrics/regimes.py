@@ -543,7 +543,33 @@ def x2xsp(x, regimes, regimes_set):
     indptr[-1] = n*k
     return SP.csr_matrix((data, indices, indptr))
 
+def check_cols2regi(constant_regi, cols2regi, x, yend=None, add_cons=True):
+
+    if add_cons:
+        is_cons = 1
+        if constant_regi=='many':
+            regi_cons = [True]
+        elif constant_regi=='one':
+            regi_cons = [False]
+    else:
+        is_cons = 0
+        regi_cons = []
+    try:
+        tot_k = x.shape[1]+yend.shape[1]
+    except:
+        tot_k = x.shape[1]
+    if cols2regi=='all':
+        cols2regi = regi_cons + [True]*tot_k
+    else:
+        cols2regi = regi_cons + cols2regi
+    if len(cols2regi)-is_cons != tot_k:
+        raise Exception, "The lenght of list 'cols2regi' must be equal to the amount of variables (exogenous + endogenous) when not using cols2regi=='all'."
+    return cols2regi
+
 def _get_regimes_set(regimes):
+    '''
+    Creates a list with regimes in alphabetical order.
+    '''
     regimes_set = list(set(regimes))
     if isinstance(regimes_set[0], float):
         regimes_set1 = list(set(map(int, regimes_set)))

@@ -414,11 +414,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         self.name_regimes = USER.set_name_ds(name_regimes)
         self.constant_regi=constant_regi
         self.n = n
-        if cols2regi == 'all':
-            if yend!=None:
-                cols2regi = [True] * (x.shape[1]+yend.shape[1])
-            else:
-                cols2regi = [True] * (x.shape[1])     
+        cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, yend=yend, add_cons=False)    
         if regime_lag_sep == True:
             cols2regi += [True]
             self.regimes_set = REGI._get_regimes_set(regimes)

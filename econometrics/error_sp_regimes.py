@@ -281,14 +281,7 @@ class GM_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         name_x = USER.set_name_x(name_x, x)
         self.name_x_r = name_x
 
-        if constant_regi=='many':
-            regi_cons = [True]
-        elif constant_regi=='one':
-            regi_cons = [False]
-        if cols2regi=='all':
-            cols2regi = regi_cons + [True]*x.shape[1]
-        else:
-            cols2regi = regi_cons + cols2regi
+        cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x)
 
         if regime_err_sep == True:
             if set(cols2regi) == set([True]):
@@ -668,14 +661,7 @@ class GM_Endog_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
             name_q = USER.set_name_q(name_q, q)
         self.name_x_r = name_x + name_yend
 
-        if constant_regi=='many':
-            regi_cons = [True]
-        elif constant_regi=='one':
-            regi_cons = [False]
-        if cols2regi=='all':
-            cols2regi = regi_cons + [True]*(x.shape[1]+yend.shape[1])
-        else:
-            cols2regi = regi_cons + cols2regi
+        cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, yend=yend)
 
         if regime_err_sep == True:
             if set(cols2regi) == set([True]):
@@ -1123,11 +1109,7 @@ class GM_Combo_Regimes(GM_Endog_Error_Regimes, REGI.Regimes_Frame):
         name_q = USER.set_name_q(name_q, q)
         name_q.extend(USER.set_name_q_sp(name_x, w_lags, name_q, lag_q, force_all=True))        
 
-        if cols2regi == 'all':
-            if yend!=None:
-                cols2regi = [True] * (x.shape[1]+yend.shape[1])
-            else:
-                cols2regi = [True] * (x.shape[1])     
+        cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, yend=yend, add_cons=False)    
 
         if regime_lag_sep == True:
             cols2regi += [True]
