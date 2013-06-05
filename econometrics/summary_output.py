@@ -573,27 +573,31 @@ def _get_var_indices(reg, lambd=False):
         last_v += -1
     indices = []
     try:
-        kex = reg.kr-reg.kryd
+        krex = reg.kr-reg.kryd
+        try:
+            kfyd = reg.yend.shape[1]-reg.nr*reg.kryd
+        except:
+            kfyd = 0
+        j_con = 0
         if reg.constant_regi == 'many':
-            for i in range(reg.nr):
-                j = i*kex
-                jyd = kex*reg.nr + i*reg.kryd + reg.kf
-                name_reg = var_names[j+1:j+kex]+var_names[jyd:jyd+reg.kryd]
-                name_reg.sort()
+            j_con = 1
+        for i in range(reg.nr):
+            j = i*krex
+            jyd = krex*reg.nr + i*reg.kryd + reg.kf - kfyd
+            name_reg = var_names[j+j_con:j+krex]+var_names[jyd:jyd+reg.kryd]
+            name_reg.sort()
+            if reg.constant_regi == 'many':
                 indices += [j] + [var_names.index(ind) for ind in name_reg]
-            if reg.kf>0:
-                indices += (np.argsort(var_names[kex*reg.nr:kex*reg.nr+reg.kf])+kex*reg.nr).tolist()
-        else:
-            for i in range(reg.nr):
-                j = i*kex
-                jyd = kex*reg.nr + i*reg.kryd + reg.kf
-                name_reg = var_names[j:j+kex]+var_names[jyd:jyd+reg.kryd]
-                name_reg.sort()
+            else:
                 indices += [var_names.index(ind) for ind in name_reg]
-            indices += [kex*reg.nr]
-            if reg.kf>0:
-                aft_con = kex*reg.nr+1
-                indices += (np.argsort(var_names[aft_con:kex*reg.nr+reg.kf])+aft_con).tolist()
+        if reg.constant_regi == 'one':
+            indices += [krex*reg.nr]
+        if reg.kf > 0:
+            name_reg = var_names[krex*reg.nr+1-j_con:krex*reg.nr+reg.kf-kfyd]+var_names[reg.kr*reg.nr+reg.kf-kfyd:reg.kr*reg.nr+reg.kf]
+            name_reg.sort()
+            indices += [var_names.index(ind) for ind in name_reg]
+        #if len(indices) > len(var_names):
+        #    indices += (np.argsort(var_names[len(indices):last_v])+len(indices)).tolist()
     except:
         indices = [0]+(np.argsort(var_names[1:last_v])+1).tolist()
     return var_names, indices
