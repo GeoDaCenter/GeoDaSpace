@@ -67,7 +67,6 @@ class vVariableSelector(wx.MiniFrame):
         self.panel.ToolBar.EnableTool(wx.xrc.XRCID("ToolSpatialLag"), False)
         search = VarSearchCtrl(self.panel.ToolBar, size=(
             120, -1), doSearch=self.Search)
-        #self.panel.ToolBar.InsertControl(self.panel.ToolBar.GetToolsCount(), search)
         self.panel.ToolBar.AddControl(search)
         self.panel.ToolBar.Realize()
 

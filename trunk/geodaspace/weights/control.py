@@ -14,30 +14,53 @@ from model import weightsModel, DISTANCE_METRICS
 # CONSTANTS
 ENABLE_CONTIGUITY_WEIGHTS = 1  # 0b00000001
 ENABLE_DISTANCE_WEIGHTS = 2   # 0b00000010
-ENABLE_KERNEL_WEIGTHS = 4     # 0b00000100
+ENABLE_KERNEL_WEIGHTS = 4     # 0b00000100
 WEIGHTS_DEFAULT_STYLE = ENABLE_CONTIGUITY_WEIGHTS | ENABLE_DISTANCE_WEIGHTS |\
-    ENABLE_KERNEL_WEIGTHS
+    ENABLE_KERNEL_WEIGHTS
 
-WEIGHT_TYPES_FILTER = "ArcGIS DBF files (.dbf)|*.dbf|ArcGIS SWM files (*.swm)|*.swm|ArcGIS Text files (*.txt)|*.txt|DAT files (*.dat)|*.dat|GAL files (*.gal)|*.gal|GeoBUGS Text files (*.)|*.|GWT files (*.gwt)|*.gwt|KWT files (*.kwt)|*.kwt|MatLab files (*.mat)|*.mat|MatrixMarket files (*.mtx)|*.mtx|STATA Text files (*.txt)|*.txt"
-WEIGHT_FILTER_TO_HANDLER = {0: 'arcgis_dbf', 1: None, 2: 'arcgis_text', 3: None, 4:
-                            None, 5: 'geobugs_text', 6: None, 7: None, 8: None, 9: None, 10: 'stata_text', 11: None}
+WEIGHT_TYPES_FILTER = "ArcGIS DBF files (.dbf)|*.dbf|ArcGIS SWM files \
+        (*.swm)|*.swm|ArcGIS Text files (*.txt)|*.txt|DAT files \
+        (*.dat)|*.dat|GAL files (*.gal)|*.gal|GeoBUGS Text files \
+        (*.)|*.|GWT files (*.gwt)|*.gwt|KWT files (*.kwt)|*.kwt|MatLab files\
+        (*.mat)|*.mat|MatrixMarket files (*.mtx)|*.mtx|STATA Text files\
+        (*.txt)|*.txt"
+
+WEIGHT_FILTER_TO_HANDLER = {0: 'arcgis_dbf',
+                            1: None,
+                            2: 'arcgis_text',
+                            3: None,
+                            4: None,
+                            5: 'geobugs_text',
+                            6: None,
+                            7: None,
+                            8: None,
+                            9: None,
+                            10: 'stata_text',
+                            11: None}
 
 VALID_TRANSFORMS = [
-    "B: Binary", "R: Row-standardization (global sum=n)", "D: Double-standardization (global sum=1)",
-                                                          "V: Variance stabilizing", "O: Restore original transformation (from instantiation)"]
-TRANSFORM_LOOKUP = dict([(x.split(':')[
-                        0], i) for i, x in enumerate(VALID_TRANSFORMS)])
+    "B: Binary",
+    "R: Row-standardization (global sum=n)",
+    "D: Double-standardization (global sum=1)",
+    "V: Variance stabilizing",
+    "O: Restore original transformation (from instantiation)"]
+
+TRANSFORM_LOOKUP = dict([(x.split(':')[0], i)
+                         for i, x in enumerate(VALID_TRANSFORMS)])
 
 
 class weightsPropertiesDialog(xrcweightsProperties):
     """
-    Weights Properties Dialog -- Displays a Dialog viewing and editor properties of a W obj.
+    Weights Properties Dialog --
+    Displays a Dialog viewing and editor properties of a W obj.
 
-    Display using ShowModal, which requires a list of W objects and an optional selection, returns wx.ID_CLOSE
+    Display using ShowModal, which requires a list of W objects
+    and an optional selection, returns wx.ID_CLOSE
 
     Parameters
     ----------
     parent -- wxWindow -- A parent to the dialog, optional.
+
     """
     def __init__(self, parent=None):
         xrcweightsProperties.__init__(self, parent)
@@ -96,14 +119,16 @@ class weightsPropertiesDialog(xrcweightsProperties):
             geo = w.shapefile_hint
         else:
             fileDialog = wx.FileDialog(self, message="Please locate: %s" %
-                                       w.shapefile_hint, wildcard="Shape File (*.shp)|*.shp")
+                                       w.shapefile_hint,
+                                       wildcard="Shape File (*.shp)|*.shp")
             result = fileDialog.ShowModal()
             if result == wx.ID_OK:
                 geo = fileDialog.GetPath()
             else:
                 return
         wm = weights_viewer.WeightsMapFrame(
-            self, geo=geo, w=w.w, style=wx.DEFAULT_FRAME_STYLE | wx.FRAME_FLOAT_ON_PARENT)
+            self, geo=geo, w=w.w,
+            style=wx.DEFAULT_FRAME_STYLE | wx.FRAME_FLOAT_ON_PARENT)
         wm.Show(True)
 
     def OnButton_closeButton(self, evt):
@@ -128,9 +153,11 @@ class weightsPropertiesDialog(xrcweightsProperties):
 
 class idVarDialog(xrcAddIDVar):
     """
-    Add ID Variable Dialog -- Displays a Dialog for adding a unique id to a DBF File.
+    Add ID Variable Dialog --
+    Displays a Dialog for adding a unique id to a DBF File.
 
-    Display using ShowModal, which requires a DBF File Path and returns wx.ID_OK or wx.ID_CANCEL
+    Display using ShowModal, which requires a DBF File Path
+    and returns wx.ID_OK or wx.ID_CANCEL
 
     Parameters
     ----------
@@ -168,8 +195,12 @@ class idVarDialog(xrcAddIDVar):
             assert all([x.isalnum() or x == '_' for x in name])
             return True
         except AssertionError:
-            wx.MessageDialog(self, "Error: \"%s\" is an invalid field name.  A valid field name is between one and ten characters long.  The first character must be alphabetic, and the remaining characters can be either alphanumeric or underscores." %
-                             name, "Error", style=wx.ICON_HAND).ShowModal()
+            wx.MessageDialog(
+                self, "Error: \"%s\" is an invalid field name.\
+                A valid field name is between one and ten characters long.\
+                The first character must be alphabetic, and the remaining \
+                characters can be either alphanumeric or underscores." %
+                name, "Error", style=wx.ICON_HAND).ShowModal()
             return False
 
     def AddNewIDVar(self, name):
@@ -192,12 +223,18 @@ class idVarDialog(xrcAddIDVar):
         if not self.verify_name(name):
             return
         if name in self.db.header:
-            wx.MessageDialog(self, "Error: Field name \"%s\" already exists in the DBF file.\nPlease choose a different name." % (
+            wx.MessageDialog(
+                self, "Error: Field name \"%s\" already exists in the DBF\
+                file.\nPlease choose a different name." % (
                 name,), style=wx.ICON_HAND).ShowModal()
             return
         shpName = os.path.splitext(os.path.basename(self.dbf_path))[0]
-        dlg = wx.MessageDialog(self, "Are you sure you want to add the new id variable to the DBF file associated with the chosen input SHP file \"%s\"" % (
-            shpName,), "Add id variable to DBF file?", style=wx.ICON_HAND | wx.YES_NO)
+
+        dlg = wx.MessageDialog(
+            self, "Are you sure you want to add the new id variable to the DBF\
+            file associated with the chosen input SHP file \"%s\"" % (
+            shpName,), "Add id variable to DBF file?",
+            style=wx.ICON_HAND | wx.YES_NO)
         if dlg.ShowModal() == wx.ID_YES:
             self.AddNewIDVar(name)
         else:
@@ -213,23 +250,30 @@ class weightsDialog(xrcDIALOGWEIGHTS):
 
     Parameters
     ----------
-    parent -- wxWindow -- A parent to the dialog, optional.
-    requireSave -- bool -- If true the user will be prompted to save their weights objects to files.
-    style -- bitmap -- Valid styles are, ENABLE_CONTIGUITY_WEIGHTS, ENABLE_DISTANCE_WEIGHTS, ENABLE_KERNEL_WEIGTHS or WEIGHTS_DEFAULT_STYLE
-                        WEIGHTS_DEFAULT_STYLE is equal to ENABLE_CONTIGUITY_WEIGHTS|ENABLE_DISTANCE_WEIGHTS|ENABLE_KERNEL_WEIGTHS
+    parent : wxWindow : A parent to the dialog, optional.
+
+    requireSave : bool :
+    If true the user will be prompted to save their weights objects to files.
+
+    style : bitmap :
+    Valid styles are ENABLE_CONTIGUITY_WEIGHTS, ENABLE_DISTANCE_WEIGHTS,
+    ENABLE_KERNEL_WEIGHTS or WEIGHTS_DEFAULT_STYLE
+    WEIGHTS_DEFAULT_STYLE is equal to
+    ENABLE_CONTIGUITY_WEIGHTS|ENABLE_DISTANCE_WEIGHTS|ENABLE_KERNEL_WEIGHTS
 
     Methods
     _______
     GetW -- returns a W object.
     HasW -- returns a bool.
     """
-    def __init__(self, parent=None, requireSave=True, style=WEIGHTS_DEFAULT_STYLE):
+    def __init__(self, parent=None, requireSave=True,
+                 style=WEIGHTS_DEFAULT_STYLE):
         remapEvtsToDispatcher(self, self.evtDispatch)
         xrcDIALOGWEIGHTS.__init__(self, parent)
-        self.ContiguityPage = self.ContiguityPanel, self.weightsNotebook.GetPageText(
-            0)
-        self.DistancePage = self.DistancePanel, self.weightsNotebook.GetPageText(
-            1)
+        self.ContiguityPage = self.ContiguityPanel,\
+            self.weightsNotebook.GetPageText(0)
+        self.DistancePage = self.DistancePanel,\
+            self.weightsNotebook.GetPageText(1)
         self.KernelPage = self.KernelPanel, self.weightsNotebook.GetPageText(2)
 
         self.CutoffText.Bind(wx.EVT_CHAR, self.isdigit)
@@ -320,7 +364,7 @@ class weightsDialog(xrcDIALOGWEIGHTS):
         if flags & ENABLE_DISTANCE_WEIGHTS:
             self.DistancePanel.Reparent(self.weightsNotebook)
             self.weightsNotebook.AddPage(*self.DistancePage)
-        if flags & ENABLE_KERNEL_WEIGTHS:
+        if flags & ENABLE_KERNEL_WEIGHTS:
             self.KernelPanel.Reparent(self.weightsNotebook)
             self.weightsNotebook.AddPage(*self.KernelPage)
         self.weightsNotebook.SetSelection(0)
@@ -348,7 +392,7 @@ class weightsDialog(xrcDIALOGWEIGHTS):
                     # exts = {0:'.gwt'}
                     suggested = exts.index('*.gwt')
             else:
-                # filter = "Weights File (*.gal)|*.gal|Weights File (*.gwt)|*.gwt"
+                #filter="Weights File (*.gal)|*.gal|Weights File (*.gwt)|*.gwt"
                 # exts = {0:'.gal',1:'.gwt'}
                 suggested = exts.index('*.gal')
             if hasattr(w, 'meta') and 'shape file' in w.meta:
@@ -382,7 +426,8 @@ class weightsDialog(xrcDIALOGWEIGHTS):
                             o.varName = self.model.vars[self.model.idVar]
                     except:
                         self.warn(
-                            "Could not set meta data of the GWT file. Will continue without it.")
+                            "Could not set meta data of the GWT file. \
+                            Will continue without it.")
                         if DEBUG:
                             raise
                 o.write(w)
@@ -391,11 +436,13 @@ class weightsDialog(xrcDIALOGWEIGHTS):
                 return True
             else:
                 res = wx.MessageDialog(
-                    self, "This weights object will only be available in the current GeoDaSpace session", "Warning",
+                    self, "This weights object will only be available in the \
+                    current GeoDaSpace session", "Warning",
                     style=wx.OK | wx.ICON_HAND).ShowModal()
         except:
             self.warn(
-                "An unknown error occurred while trying to save the weights object.")
+                "An unknown error occurred while trying to save the \
+                weights object.")
             if DEBUG:
                 raise
             return False
@@ -406,7 +453,8 @@ class weightsDialog(xrcDIALOGWEIGHTS):
             print "input:", evtName, evt, value
         if evt:  # Event cause by change in GUI
             path = ''
-            if evt.EventType in (wx.EVT_BUTTON.typeId, wx.EVT_MENU.typeId):  # the open button
+            if evt.EventType in (wx.EVT_BUTTON.typeId, wx.EVT_MENU.typeId):
+                # the open button
                 filter = "Shape File (*.shp)|*.shp"
                 fileDialog = wx.FileDialog(
                     self, message="Choose File", wildcard=filter)
@@ -443,7 +491,8 @@ class weightsDialog(xrcDIALOGWEIGHTS):
                 self.KNumNeighSpin.SetValue(min_k)
                 self.NumNeighSpin.SetRange(1, n)
                 if self.model.shapes.type == pysal.cg.Point:
-                    if ENABLE_CONTIGUITY_WEIGHTS & self.orig_style and self.cur_style & ENABLE_CONTIGUITY_WEIGHTS:
+                    if ENABLE_CONTIGUITY_WEIGHTS & self.orig_style and \
+                       self.cur_style & ENABLE_CONTIGUITY_WEIGHTS:
                         self.update_style(
                             self.cur_style ^ ENABLE_CONTIGUITY_WEIGHTS)
                 elif self.model.shapes.type == pysal.cg.Polygon:
@@ -456,8 +505,10 @@ class weightsDialog(xrcDIALOGWEIGHTS):
             if self.model.bbox_diag > 0:
                 max_dist = self.model.bbox_diag
                 rec_dist = self.model.knn1_dist
-                # self.ThresholdSlider.SetValue(int(math.ceil((rec_dist/max_dist) * self.ThresholdSlider.GetMax())))
-                # self.ThresholdSlider2.SetValue(int(math.ceil((rec_dist/max_dist)
+                # self.ThresholdSlider.SetValue(int(math.ceil((
+                    #rec_dist/max_dist) * self.ThresholdSlider.GetMax())))
+                # self.ThresholdSlider2.SetValue(int(math.ceil(
+                    #(rec_dist/max_dist)
                 # * self.ThresholdSlider2.GetMax())))
                 self.CutoffText.ChangeValue(str(self.model.knn1_dist))
                 self.CutoffText.SetModified(True)
@@ -468,7 +519,8 @@ class weightsDialog(xrcDIALOGWEIGHTS):
 
     def isdigit(self, evt):
         """easy validator for textCtrl
-            Simply consumes the EVT_CHAR if it doesn't like the change, otherwise the evt is skipped and the TextCtrl receives it.
+            Simply consumes the EVT_CHAR if it doesn't like the change,
+            otherwise the evt is skipped and the TextCtrl receives it.
         """
         key = evt.GetKeyCode()
         try:
@@ -478,7 +530,8 @@ class weightsDialog(xrcDIALOGWEIGHTS):
 
         acceptable_characters = "1234567890"
         # 13 = enter, 314 & 316 = arrows, 8 = backspace, 127 = del
-        if character in acceptable_characters or key == 13 or key == 314 or key == 316 or key == 8 or key == 127:
+        if character in acceptable_characters or key == 13 or key == 314 or \
+           key == 316 or key == 8 or key == 127:
             evt.Skip()
             return
         elif character == '.':
@@ -495,7 +548,8 @@ class weightsDialog(xrcDIALOGWEIGHTS):
             if self.CutoffText.IsModified():
                 val = float(self.CutoffText.GetValue())
                 x = int(math.ceil((
-                    val / self.model.bbox_diag) * self.ThresholdSlider.GetMax()))
+                    val / self.model.bbox_diag) *
+                    self.ThresholdSlider.GetMax()))
                 x = x if x < self.ThresholdSlider.GetMax(
                 ) else self.ThresholdSlider.GetMax()
                 self.ThresholdSlider.SetValue(x)
@@ -511,7 +565,8 @@ class weightsDialog(xrcDIALOGWEIGHTS):
             if self.CutoffText2.IsModified():
                 val = float(self.CutoffText2.GetValue())
                 x = int(math.ceil((
-                    val / self.model.bbox_diag) * self.ThresholdSlider2.GetMax()))
+                    val / self.model.bbox_diag) *
+                    self.ThresholdSlider2.GetMax()))
                 x = x if x < self.ThresholdSlider2.GetMax(
                 ) else self.ThresholdSlider2.GetMax()
                 self.ThresholdSlider2.SetValue(x)
@@ -552,7 +607,9 @@ class weightsDialog(xrcDIALOGWEIGHTS):
     def run_contiguity(self, sfile, var):
         """ Invoked by main run method. """
         if self.model.shapes.type != pysal.cg.Polygon:
-            return self.warn("The selected shapefile does not contain polygons and contiguity weights can only be computed on polygons.")
+            return self.warn("The selected shapefile does not contain polygons\
+                             and contiguity weights can only be computed on \
+                             polygons.")
         order = self.ContiguityOrderSpin.GetValue()
         include_lower = self.ContiguityIncludeLowerCheck.GetValue()
         if self.RadioRook.GetValue():
@@ -578,10 +635,14 @@ class weightsDialog(xrcDIALOGWEIGHTS):
     def run_distance(self, sfile, var):
         """ Invoked by main run method. """
         if self.model.shapes.type == pysal.cg.Polygon:
-            self.warn("The selected shapefile contains polygons and distance weights can only be computed on points. " +
-                      "The centroids of the specified polygons will be used instead.")
+            self.warn("The selected shapefile contains polygons and distance \
+                      weights can only be computed on points. " +
+                      "The centroids of the specified polygons will be used \
+                      instead.")
         elif self.model.shapes.type != pysal.cg.Point:
-            return self.warn("The selected shapefile does not contain points and contiguity weights can only be computed on points.")
+            return self.warn("The selected shapefile does not contain points \
+                             and contiguity weights can only be computed \
+                             on points.")
         if self.model.distMethod == 0:
             radius = None
         elif self.model.distMethod == 1:  # 'Arc Distance (miles)'
@@ -622,10 +683,12 @@ class weightsDialog(xrcDIALOGWEIGHTS):
             except:
                 return self.warn("The cut-off point is not valid.")
             power = int(self.PowerSpin.GetValue())
-            print "Inverse on %s, ids=%r, cutoff=%f, power=%d" % (sfile, var, cutoff, power)
+            print "Inverse on %s, ids=%r, cutoff=%f, power=%d" % \
+                  (sfile, var, cutoff, power)
             try:
                 W = pysal.threshold_continuousW_from_shapefile(
-                    sfile, cutoff, alpha=- 1 * power, idVariable=var, radius=radius)
+                    sfile, cutoff, alpha=- 1 * power,
+                    idVariable=var, radius=radius)
                 W.meta = {'shape file': sfile,
                           'id variable': var,
                           'method': 'distance',
@@ -642,10 +705,14 @@ class weightsDialog(xrcDIALOGWEIGHTS):
     def run_adaptive_kernel(self, sfile, var):
         """ Invoked by main run method. """
         if self.model.shapes.type == pysal.cg.Polygon:
-            self.warn("The selected shapefile contains polygons and kernel weights can only be computed on points. " +
-                      "The centroids of the specified polygons will be used instead.")
+            self.warn("The selected shapefile contains polygons and kernel \
+                      weights can only be computed on points. " +
+                      "The centroids of the specified polygons will be used\
+                      instead.")
         elif self.model.shapes.type != pysal.cg.Point:
-            return self.warn("The selected shapefile does not contain points and kernel weights can only be computed on points.")
+            return self.warn("The selected shapefile does not contain points\
+                             and kernel weights can only be computed on \
+                             points.")
         kern = ['uniform', 'triangular', 'quadratic', 'quartic', 'gaussian'][
             self.KFuncChoice.GetSelection()]
         k = int(self.KNumNeighSpin.GetValue())
