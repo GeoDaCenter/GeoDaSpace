@@ -76,7 +76,7 @@ class guiRegModel(abstractmodel.AbstractModel):
 
     def checkKW(self, obj):
         print "running checkKW() this function needs work."
-        minK = int(math.ceil(obj.n**(1/3.0)))
+        minK = int(math.ceil(obj.n ** (1 / 3.0)))
         if min(obj.cardinalities.values()) < minK:
             return False
         return True
@@ -140,10 +140,10 @@ class guiRegModel(abstractmodel.AbstractModel):
             space = None
             # allowed estimators.
             # est =[OLS ,IV  ,GMM   ]
-            if bEndo:
-                est = [False, True, False]
-            else:
-                est = [True, False, False]
+            #if bEndo:
+            #    est = [False, True, False]
+            #else:
+            #    est = [True, False, False]
             meth = 'ols'
         elif mType == 1:  # Spatial Lag
             space = 'lag'
@@ -271,21 +271,26 @@ class guiRegModel(abstractmodel.AbstractModel):
         lYE, lH = len(self.data['spec']['YE']), len(self.data['spec']['H'])
         if lYE > 0 or lH > 0:
             if lH < lYE:
-                return False, "There need to be at least as many instruments (H) as endogenous variables (YE)."
+                return False, "There need to be at least as many instruments \
+                        (H) as endogenous variables (YE)."
             # if lYE == 0:
             # return False,'Please add endogenous variables (YE) or disable the
             # "Endogeneity" option.'
         if self.data['spec']['y'] and self.data['spec']['X']:
             pass
         else:
-            return False, 'Model Spec is incomplete.  Please populate both X and Y'
+            return False, 'Model Spec is incomplete.\
+                    Please populate both X and Y'
         model_type = self.data['modelType']['mType']
         if model_type > 0 and not self.getMWeightsEnabled():
-            return False, 'This model specification requires a spatial weights matrix'
-        if model_type < 2 and self.data['modelType']['error']['hac'] and not self.getKWeightsEnabled():
+            return False, 'This model specification requires a spatial\
+                    weights matrix'
+        if model_type < 2 and self.data['modelType']['error']['hac'] and not \
+           self.getKWeightsEnabled():
             return False, 'The HAC requires a kernel spatial weights matrix'
         # LM Test is now automatic.
-        # if self.data['modelType']['spatial_tests']['lm'] and not self.getMWeightsEnabled():
+        # if self.data['modelType']['spatial_tests']['lm'] and not \
+                #self.getMWeightsEnabled():
         # return False,'LM Test requires Model Weights, please add or create a
         # weights file, or disable "LM".'
         return True, None
@@ -293,7 +298,7 @@ class guiRegModel(abstractmodel.AbstractModel):
     @staticmethod
     def get_col(db, col_name, allowMissing=False):
         col = db.by_col(col_name)
-        if pysal.MISSINGVALUE == None and pysal.MISSINGVALUE in col:
+        if pysal.MISSINGVALUE is None and pysal.MISSINGVALUE in col:
             raise ValueError(
                 "Data column \"%s\" contains missing values." % col_name)
         return col
@@ -385,7 +390,8 @@ class guiRegModel(abstractmodel.AbstractModel):
 
         config = data['config']
 
-        if self.getMWeightsEnabled() and model_type in ['Standard', 'Spatial Lag']:
+        if self.getMWeightsEnabled() and model_type in \
+           ['Standard', 'Spatial Lag']:
             LM_TEST = True
         else:
             LM_TEST = False
@@ -425,90 +431,105 @@ class guiRegModel(abstractmodel.AbstractModel):
             path.write('\n\n\n')
 
         return [r.summary for r in results]
-#        modelHeader = 'ModelType = %(mtype)s, Endogenous = %(endo)s'#, Standard Errors = %(errors)s'
-#        modelSpec = {}
-#        errors = []
-#        if data['modelType']['error']['hac']:
-#            errors.append('HAC')
-#        if data['modelType']['error']['het']:
-#            errors.append('KP HET')
-#        if data['modelType']['error']['white']:
-#            errors.append('White')
-#        if errors:
-#            modelSpec['errors'] = ', '.join(errors)
-#        else:
-#            modelSpec['errors'] = 'None'
-#        if data['modelType']['endogenous'] == True: #endogenous == yes
-#            modelSpec['endo'] = 'Y'
-#        else:
-#            modelSpec['endo'] = 'N'
-#
-#        db = self.db()
-#        if not db:
-#            raise TypeError, "This filetype is not yet supported"
-#
-#        # Setup the weights objects
-#        mws, kws = self.prepWeights(db)
-#
-#        # The Sprecification is stored in a dictionary object
-#        spec = data['spec']
-#        spec['yend'] = spec['YE']
-#
-#        if data['modelType']['endogenous'] == True: #endogenous == yes
-#            endo = 'endog'
-#        else: #endogenous == no
-#            endo = 'classic'
-#
-#        option = ''
-#        if data['modelType']['error']['hac']:
-#            option = 'hac'
-#        if data['modelType']['error']['het']:
-#            option = 'het'
-#
-#        mType = data['modelType']['mType']
-#        if mType == 0: #Standard
-#            modelSpec['mtype'] = 'Standard'
-#            space = ''
-#            meth = 'ols'
-#            if endo=='endog': #LINE ADDED BY NANCY
-#                meth= 'twosls'  #LINE ADDED BY NANCY
-#
-#        elif mType == 1: #Spatial Lag
-#            modelSpec['mtype'] = 'Spatial Lag'
-#            space = 'lag'
-#            meth = 'twosls'
-#        elif mType == 2: #Spatial Error
-#            modelSpec['mtype'] = 'Spatial Error'
-#            space = 'error'
-#            meth = 'ols'
-#            if endo=='endog': #LINE ADDED BY NANCY
-#                meth= 'twosls'  #LINE ADDED BY NANCY
-#
-#        elif mType == 3: #Spatial Lag+Error
-#            modelSpec['mtype'] = 'Spatial Lag+Error'
-#            space = 'lagerror'
-#            meth = 'twosls'
-#        elif mType == 4: #Regimes
-#            modelSpec['mtype'] = 'Regimes'
-#            pass
-#
-#        mdls = []
-#        if option is not 'hac':
-#            kws = [[]]
-#        else: #has is on...
-#            for mw in mws: #lets runs all the None HAC models first....
-#                mdl = spreg.spmodel(db, spec, model=endo, mweights = mw, kweights = [], space = space, option = '', white=data['modelType']['error']['white'],extraHeader=modelHeader%modelSpec, lmtestOn=data['modelType']['spatial_tests']['lm'])
-#                if meth =='ols':
-#                    mdl.ols(outfile=path)
-#                elif meth == 'twosls':
-#                    mdl.twosls(outfile=path)
-#                mdls.append(mdl)
-#        for mw in mws:
-#            for kw in kws:
-#                mdl = spreg.spmodel(db, spec, model=endo, mweights = mw, kweights = kw, space = space, option = option, white=data['modelType']['error']['white'],extraHeader=modelHeader%modelSpec, lmtestOn=data['modelType']['spatial_tests']['lm'])
-#                if meth =='ols':
-#                    mdl.ols(outfile=path)
-#                elif meth == 'twosls':
-#                    mdl.twosls(outfile=path)
-#                mdls.append(mdl)
-#        return mdls
+
+        """
+        modelHeader = 'ModelType = %(mtype)s, Endogenous = %(endo)s'#,
+        Standard Errors = %(errors)s'
+        modelSpec = {}
+        errors = []
+        if data['modelType']['error']['hac']:
+            errors.append('HAC')
+        if data['modelType']['error']['het']:
+            errors.append('KP HET')
+        if data['modelType']['error']['white']:
+            errors.append('White')
+        if errors:
+            modelSpec['errors'] = ', '.join(errors)
+        else:
+            modelSpec['errors'] = 'None'
+        if data['modelType']['endogenous'] == True: #endogenous == yes
+            modelSpec['endo'] = 'Y'
+        else:
+            modelSpec['endo'] = 'N'
+
+        db = self.db()
+        if not db:
+            raise TypeError, "This filetype is not yet supported"
+
+        # Setup the weights objects
+        mws, kws = self.prepWeights(db)
+
+        # The Sprecification is stored in a dictionary object
+        spec = data['spec']
+        spec['yend'] = spec['YE']
+
+        if data['modelType']['endogenous'] == True: #endogenous == yes
+            endo = 'endog'
+        else: #endogenous == no
+            endo = 'classic'
+
+        option = ''
+        if data['modelType']['error']['hac']:
+            option = 'hac'
+        if data['modelType']['error']['het']:
+            option = 'het'
+
+        mType = data['modelType']['mType']
+        if mType == 0: #Standard
+            modelSpec['mtype'] = 'Standard'
+            space = ''
+            meth = 'ols'
+            if endo=='endog': #LINE ADDED BY NANCY
+                meth= 'twosls'  #LINE ADDED BY NANCY
+
+        elif mType == 1: #Spatial Lag
+            modelSpec['mtype'] = 'Spatial Lag'
+            space = 'lag'
+            meth = 'twosls'
+        elif mType == 2: #Spatial Error
+            modelSpec['mtype'] = 'Spatial Error'
+            space = 'error'
+            meth = 'ols'
+            if endo=='endog': #LINE ADDED BY NANCY
+                meth= 'twosls'  #LINE ADDED BY NANCY
+
+        elif mType == 3: #Spatial Lag+Error
+            modelSpec['mtype'] = 'Spatial Lag+Error'
+            space = 'lagerror'
+            meth = 'twosls'
+        elif mType == 4: #Regimes
+            modelSpec['mtype'] = 'Regimes'
+            pass
+
+        mdls = []
+        if option is not 'hac':
+            kws = [[]]
+        else: #has is on...
+            for mw in mws: #lets runs all the None HAC models first....
+                mdl = spreg.spmodel(db, spec, model=endo, mweights=mw,
+                                    kweights=[], space=space, option='',
+                                    white=data['modelType']['error']['white'],
+                                    extraHeader=modelHeader % modelSpec,
+                                    lmtestOn=data['modelType']
+                                    ['spatial_tests']['lm'])
+                if meth =='ols':
+                    mdl.ols(outfile=path)
+                elif meth == 'twosls':
+                    mdl.twosls(outfile=path)
+                mdls.append(mdl)
+        for mw in mws:
+            for kw in kws:
+                mdl = spreg.spmodel(db, spec, model=endo, mweights=mw,
+                                    kweights=kw, space=space, option = option,
+                                    white=data['modelType']['error']['white'],
+                                    extraHeader=modelHeader % modelSpec,
+                                    lmtestOn=data['modelType']
+                                    ['spatial_tests']['lm'])
+                if meth =='ols':
+                    mdl.ols(outfile=path)
+                elif meth == 'twosls':
+                    mdl.twosls(outfile=path)
+                mdls.append(mdl)
+        return mdls
+
+        """
