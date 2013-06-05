@@ -236,7 +236,7 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
     def __init__(self, y, x, yend, q, regimes,\
              w=None, robust=None, gwk=None, sig2n_k=True,\
              spat_diag=False, vm=False, constant_regi='many',\
-             cols2regi='all', regime_err_sep=False, name_y=None, name_x=None,\
+             cols2regi='all', regime_err_sep=True, name_y=None, name_x=None,\
              cores=None, name_yend=None, name_q=None, name_regimes=None,\
              name_w=None, name_gwk=None, name_ds=None, summ=True):
        
