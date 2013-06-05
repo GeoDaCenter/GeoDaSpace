@@ -499,15 +499,15 @@ def summary(reg, vm, instruments, short_intro=False, nonspat_diag=False, spat_di
         summary += reg.__summary['summary_other_mid']
     except:
         pass
-    try:
-        summary += reg.__summary['summary_chow']
-    except:
-        pass
     if nonspat_diag:
         summary += reg.__summary['summary_nonspat_diag_2']
     if spat_diag:
         summary += summary_spat_diag_intro()
         summary += reg.__summary['summary_spat_diag']
+    try:
+        summary += reg.__summary['summary_chow']
+    except:
+        pass
     if vm:
         summary += summary_vm(reg, instruments)
     if other_end:
@@ -542,15 +542,16 @@ def summary_multi(reg, multireg, vm, instruments, short_intro=False, nonspat_dia
                 summary += reg.__summary['summary_other_mid']
             except:
                 pass
-            try:
-                summary += reg.__summary['summary_chow']
-            except:
-                pass
         if nonspat_diag:
             summary += mreg.__summary['summary_nonspat_diag_2']
         if spat_diag:
             summary += summary_spat_diag_intro()
             summary += mreg.__summary['summary_spat_diag']
+        if m == multireg.keys()[-1]:
+            try:
+                summary += reg.__summary['summary_chow']
+            except:
+                pass
         if vm:
             summary += summary_vm(mreg, instruments)
         if other_end:
