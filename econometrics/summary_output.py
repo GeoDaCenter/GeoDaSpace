@@ -569,12 +569,13 @@ def _get_var_indices(reg, lambd=False):
     except:
         var_names = reg.name_x
     last_v = len(var_names)
-    kf = reg.kf
     if lambd:
         last_v += -1
-        kf += -1
     indices = []
     try:
+        kf = reg.kf
+        if lambd:
+            kf += -1
         krex = reg.kr-reg.kryd
         try:
             kfyd = reg.yend.shape[1]-reg.nr*reg.kryd
