@@ -396,7 +396,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                  w=None, w_lags=1, lag_q=True,\
                  robust=None, gwk=None, sig2n_k=False,\
                  spat_diag=False, constant_regi='many',\
-                 cols2regi='all', regime_lag_sep=True, regime_err_sep=True,\
+                 cols2regi='all', regime_lag_sep=False, regime_err_sep=True,\
                  cores=None, vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None, name_regimes=None,\
                  name_w=None, name_gwk=None, name_ds=None):
