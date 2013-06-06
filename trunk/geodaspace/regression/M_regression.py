@@ -399,32 +399,33 @@ class guiRegModel(abstractmodel.AbstractModel):
         print w_list, wk_list
         fname = os.path.basename(data['fname'])
         results = spmodel(
-            fname, w_list, wk_list, y, name_y, x, x_names, ye, ye_names,
-            h, h_names, r, name_r, s, name_s, t, name_t,
-            model_type,  # data['modelType']['endogenous'],
+            name_ds=fname, w_list=w_list, wk_list=wk_list, y=y, name_y=name_y, x=x, name_x=x_names, ye=ye, name_ye=ye_names,
+            h=h, h_names=name_h, r=r, name_r=name_r, s=s, name_s=name_s, t=t, name_t=name_t,
+            model_type=model_type,  # data['modelType']['endogenous'],
             # data['modelType']['spatial_tests']['lm'],
-            LM_TEST,
-            data['modelType']['error']['white'], data['modelType'][
-                'error']['hac'], data['modelType']['error']['het'],
+            spat_diag=LM_TEST,
+            white=data['modelType']['error']['white'], 
+            hac=data['modelType']['error']['hac'], 
+            kp_het=data['modelType']['error']['het'],
             # config.....
-            config['sig2n_k_ols'],
-            config['sig2n_k_2sls'],
-            config['sig2n_k_gmlag'],
-            config['gmm_max_iter'],
-            config['gmm_epsilon'],
-            config['gmm_inferenceOnLambda'],
-            config['gmm_inv_method'],
-            config['gmm_step1c'],
-            config['instruments_w_lags'],
-            config['instruments_lag_q'],
-            config['output_vm_summary'],
-            predy_resid,
-            config['other_ols_diagnostics'],
-            config['white_test'],
-            config['other_residualMoran'],
-            config['regimes_regime_error'],
-            config['regimes_regime_lag'],
-            config['other_numcores'], method)
+            sig2n_k_ols=config['sig2n_k_ols'],
+            sig2n_k_tsls=config['sig2n_k_2sls'],
+            sig2n_k_gmlag=config['sig2n_k_gmlag'],
+            max_iter=config['gmm_max_iter'],
+            stop_crit=config['gmm_epsilon'],
+            inf_lambda=config['gmm_inferenceOnLambda'],
+            comp_inverse=config['gmm_inv_method'],
+            step1c=config['gmm_step1c'],
+            instrument_lags=config['instruments_w_lags'],
+            lag_user_inst=config['instruments_lag_q'],
+            vc_matrix=config['output_vm_summary'],
+            predy_resid=predy_resid,
+            ols_diag=config['other_ols_diagnostics'],
+            moran=config['other_residualMoran'],
+            white_test=config['white_test'],
+            regime_err_sep=config['regimes_regime_error'],
+            regime_lag_sep=config['regimes_regime_lag'],
+            cores=config['other_numcores'], method=method)
         print results
         for r in results:
             path.write(r.summary)
