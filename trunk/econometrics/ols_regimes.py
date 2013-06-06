@@ -8,11 +8,12 @@ import regimes as REGI
 import user_output as USER
 import multiprocessing as mp
 from ols import BaseOLS
-from utils import set_warn
+from utils import set_warn, spbroadcast
 from robust import hac_multi
 import summary_output as SUMMARY
 import numpy as np
 from platform import system
+import scipy.sparse as SP
 
 
 class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
@@ -269,7 +270,12 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
     >>> r_var = 'SOUTH'
     >>> regimes = db.by_col(r_var)
 
-    >>> olsr = OLS_Regimes(y, x, regimes, nonspat_diag=False, name_y=y_var, name_x=['APS90','UE90'], name_regimes=r_var, name_ds='NAT')
+    We can now run the regression and then have a summary of the output
+    by typing: olsr.summary
+    Alternatively, we can just check the betas and standard errors of the
+    parameters:
+
+    >>> olsr = OLS_Regimes(y, x, regimes, nonspat_diag=False, name_y=y_var, name_x=['PS90','UE90'], name_regimes=r_var, name_ds='NAT')
     >>> olsr.betas
     array([[ 0.39642899],
            [ 0.65583299],
@@ -277,42 +283,11 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
            [ 5.59835   ],
            [ 1.16210453],
            [ 0.53163886]])
-    >>> olsr.std_err
-    array([ 0.31880436,  0.12413205,  0.04661535,  0.38716735,  0.17888871,
-            0.04908804])
+    >>> np.sqrt(olsr.vm.diagonal())
+    array([ 0.24816345,  0.09662678,  0.03628629,  0.46894564,  0.21667395,
+            0.05945651])
     >>> olsr.cols2regi
     'all'
-    >>> print olsr.summary
-    REGRESSION
-    ----------
-    SUMMARY OF OUTPUT: ORDINARY LEAST SQUARES - REGIMES
-    ---------------------------------------------------
-    Data set            :         NAT
-    Dependent Variable  :        HR90               Number of Observations:        3085
-    Mean dependent var  :      6.1829               Number of Variables   :           6
-    S.D. dependent var  :      6.6414               Degrees of Freedom    :        3079
-    R-squared           :      0.2851
-    Adjusted R-squared  :      0.2839
-    <BLANKLINE>
-    ------------------------------------------------------------------------------------
-                Variable     Coefficient       Std.Error     t-Statistic     Probability
-    ------------------------------------------------------------------------------------
-              0_CONSTANT       0.3964290       0.3188044       1.2434867       0.2137832
-                 0_APS90       0.6558330       0.1241320       5.2833494       0.0000001
-                  0_UE90       0.4870394       0.0466153      10.4480471       0.0000000
-              1_CONSTANT       5.5983500       0.3871674      14.4597677       0.0000000
-                 1_APS90       1.1621045       0.1788887       6.4962431       0.0000000
-                  1_UE90       0.5316389       0.0490880      10.8303144       0.0000000
-    ------------------------------------------------------------------------------------
-    Regimes variable: SOUTH
-    <BLANKLINE>
-    REGIMES DIAGNOSTICS - CHOW TEST
-                     VARIABLE        DF        VALUE           PROB
-                     CONSTANT         1      107.579486        0.0000000
-                        APS90         1        5.406269        0.0200646
-                         UE90         1        0.434056        0.5100055
-                  Global test         3      719.076563        0.0000000
-    ================================ END OF REPORT =====================================
     """
     def __init__(self, y, x, regimes,\
                  w=None, robust=None, gwk=None, sig2n_k=True,\
@@ -336,30 +311,33 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
         self.name_y = USER.set_name_y(name_y)
         self.name_regimes = USER.set_name_ds(name_regimes)
         self.n = n        
-        if regime_err_sep == True:
-            name_x = USER.set_name_x(name_x, x)
+        cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, add_cons=False)
+        self.regimes_set = REGI._get_regimes_set(regimes)
+        if regime_err_sep == True and set(cols2regi) == set([True]):
             self.y = y
-            cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, add_cons=False)
-            self.regimes_set = REGI._get_regimes_set(regimes)
+            name_x = USER.set_name_x(name_x, x)
             if w:
                 w_i,regi_ids,warn = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True, min_n=len(self.cols2regi)+1)
                 set_warn(self,warn)
             else:
                 regi_ids = dict((r, list(np.where(np.array(regimes) == r)[0])) for r in self.regimes_set)
                 w_i = None
-            if set(cols2regi) == set([True]):
-                self._ols_regimes_multi(x, w_i, regi_ids, cores,\
-                 gwk, sig2n_k, robust, nonspat_diag, spat_diag, vm, name_x, moran, white_test)
-            else:
-                raise Exception, "All coefficients must vary accross regimes if regime_err_sep = True."
+            self._ols_regimes_multi(x, w_i, regi_ids, cores,\
+             gwk, sig2n_k, robust, nonspat_diag, spat_diag, vm, name_x, moran, white_test)
         else:
-            cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, add_cons=False)
             name_x = USER.set_name_x(name_x, x,constant=True)
             x, self.name_x = REGI.Regimes_Frame.__init__(self, x,\
                     regimes, constant_regi, cols2regi, name_x)
-            BaseOLS.__init__(self, y=y, x=x, robust=robust, gwk=gwk, \
-                    sig2n_k=sig2n_k)
-            self.title = "ORDINARY LEAST SQUARES - REGIMES"
+            if regime_err_sep == True:
+                ols1 = BaseOLS(y=y, x=x, sig2n_k=sig2n_k)
+                y2, x2 = REGI._get_weighted_var(regimes,self.regimes_set,sig2n_k,ols1.u,y,x)
+                BaseOLS.__init__(self, y=y2, x=x2, sig2n_k=sig2n_k)
+                self.title = "ORDINARY LEAST SQUARES - REGIMES (Group-wise heteroskedasticity)"
+                robust, nonspat_diag = None, None
+                set_warn(self,"Residuals treated as homoskedastic for the purpose of diagnostics.")
+            else:
+                BaseOLS.__init__(self, y=y, x=x, robust=robust, gwk=gwk, sig2n_k=sig2n_k)                
+                self.title = "ORDINARY LEAST SQUARES - REGIMES"
             self.robust = USER.set_robust(robust)
             self.chow = REGI.Chow(self)
             SUMMARY.OLS(reg=self, vm=vm, w=w, nonspat_diag=nonspat_diag,\
@@ -449,6 +427,6 @@ if __name__ == '__main__':
     regimes = db.by_col(r_var)
     w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    olsr = OLS_Regimes(y, x, regimes, w=w, constant_regi='many', nonspat_diag=True, spat_diag=True, name_y=y_var, name_x=['AINC','HOVAL'], name_ds='columbus', name_regimes=r_var, name_w='columbus.gal', regime_err_sep=True)
+    olsr = OLS_Regimes(y, x, regimes, w=w, constant_regi='many', nonspat_diag=False, spat_diag=True, name_y=y_var, name_x=['INC','HOVAL'], name_ds='columbus', name_regimes=r_var, name_w='columbus.gal', regime_err_sep=True, cols2regi=[True,False], sig2n_k=False)
     print olsr.summary
 

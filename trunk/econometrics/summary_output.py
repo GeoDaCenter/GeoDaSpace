@@ -50,6 +50,7 @@ def OLS(reg, vm, w, nonspat_diag, spat_diag, moran, white_test, regimes=False):
         spat_diag_ols(reg, w, moran)
     if regimes:
         summary_regimes(reg)
+    summary_warning(reg)
     summary(reg=reg, vm=vm, instruments=False, nonspat_diag=nonspat_diag, spat_diag=spat_diag)
 
 def OLS_multi(reg, multireg, vm, nonspat_diag, spat_diag, moran, white_test, regimes=False, sur=False):
@@ -101,6 +102,7 @@ def TSLS(reg, vm, w, spat_diag, regimes=False):
     build_coefs_body_instruments(reg)
     if regimes:
         summary_regimes(reg)
+    summary_warning(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag)
 
 def TSLS_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False):
@@ -776,9 +778,9 @@ def summary_chow(reg):
 def summary_warning(reg):
     try:
         try:
-            reg.__summary['summary_other_mid'] += reg.warning+"\n"
+            reg.__summary['summary_other_mid'] += reg.warning
         except:
-            reg.__summary['summary_other_mid'] = reg.warning+"\n" 
+            reg.__summary['summary_other_mid'] = reg.warning 
     except:
         pass
 
