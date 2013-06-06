@@ -399,13 +399,28 @@ class guiRegModel(abstractmodel.AbstractModel):
         print w_list, wk_list
         fname = os.path.basename(data['fname'])
         results = spmodel(
-            name_ds=fname, w_list=w_list, wk_list=wk_list, y=y, name_y=name_y, x=x, name_x=x_names, ye=ye, name_ye=ye_names,
-            h=h, h_names=name_h, r=r, name_r=name_r, s=s, name_s=name_s, t=t, name_t=name_t,
+            name_ds=fname,
+            w_list=w_list,
+            wk_list=wk_list,
+            y=y,
+            name_y=name_y,
+            x=x,
+            name_x=x_names,
+            ye=ye,
+            name_ye=ye_names,
+            h=h,
+            name_h=h_names,
+            r=r,
+            name_r=name_r,
+            s=s,
+            name_s=name_s,
+            t=t,
+            name_t=name_t,
             model_type=model_type,  # data['modelType']['endogenous'],
             # data['modelType']['spatial_tests']['lm'],
             spat_diag=LM_TEST,
-            white=data['modelType']['error']['white'], 
-            hac=data['modelType']['error']['hac'], 
+            white=data['modelType']['error']['white'],
+            hac=data['modelType']['error']['hac'],
             kp_het=data['modelType']['error']['het'],
             # config.....
             sig2n_k_ols=config['sig2n_k_ols'],
@@ -425,7 +440,9 @@ class guiRegModel(abstractmodel.AbstractModel):
             white_test=config['white_test'],
             regime_err_sep=config['regimes_regime_error'],
             regime_lag_sep=config['regimes_regime_lag'],
-            cores=config['other_numcores'], method=method)
+            cores=config['other_numcores'],
+            method=method
+        )
         print results
         for r in results:
             path.write(r.summary)
