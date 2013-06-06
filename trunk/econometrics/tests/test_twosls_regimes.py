@@ -22,7 +22,7 @@ class TestTSLS(unittest.TestCase):
         self.regimes = db.by_col(self.r_var)
 
     def test_basic(self):
-        reg = TSLS_Regimes(self.y, self.x, self.yd, self.q, self.regimes)        
+        reg = TSLS_Regimes(self.y, self.x, self.yd, self.q, self.regimes, regime_err_sep=False)        
         betas = np.array([[ 80.23408166],[  5.48218125],[ 82.98396737],[  0.49775429],[ -3.72663211],[ -1.27451485]])
         np.testing.assert_array_almost_equal(reg.betas, betas, 7)
         h_0 = np.array([[  0.   ,   0.   ,   1.   ,  19.531,   0.   ,   5.03 ]])
@@ -148,7 +148,7 @@ class TestTSLS(unittest.TestCase):
         self.assertEqual(reg.title, title)
         
     def test_n_k(self):
-        reg = TSLS_Regimes(self.y, self.x, self.yd, self.q, self.regimes, sig2n_k=True)
+        reg = TSLS_Regimes(self.y, self.x, self.yd, self.q, self.regimes, sig2n_k=True, regime_err_sep=False)
         betas = np.array([[ 80.23408166],[  5.48218125],[ 82.98396737],[  0.49775429],[ -3.72663211],[ -1.27451485]])
         np.testing.assert_array_almost_equal(reg.betas, betas, 7)
         vm = np.array([[ 495.16048523,   78.89742341,    0.        ,    0.        ,\
@@ -167,7 +167,7 @@ class TestTSLS(unittest.TestCase):
 
     def test_spatial(self):
         w = pysal.queen_from_shapefile(pysal.examples.get_path('columbus.shp'))
-        reg = TSLS_Regimes(self.y, self.x, self.yd, self.q, self.regimes, spat_diag=True, w=w)
+        reg = TSLS_Regimes(self.y, self.x, self.yd, self.q, self.regimes, spat_diag=True, w=w, regime_err_sep=False)
         betas = np.array([[ 80.23408166],[  5.48218125],[ 82.98396737],[  0.49775429],[ -3.72663211],[ -1.27451485]])
         np.testing.assert_array_almost_equal(reg.betas, betas, 7)
         vm = np.array([[ 495.16048523,   78.89742341,    0.        ,    0.        ,\
@@ -197,7 +197,7 @@ class TestTSLS(unittest.TestCase):
         name_gwk = 'k=5'
         name_ds = 'columbus'
         name_regimes= 'nsa'
-        reg = TSLS_Regimes(self.y, self.x, self.yd, self.q, self.regimes,
+        reg = TSLS_Regimes(self.y, self.x, self.yd, self.q, self.regimes, regime_err_sep=False,
                 spat_diag=True, w=w, robust='hac', gwk=gwk, name_regimes=name_regimes,
                 name_x=name_x, name_y=name_y, name_q=name_q, name_w=name_w,
                 name_yend=name_yend, name_gwk=name_gwk, name_ds=name_ds)
@@ -243,16 +243,16 @@ class TestTSLS(unittest.TestCase):
         vm = np.hstack((model1.vm.diagonal(),model2.vm.diagonal()))
         np.testing.assert_array_almost_equal(model.vm.diagonal(), vm, 6)
         #Columbus:
-        reg = TSLS_Regimes(self.y, self.x, regimes=self.regimes, yend=self.yd, q=self.q, regime_err_sep=True)
+        reg = TSLS_Regimes(self.y, self.x, regimes=self.regimes, yend=self.yd, q=self.q, regime_err_sep=False)
         tbetas = np.array([[ 80.23408166],
        [  5.48218125],
-       [ -3.72663211],
        [ 82.98396737],
        [  0.49775429],
-       [ -1.27451485]])
+       [ -3.72663211],
+       [ -1.27451485],])
         np.testing.assert_array_almost_equal(tbetas, reg.betas)
-        vm = np.array([ 708.8550778 ,  112.94689475,  -67.46930685,    0.        ,
-          0.        ,    0.        ])
+        vm = np.array([ 495.16048523,   78.89742341,    0.        ,    0.        ,
+        -47.12971066,    0.        ])
         np.testing.assert_array_almost_equal(reg.vm[0], vm, 6)
         u_3 = np.array([[ 25.57676372],
        [-17.94922796],
@@ -262,11 +262,11 @@ class TestTSLS(unittest.TestCase):
        [ 36.75098196],
        [ 57.34266859]])
         np.testing.assert_array_almost_equal(reg.predy[0:3], predy_3, 7)
-        chow_regi = np.array([[ 0.00681288,  0.93421718],
-       [ 0.2573018 ,  0.61197995],
-       [ 0.27277636,  0.60147542]])
+        chow_regi = np.array([[ 0.00616179,  0.93743265],
+       [ 0.3447218 ,  0.55711631],
+       [ 0.37093662,  0.54249417]])
         np.testing.assert_array_almost_equal(reg.chow.regi, chow_regi, 7)
-        self.assertAlmostEqual(reg.chow.joint[0], 1.1427164889141208, 7)
+        self.assertAlmostEqual(reg.chow.joint[0], 1.1353790779821029, 7)
 
 if __name__ == '__main__':
     start_suppress = np.get_printoptions()['suppress']

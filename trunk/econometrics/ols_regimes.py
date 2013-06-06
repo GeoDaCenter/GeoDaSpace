@@ -8,7 +8,7 @@ import regimes as REGI
 import user_output as USER
 import multiprocessing as mp
 from ols import BaseOLS
-from utils import set_warn, spbroadcast
+from utils import set_warn, spbroadcast, RegressionProps_basic, RegressionPropsY
 from robust import hac_multi
 import summary_output as SUMMARY
 import numpy as np
@@ -16,7 +16,7 @@ from platform import system
 import scipy.sparse as SP
 
 
-class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
+class OLS_Regimes(BaseOLS, REGI.Regimes_Frame, RegressionPropsY):
     """
     Ordinary least squares with results and diagnostics.
     
@@ -329,9 +329,10 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame):
             x, self.name_x = REGI.Regimes_Frame.__init__(self, x,\
                     regimes, constant_regi, cols2regi, name_x)
             if regime_err_sep == True:
-                ols1 = BaseOLS(y=y, x=x, sig2n_k=sig2n_k)
-                y2, x2 = REGI._get_weighted_var(regimes,self.regimes_set,sig2n_k,ols1.u,y,x)
-                BaseOLS.__init__(self, y=y2, x=x2, sig2n_k=sig2n_k)
+                BaseOLS.__init__(self, y=y, x=x, sig2n_k=sig2n_k)
+                y2, x2 = REGI._get_weighted_var(regimes,self.regimes_set,sig2n_k,self.u,y,x)
+                ols2 = BaseOLS(y=y2, x=x2, sig2n_k=sig2n_k)
+                RegressionProps_basic(self,betas=ols2.betas,vm=ols2.vm)
                 self.title = "ORDINARY LEAST SQUARES - REGIMES (Group-wise heteroskedasticity)"
                 robust, nonspat_diag = None, None
                 set_warn(self,"Residuals treated as homoskedastic for the purpose of diagnostics.")
@@ -427,6 +428,6 @@ if __name__ == '__main__':
     regimes = db.by_col(r_var)
     w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    olsr = OLS_Regimes(y, x, regimes, w=w, constant_regi='many', nonspat_diag=False, spat_diag=True, name_y=y_var, name_x=['INC','HOVAL'], name_ds='columbus', name_regimes=r_var, name_w='columbus.gal', regime_err_sep=True, cols2regi=[True,False], sig2n_k=False)
+    olsr = OLS_Regimes(y, x, regimes, w=w, constant_regi='many', nonspat_diag=False, spat_diag=True, name_y=y_var, name_x=['INC','HOVAL'], name_ds='columbus', name_regimes=r_var, name_w='columbus.gal', regime_err_sep=True, cols2regi=[True,True], sig2n_k=False)
     print olsr.summary
 

@@ -341,24 +341,6 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
      ['1_W_HR90' '-0.2960338' '0.19934459']]
 
     Alternatively, we can type: 'model.summary' to see the organized results output.
-    If instead we want to have varying coefficients for the spatial lag
-    but only one regression, restricting the sigma^2 to be the same across
-    regimes, we can se regime_err_sep to False. The change in the option regime_err_sep
-    will not affect the estimated coefficients, as expected, but the standard
-    errors will reflect the restricted sigma^2:
-
-    >>> model=GM_Lag_Regimes(y, x, regimes, w=w, regime_lag_sep=True, regime_err_sep=False, name_y=y_var, name_x=x_var, name_regimes=r_var, name_ds='NAT', name_w='NAT.shp')
-    >>> print np.hstack((np.array(model.name_z).reshape(8,1),model.betas,np.sqrt(model.vm.diagonal().reshape(8,1))))
-    [['0_CONSTANT' '1.36584769' '0.51821919']
-     ['0_PS90' '0.80875730' '0.14725414']
-     ['0_UE90' '0.56946813' '0.06013865']
-     ['1_CONSTANT' '7.90731073' '1.34296528']
-     ['1_PS90' '1.27465703' '0.20283690']
-     ['1_UE90' '0.60167693' '0.06561510']
-     ['0_W_HR90' '-0.4342438' '0.17358818']
-     ['1_W_HR90' '-0.2960338' '0.16363680']]
-
-    Alternatively, we can type: 'model.summary' to see the organized results output.
     The class is flexible enough to accomodate a spatial lag model that,
     besides the spatial lag of the dependent variable, includes other
     non-spatial endogenous regressors. As an example, we will add the endogenous
@@ -578,8 +560,7 @@ def _test():
 
 
 if __name__ == '__main__':
-    #_test()        
-    
+    _test()    
     import numpy as np
     import pysal
     db = pysal.open(pysal.examples.get_path("columbus.dbf"),'r')

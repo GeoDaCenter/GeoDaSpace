@@ -756,6 +756,7 @@ def spmax(a):
         raise Exception, "Invalid format for 'spmultiply' argument: %s and %s"%(type(a).__name__, type(b).__name__)
 
 def set_warn(reg,warn):
+    ''' Groups warning messages for printout. '''
     if warn:
         try:
             reg.warning += "Warning: "+warn+"\n"
@@ -764,6 +765,31 @@ def set_warn(reg,warn):
     else:
         reg.warning = None
 
+def RegressionProps_basic(reg,betas=None,predy=None,u=None,sig2=None,sig2n_k=None,vm=None):
+    ''' Set props based on arguments passed. '''
+    if betas != None:
+        reg.betas = betas
+    if predy != None:
+        reg.predy = predy
+    else:
+        try:
+            reg.predy = spdot(reg.z, reg.betas)
+        except:
+            reg.predy = spdot(reg.x, reg.betas)
+    if u != None:
+        reg.u = u
+    else:
+        reg.u = reg.y-reg.predy
+    if sig2 !=None:
+        reg.sig2 = sig2
+    elif sig2n_k:
+        reg.sig2 = np.sum(reg.u**2) / (reg.n-reg.k)
+    else:
+        reg.sig2 = np.sum(reg.u**2) / reg.n
+    if vm != None:
+        reg.vm = vm
+
+        
 def _test():
     import doctest
     doctest.testmod()

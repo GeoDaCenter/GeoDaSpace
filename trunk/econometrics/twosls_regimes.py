@@ -2,7 +2,7 @@ import numpy as np
 import regimes as REGI
 import user_output as USER
 import multiprocessing as mp
-from utils import sphstack, set_warn
+from utils import sphstack, set_warn, RegressionProps_basic
 from twosls import BaseTSLS
 from robust import hac_multi
 import summary_output as SUMMARY
@@ -279,9 +279,10 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
                     regimes, constant_regi=None, \
                     cols2regi=cols2regi, yend=True, names=name_yend)
             if regime_err_sep == True:
-                tsls1 = BaseTSLS(y=y, x=x, yend=yend, q=q, sig2n_k=sig2n_k)
-                y2,x2,yend2,q2 = REGI._get_weighted_var(regimes,self.regimes_set,sig2n_k,tsls1.u,y,x,yend,q)
-                BaseTSLS.__init__(self, y=y2, x=x2, yend=yend2, q=q2, sig2n_k=sig2n_k)
+                BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q, sig2n_k=sig2n_k)
+                y2,x2,yend2,q2 = REGI._get_weighted_var(regimes,self.regimes_set,sig2n_k,self.u,y,x,yend,q)
+                tsls2 = BaseTSLS(y=y2, x=x2, yend=yend2, q=q2, sig2n_k=sig2n_k)
+                RegressionProps_basic(self,betas=tsls2.betas,vm=tsls2.vm)
                 self.title = "TWO STAGE LEAST SQUARES - REGIMES (Group-wise heteroskedasticity)"
                 robust = None
                 set_warn(self,"Residuals treated as homoskedastic for the purpose of diagnostics.")
