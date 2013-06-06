@@ -58,7 +58,7 @@ class Chow:
     >>> x = np.array([db.by_col(name) for name in x_var]).T
     >>> r_var = 'NSA'
     >>> regimes = db.by_col(r_var)
-    >>> olsr = OLS_Regimes(y, x, regimes, constant_regi='many', nonspat_diag=False, spat_diag=False, name_y=y_var, name_x=x_var, name_ds='columbus', name_regimes=r_var)
+    >>> olsr = OLS_Regimes(y, x, regimes, constant_regi='many', nonspat_diag=False, spat_diag=False, name_y=y_var, name_x=x_var, name_ds='columbus', name_regimes=r_var, regime_err_sep=False)
     >>> print olsr.name_x_r #x_var
     ['CONSTANT', 'INC', 'HOVAL']
     >>> print olsr.chow.regi
