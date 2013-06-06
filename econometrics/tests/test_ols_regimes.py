@@ -21,11 +21,14 @@ class TestOLS_regimes(unittest.TestCase):
     def test_OLS(self):
         start_suppress = np.get_printoptions()['suppress']
         np.set_printoptions(suppress=True)    
-        ols = OLS_Regimes(self.y, self.x, self.regimes, w=self.w, constant_regi='many', nonspat_diag=False, spat_diag=True, name_y=self.y_var, name_x=self.x_var, name_ds='columbus', name_regimes=self.r_var, name_w='columbus.gal')        
+        ols = OLS_Regimes(self.y, self.x, self.regimes, w=self.w, regime_err_sep=False, constant_regi='many', nonspat_diag=False, spat_diag=True, name_y=self.y_var, name_x=self.x_var, name_ds='columbus', name_regimes=self.r_var, name_w='columbus.gal')        
         #np.testing.assert_array_almost_equal(ols.aic, 408.73548964604873 ,7)
         np.testing.assert_array_almost_equal(ols.ar2,0.50761700679873101 ,7)
         np.testing.assert_array_almost_equal(ols.betas,np.array([[ 68.78670869],\
                 [ -1.9864167 ],[ -0.10887962],[ 67.73579559],[ -1.36937552],[ -0.31792362]])) 
+        vm = np.array([ 48.81339213,  -2.14959579,  -0.19968157,   0.        ,
+         0.        ,   0.        ])
+        np.testing.assert_array_almost_equal(ols.vm[0], vm, 6)
         np.testing.assert_array_almost_equal(ols.lm_error, \
             (5.92970357,  0.01488775),7)
         np.testing.assert_array_almost_equal(ols.lm_lag, \
@@ -34,33 +37,6 @@ class TestOLS_regimes(unittest.TestCase):
                 (8.89955982,  0.01168114), 7)
         np.testing.assert_array_almost_equal(ols.mean_y, \
             35.1288238979591,7)
-        #bp = np.array([2, 5.7667905131212587, 0.05594449410070558])
-        #ols_bp = np.array([ols.breusch_pagan['df'], ols.breusch_pagan['bp'], ols.breusch_pagan['pvalue']])
-        #np.testing.assert_array_almost_equal(bp, ols_bp, 7)
-        #np.testing.assert_array_almost_equal(ols.f_stat, \
-        #    (12.358198885356581, 5.0636903313953024e-05), 7)
-        #jb = np.array([2, 39.706155069114878, 2.387360356860208e-09])
-        #ols_jb = np.array([ols.jarque_bera['df'], ols.jarque_bera['jb'], ols.jarque_bera['pvalue']])
-        #np.testing.assert_array_almost_equal(ols_jb,jb, 7)
-        #white = np.array([5, 2.90606708, 0.71446484])
-        #ols_white = np.array([ols.white['df'], ols.white['wh'], ols.white['pvalue']])
-        #np.testing.assert_array_almost_equal(ols_white,white, 7)
-        #kb = {'df': 2, 'kb': 2.2700383871478675, 'pvalue': 0.32141595215434604}
-        #for key in kb:
-        #    self.assertAlmostEqual(ols.koenker_bassett[key],  kb[key], 7)
-        #np.testing.assert_array_almost_equal(ols.logll, -201.3677448230244 ,7)
-        #np.testing.assert_array_almost_equal(ols.moran_res[0], \
-        #    0.20373540938,7)
-        #np.testing.assert_array_almost_equal(ols.moran_res[1], \
-        #    2.59180452208,7)
-        #np.testing.assert_array_almost_equal(ols.moran_res[2], \
-        #    0.00954740031251,7)
-        #np.testing.assert_array_almost_equal(ols.mulColli, \
-        #    12.537554873824675 ,7)
-        #np.testing.assert_array_almost_equal(ols.schwarz, \
-        #    414.41095054038061,7 )
-        #np.testing.assert_array_almost_equal(ols.sig2ML, \
-        #    217.28602192257551,7 )
         np.testing.assert_equal(ols.k, 6)
         np.testing.assert_equal(ols.kf, 0)
         np.testing.assert_equal(ols.kr, 3)
@@ -131,5 +107,79 @@ class TestOLS_regimes(unittest.TestCase):
         np.testing.assert_array_almost_equal(reg.chow.regi, chow_regi, 7)
         self.assertAlmostEqual(reg.chow.joint[0], 0.67787986791767096, 7)
 
+    def test_OLS_regime_err_sep(self):
+        start_suppress = np.get_printoptions()['suppress']
+        np.set_printoptions(suppress=True)    
+        ols = OLS_Regimes(self.y, self.x, self.regimes, w=self.w, regime_err_sep=True, constant_regi='many', nonspat_diag=False, spat_diag=True, name_y=self.y_var, name_x=self.x_var, name_ds='columbus', name_regimes=self.r_var, name_w='columbus.gal')        
+        np.testing.assert_array_almost_equal(ols.betas,np.array([[ 68.78670869],\
+                [ -1.9864167 ],[ -0.10887962],[ 67.73579559],[ -1.36937552],[ -0.31792362]])) 
+        vm = np.array([ 41.68828023,  -1.83582717,  -0.17053478,   0.        ,
+         0.        ,   0.        ])
+        np.testing.assert_array_almost_equal(ols.vm[0], vm, 6)
+        np.testing.assert_array_almost_equal(ols.multi[0].lm_error, \
+            (5.45795541,  0.01947943),7)
+        np.testing.assert_array_almost_equal(ols.multi[0].lm_lag, \
+            (8.20573925,  0.00417581), 7)
+        np.testing.assert_array_almost_equal(ols.multi[0].lm_sarma, \
+                (8.39852379,  0.01500665), 7)
+        np.testing.assert_array_almost_equal(ols.multi[0].mean_y, \
+            31.614447920000003,7)
+        np.testing.assert_equal(ols.kf, 0)
+        np.testing.assert_equal(ols.kr, 3)
+        np.testing.assert_equal(ols.n, 49)
+        np.testing.assert_equal(ols.nr, 2)
+        np.testing.assert_equal(ols.name_ds,  'columbus')
+        np.testing.assert_equal(ols.name_gwk,  None)
+        np.testing.assert_equal(ols.name_w,  'columbus.gal')
+        np.testing.assert_equal(ols.name_x,  ['0_CONSTANT', '0_INC', '0_HOVAL', '1_CONSTANT', '1_INC', '1_HOVAL'])
+        np.testing.assert_equal(ols.multi[0].name_y,  '0_CRIME')
+        np.testing.assert_array_almost_equal(ols.predy[3], np.array([
+            51.05003696]),7)
+        np.testing.assert_array_almost_equal(ols.multi[0].r2, \
+                0.6298789694928845 ,7)
+        np.testing.assert_equal(ols.multi[0].robust,  'unadjusted')
+        np.testing.assert_array_almost_equal(ols.multi[0].sig2, \
+            117.72766418598968,7 )
+        np.testing.assert_array_almost_equal(ols.multi[0].sig2n, \
+                103.60034448367092, 7)
+        np.testing.assert_array_almost_equal(ols.multi[0].t_stat[2][0], \
+                -0.46900084351673077,7)
+        np.testing.assert_array_almost_equal(ols.multi[0].t_stat[2][1], \
+                0.6436834438232635,7)
+        np.set_printoptions(suppress=start_suppress)  
+
+    def test_OLS_fixed(self):
+        start_suppress = np.get_printoptions()['suppress']
+        np.set_printoptions(suppress=True)    
+        ols = OLS_Regimes(self.y, self.x, self.regimes, w=self.w, cols2regi=[False,True], regime_err_sep=True, constant_regi='one', nonspat_diag=False, spat_diag=True, name_y=self.y_var, name_x=self.x_var, name_ds='columbus', name_regimes=self.r_var, name_w='columbus.gal')        
+        np.testing.assert_array_almost_equal(ols.betas,np.array([[ -0.24385565], [ -0.26335026], [ 68.89701137], [ -1.67389685]])) 
+        vm = np.array([ 0.02354271,  0.01246677,  0.00424658, -0.04921356])
+        np.testing.assert_array_almost_equal(ols.vm[0], vm, 6)
+        np.testing.assert_array_almost_equal(ols.lm_error, \
+            (5.62668744,  0.01768903),7)
+        np.testing.assert_array_almost_equal(ols.lm_lag, \
+            (9.43264957,  0.00213156), 7)
+        np.testing.assert_array_almost_equal(ols.mean_y, \
+            35.12882389795919,7)
+        np.testing.assert_equal(ols.kf, 2)
+        np.testing.assert_equal(ols.kr, 1)
+        np.testing.assert_equal(ols.n, 49)
+        np.testing.assert_equal(ols.nr, 2)
+        np.testing.assert_equal(ols.name_ds,  'columbus')
+        np.testing.assert_equal(ols.name_gwk,  None)
+        np.testing.assert_equal(ols.name_w,  'columbus.gal')
+        np.testing.assert_equal(ols.name_x,  ['0_HOVAL', '1_HOVAL', '_Global_CONSTANT', '_Global_INC'])
+        np.testing.assert_equal(ols.name_y,  'CRIME')
+        np.testing.assert_array_almost_equal(ols.predy[3], np.array([
+            52.65974636]),7)
+        np.testing.assert_array_almost_equal(ols.r2, \
+                0.5525561183786056 ,7)
+        np.testing.assert_equal(ols.robust,  'unadjusted')
+        np.testing.assert_array_almost_equal(ols.t_stat[2][0], \
+                13.848705206463748,7)
+        np.testing.assert_array_almost_equal(ols.t_stat[2][1], \
+                7.776650625274256e-18,7)
+        np.set_printoptions(suppress=start_suppress)
+        
 if __name__ == '__main__':
     unittest.main()
