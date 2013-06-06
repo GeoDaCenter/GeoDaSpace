@@ -409,7 +409,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         else:
             cols2regi += [False]            
 
-        if regime_err_sep == True and set(cols2regi) == set([True]):
+        if regime_err_sep == True and set(cols2regi) == set([True]) and constant_regi == 'many':
             self.GM_Lag_Regimes_Multi(y, x, w_i, regi_ids,\
                  yend=yend, q=q, w_lags=w_lags, lag_q=lag_q, cores=cores,\
                  robust=robust, gwk=gwk, sig2n_k=sig2n_k, cols2regi=cols2regi,\

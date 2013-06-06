@@ -258,7 +258,7 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         self.n = n
         cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, yend=yend, add_cons=False)
         self.regimes_set = REGI._get_regimes_set(regimes)        
-        if regime_err_sep == True and set(cols2regi) == set([True]):
+        if regime_err_sep == True and set(cols2regi) == set([True]) and constant_regi == 'many':
             name_x = USER.set_name_x(name_x, x)
             self.y = y
             if w:
