@@ -270,6 +270,9 @@ class guiRegModel(abstractmodel.AbstractModel):
         # if self.data['modelType']['endogenous'] == True: #endogenous == yes
         lYE, lH = len(self.data['spec']['YE']), len(self.data['spec']['H'])
         if lYE > 0 or lH > 0:
+            if lYE == 0:
+                return False, "There need to be at least one endogenous \
+                        variable (YE) if you have one or more instruments (H)."
             if lH < lYE:
                 return False, "There need to be at least as many instruments \
                         (H) as endogenous variables (YE)."
