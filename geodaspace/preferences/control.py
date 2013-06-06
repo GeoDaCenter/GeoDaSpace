@@ -402,21 +402,21 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         if evt:
             self.model.regimes_regime_error = self.RegimeError.GetValue()
         elif value is not None:
-            self.RegimeError.SetValue(self.model.regimes_regime_error)
-            if value:
-                self.model.regimes_regime_lag = True
-                self.RegimeLag.Disable()
+            if value is False and self.model.regimes_regime_lag is True:
+                self.model.regimes_regime_error = True
             else:
-                self.RegimeLag.Enable()
+                self.RegimeError.SetValue(value)
 
     def regimes_regime_lag(self, evtName=None, evt=None, value=None):
         if evt:
             self.model.regimes_regime_lag = self.RegimeLag.GetValue()
         elif value is not None:
-            if value is False and self.model.regimes_regime_error is True:
-                self.model.regimes_regime_lag = True
+            self.RegimeLag.SetValue(self.model.regimes_regime_lag)
+            if value:
+                self.model.regimes_regime_error = True
+                self.RegimeError.Disable()
             else:
-                self.RegimeLag.SetValue(value)
+                self.RegimeError.Enable()
 
     def SetPrefs(self, prefs):
         for key in prefs:

@@ -36,7 +36,7 @@ class preferencesModel(AbstractModel):
         'output_save_pred_residuals': False,
         'output_vm_summary': False,
         'output_show_detailed_spec': False,
-        'regimes_regime_error': False,
+        'regimes_regime_error': True,
         'regimes_regime_lag': False
     }
     sig2n_k_other = AbstractModel.abstractProp('sig2n_k_other', bool)
