@@ -222,15 +222,15 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
     array([[ 3.66973562],
            [ 1.06950466],
            [ 0.14680946],
+           [ 2.45864196],
            [ 9.55873243],
            [ 1.94666348],
            [-0.30810214],
-           [ 2.45864196],
            [ 3.68718119]])
 
-    >>> tslsr.std_err
-    array([ 0.46522151,  0.12074672,  0.05661795,  0.41893265,  0.16721773,
-            0.06631022,  0.27538921,  0.21745974])
+    >>> np.sqrt(tslsr.vm.diagonal())
+    array([ 0.38389901,  0.09963973,  0.04672091,  0.22725012,  0.49181223,
+            0.19630774,  0.07784587,  0.25529011])
 
     """
     def __init__(self, y, x, yend, q, regimes,\
@@ -256,24 +256,20 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         name_q = USER.set_name_q(name_q, q)
         self.name_x_r = USER.set_name_x(name_x, x) + name_yend            
         self.n = n
-        if regime_err_sep == True:
+        cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, yend=yend, add_cons=False)
+        self.regimes_set = REGI._get_regimes_set(regimes)        
+        if regime_err_sep == True and set(cols2regi) == set([True]):
             name_x = USER.set_name_x(name_x, x)
             self.y = y
-            cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, yend=yend, add_cons=False)
-            self.regimes_set = REGI._get_regimes_set(regimes)
             if w:
                 w_i,regi_ids,warn = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True, min_n=len(self.cols2regi)+1)
                 set_warn(self,warn)
             else:
                 regi_ids = dict((r, list(np.where(np.array(regimes) == r)[0])) for r in self.regimes_set)
                 w_i = None
-            if set(cols2regi) == set([True]):
-                self._tsls_regimes_multi(x, yend, q, w_i, regi_ids, cores,\
+            self._tsls_regimes_multi(x, yend, q, w_i, regi_ids, cores,\
                  gwk, sig2n_k, robust, spat_diag, vm, name_x, name_yend, name_q)
-            else:
-                raise Exception, "All coefficients must vary accross regimes if regime_err_sep = True."
         else:
-            cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, yend=yend, add_cons=False)
             name_x = USER.set_name_x(name_x, x,constant=True)
             q, self.name_q = REGI.Regimes_Frame.__init__(self, q, \
                     regimes, constant_regi=None, cols2regi='all', names=name_q)
@@ -282,14 +278,22 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
             yend, self.name_yend = REGI.Regimes_Frame.__init__(self, yend, \
                     regimes, constant_regi=None, \
                     cols2regi=cols2regi, yend=True, names=name_yend)
-            BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q, \
+            if regime_err_sep == True:
+                tsls1 = BaseTSLS(y=y, x=x, yend=yend, q=q, sig2n_k=sig2n_k)
+                y2,x2,yend2,q2 = REGI._get_weighted_var(regimes,self.regimes_set,sig2n_k,tsls1.u,y,x,yend,q)
+                BaseTSLS.__init__(self, y=y2, x=x2, yend=yend2, q=q2, sig2n_k=sig2n_k)
+                self.title = "TWO STAGE LEAST SQUARES - REGIMES (Group-wise heteroskedasticity)"
+                robust = None
+                set_warn(self,"Residuals treated as homoskedastic for the purpose of diagnostics.")
+            else:
+                BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q, \
                     robust=robust, gwk=gwk, sig2n_k=sig2n_k)
+                self.title = "TWO STAGE LEAST SQUARES - REGIMES"
             self.name_z = self.name_x + self.name_yend
             self.name_h = USER.set_name_h(self.name_x, self.name_q)
             self.chow = REGI.Chow(self)
             self.robust = USER.set_robust(robust)
             if summ:
-                self.title = "TWO STAGE LEAST SQUARES - REGIMES"
                 SUMMARY.TSLS(reg=self, vm=vm, w=w, spat_diag=spat_diag, regimes=True)
 
     def _tsls_regimes_multi(self, x, yend, q, w_i, regi_ids, cores,\
@@ -390,5 +394,5 @@ if __name__ == '__main__':
     q = np.array([db.by_col(name) for name in q_var]).T
     r_var = 'SOUTH'
     regimes = db.by_col(r_var)
-    tslsr = TSLS_Regimes(y, x, yd, q, regimes, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var)
+    tslsr = TSLS_Regimes(y, x, yd, q, regimes, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, cols2regi=[True,True,True,True,True],sig2n_k=False)
     print tslsr.summary

@@ -415,36 +415,35 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         self.constant_regi=constant_regi
         self.n = n
         cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, yend=yend, add_cons=False)    
+        self.cols2regi = cols2regi
+        self.regimes_set = REGI._get_regimes_set(regimes)
         if regime_lag_sep == True:
+            if not regime_err_sep:
+                raise Exception, "regime_err_sep must be True when regime_lag_sep=True."
             cols2regi += [True]
-            self.regimes_set = REGI._get_regimes_set(regimes)
             w_i,regi_ids,warn = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True, min_n=len(cols2regi)+1)
             set_warn(self,warn)
-            if not regime_err_sep:
-                w = REGI.w_regimes_union(w, w_i, self.regimes_set)
+
         else:
-            cols2regi += [False]
-            if regime_err_sep == True:
-                raise Exception, "All coefficients must vary accross regimes if regime_err_sep = True."            
-        self.cols2regi = cols2regi
-        if regime_lag_sep == True and regime_err_sep == True:
-            if set(cols2regi) == set([True]):
-                self.GM_Lag_Regimes_Multi(y, x, w_i, regi_ids,\
+            cols2regi += [False]            
+
+        if regime_err_sep == True and set(cols2regi) == set([True]):
+            self.GM_Lag_Regimes_Multi(y, x, w_i, regi_ids,\
                  yend=yend, q=q, w_lags=w_lags, lag_q=lag_q, cores=cores,\
                  robust=robust, gwk=gwk, sig2n_k=sig2n_k, cols2regi=cols2regi,\
                  spat_diag=spat_diag, vm=vm, name_y=name_y, name_x=name_x,\
                  name_yend=name_yend, name_q=name_q, name_regimes=self.name_regimes,\
                  name_w=name_w, name_gwk=name_gwk, name_ds=name_ds)
-            else:
-                raise Exception, "All coefficients must vary accross regimes if regime_err_sep = True."
         else:
+            if regime_lag_sep == True:
+                w = REGI.w_regimes_union(w, w_i, self.regimes_set)
             yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
             name_yend.append(USER.set_name_yend_sp(name_y))
             TSLS_Regimes.__init__(self, y=y, x=x, yend=yend2, q=q2,\
                  regimes=regimes, w=w, robust=robust, gwk=gwk,\
                  sig2n_k=sig2n_k, spat_diag=spat_diag, vm=vm,\
-                 constant_regi=constant_regi, cols2regi=cols2regi, name_y=name_y,\
-                 name_x=name_x, name_yend=name_yend, name_q=name_q,\
+                 constant_regi=constant_regi, cols2regi=cols2regi, regime_err_sep=regime_err_sep,\
+                 name_y=name_y, name_x=name_x, name_yend=name_yend, name_q=name_q,\
                  name_regimes=name_regimes, name_w=name_w, name_gwk=name_gwk,\
                  name_ds=name_ds,summ=False)
             if regime_lag_sep:
@@ -454,7 +453,10 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                           yend2[:,-1].reshape(self.n,1),self.betas[-1])
                 set_warn(self,warn)
             self.regime_lag_sep=regime_lag_sep
-            self.title = "SPATIAL TWO STAGE LEAST SQUARES - REGIMES"
+            if regime_err_sep == True:
+                self.title = "SPATIAL TWO STAGE LEAST SQUARES - REGIMES (Group-wise heteroskedasticity)"
+            else:
+                self.title = "SPATIAL TWO STAGE LEAST SQUARES - REGIMES"
             SUMMARY.GM_Lag(reg=self, w=w, vm=vm, spat_diag=spat_diag, regimes=True)
 
     def GM_Lag_Regimes_Multi(self, y, x, w_i, regi_ids, cores=None,\
@@ -576,7 +578,7 @@ def _test():
 
 
 if __name__ == '__main__':
-    _test()        
+    #_test()        
     
     import numpy as np
     import pysal

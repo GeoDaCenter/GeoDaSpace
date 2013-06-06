@@ -758,9 +758,9 @@ def spmax(a):
 def set_warn(reg,warn):
     if warn:
         try:
-            reg.warning += warn
+            reg.warning += "Warning: "+warn+"\n"
         except:
-            reg.warning = warn
+            reg.warning = "Warning: "+warn+"\n"
     else:
         reg.warning = None
 

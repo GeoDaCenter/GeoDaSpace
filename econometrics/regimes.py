@@ -4,6 +4,7 @@ import scipy.sparse as SP
 import itertools as iter
 from scipy.stats import f, chisqprob
 import numpy.linalg as la
+from utils import spbroadcast
 
 """
 Tools for different regimes procedure estimations
@@ -477,7 +478,7 @@ def w_regimes(w, regimes, regimes_set, transform=True, get_ids=None, min_n=None)
         if transform:
             w_regi_i[r].transform = w.get_transform()
         if w_regi_i[r].islands:
-            warn = "\nWarning: The regimes operation resulted in islands for regime %s." %r
+            warn = "The regimes operation resulted in islands for regime %s." %r
     if get_ids:
         get_ids = regi_ids
     return w_regi_i, get_ids, warn
@@ -544,6 +545,7 @@ def x2xsp(x, regimes, regimes_set):
     return SP.csr_matrix((data, indices, indptr))
 
 def check_cols2regi(constant_regi, cols2regi, x, yend=None, add_cons=True):
+    ''' Checks if dimensions of list cols2regi match number of variables. '''
 
     if add_cons:
         is_cons = 1
@@ -567,9 +569,7 @@ def check_cols2regi(constant_regi, cols2regi, x, yend=None, add_cons=True):
     return cols2regi
 
 def _get_regimes_set(regimes):
-    '''
-    Creates a list with regimes in alphabetical order.
-    '''
+    ''' Creates a list with regimes in alphabetical order. '''
     regimes_set = list(set(regimes))
     if isinstance(regimes_set[0], float):
         regimes_set1 = list(set(map(int, regimes_set)))
@@ -577,6 +577,25 @@ def _get_regimes_set(regimes):
             regimes_set = regimes_set1
     regimes_set.sort()
     return regimes_set
+
+def _get_weighted_var(regimes,regimes_set,sig2n_k,u,y,x,yend=None,q=None):
+    regi_ids = dict((r, list(np.where(np.array(regimes) == r)[0])) for r in regimes_set)
+    if sig2n_k:
+        sig =  dict((r, np.dot(u[regi_ids[r]].T,u[regi_ids[r]])/(len(regi_ids[r])-x.shape[1])) for r in regimes_set)
+    else:
+        sig =  dict((r, np.dot(u[regi_ids[r]].T,u[regi_ids[r]])/len(regi_ids[r])) for r in regimes_set)
+    sig_vec = np.zeros(y.shape,float)
+    y2 = np.zeros(y.shape,float)
+    for r in regimes_set:
+        sig_vec[regi_ids[r]] = 1/float(np.sqrt(sig[r]))
+        y2[regi_ids[r]] = y[regi_ids[r]]/float(np.sqrt(sig[r]))
+    x2 = spbroadcast(x,sig_vec)
+    if yend != None:
+        yend2 = spbroadcast(yend,sig_vec)
+        q2 = spbroadcast(q,sig_vec)
+        return y2, x2, yend2, q2
+    else:
+        return y2, x2
 
 def _test():
     import doctest
