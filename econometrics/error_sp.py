@@ -301,7 +301,7 @@ class GM_Error(BaseGM_Error):
 
         n = USER.check_arrays(y, x)
         USER.check_y(y, n)
-        USER.check_weights(w, y)
+        USER.check_weights(w, y, w_required=True)
         x_constant = USER.check_constant(x)
         BaseGM_Error.__init__(self, y=y, x=x_constant, w=w.sparse)
         self.title = "SPATIALLY WEIGHTED LEAST SQUARES"        
@@ -644,7 +644,7 @@ class GM_Endog_Error(BaseGM_Endog_Error):
 
         n = USER.check_arrays(y, x, yend, q)
         USER.check_y(y, n)
-        USER.check_weights(w, y)
+        USER.check_weights(w, y, w_required=True)
         x_constant = USER.check_constant(x)
         BaseGM_Endog_Error.__init__(self, y=y, x=x_constant, w=w.sparse, yend=yend, q=q)
         self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES"        
@@ -1047,7 +1047,7 @@ class GM_Combo(BaseGM_Combo):
 
         n = USER.check_arrays(y, x, yend, q)
         USER.check_y(y, n)
-        USER.check_weights(w, y)
+        USER.check_weights(w, y, w_required=True)
         yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
         x_constant = USER.check_constant(x)
         BaseGM_Combo.__init__(self, y=y, x=x_constant, w=w.sparse, yend=yend2, q=q2,\

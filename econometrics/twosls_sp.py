@@ -477,7 +477,7 @@ class GM_Lag(BaseGM_Lag):
 
         n = USER.check_arrays(x, yend, q)
         USER.check_y(y, n)
-        USER.check_weights(w, y)
+        USER.check_weights(w, y, w_required=True)
         USER.check_robust(robust, gwk)
         yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
         x_constant = USER.check_constant(x)
