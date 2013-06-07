@@ -249,7 +249,7 @@ class GM_Endog_SUR():
         if sig2n_k:
             dof = list(results_stp2[r].n - results_stp2[r].k for r in eq_set)
             dof = np.array(dof).reshape(self.n_eq,1)
-            den=np.dot(dof,dof.T)**0.5
+            den = np.dot(dof,dof.T)**0.5
         else:
             den = np.array([float(self.n)]*self.n_eq**2).reshape(self.n_eq,self.n_eq)
         BigU1 = np.hstack((results_stp2[r].u for r in eq_set))
