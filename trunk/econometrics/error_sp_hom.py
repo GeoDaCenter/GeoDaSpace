@@ -368,7 +368,7 @@ class GM_Error_Hom(BaseGM_Error_Hom):
 
         n = USER.check_arrays(y, x)
         USER.check_y(y, n)
-        USER.check_weights(w, y)
+        USER.check_weights(w, y, w_required=True)
         x_constant = USER.check_constant(x)
         BaseGM_Error_Hom.__init__(self, y=y, x=x_constant, w=w.sparse, A1=A1,\
                 max_iter=max_iter, epsilon=epsilon)
@@ -786,7 +786,7 @@ class GM_Endog_Error_Hom(BaseGM_Endog_Error_Hom):
 
         n = USER.check_arrays(y, x, yend, q)
         USER.check_y(y, n)
-        USER.check_weights(w, y)
+        USER.check_weights(w, y, w_required=True)
         x_constant = USER.check_constant(x)
         BaseGM_Endog_Error_Hom.__init__(self, y=y, x=x_constant, w=w.sparse, yend=yend, q=q,\
                 A1=A1, max_iter=max_iter, epsilon=epsilon)
@@ -1219,7 +1219,7 @@ class GM_Combo_Hom(BaseGM_Combo_Hom):
     
         n = USER.check_arrays(y, x, yend, q)
         USER.check_y(y, n)
-        USER.check_weights(w, y)
+        USER.check_weights(w, y, w_required=True)
         yend2, q2 = set_endog(y, x, w, yend, q, w_lags, lag_q)
         x_constant = USER.check_constant(x)
         BaseGM_Combo_Hom.__init__(self, y=y, x=x_constant, w=w.sparse, yend=yend2, q=q2,\
