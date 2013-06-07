@@ -396,7 +396,7 @@ def check_y(y, n):
     if shape != (n, 1):
         raise Exception, "y must be a single column array matching the length of other arrays"
 
-def check_weights(w, y):
+def check_weights(w, y, w_required=False):
     """Check if the w parameter passed by the user is a pysal.W object and
     check that its dimensionality matches the y parameter.  Note that this
     check is not performed if w set to None.
@@ -435,7 +435,9 @@ def check_weights(w, y):
     >>> # should not raise an exception
 
     """
-    if w != None:
+    if w_required == True or w != None:
+        if w == None:
+            raise Exception, "A weights matrix w must be provided to run this method."            
         if not isinstance(w, pysal.W):
             raise Exception, "w must be a pysal.W object"
         if w.n != y.shape[0]:
