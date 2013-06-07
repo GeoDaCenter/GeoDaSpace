@@ -328,16 +328,15 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame, RegressionPropsY):
             name_x = USER.set_name_x(name_x, x,constant=True)
             x, self.name_x = REGI.Regimes_Frame.__init__(self, x,\
                     regimes, constant_regi, cols2regi, name_x)
-            if regime_err_sep == True:
-                BaseOLS.__init__(self, y=y, x=x, sig2n_k=sig2n_k)
+            BaseOLS.__init__(self, y=y, x=x, robust=robust, gwk=gwk, sig2n_k=sig2n_k)
+            if regime_err_sep == True and robust == None:
                 y2, x2 = REGI._get_weighted_var(regimes,self.regimes_set,sig2n_k,self.u,y,x)
                 ols2 = BaseOLS(y=y2, x=x2, sig2n_k=sig2n_k)
                 RegressionProps_basic(self,betas=ols2.betas,vm=ols2.vm)
                 self.title = "ORDINARY LEAST SQUARES - REGIMES (Group-wise heteroskedasticity)"
-                robust, nonspat_diag = None, None
+                nonspat_diag = None
                 set_warn(self,"Residuals treated as homoskedastic for the purpose of diagnostics.")
             else:
-                BaseOLS.__init__(self, y=y, x=x, robust=robust, gwk=gwk, sig2n_k=sig2n_k)                
                 self.title = "ORDINARY LEAST SQUARES - REGIMES"
             self.robust = USER.set_robust(robust)
             self.chow = REGI.Chow(self)
@@ -428,6 +427,7 @@ if __name__ == '__main__':
     regimes = db.by_col(r_var)
     w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    olsr = OLS_Regimes(y, x, regimes, w=w, constant_regi='many', nonspat_diag=False, spat_diag=True, name_y=y_var, name_x=['INC','HOVAL'], name_ds='columbus', name_regimes=r_var, name_w='columbus.gal', regime_err_sep=True, cols2regi=[True,True], sig2n_k=False)
+    olsr = OLS_Regimes(y, x, regimes, w=w, constant_regi='many', nonspat_diag=False, spat_diag=True, name_y=y_var, name_x=['INC','HOVAL'], \
+                       name_ds='columbus', name_regimes=r_var, name_w='columbus.gal', regime_err_sep=True, cols2regi=[True,True], sig2n_k=False, robust='white')
     print olsr.summary
 
