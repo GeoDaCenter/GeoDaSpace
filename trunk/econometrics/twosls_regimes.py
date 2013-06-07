@@ -2,7 +2,8 @@ import numpy as np
 import regimes as REGI
 import user_output as USER
 import multiprocessing as mp
-from utils import sphstack, set_warn, RegressionProps_basic
+import scipy.sparse as SP
+from utils import sphstack, set_warn, RegressionProps_basic, spdot
 from twosls import BaseTSLS
 from robust import hac_multi
 import summary_output as SUMMARY
@@ -280,10 +281,17 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
                     cols2regi=cols2regi, yend=True, names=name_yend)
             if regime_err_sep == True:
                 BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q, sig2n_k=sig2n_k)
+                """
+                # Weighted x, y, yend and q approach:
                 y2,x2,yend2,q2 = REGI._get_weighted_var(regimes,self.regimes_set,sig2n_k,self.u,y,x,yend,q)
                 tsls2 = BaseTSLS(y=y2, x=x2, yend=yend2, q=q2, sig2n_k=sig2n_k)
-                RegressionProps_basic(self,betas=tsls2.betas,vm=tsls2.vm)
-                self.title = "TWO STAGE LEAST SQUARES - REGIMES (Group-wise heteroskedasticity)"
+                # Updating S_hat to S_tilde approach:               
+                betas2, predy2, resid2, vm2 = self._group_het_tsls(sig2n_k)
+                RegressionProps_basic(self,betas=betas2,predy=predy2,u=resid2,vm=vm2,sig2=False)
+                """
+                betas2, vm2 = self._group_het_tsls(sig2n_k)
+                RegressionProps_basic(self,betas=betas2,vm=vm2,sig2=False)
+                self.title = "TWO STAGE LEAST SQUARES - REGIMES (Optimal-Weighted GMM)"
                 robust = None
                 set_warn(self,"Residuals treated as homoskedastic for the purpose of diagnostics.")
             else:
@@ -349,6 +357,37 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         self.chow = REGI.Chow(self)
         SUMMARY.TSLS_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=spat_diag, regimes=True)
 
+    def _group_het_tsls(self,sig2n_k):
+        H = spdot(spdot(self.h,self.hthi),self.htz)
+        fac2, ZtHSi = self._get_fac2_het(H,self.u,sig2n_k)
+        fac3 = spdot(ZtHSi,spdot(H.T,self.y),array_out=True)
+        betas = np.dot(fac2,fac3)
+        """
+        # Updating S_hat to S_tilde approach
+        predy = spdot(self.z, betas)
+        u = self.y - predy
+        fac2, ZtHSi = self._get_fac2_het(u,sig2n_k)
+        """
+        if sig2n_k:
+            vm = fac2*(self.n-self.k)
+        else:
+            vm = fac2*self.n
+        #return betas, predy, u, vm
+        return betas, vm
+
+    def _get_fac2_het(self,H,u,sig2n_k):
+        D = SP.lil_matrix((self.n, self.n))
+        D.setdiag(u**2)
+        if sig2n_k:
+            S = spdot(spdot(self.z.T,D),self.z,array_out=True)/(self.n-self.k)
+        else:
+            S = spdot(spdot(self.z.T,D),self.z,array_out=True)/self.n
+        Si = np.linalg.inv(S)
+        ZtH = spdot(self.z.T,H)
+        ZtHSi = spdot(ZtH,Si)
+        fac2 = np.linalg.inv(spdot(ZtHSi,ZtH.T,array_out=True))
+        return fac2, ZtHSi
+        
 def _work(y,x,regi_ids,r,yend,q,robust,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_regimes):
     y_r = y[regi_ids[r]]
     x_r = x[regi_ids[r]]
@@ -380,8 +419,7 @@ def _test():
 
 
 if __name__ == '__main__':
-    _test()        
-    
+    _test()    
     import numpy as np
     import pysal
     db = pysal.open(pysal.examples.get_path('NAT.dbf'),'r')
@@ -395,5 +433,5 @@ if __name__ == '__main__':
     q = np.array([db.by_col(name) for name in q_var]).T
     r_var = 'SOUTH'
     regimes = db.by_col(r_var)
-    tslsr = TSLS_Regimes(y, x, yd, q, regimes, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, cols2regi=[True,True,True,True,True],sig2n_k=False)
+    tslsr = TSLS_Regimes(y, x, yd, q, regimes, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, cols2regi=[False,True,True,True,True],sig2n_k=False)
     print tslsr.summary

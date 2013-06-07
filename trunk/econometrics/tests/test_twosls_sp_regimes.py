@@ -185,33 +185,33 @@ class TestGMLag_Regimes(unittest.TestCase):
         q = np.array(self.db.by_col("DISCBD"))
         q = np.reshape(q, (49,1))
         reg = GM_Lag_Regimes(self.y, X, self.regimes, yend=yd, q=q, w=self.w, regime_lag_sep=False, regime_err_sep=True) 
-        tbetas = np.array([[ 37.86223637,  -0.89430802,  31.45527389,  -0.71609329,
-         -0.2847667 ,  -0.22939623,   0.63024942]])
+        tbetas = np.array([[ 37.87698329,  -0.89426982,  31.4714777 ,  -0.71640525,
+         -0.28494432,  -0.2294271 ,   0.62996544]])
         np.testing.assert_array_almost_equal(tbetas, reg.betas.T)
-        vm = np.array([ 86.22377384,  -0.15471786,  71.07248616,  -1.36827531,
-        -1.14771524,  -0.13542519,  -1.24558774])
+        vm = np.array([ 129.37035525,    4.63280824,  112.67396677,    3.75448625,
+         -3.91212251,   -2.30111247,   -1.87644531])
         np.testing.assert_array_almost_equal(reg.vm[0], vm, 6)
-        e_3 = np.array([[-2.67072726],
-       [-7.69805886],
-       [-4.39279084]])
+        e_3 = np.array([[-2.66997799],
+       [-7.69786264],
+       [-4.39412782]])
         np.testing.assert_array_almost_equal(reg.e_pred[0:3], e_3, 7)
-        u_3 = np.array([[ 1.13939827],
-       [-3.76798121],
-       [-1.89465685]])
+        u_3 = np.array([[ 1.13879007],
+       [-3.76873198],
+       [-1.89671717]])
         np.testing.assert_array_almost_equal(reg.u[0:3], u_3, 7)
-        predy_3 = np.array([[ 14.58658173],
-       [ 22.56973521],
-       [ 32.52143785]])
+        predy_3 = np.array([[ 14.58718993],
+       [ 22.57048598],
+       [ 32.52349817]])
         np.testing.assert_array_almost_equal(reg.predy[0:3], predy_3, 7)
-        predy_e_3 = np.array([[ 18.39670726],
-       [ 26.49981286],
-       [ 35.01957184]])
+        predy_e_3 = np.array([[ 18.39595799],
+       [ 26.49961664],
+       [ 35.02090882]])
         np.testing.assert_array_almost_equal(reg.predy_e[0:3], predy_e_3, 7)
-        chow_regi = np.array([[ 0.48166184,  0.48767053],
-       [ 0.02965599,  0.86327312],
-       [ 0.01928083,  0.88956438]])
+        chow_regi = np.array([[ 0.52346846,  0.46936587],
+       [ 0.00823219,  0.92770602],
+       [ 0.00403089,  0.94937692]])
         np.testing.assert_array_almost_equal(reg.chow.regi, chow_regi, 7)
-        self.assertAlmostEqual(reg.chow.joint[0], 0.63579917009427478, 7)
+        self.assertAlmostEqual(reg.chow.joint[0], 0.65835342715685385, 7)
     
     def test_all_regi_sig2(self):
         #Artficial:
