@@ -80,11 +80,10 @@ def log_lik_error(ldet, w, b, lam, X, y, sig2):
     omega_i = np.dot(A.T, A)
     e = y - np.dot(X,b)
     t4 =  np.dot(e.T, np.dot(omega_i, e)) / (2 * sig2)
-    t1 = 1/2. * ldet
+    t1 =  ldet
     t2 = n/2. * np.log(2*np.pi)
     t3 = n/2. * np.log(sig2)
-    return  -t1 - t2 - t3 - t4
-
+    return  t1 - t2 - t3 - t4
 
 
 def _logJacobian(w, rho, method='FULL'):
