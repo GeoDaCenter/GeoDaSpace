@@ -1,0 +1,50 @@
+i've been doing some digging and here is what i've turned up thus far.
+
+1) there is a sparse cholesky at http://pythonhosted.org/scikits.sparse/  
+unfortunately it is a wrapper around CHOLMOD which has components licensed 
+under GPL and LGPL. 
+this makes it problematic for using in pysal since we would have to change 
+to GPL and that removes us from the scipy/python scientific stack. for the 
+thinking behind this bsd choice 
+see: http://nipy.sourceforge.net/nipy/stable/faq/johns_bsd_pitch.html#johns-bsd-pitch
+
+2) there are sparse eigenvalue methods in scipy.sparse, but they are constrained 
+to return k << n eigenvalues. originally i was thinking that the determinant of 
+A = I - pW could be obtained from the product of the eigenvalues, but if we 
+don't have all of the latter, then no go.
+
+
+3) i dug into the c code that is implementing the _superlu.SciPyLUType. 
+originally that library actually has an output option for L and U but the 
+scipy wrapper doesn't make use of that since they are focused on a solver 
+and not the factorization elements per se. so i will try to talk to the 
+particular guys i know who work on that and see if it would be possible 
+to change the wrapping to hook into this. if they do it 
+great :-> alternatively we could try it (might be an interesting project) 
+and kick it back to them.
+
+
+SIAM J. Sci. and Stat. Comput., 9(2), 327–340. (14 pages)
+Sparse Cholesky Factorization on a Local-Memory Multiprocessor
+
+There are lots of datasets with different sizes here, feel free to use 
+them for testing (they're not public but range from address to tract):
+
+tethys.asu.edu/HUD
+userid: huduser
+password: CoorHall2011
+
+got to
+/HUD/4Data
+
+e.g. largest file is 11.8 million business points (with under 10 attributes):
+/HUD/4Data/1National/6_ESRI\ Business Analyst_Points
+
+a smaller one is BGs (186,174) but with 300 attributes):
+/HUD/4Data/1National/1_Merged\ Data
+
+closer to 70k (tracts)
+/HUD/4Data/1National/5_2010_Census_Diff_Levels/2010Census/3_Tracts/2000\ Tracts
+
+and ~37k zip codes (if I remember right):
+/HUD/4Data/1National/9_EITC_2008 Zip
