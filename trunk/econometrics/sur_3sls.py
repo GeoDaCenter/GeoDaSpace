@@ -270,7 +270,7 @@ class GM_Endog_SUR():
 
         #Estimating parameters
         BigZhattsig = np.vstack((np.hstack((results_stp2[eq_set[i]].zhat.T*sig[i,j] for j in range(self.n_eq))) for i in range(self.n_eq)))
-        #BigZhattsig = BigZhat.T*SP.kron(sig,SP.identity(self.n))
+        #BigZhattsig = BigZhat.T*SP.kron(sig,SP.identity(self.n)) #slower than line above
         self.vm = la.inv(spdot(BigZhattsig,BigZhat))
         fact2 = spdot(BigZhattsig,BigY)
         self.betas = spdot(self.vm,fact2)
