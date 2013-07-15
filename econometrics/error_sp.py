@@ -793,8 +793,8 @@ class BaseGM_Combo(BaseGM_Endog_Error):
      ['W_CRIME' '0.4375' '0.2314']]
 
         """
-    def __init__(self, y, x, yend=None, q=None,\
-                 w=None, w_lags=1, lag_q=True):
+    def __init__(self, y, x, yend, q,\
+                 w, w_lags=1, lag_q=True):
 
         BaseGM_Endog_Error.__init__(self, y=y, x=x, w=w, yend=yend, q=q)
 
