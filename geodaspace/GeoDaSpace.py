@@ -39,7 +39,12 @@ class guiApp(wx.App):
         self.regFrame.scroll.SetScrollRate(1, 1)
         return True
 
-if __name__ == "__main__":
-    """ usage: python -i main.py """
+def main():
     app = guiApp()
     app.MainLoop()
+
+if __name__ == "__main__":
+    """ usage: python -i main.py """
+    #app = guiApp()
+    #app.MainLoop()
+    main()
