@@ -11,7 +11,6 @@ import diagnostics_sp as diagnostics_sp
 import pysal
 import scipy
 from scipy.sparse.csr import csr_matrix
-from platform import system
 
 __all__ = []
 
@@ -531,7 +530,6 @@ def summary_multi(reg, multireg, vm, instruments, short_intro=False, nonspat_dia
             summary += reg.__summary['summary_other_top']
         except:
             pass
-        summary += "System: %s" %system()
         summary += summary_coefs_intro(mreg)
         summary += mreg.__summary['summary_coefs']
         summary += "------------------------------------------------------------------------------------\n"
