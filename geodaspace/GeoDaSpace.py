@@ -3,6 +3,9 @@ from geodaspace.regression import variableTools
 from geodaspace.regression import M_regression
 from geodaspace.regression import V_regression
 import sys
+import multiprocessing
+
+multiprocessing.freeze_support()
 
 if sys.platform == 'darwin':
     DOCK_SIZE = 40
