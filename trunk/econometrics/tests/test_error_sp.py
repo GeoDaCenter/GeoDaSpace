@@ -2,6 +2,7 @@ import unittest
 import pysal
 import numpy as np
 from econometrics import error_sp as SP
+from econometrics import utils
 
 class TestBaseGMError(unittest.TestCase):
     def setUp(self):
@@ -211,7 +212,7 @@ class TestBaseGMCombo(unittest.TestCase):
 
     def test_model(self):
         # Only spatial lag
-        yd2, q2 = pysal.spreg.utils.set_endog(self.y, self.X, self.w, None, None, 1, True)
+        yd2, q2 = utils.set_endog(self.y, self.X, self.w, None, None, 1, True)
         self.X = np.hstack((np.ones(self.y.shape),self.X))
         reg = SP.BaseGM_Combo(self.y, self.X, yend=yd2, q=q2, w=self.w.sparse)
         betas = np.array([[ 57.61123461],[  0.73441314], [ -0.59459416], [ -0.21762921], [  0.54732051]])

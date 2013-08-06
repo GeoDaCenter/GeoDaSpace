@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 import pysal
 from econometrics.twosls import TSLS, BaseTSLS
+from econometrics import utils
 from scipy import sparse as SP
 
 

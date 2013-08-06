@@ -6,6 +6,7 @@ import econometrics.diagnostics as diagnostics
 from econometrics.ols import OLS as OLS
 from econometrics.twosls import TSLS as TSLS
 from econometrics.twosls_sp import GM_Lag
+from econometrics import utils
 from scipy.stats import pearsonr
 
 

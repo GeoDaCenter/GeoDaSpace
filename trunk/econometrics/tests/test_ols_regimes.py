@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 import pysal
 from econometrics.ols import OLS
+from econometrics import utils
 from econometrics.ols_regimes import OLS_Regimes
 
 PEGP = pysal.examples.get_path

@@ -1,6 +1,7 @@
 import unittest
 import pysal
 import numpy as np
+from econometrics import utils
 from econometrics import probit as PB
 
 class TestBaseProbit(unittest.TestCase):

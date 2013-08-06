@@ -14,4 +14,4 @@ from error_sp_regimes import *
 from error_sp_het_regimes import *
 from error_sp_hom_regimes import *
 from probit import *
-from sur_3sls import *
+from threesls import *

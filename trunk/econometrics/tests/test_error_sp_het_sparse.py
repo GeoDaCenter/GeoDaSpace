@@ -2,6 +2,7 @@ import unittest
 import pysal
 import numpy as np
 from scipy import sparse
+from econometrics import utils
 from econometrics import error_sp_het as HET
 
 class TestBaseGMErrorHet(unittest.TestCase):
@@ -272,7 +273,7 @@ class TestBaseGMComboHet(unittest.TestCase):
 
     def test_model(self):
         # Only spatial lag
-        yd2, q2 = pysal.spreg.utils.set_endog(self.y, self.X, self.w, None, None, 1, True)
+        yd2, q2 = utils.set_endog(self.y, self.X, self.w, None, None, 1, True)
         self.X = np.hstack((np.ones(self.y.shape),self.X))
         self.X = sparse.csr_matrix(self.X)
         reg = HET.BaseGM_Combo_Het(self.y, self.X, yend=yd2, q=q2, w=self.w.sparse, step1c=True)
