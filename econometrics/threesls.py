@@ -1,5 +1,5 @@
 """
-Spatial Seemingly Unrelated Regressions (SUR) estimation.
+Three Stage Least Squares estimation for systems of simultaneous equations.
 """
 __author__ = "Luc Anselin luc.anselin@asu.edu, Pedro V. Amaral pedro.amaral@asu.edu"
 
@@ -11,9 +11,10 @@ import summary_output as SUMMARY
 import user_output as USER
 from utils import spdot, set_endog_sparse, sp_att, set_warn
 from twosls import BaseTSLS
+from ols import BaseOLS
 from platform import system
 
-class GM_Endog_SUR():
+class ThreeSLS():
     '''
     Parameters
     ----------
@@ -21,17 +22,18 @@ class GM_Endog_SUR():
                    n*n_eqx1 array for dependent variable
     x            : array
                    Two dimensional array with n*n_eq rows and one column for each
-                   independent (exogenous) variable, excluding the constant
-    yend         : array
-                   Two dimensional array with n*n_eq rows and one column for each
-                   endogenous variable
-    q            : array
-                   Two dimensional array with n*n_eq rows and one column for each
-                   external exogenous variable to use as instruments  
-                   (note: this should not contain any variables from x);                   
+                   independent (exogenous) variable, excluding the constant                 
     equationID   : list
                    List of n*n_eq values with the mapping of each
                    observation to a regime. Assumed to be aligned with 'x'.  
+    yend         : array 
+                   Two dimensional array with n*n_eq rows and one column for each
+                   endogenous variable (optional)
+    q            : array
+                   Two dimensional array with n*n_eq rows and one column for each
+                   external exogenous variable to use as instruments  
+                   (note: this should not contain any variables from x)
+                   (optional)
     sig2n_k      : boolean
                    If True, then use n-k to estimate sigma^2. If False, use n (default).
     cores        : integer
@@ -59,7 +61,7 @@ class GM_Endog_SUR():
     summary      : string
                    Summary of regression results and diagnostics (note: use in
                    conjunction with the print command)
-    betas        : array
+    betas        : array 
                    k*n_eqx1 array of estimated coefficients
     u            : array
                    n*n_eqx1 array of residuals
@@ -69,24 +71,41 @@ class GM_Endog_SUR():
                    Number of observations
     n_eq         : integer
                    Number of equations
+    equationID   : list
+                   List of n*n_eq values with the mapping of each
+                   observation to a regime.  
     k            : integer
                    Number of variables for which coefficients are estimated
                    (including the constant)
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     y            : array
                    n*n_eqx1 array for dependent variable
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)                   
     x            : array
                    Two dimensional array with n*n_eq rows and one column for each
                    independent (exogenous) variable, including the constant
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     yend         : array
-                   Two dimensional array with n*n_eq rows and one column for each
-                   endogenous variable
+                   Two dimensional array with n*n_eq rows and one column for each endogenous variable
+                   (provided if there are endogenous variables)
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     q            : array
-                   Two dimensional array with n*n_eq rows and one column for each
-                   external exogenous variable used as instruments 
+                   Two dimensional array with n*n_eq rows and one column for each external exogenous variable used as instruments 
+                   (provided if there are endogenous variables)
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     z            : array
-                   n*n_eqxk array of variables (combination of x and yend)
+                   n*n_eqxk array of variables (combination of x and yend) (provided if there are endogenous variables)
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     h            : array
-                   n*n_eqxl array of instruments (combination of x and q)
+                   n*n_eqxl array of instruments (combination of x and q) (provided if there are endogenous variables)
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     vm           : array
                    Variance covariance matrix (k*n_eqxk*n_eq)
     std_err      : array
@@ -94,27 +113,55 @@ class GM_Endog_SUR():
     z_stat       : list of tuples
                    z statistic; each tuple contains the pair (statistic,
                    p-value), where each is a float
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     name_y        : string
                     Name of dependent variable for use in output
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     name_x        : list of strings
                     Names of independent variables for use in output
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     name_yend     : list of strings
                     Names of endogenous variables for use in output
+                   (provided if there are endogenous variables)
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     name_z        : list of strings
                     Names of exogenous and endogenous variables for use in 
                     output
+                   (provided if there are endogenous variables)
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     name_q        : list of strings
                     Names of external instruments
+                   (provided if there are endogenous variables)
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     name_h        : list of strings
                     Names of all instruments used in ouput
+                   (provided if there are endogenous variables)
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     name_ds       : string
                     Name of dataset for use in output
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     name_equationID : list of strings
                      Names of equation indicator for use in output
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     name_w       : string
                    Name of weights matrix for use in output
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     title         : string
                     Name of the regression method used
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
+    multi        : dictionary
+                   Contains all attributes of each individual regression
 
 
     References
@@ -191,7 +238,7 @@ class GM_Endog_SUR():
     Alternatively, we can just check the betas and standard errors of the
     parameters:
 
-    >>> three_sls = GM_Endog_SUR(y, x, yd, q, eq_ID, name_y=y_name, name_x=x_name, name_yend=yd_name, name_q=q_name, name_equationID=eq_name, name_ds='NAT')
+    >>> three_sls = ThreeSLS(y, x, eq_ID, yd, q, name_y=y_name, name_x=x_name, name_yend=yd_name, name_q=q_name, name_equationID=eq_name, name_ds='NAT')
 
     >>> three_sls.betas
     array([[ 6.92426353],
@@ -208,7 +255,7 @@ class GM_Endog_SUR():
             0.09597031,  0.04089547,  0.13586789])
     '''    
     
-    def __init__(self, y, x, yend, q, equationID, w=None,\
+    def __init__(self, y, x, equationID, yend=None, q=None, w=None,\
                  cores=None, sig2n_k=False, name_y=None, name_x=None, name_yend=None,\
                  name_q=None, name_equationID=None, name_ds=None, name_w=None, vm=False,\
                  w_lags=None,lag_q=None):
@@ -279,22 +326,39 @@ class GM_Endog_SUR():
         #Prepare output
         self.multi = results_stp2
         k_b = 0
-        for r in eq_set:
+        self.predy = np.zeros(y.shape,float)
+        self.u = np.zeros(y.shape,float)
+        sig1 = np.zeros((self.n_eq,self.n_eq),float)
+       
+        for r_i in range(self.n_eq):
+            r_j = r_i
+            r = eq_set[r_i]
             k_b1 = self.multi[r].betas.shape[0]
             self.multi[r].betas[:,] = self.betas[k_b:k_b+k_b1,]
             self.multi[r].vm = self.vm[k_b:k_b+k_b1,k_b:k_b+k_b1]
             k_b += k_b1
             self.multi[r].predy = spdot(self.multi[r].z,self.multi[r].betas)
             self.multi[r].u = self.multi[r].y - self.multi[r].predy
+            self.predy[eq_ids[r],] = self.multi[r].predy
+            self.u[eq_ids[r],] = self.multi[r].u
+            while r_j >= 0:
+                sig1[r_i,r_j] = np.dot(self.multi[eq_set[r_i]].u.T,self.multi[eq_set[r_j]].u)
+                sig1[r_j,r_i] = sig1[r_i,r_j]
+                r_j += -1
+        sig_var = sig1.diagonal().reshape(1,self.n_eq)
+        self.u_cov = sig1/np.sqrt(np.dot(sig_var.T,sig_var))
 
         if not w_lags:
-            title = "THREE-STAGE LEAST SQUARES - EQUATION "            
-            self.multi = USER.set_name_multi(self.multi,eq_set,name_equationID,y,x,name_y,name_x,name_ds,title,name_w,robust=None,endog=(yend,q,name_yend,name_q),sp_lag=False)
-            SUMMARY.TSLS_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=False, sur=True)
+            title = "THREE-STAGE LEAST SQUARES - EQUATION "
+            if yend != None:
+                self.multi = USER.set_name_multi(self.multi,eq_set,name_equationID,y,x,name_y,name_x,name_ds,title,name_w,robust=None,endog=(yend,q,name_yend,name_q),sp_lag=False)
+                SUMMARY.TSLS_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=False, sur=True)
+            else:
+                self.multi = USER.set_name_multi(self.multi,eq_set,name_equationID,y,x,name_y,name_x,name_ds,title,name_w,robust=None,endog=False,sp_lag=False)
+                SUMMARY.OLS_multi(reg=self, multireg=self.multi, vm=vm, nonspat_diag=False, moran=False, white_test=False, spat_diag=False, sur=True)
 
 
-
-class GM_Lag_SUR(GM_Endog_SUR):
+class ThreeSLS_Lag(ThreeSLS):
     '''
     Parameters
     ----------
@@ -342,7 +406,7 @@ class GM_Lag_SUR(GM_Endog_SUR):
     summary      : string
                    Summary of regression results and diagnostics (note: use in
                    conjunction with the print command)
-    betas        : array
+    betas        : array 
                    k*n_eqx1 array of estimated coefficients
     u            : array
                    n*n_eqx1 array of residuals
@@ -352,24 +416,39 @@ class GM_Lag_SUR(GM_Endog_SUR):
                    Number of observations
     n_eq         : integer
                    Number of equations
+    equationID   : list
+                   List of n*n_eq values with the mapping of each
+                   observation to a regime.  
     k            : integer
                    Number of variables for which coefficients are estimated
                    (including the constant)
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     y            : array
                    n*n_eqx1 array for dependent variable
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)                   
     x            : array
                    Two dimensional array with n*n_eq rows and one column for each
                    independent (exogenous) variable, including the constant
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     yend         : array
-                   Two dimensional array with n*n_eq rows and one column for each
-                   endogenous variable
+                   Two dimensional array with n*n_eq rows and one column for each endogenous variable
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     q            : array
-                   Two dimensional array with n*n_eq rows and one column for each
-                   external exogenous variable used as instruments 
+                   Two dimensional array with n*n_eq rows and one column for each external exogenous variable used as instruments 
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     z            : array
                    n*n_eqxk array of variables (combination of x and yend)
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     h            : array
                    n*n_eqxl array of instruments (combination of x and q)
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     vm           : array
                    Variance covariance matrix (k*n_eqxk*n_eq)
     std_err      : array
@@ -377,27 +456,51 @@ class GM_Lag_SUR(GM_Endog_SUR):
     z_stat       : list of tuples
                    z statistic; each tuple contains the pair (statistic,
                    p-value), where each is a float
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     name_y        : string
                     Name of dependent variable for use in output
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     name_x        : list of strings
                     Names of independent variables for use in output
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     name_yend     : list of strings
                     Names of endogenous variables for use in output
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     name_z        : list of strings
                     Names of exogenous and endogenous variables for use in 
                     output
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     name_q        : list of strings
                     Names of external instruments
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     name_h        : list of strings
                     Names of all instruments used in ouput
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     name_ds       : string
                     Name of dataset for use in output
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     name_equationID : list of strings
                      Names of equation indicator for use in output
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     name_w       : string
                    Name of weights matrix for use in output
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
     title         : string
                     Name of the regression method used
+                   Only available in dictionary 'multi'
+                   (see 'multi' below for details)
+    multi        : dictionary
+                   Contains all attributes of each individual regression
 
 
     References
@@ -489,7 +592,7 @@ class GM_Lag_SUR(GM_Endog_SUR):
     Alternatively, we can just check the betas and standard errors of the
     parameters:
 
-    >>> three_sls = GM_Lag_SUR(y, x, yd, q, eq_ID, w, name_y=y_name, name_x=x_name, name_yend=yd_name, name_q=q_name, name_equationID=eq_name, name_ds='NAT', name_w='NAT.shp')
+    >>> three_sls = ThreeSLS_Lag(y, x, eq_ID, yd, q, w=w, name_y=y_name, name_x=x_name, name_yend=yd_name, name_q=q_name, name_equationID=eq_name, name_ds='NAT', name_w='NAT.shp')
 
     >>> three_sls.betas
     array([[ 6.90380817],
@@ -508,12 +611,12 @@ class GM_Lag_SUR(GM_Endog_SUR):
             0.44911913,  0.10469721,  0.04147879,  0.19080703,  0.04405396])
     '''    
     
-    def __init__(self, y, x, yend, q, equationID, w,\
+    def __init__(self, y, x, equationID, yend=None, q=None, w=None,\
                  cores=None, sig2n_k=False, name_y=None, name_x=None, name_yend=None,\
                  name_q=None, name_equationID=None, name_ds=None, name_w=None, vm=False,\
                  w_lags=1, lag_q=True):
 
-        GM_Endog_SUR.__init__(self, y=y, x=x, yend=yend, q=q, equationID=equationID, w=w, cores=cores,\
+        ThreeSLS.__init__(self, y=y, x=x, equationID=equationID, yend=yend, q=q, w=w, cores=cores,\
                  sig2n_k=sig2n_k, name_y=name_y, name_x=name_x, name_yend=name_yend, name_q=name_q,\
                  name_equationID=name_equationID, name_ds=name_ds, name_w=name_w, vm=vm,\
                  w_lags=w_lags, lag_q=lag_q)
@@ -530,13 +633,20 @@ class GM_Lag_SUR(GM_Endog_SUR):
 def _run_stp1(y,x,yend,q,eq_ids,r,sig2n_k,w,w_lags,lag_q):
     y_r = y[eq_ids[r]]
     x_r = x[eq_ids[r]]
-    yend_r = yend[eq_ids[r]]
-    q_r = q[eq_ids[r]]
+    yend_r = None
+    if yend != None:
+        yend_r = yend[eq_ids[r]]
+        q_r = q[eq_ids[r]]
     if w_lags:
         yend_r, q_r = set_endog_sparse(y_r, x_r, w, yend_r, q_r, w_lags, lag_q)        
     x_constant = USER.check_constant(x_r)
-    model = BaseTSLS(y_r, x_constant, yend_r, q_r, sig2n_k=sig2n_k) 
-    model.zhat = np.dot(model.h,np.dot(model.hthi,model.htz))
+    if yend != None:
+        model = BaseTSLS(y_r, x_constant, yend_r, q_r, sig2n_k=sig2n_k) 
+        model.zhat = np.dot(model.h,np.dot(model.hthi,model.htz))
+    else:
+        model = BaseOLS(y_r, x_constant, sig2n_k=sig2n_k) 
+        model.zhat = model.x
+        model.z = model.x
     return model
         
        
@@ -554,21 +664,22 @@ if __name__ == '__main__':
     import pysal
     import numpy as np
     """
-    db = pysal.open('examples/swohio.csv','r')
+    db = pysal.open(pysal.examples.get_path("swohio.csv"),'r')
     y_var = 'wage'
     y = np.array([db.by_col(y_var)]).T
-    x_var = ['smsa']
+    #x_var = ['smsa']
+    x_var = ['smsa','UN']
     x = np.array([db.by_col(name) for name in x_var]).T
-    yend_var = ['UN']
-    yend = np.array([db.by_col(name) for name in yend_var]).T
-    q_var = ['UN']
-    q = np.array([db.by_col(name) for name in q_var]).T
+    #yend_var = ['UN']
+    #yend = np.array([db.by_col(name) for name in yend_var]).T
+    #q_var = ['UN']
+    #q = np.array([db.by_col(name) for name in q_var]).T
     eq_var = 'time'
     equationID = db.by_col(eq_var)
-    w = pysal.open('examples/swohio.gal','r').read()
+    w = pysal.open(pysal.examples.get_path("swohio.gal"),'r').read()
     w.transform = 'r'
-
-    sur1=GM_Endog_SUR(y, x, yend, q, equationID)
+    #sur1 = ThreeSLS(y, x, equationID, yend, q, name_x=x_var, name_yend=yend_var, name_q=q_var)
+    sur1 = ThreeSLS(y, x, equationID, name_x=x_var, name_equationID=eq_var)
     print sur1.summary
     """
     db = pysal.open(pysal.examples.get_path("NAT.dbf"),'r')
@@ -589,6 +700,6 @@ if __name__ == '__main__':
     eq_ID = [1980]*3085 + [1990]*3085
     w = pysal.rook_from_shapefile(pysal.examples.get_path("NAT.shp"))
     w.transform = 'r'
-    three_sls = GM_Lag_SUR(y, x, yd, q, eq_ID, w=w, name_y=y_name, name_x=x_name, name_yend=yd_name, name_q=q_name, name_equationID=eq_name, name_ds='NAT')
+    three_sls = ThreeSLS_Lag(y, x, eq_ID, yd, q, w=w, name_y=y_name, name_x=x_name, name_yend=yd_name, name_q=q_name, name_equationID=eq_name, name_ds='NAT')
     print three_sls.summary
     #"""
