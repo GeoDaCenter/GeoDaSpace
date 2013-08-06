@@ -124,6 +124,8 @@ def TSLS_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False):
     reg.__summary = {}
     if regimes:
         summary_chow(reg)
+    if sur:
+        summary_sur(reg,u_cov=True)
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag)
 
