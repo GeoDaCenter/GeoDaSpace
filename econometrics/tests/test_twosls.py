@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 import pysal
+from econometrics import utils
 from econometrics.twosls import BaseTSLS, TSLS
 
 class TestBaseTSLS(unittest.TestCase):

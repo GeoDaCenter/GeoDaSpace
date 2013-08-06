@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 import pysal
 from econometrics import diagnostics
+from econometrics import utils
 from econometrics.ols import OLS 
 
 

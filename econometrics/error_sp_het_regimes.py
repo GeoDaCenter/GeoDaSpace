@@ -1300,12 +1300,12 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
         name_q = USER.set_name_q(name_q, q)
         name_q.extend(USER.set_name_q_sp(name_x, w_lags, name_q, lag_q, force_all=True))
 
-        cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, yend=yend, add_cons=False)     
+        cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, yend=yend, add_cons=False) 
         self.regimes_set = REGI._get_regimes_set(regimes)
         self.regimes = regimes
         USER.check_regimes(self.regimes_set)
-        self.regime_err_sep = regime_err_sep        
-        self.regime_lag_sep = regime_lag_sep 
+        self.regime_err_sep = regime_err_sep
+        self.regime_lag_sep = regime_lag_sep
 
         if regime_lag_sep == True:
             if regime_err_sep == False:

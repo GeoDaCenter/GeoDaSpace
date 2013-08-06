@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 import pysal
+from econometrics import utils
 from econometrics.twosls_regimes import TSLS_Regimes
 from econometrics.twosls import TSLS
 

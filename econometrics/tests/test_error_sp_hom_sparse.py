@@ -6,6 +6,7 @@ import unittest
 import pysal
 from econometrics import error_sp_hom as HOM
 from scipy import sparse
+from econometrics import utils
 import numpy as np
 
 class BaseGM_Error_Hom_Tester(unittest.TestCase):
@@ -215,7 +216,7 @@ class BaseGM_Combo_Hom_Tester(unittest.TestCase):
         self.w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
         self.w.transform = 'r'
     def test_model(self):
-        yd2, q2 = pysal.spreg.utils.set_endog(self.y, self.X, self.w, None, None, 1, True)
+        yd2, q2 = utils.set_endog(self.y, self.X, self.w, None, None, 1, True)
         self.X = np.hstack((np.ones(self.y.shape),self.X))
         self.X = sparse.csr_matrix(self.X)
         reg = HOM.BaseGM_Combo_Hom(self.y, self.X, yend=yd2, q=q2, w=self.w.sparse, A1='hom_sc')

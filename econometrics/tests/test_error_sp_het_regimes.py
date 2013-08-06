@@ -2,6 +2,7 @@ import unittest
 import pysal
 import numpy as np
 from econometrics import error_sp_het_regimes as SP
+from econometrics import utils
 from econometrics.error_sp_het import GM_Error_Het, GM_Endog_Error_Het, GM_Combo_Het
 
 class TestGM_Error_Het_Regimes(unittest.TestCase):
