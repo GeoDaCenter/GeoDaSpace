@@ -768,6 +768,8 @@ class GM_Endog_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         if add_lag != False:
             self.cols2regi += [True]
             cols2regi += [True]
+            self.predy_e = np.zeros((self.n,1),float)
+            self.e_pred = np.zeros((self.n,1),float)
         results_p = {}
         for r in self.regimes_set:
             if system() == 'Windows':
@@ -807,10 +809,16 @@ class GM_Endog_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
             self.name_q += results[r].name_q
             self.name_z += results[r].name_z
             self.name_h += results[r].name_h
+            if add_lag != False:
+                self.predy_e[regi_ids[r],]=results[r].predy_e
+                self.e_pred[regi_ids[r],]=results[r].e_pred
             counter += 1
         self.chow = REGI.Chow(self)            
         self.multi = results
-        SUMMARY.GM_Endog_Error_multi(reg=self, multireg=self.multi, vm=vm, regimes=True)
+        if add_lag != False:
+            SUMMARY.GM_Combo_multi(reg=self, multireg=self.multi, vm=vm, regimes=True)            
+        else:
+            SUMMARY.GM_Endog_Error_multi(reg=self, multireg=self.multi, vm=vm, regimes=True)
 
 class GM_Combo_Regimes(GM_Endog_Error_Regimes, REGI.Regimes_Frame):
     """
@@ -1231,13 +1239,20 @@ def _work_endog_error(y,x,yend,q,regi_ids,r,w,name_ds,name_y,name_x,name_yend,na
     w_r,warn = REGI.w_regime(w, regi_ids[r], r, transform=True)    
     y_r = y[regi_ids[r]]
     x_r = x[regi_ids[r]]
-    yend_r = yend[regi_ids[r]]
-    q_r = q[regi_ids[r]]
+    if yend != None:
+        yend_r = yend[regi_ids[r]]
+        q_r = q[regi_ids[r]]
+    else:
+        yend_r,q_r = None,None
     if add_lag != False:
         yend_r, q_r = set_endog(y_r, x_r, w_r, yend_r, q_r, add_lag[0], add_lag[1])
     x_constant = USER.check_constant(x_r)
     model = BaseGM_Endog_Error(y_r, x_constant, yend_r, q_r, w_r.sparse)
     set_warn(model, warn)
+    if add_lag != False:
+        model.predy_e, model.e_pred, warn = sp_att(w_r,model.y,\
+            model.predy,model.yend[:,-1].reshape(model.n,1),model.betas[-2])
+        set_warn(model, warn)  
     model.w = w_r
     model.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES - REGIME %s" %r
     model.name_ds = name_ds
@@ -1260,7 +1275,7 @@ def _test():
 
 if __name__ == '__main__':
 
-    #_test()
+    _test()
     import pysal
     import numpy as np
     dbf = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
@@ -1274,5 +1289,5 @@ if __name__ == '__main__':
     regimes = regimes = dbf.by_col('NSA')
     w = pysal.open(pysal.examples.get_path("columbus.gal"), 'r').read() 
     w.transform='r'
-    model = GM_Error_Regimes(y, x, regimes, w=w, name_y='crime', name_x=['income'], name_regimes='nsa', name_ds='columbus', regime_err_sep=True)
+    model = GM_Error_Regimes(y, x, regimes=regimes, w=w, name_y='crime', name_x=['income'], name_regimes='nsa', name_ds='columbus', regime_err_sep=True)
     print model.summary
