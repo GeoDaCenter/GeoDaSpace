@@ -378,6 +378,26 @@ def GM_Combo(reg, vm, w, regimes=False):
     summary_warning(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False)
 
+def GM_Combo_multi(reg, multireg, vm, regimes=False):
+    for m in multireg:
+        mreg = multireg[m]
+        mreg.__summary = {}
+        # compute diagnostics and organize summary output
+        beta_diag_lag(mreg, None)
+        # build coefficients table body
+        summary_coefs_allx(mreg, mreg.z_stat, lambd=True)
+        summary_coefs_lambda(mreg, mreg.z_stat)
+        summary_coefs_instruments(mreg)
+        if regimes:
+            summary_regimes(mreg,chow=False)
+        summary_warning(mreg)
+        multireg[m].__summary = mreg.__summary
+    reg.__summary = {}
+    if regimes:
+        summary_chow(reg)
+    summary_warning(reg)
+    summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False)
+
 def GM_Combo_Hom(reg, vm, w, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
