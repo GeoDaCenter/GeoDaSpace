@@ -379,13 +379,8 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame, RegressionPropsY):
         if regime_err_sep == True and set(cols2regi) == set([True]) and constant_regi == 'many':
             self.y = y
             name_x = USER.set_name_x(name_x, x)
-            if w:
-                w_i,regi_ids,warn = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True, min_n=len(self.cols2regi)+1)
-                set_warn(self,warn)
-            else:
-                regi_ids = dict((r, list(np.where(np.array(regimes) == r)[0])) for r in self.regimes_set)
-                w_i = None
-            self._ols_regimes_multi(x, w_i, regi_ids, cores,\
+            regi_ids = dict((r, list(np.where(np.array(regimes) == r)[0])) for r in self.regimes_set)
+            self._ols_regimes_multi(x, w, regi_ids, cores,\
              gwk, sig2n_k, robust, nonspat_diag, spat_diag, vm, name_x, moran, white_test)
         else:
             name_x = USER.set_name_x(name_x, x,constant=True)
@@ -406,16 +401,16 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame, RegressionPropsY):
             SUMMARY.OLS(reg=self, vm=vm, w=w, nonspat_diag=nonspat_diag,\
                         spat_diag=spat_diag, moran=moran, white_test=white_test, regimes=True)
 
-    def _ols_regimes_multi(self, x, w_i, regi_ids, cores,\
+    def _ols_regimes_multi(self, x, w, regi_ids, cores,\
                  gwk, sig2n_k, robust, nonspat_diag, spat_diag, vm, name_x, moran, white_test):
-        pool = mp.Pool(cores)
         results_p = {}
         for r in self.regimes_set:
             if system() == 'Windows':
                 is_win = True
-                results_p[r] = _work(*(self.y,x,regi_ids,r,robust,sig2n_k,self.name_ds,self.name_y,name_x,self.name_w,self.name_regimes))
+                results_p[r] = _work(*(self.y,x,w,regi_ids,r,robust,sig2n_k,self.name_ds,self.name_y,name_x,self.name_w,self.name_regimes))
             else:
-                results_p[r] = pool.apply_async(_work,args=(self.y,x,regi_ids,r,robust,sig2n_k,self.name_ds,self.name_y,name_x,self.name_w,self.name_regimes))
+                pool = mp.Pool(cores)
+                results_p[r] = pool.apply_async(_work,args=(self.y,x,w,regi_ids,r,robust,sig2n_k,self.name_ds,self.name_y,name_x,self.name_w,self.name_regimes))
                 is_win = False
         self.kryd = 0
         self.kr = x.shape[1]+1
@@ -436,10 +431,6 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame, RegressionPropsY):
                 results[r] = results_p[r]
             else:
                 results[r] = results_p[r].get()
-            if w_i:
-                results[r].w = w_i[r]
-            else:
-                results[r].w = None
             self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
             self.betas[(counter*self.kr):((counter+1)*self.kr),] = results[r].betas
             self.u[regi_ids[r],]=results[r].u
@@ -454,7 +445,7 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame, RegressionPropsY):
         self.chow = REGI.Chow(self)            
         SUMMARY.OLS_multi(reg=self, multireg=self.multi, vm=vm, nonspat_diag=nonspat_diag, spat_diag=spat_diag, moran=moran, white_test=white_test, regimes=True)
 
-def _work(y,x,regi_ids,r,robust,sig2n_k,name_ds,name_y,name_x,name_w,name_regimes):
+def _work(y,x,w,regi_ids,r,robust,sig2n_k,name_ds,name_y,name_x,name_w,name_regimes):
     y_r = y[regi_ids[r]]
     x_r = x[regi_ids[r]]
     x_constant = USER.check_constant(x_r)
@@ -468,6 +459,10 @@ def _work(y,x,regi_ids,r,robust,sig2n_k,name_ds,name_y,name_x,name_w,name_regime
     model.name_x = ['%s_%s'%(str(r), i) for i in name_x]
     model.name_w = name_w
     model.name_regimes = name_regimes
+    if w:
+        w_r,warn = REGI.w_regime(w, regi_ids[r], r, transform=True)
+        set_warn(model, warn)
+        model.w = w_r        
     return model
             
 def _test():

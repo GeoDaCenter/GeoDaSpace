@@ -1393,18 +1393,3 @@ def _test():
 
 if __name__ == '__main__':
     _test()
-    import pysal
-    import numpy as np
-    dbf = pysal.open(pysal.examples.get_path('columbus.dbf'),'r')
-    y = np.array([dbf.by_col('CRIME')]).T
-    names_to_extract = ['INC']
-    x = np.array([dbf.by_col(name) for name in names_to_extract]).T
-    yd_var = ['HOVAL']
-    yend = np.array([dbf.by_col(name) for name in yd_var]).T
-    q_var = ['DISCBD']
-    q = np.array([dbf.by_col(name) for name in q_var]).T
-    regimes = regimes = dbf.by_col('NSA')
-    w = pysal.open(pysal.examples.get_path("columbus.gal"), 'r').read() 
-    w.transform='r'
-    model = GM_Endog_Error_Het_Regimes(y, x, yend=yend,q=q, regimes=regimes, w=w, name_y='crime', name_x=['income'], name_regimes='nsa', name_ds='columbus', regime_err_sep=True)
-    print model.summary
