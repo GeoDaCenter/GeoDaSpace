@@ -293,13 +293,8 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         if regime_err_sep == True and set(cols2regi) == set([True]) and constant_regi == 'many':
             name_x = USER.set_name_x(name_x, x)
             self.y = y
-            if w:
-                w_i,regi_ids,warn = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True, min_n=len(self.cols2regi)+1)
-                set_warn(self,warn)
-            else:
-                regi_ids = dict((r, list(np.where(np.array(regimes) == r)[0])) for r in self.regimes_set)
-                w_i = None
-            self._tsls_regimes_multi(x, yend, q, w_i, regi_ids, cores,\
+            regi_ids = dict((r, list(np.where(np.array(regimes) == r)[0])) for r in self.regimes_set)
+            self._tsls_regimes_multi(x, yend, q, w, regi_ids, cores,\
                  gwk, sig2n_k, robust, spat_diag, vm, name_x, name_yend, name_q)
         else:
             name_x = USER.set_name_x(name_x, x,constant=True)
@@ -335,16 +330,16 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
             if summ:
                 SUMMARY.TSLS(reg=self, vm=vm, w=w, spat_diag=spat_diag, regimes=True)
 
-    def _tsls_regimes_multi(self, x, yend, q, w_i, regi_ids, cores,\
+    def _tsls_regimes_multi(self, x, yend, q, w, regi_ids, cores,\
                  gwk, sig2n_k, robust, spat_diag, vm, name_x, name_yend, name_q):
-        pool = mp.Pool(cores)
         results_p = {}
         for r in self.regimes_set:
             if system() == 'Windows':
                 is_win = True
-                results_p[r] = _work(*(self.y,x,regi_ids,r,yend,q,robust,sig2n_k,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes))
+                results_p[r] = _work(*(self.y,x,w,regi_ids,r,yend,q,robust,sig2n_k,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes))
             else:
-                results_p[r] = pool.apply_async(_work,args=(self.y,x,regi_ids,r,yend,q,robust,sig2n_k,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes))
+                pool = mp.Pool(cores)
+                results_p[r] = pool.apply_async(_work,args=(self.y,x,w,regi_ids,r,yend,q,robust,sig2n_k,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes))
                 is_win = False
         self.kryd = 0
         self.kr = x.shape[1]+yend.shape[1]+1
@@ -365,10 +360,6 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
                 results[r] = results_p[r]
             else:
                 results[r] = results_p[r].get()
-            if w_i:
-                results[r].w = w_i[r]
-            else:
-                results[r].w = None
             self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
             self.betas[(counter*self.kr):((counter+1)*self.kr),] = results[r].betas
             self.u[regi_ids[r],]=results[r].u
@@ -419,7 +410,7 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         fac2 = np.linalg.inv(spdot(ZtHSi,ZtH.T,array_out=True))
         return fac2, ZtHSi
         
-def _work(y,x,regi_ids,r,yend,q,robust,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_regimes):
+def _work(y,x,w,regi_ids,r,yend,q,robust,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_regimes):
     y_r = y[regi_ids[r]]
     x_r = x[regi_ids[r]]
     yend_r = yend[regi_ids[r]]
@@ -439,6 +430,10 @@ def _work(y,x,regi_ids,r,yend,q,robust,sig2n_k,name_ds,name_y,name_x,name_yend,n
     model.name_h = model.name_x + model.name_q
     model.name_w = name_w
     model.name_regimes = name_regimes
+    if w:
+        w_r,warn = REGI.w_regime(w, regi_ids[r], r, transform=True)
+        set_warn(model, warn)
+        model.w = w_r        
     return model
 
 def _test():
