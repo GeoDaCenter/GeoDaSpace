@@ -271,11 +271,9 @@ class guiRegModel(abstractmodel.AbstractModel):
         lYE, lH = len(self.data['spec']['YE']), len(self.data['spec']['H'])
         if lYE > 0 or lH > 0:
             if lYE == 0:
-                return False, "There need to be at least one endogenous \
-                        variable (YE) if you have one or more instruments (H)."
+                return False, "There need to be at least one endogenous variable (YE) if you have one or more instruments (H)."
             if lH < lYE:
-                return False, "There need to be at least as many instruments \
-                        (H) as endogenous variables (YE)."
+                return False, "There need to be at least as many instruments (H) as endogenous variables (YE)."
             # if lYE == 0:
             # return False,'Please add endogenous variables (YE) or disable the
             # "Endogeneity" option.'
@@ -286,8 +284,7 @@ class guiRegModel(abstractmodel.AbstractModel):
             return False, msg
         model_type = self.data['modelType']['mType']
         if model_type > 0 and not self.getMWeightsEnabled():
-            return False, 'This model specification requires a spatial\
-                    weights matrix'
+            return False, 'This model specification requires a spatial weights matrix'
         if model_type < 2 and self.data['modelType']['error']['hac'] and not \
            self.getKWeightsEnabled():
             return False, 'The HAC requires a kernel spatial weights matrix'
