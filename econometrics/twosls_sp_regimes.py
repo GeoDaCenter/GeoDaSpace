@@ -490,7 +490,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                 set_warn(self,warn)
             self.regime_lag_sep=regime_lag_sep
             if regime_err_sep == True:
-                self.title = "SPATIAL TWO STAGE LEAST SQUARES - REGIMES (Group-wise heteroskedasticity)"
+                self.title = "SPATIAL TWO STAGE LEAST SQUARES - REGIMES (Optimal-Weighted GMM)"
             else:
                 self.title = "SPATIAL TWO STAGE LEAST SQUARES - REGIMES"
             SUMMARY.GM_Lag(reg=self, w=w, vm=vm, spat_diag=spat_diag, regimes=True)
