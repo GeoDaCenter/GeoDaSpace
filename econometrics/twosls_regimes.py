@@ -8,6 +8,7 @@ from twosls import BaseTSLS
 from robust import hac_multi
 import summary_output as SUMMARY
 from platform import system
+import time
 
 """
 Two-stage Least Squares estimation with regimes.
@@ -413,20 +414,7 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         return betas, vm
 
     def _get_fac2_het(self,u,sig2n_k):
-        D = SP.lil_matrix((self.n, self.n))
-        D.setdiag(u**2)
-        if sig2n_k:
-            S = spdot(spdot(self.h.T,D),self.h,array_out=True)/(self.n-self.k)
-        else:
-            S = spdot(spdot(self.h.T,D),self.h,array_out=True)/self.n
-        Si = np.linalg.inv(S)
-        ZtHSi = spdot(self.htz.T,Si)
-        fac2 = np.linalg.inv(spdot(ZtHSi,self.htz,array_out=True))
-        return fac2, ZtHSi
-
-    def _get_fac2_het_op2(self,u,sig2n_k):
-        u2 = u**2
-        z1 = self.h.toarray() * u2
+        z1 = self.h.toarray() * u**2
         S = spdot(self.h.T,z1,array_out=True)/self.n
         Si = np.linalg.inv(S)
         ZtHSi = spdot(self.htz.T,Si)
