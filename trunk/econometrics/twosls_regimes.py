@@ -423,6 +423,15 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         ZtHSi = spdot(self.htz.T,Si)
         fac2 = np.linalg.inv(spdot(ZtHSi,self.htz,array_out=True))
         return fac2, ZtHSi
+
+    def _get_fac2_het_op2(self,u,sig2n_k):
+        u2 = u**2
+        z1 = self.h.toarray() * u2
+        S = spdot(self.h.T,z1,array_out=True)/self.n
+        Si = np.linalg.inv(S)
+        ZtHSi = spdot(self.htz.T,Si)
+        fac2 = np.linalg.inv(spdot(ZtHSi,self.htz,array_out=True))
+        return fac2, ZtHSi
         
 def _work(y,x,w,regi_ids,r,yend,q,robust,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_regimes):
     y_r = y[regi_ids[r]]
