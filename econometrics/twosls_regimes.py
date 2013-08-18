@@ -379,27 +379,11 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         SUMMARY.TSLS_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=spat_diag, regimes=True)
 
     def _optimal_weight(self,sig2n_k):
-        ''' Computes optimal weights GMM. '''
-        H = spdot(spdot(self.h,self.hthi),self.htz)
-        fac2, ZtHSi = self._get_fac2_het(H,self.u,sig2n_k)
-        fac3 = spdot(ZtHSi,spdot(H.T,self.y),array_out=True)
-        betas = np.dot(fac2,fac3)
         """
-        # Updating S_hat to S_tilde
-        predy = spdot(self.z, betas)
-        u = self.y - predy
-        fac2, ZtHSi = self._get_fac2_het(u,sig2n_k)
-        """
-        if sig2n_k:
-            vm = fac2*(self.n-self.k)
-        else:
-            vm = fac2*self.n
-        #return betas, predy, u, vm #Use this line instead of next if updating S_hat to S_tilde.
-        return betas, vm
-
-    def _get_fac2_het(self,H,u,sig2n_k):
+        # Calculating H approach:
         D = SP.lil_matrix((self.n, self.n))
-        D.setdiag(u**2)
+        D.setdiag(self.u**2)
+        H = spdot(spdot(self.h,self.hthi),self.htz)
         if sig2n_k:
             S = spdot(spdot(self.z.T,D),self.z,array_out=True)/(self.n-self.k)
         else:
@@ -408,6 +392,36 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         ZtH = spdot(self.z.T,H)
         ZtHSi = spdot(ZtH,Si)
         fac2 = np.linalg.inv(spdot(ZtHSi,ZtH.T,array_out=True))
+        fac3 = spdot(ZtHSi,spdot(H.T,self.y),array_out=True)
+        """
+        # Using first step h and z approach:
+        fac2, ZtHSi = self._get_fac2_het(self.u,sig2n_k)
+        fac3 = spdot(ZtHSi,spdot(self.h.T,self.y),array_out=True)
+        #"""
+        betas = np.dot(fac2,fac3)
+        """
+        # Updating S_hat to S_tilde approach
+        predy = spdot(self.z, betas)
+        u = self.y - predy
+        fac2, ZtHSi = self._get_fac2_het(u,sig2n_k)
+        """
+        if sig2n_k:
+            vm = fac2*(self.n-self.k)
+        else:
+            vm = fac2*self.n
+        #return betas, predy, u, vm
+        return betas, vm
+
+    def _get_fac2_het(self,u,sig2n_k):
+        D = SP.lil_matrix((self.n, self.n))
+        D.setdiag(u**2)
+        if sig2n_k:
+            S = spdot(spdot(self.h.T,D),self.h,array_out=True)/(self.n-self.k)
+        else:
+            S = spdot(spdot(self.h.T,D),self.h,array_out=True)/self.n
+        Si = np.linalg.inv(S)
+        ZtHSi = spdot(self.htz.T,Si)
+        fac2 = np.linalg.inv(spdot(ZtHSi,self.htz,array_out=True))
         return fac2, ZtHSi
         
 def _work(y,x,w,regi_ids,r,yend,q,robust,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_regimes):
@@ -445,7 +459,7 @@ def _test():
 
 
 if __name__ == '__main__':
-    _test()    
+    #_test()    
     import numpy as np
     import pysal
     db = pysal.open(pysal.examples.get_path('NAT.dbf'),'r')
@@ -461,5 +475,6 @@ if __name__ == '__main__':
     regimes = db.by_col(r_var)
     tslsr = TSLS_Regimes(y, x, yd, q, regimes, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, \
                          name_yend=yd_var, name_q=q_var, name_regimes=r_var, cols2regi=[False,True,True,True,True], \
-                         sig2n_k=False, robust='white')
+                         sig2n_k=False)
     print tslsr.summary
+
