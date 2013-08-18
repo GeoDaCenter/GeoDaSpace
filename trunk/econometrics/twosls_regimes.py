@@ -308,15 +308,9 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
             BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q, \
                     robust=robust, gwk=gwk, sig2n_k=sig2n_k)
             if regime_err_sep == True and robust == None:
-                """
-                # Weighted x, y, yend and q approach:
-                y2,x2,yend2,q2 = REGI._get_weighted_var(regimes,self.regimes_set,sig2n_k,self.u,y,x,yend,q)
-                tsls2 = BaseTSLS(y=y2, x=x2, yend=yend2, q=q2, sig2n_k=sig2n_k)
-                # Updating S_hat to S_tilde approach:               
-                betas2, predy2, resid2, vm2 = self._optimal_weight(sig2n_k)
-                RegressionProps_basic(self,betas=betas2,predy=predy2,u=resid2,vm=vm2,sig2=False)
-                """
+                print 'Betas 1st step:',self.betas.T
                 betas2, vm2 = self._optimal_weight(sig2n_k)
+                print 'Betas 2nd step:',betas2.T
                 RegressionProps_basic(self,betas=betas2,vm=vm2,sig2=False)
                 self.title = "TWO STAGE LEAST SQUARES - REGIMES (Optimal-Weighted GMM)"
                 robust = None
@@ -379,47 +373,24 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         SUMMARY.TSLS_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=spat_diag, regimes=True)
 
     def _optimal_weight(self,sig2n_k):
-        """
-        # Calculating H approach:
-        D = SP.lil_matrix((self.n, self.n))
-        D.setdiag(self.u**2)
         H = spdot(spdot(self.h,self.hthi),self.htz)
+        Hu = H * self.u**2 
         if sig2n_k:
-            S = spdot(spdot(self.z.T,D),self.z,array_out=True)/(self.n-self.k)
+            S = spdot(H.T,Hu,array_out=True)/(self.n-self.k)
         else:
-            S = spdot(spdot(self.z.T,D),self.z,array_out=True)/self.n
+            S = spdot(H.T,Hu,array_out=True)/self.n
         Si = np.linalg.inv(S)
         ZtH = spdot(self.z.T,H)
         ZtHSi = spdot(ZtH,Si)
         fac2 = np.linalg.inv(spdot(ZtHSi,ZtH.T,array_out=True))
         fac3 = spdot(ZtHSi,spdot(H.T,self.y),array_out=True)
-        """
-        # Using first step h and z approach:
-        fac2, ZtHSi = self._get_fac2_het(self.u,sig2n_k)
-        fac3 = spdot(ZtHSi,spdot(self.h.T,self.y),array_out=True)
-        #"""
         betas = np.dot(fac2,fac3)
-        """
-        # Updating S_hat to S_tilde approach
-        predy = spdot(self.z, betas)
-        u = self.y - predy
-        fac2, ZtHSi = self._get_fac2_het(u,sig2n_k)
-        """
         if sig2n_k:
             vm = fac2*(self.n-self.k)
         else:
             vm = fac2*self.n
-        #return betas, predy, u, vm
         return betas, vm
 
-    def _get_fac2_het(self,u,sig2n_k):
-        z1 = self.h.toarray() * u**2
-        S = spdot(self.h.T,z1,array_out=True)/self.n
-        Si = np.linalg.inv(S)
-        ZtHSi = spdot(self.htz.T,Si)
-        fac2 = np.linalg.inv(spdot(ZtHSi,self.htz,array_out=True))
-        return fac2, ZtHSi
-        
 def _work(y,x,w,regi_ids,r,yend,q,robust,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_regimes):
     y_r = y[regi_ids[r]]
     x_r = x[regi_ids[r]]
