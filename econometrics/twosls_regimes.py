@@ -374,6 +374,7 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
 
     def _optimal_weight(self,sig2n_k):
         H = spdot(spdot(self.h,self.hthi),self.htz)
+        print H.shape, self.u.shape
         Hu = H * self.u**2 
         if sig2n_k:
             S = spdot(H.T,Hu,array_out=True)/(self.n-self.k)
