@@ -8,7 +8,6 @@ from twosls import BaseTSLS
 from robust import hac_multi
 import summary_output as SUMMARY
 from platform import system
-import time
 
 """
 Two-stage Least Squares estimation with regimes.
