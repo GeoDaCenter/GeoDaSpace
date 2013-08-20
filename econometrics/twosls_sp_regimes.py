@@ -72,9 +72,12 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                    If True, a separate regression is run for each regime.
     robust       : string
                    If 'white', then a White consistent estimator of the
-                   variance-covariance matrix is given.  If 'hac', then a
-                   HAC consistent estimator of the variance-covariance
-                   matrix is given. Default set to None. 
+                   variance-covariance matrix is given.
+                   If 'hac', then a HAC consistent estimator of the 
+                   variance-covariance matrix is given.
+                   If 'ogmm', then Optimal GMM is used to estimate
+                   betas and the variance-covariance matrix.
+                   Default set to None. 
     gwk          : pysal W object
                    Kernel spatial weights needed for HAC estimation. Note:
                    matrix must have ones along the main diagonal.
@@ -489,10 +492,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                           yend2[:,-1].reshape(self.n,1),self.betas[-1])
                 set_warn(self,warn)
             self.regime_lag_sep=regime_lag_sep
-            if regime_err_sep == True:
-                self.title = "SPATIAL TWO STAGE LEAST SQUARES - REGIMES (Optimal-Weighted GMM)"
-            else:
-                self.title = "SPATIAL TWO STAGE LEAST SQUARES - REGIMES"
+            self.title = "SPATIAL "+ self.title
             SUMMARY.GM_Lag(reg=self, w=w, vm=vm, spat_diag=spat_diag, regimes=True)
 
     def GM_Lag_Regimes_Multi(self, y, x, w_i, regi_ids, cores=None,\
@@ -604,7 +604,7 @@ def _work(y,x,regi_ids,r,yend,q,w_r,w_lags,lag_q,robust,sig2n_k,name_ds,name_y,n
     model.name_w = name_w
     model.name_regimes = name_regimes
     return model
-    
+
 def _test():
     import doctest
     start_suppress = np.get_printoptions()['suppress']
@@ -630,5 +630,5 @@ if __name__ == '__main__':
     regimes = db.by_col(r_var)
     w = pysal.queen_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    model = GM_Lag_Regimes(y, x, regimes, yend=yd, q=q, w=w, constant_regi='many', spat_diag=True, sig2n_k=False, lag_q=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal')
+    model = GM_Lag_Regimes(y, x, regimes, yend=yd, q=q, w=w, constant_regi='many', spat_diag=True, sig2n_k=False, lag_q=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal', regime_err_sep=False, robust='ogmm')
     print model.summary

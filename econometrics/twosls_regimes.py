@@ -54,9 +54,12 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
                    If True, a separate regression is run for each regime.
     robust       : string
                    If 'white', then a White consistent estimator of the
-                   variance-covariance matrix is given.  If 'hac', then a
-                   HAC consistent estimator of the variance-covariance
-                   matrix is given. Default set to None. 
+                   variance-covariance matrix is given.
+                   If 'hac', then a HAC consistent estimator of the 
+                   variance-covariance matrix is given.
+                   If 'ogmm', then Optimal GMM is used to estimate
+                   betas and the variance-covariance matrix.
+                   Default set to None. 
     gwk          : pysal W object
                    Kernel spatial weights needed for HAC estimation. Note:
                    matrix must have ones along the main diagonal.
@@ -305,12 +308,12 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
             yend, self.name_yend = REGI.Regimes_Frame.__init__(self, yend, \
                     regimes, constant_regi=None, \
                     cols2regi=cols2regi, yend=True, names=name_yend)
+            if regime_err_sep == True and robust == None:
+                robust = 'white'
             BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q, \
                     robust=robust, gwk=gwk, sig2n_k=sig2n_k)
-            if regime_err_sep == True and robust == None:
-                print 'Betas 1st step:',self.betas.T
-                betas2, vm2 = self._optimal_weight(sig2n_k)
-                print 'Betas 2nd step:',betas2.T
+            if robust == 'ogmm':
+                betas2, vm2 = _optimal_weight(self,sig2n_k)
                 RegressionProps_basic(self,betas=betas2,vm=vm2,sig2=False)
                 self.title = "TWO STAGE LEAST SQUARES - REGIMES (Optimal-Weighted GMM)"
                 robust = None
@@ -372,25 +375,6 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         self.chow = REGI.Chow(self)
         SUMMARY.TSLS_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=spat_diag, regimes=True)
 
-    def _optimal_weight(self,sig2n_k):
-        H = spdot(spdot(self.h,self.hthi),self.htz)
-        Hu = H * self.u**2 
-        if sig2n_k:
-            S = spdot(H.T,Hu,array_out=True)/(self.n-self.k)
-        else:
-            S = spdot(H.T,Hu,array_out=True)/self.n
-        Si = np.linalg.inv(S)
-        ZtH = spdot(self.z.T,H)
-        ZtHSi = spdot(ZtH,Si)
-        fac2 = np.linalg.inv(spdot(ZtHSi,ZtH.T,array_out=True))
-        fac3 = spdot(ZtHSi,spdot(H.T,self.y),array_out=True)
-        betas = np.dot(fac2,fac3)
-        if sig2n_k:
-            vm = fac2*(self.n-self.k)
-        else:
-            vm = fac2*self.n
-        return betas, vm
-
 def _work(y,x,w,regi_ids,r,yend,q,robust,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_regimes):
     y_r = y[regi_ids[r]]
     x_r = x[regi_ids[r]]
@@ -417,6 +401,24 @@ def _work(y,x,w,regi_ids,r,yend,q,robust,sig2n_k,name_ds,name_y,name_x,name_yend
         model.w = w_r        
     return model
 
+def _optimal_weight(reg,sig2n_k):
+    Hu = reg.h.toarray() * reg.u**2 
+    if sig2n_k:
+        S = spdot(reg.h.T,Hu,array_out=True)/(reg.n-reg.k)
+    else:
+        S = spdot(reg.h.T,Hu,array_out=True)/reg.n
+    Si = np.linalg.inv(S)
+    ZtH = spdot(reg.z.T,reg.h)
+    ZtHSi = spdot(ZtH,Si)
+    fac2 = np.linalg.inv(spdot(ZtHSi,ZtH.T,array_out=True))
+    fac3 = spdot(ZtHSi,spdot(reg.h.T,reg.y),array_out=True)
+    betas = np.dot(fac2,fac3)
+    if sig2n_k:
+        vm = fac2*(reg.n-reg.k)
+    else:
+        vm = fac2*reg.n
+    return betas, vm
+
 def _test():
     import doctest
     start_suppress = np.get_printoptions()['suppress']
@@ -426,22 +428,22 @@ def _test():
 
 
 if __name__ == '__main__':
-    #_test()    
+    _test()    
     import numpy as np
     import pysal
     db = pysal.open(pysal.examples.get_path('NAT.dbf'),'r')
     y_var = 'HR60'
     y = np.array([db.by_col(y_var)]).T
-    x_var = ['PS60','MA60','DV60','UE60']
+    x_var = ['PS60','DV60','RD60']
     x = np.array([db.by_col(name) for name in x_var]).T
-    yd_var = ['RD60']
+    yd_var = ['UE60']
     yd = np.array([db.by_col(name) for name in yd_var]).T
-    q_var = ['FP89']
+    q_var = ['FP59','MA60']
     q = np.array([db.by_col(name) for name in q_var]).T
     r_var = 'SOUTH'
     regimes = db.by_col(r_var)
     tslsr = TSLS_Regimes(y, x, yd, q, regimes, constant_regi='many', spat_diag=False, name_y=y_var, name_x=x_var, \
-                         name_yend=yd_var, name_q=q_var, name_regimes=r_var, cols2regi=[False,True,True,True,True], \
+                         name_yend=yd_var, name_q=q_var, name_regimes=r_var, cols2regi=[False,True,True,True], \
                          sig2n_k=False)
     print tslsr.summary
 

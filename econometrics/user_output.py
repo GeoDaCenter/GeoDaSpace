@@ -511,7 +511,7 @@ def check_robust(robust, wk):
                 if vmax > 1.0:
                     ##### NOTE: we are not checking for the case of exactly 1.0 #####
                     raise Exception, "Off-diagonal entries must be less than 1."
-        elif robust.lower() == 'white':
+        elif robust.lower() == 'white' or robust.lower() == 'ogmm':
             if wk:
                 raise Exception, "White requires that wk be set to None"
         else:
