@@ -466,7 +466,7 @@ class Spmodel:
         instrument_lags, lag_user_inst,
         vc_matrix, predy_resid,
         ols_diag, moran, white_test,
-            regime_err_sep, regime_lag_sep, cores, method):
+            regime_err_sep, regime_lag_sep, cores, method, ids=None):
 
         self.name_ds = name_ds
         self.w_list = w_list
@@ -509,10 +509,10 @@ class Spmodel:
         self.regime_lag_sep = regime_lag_sep
         self.cores = cores
         self.method = method
+        self.ids = ids
 
         if predy_resid:
-            self.pred_res = y
-            self.pred_res.shape = (y.shape[0], 1)
+            self.pred_res = y.reshape(y.shape[0], 1)
             self.header_pr = name_y
 
         if comp_inverse == 'Power Expansion':
@@ -534,10 +534,23 @@ class Spmodel:
             model_type, endog, inf_lambda, regi, method)](self)
 
         if predy_resid:
+            if not self.ids:
+                self.ids = get_ids(self.w_list, self.y.shape[0])
+            f = open(predy_resid, 'w')
+            f.write('IDs,'+self.header_pr)
+            content = ''
+            for i,line in enumerate(self.pred_res):
+                content += '\n'+str(self.ids[i])+',' 
+                for item in line:
+                    content +=  '%.4f,' %item
+            f.write(content + '\n')
+            f.close()
+
+            """
             outfile = open(predy_resid, 'w')
             outfile.write(self.header_pr+'\n')
             np.savetxt(outfile, self.pred_res, delimiter=',')
-
+            """
 
 def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,
             h, name_h, r, name_r, s, name_s, t, name_t,
@@ -549,7 +562,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,
             instrument_lags, lag_user_inst,
             vc_matrix, predy_resid,
             ols_diag, moran, white_test,
-            regime_err_sep, regime_lag_sep, cores, method):
+            regime_err_sep, regime_lag_sep, cores, method, ids=None):
     """
     spmodel originally ran the dispatcher. The class Spmodel now runs the
     dispatcher, and was created when this module was refactored for ease of
@@ -567,7 +580,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,
         instrument_lags, lag_user_inst,
         vc_matrix, predy_resid,
         ols_diag, moran, white_test,
-        regime_err_sep, regime_lag_sep, cores, method)
+        regime_err_sep, regime_lag_sep, cores, method, ids)
     return result.output
 
 ##############################################################################
@@ -737,6 +750,15 @@ def robust_vm_multi(reg):
         counter += 1
     return reg
 
+def get_ids(w_list, N):
+    try:
+        if len(w_list[0].id_order)<N:
+            idw = w_list[0].id_order * N/w_list[0].n
+        else:
+            ids = w_list[0].id_order
+    except:
+        ids = range(1,N+1)
+    return ids
 
 def collect_predy_resid(pred_res, header_pr, reg, model, spatial, ws, counter):
     if ws > 1:
