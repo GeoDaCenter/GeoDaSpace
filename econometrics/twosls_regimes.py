@@ -290,7 +290,7 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, yend=yend, add_cons=False)
         self.regimes_set = REGI._get_regimes_set(regimes)
         self.regimes = regimes
-        USER.check_regimes(self.regimes_set)
+        USER.check_regimes(self.regimes_set,self.n,x.shape[1])
         self.regime_err_sep = regime_err_sep
 
         if regime_err_sep == True and set(cols2regi) == set([True]) and constant_regi == 'many':
@@ -312,14 +312,9 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
                 robust = 'white'
             BaseTSLS.__init__(self, y=y, x=x, yend=yend, q=q, \
                     robust=robust, gwk=gwk, sig2n_k=sig2n_k)
+            self.title = "TWO STAGE LEAST SQUARES - REGIMES"
             if robust == 'ogmm':
-                betas2, vm2 = _optimal_weight(self,sig2n_k)
-                RegressionProps_basic(self,betas=betas2,vm=vm2,sig2=False)
-                self.title = "TWO STAGE LEAST SQUARES - REGIMES (Optimal-Weighted GMM)"
-                robust = None
-                set_warn(self,"Residuals treated as homoskedastic for the purpose of diagnostics.")
-            else:
-                self.title = "TWO STAGE LEAST SQUARES - REGIMES"
+                _optimal_weight(self,sig2n_k)
             self.name_z = self.name_x + self.name_yend
             self.name_h = USER.set_name_h(self.name_x, self.name_q)
             self.chow = REGI.Chow(self)
@@ -331,7 +326,7 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
                  gwk, sig2n_k, robust, spat_diag, vm, name_x, name_yend, name_q):
         results_p = {}
         for r in self.regimes_set:
-            if system() == 'Windows':
+            if system() != 'Windows':
                 is_win = True
                 results_p[r] = _work(*(self.y,x,w,regi_ids,r,yend,q,robust,sig2n_k,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes))
             else:
@@ -372,6 +367,8 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         self.hac_var = sphstack(x,q)
         if robust == 'hac':
             hac_multi(self,gwk)
+        if robust == 'ogmm':
+            set_warn(self,"Residuals treated as homoskedastic for the purpose of diagnostics.")
         self.chow = REGI.Chow(self)
         SUMMARY.TSLS_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=spat_diag, regimes=True)
 
@@ -381,10 +378,14 @@ def _work(y,x,w,regi_ids,r,yend,q,robust,sig2n_k,name_ds,name_y,name_x,name_yend
     yend_r = yend[regi_ids[r]]
     q_r = q[regi_ids[r]]
     x_constant = USER.check_constant(x_r)
-    if robust == 'hac':
-        robust = None
-    model = BaseTSLS(y_r, x_constant, yend_r, q_r, robust=robust, sig2n_k=sig2n_k)
+    if robust == 'hac' or robust == 'ogmm':
+        robust2 = None
+    else:
+        robust2 = robust
+    model = BaseTSLS(y_r, x_constant, yend_r, q_r, robust=robust2, sig2n_k=sig2n_k)
     model.title = "TWO STAGE LEAST SQUARES ESTIMATION - REGIME %s" %r
+    if robust == 'ogmm':
+        _optimal_weight(model,sig2n_k,warn=False)
     model.robust = USER.set_robust(robust)
     model.name_ds = name_ds
     model.name_y = '%s_%s'%(str(r), name_y)
@@ -401,8 +402,11 @@ def _work(y,x,w,regi_ids,r,yend,q,robust,sig2n_k,name_ds,name_y,name_x,name_yend
         model.w = w_r        
     return model
 
-def _optimal_weight(reg,sig2n_k):
-    Hu = reg.h.toarray() * reg.u**2 
+def _optimal_weight(reg,sig2n_k,warn=True):
+    try:
+        Hu = reg.h.toarray() * reg.u**2 
+    except:
+        Hu = reg.h * reg.u**2
     if sig2n_k:
         S = spdot(reg.h.T,Hu,array_out=True)/(reg.n-reg.k)
     else:
@@ -417,7 +421,11 @@ def _optimal_weight(reg,sig2n_k):
         vm = fac2*(reg.n-reg.k)
     else:
         vm = fac2*reg.n
-    return betas, vm
+    RegressionProps_basic(reg,betas=betas,vm=vm,sig2=False)
+    reg.title += " (Optimal-Weighted GMM)"
+    if warn:
+        set_warn(reg,"Residuals treated as homoskedastic for the purpose of diagnostics.")
+    return
 
 def _test():
     import doctest
