@@ -577,7 +577,7 @@ def check_regimes(reg_set,N=None,K=None):
     if len(reg_set) < 2:
         raise Exception, "At least 2 regimes are needed to run regimes methods. Please check your regimes variable."
     if 1.0*N/len(reg_set) < K+1:
-        raise Exception, "There are too many regimes for the given number of observations and variables. Please check your regimes variable."
+        raise Exception, "There aren't enough observations for the given number of regimes and variables. Please check your regimes variable."
 
 
 def check_constant(x):

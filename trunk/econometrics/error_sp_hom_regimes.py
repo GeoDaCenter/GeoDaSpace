@@ -326,7 +326,7 @@ class GM_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x)
         self.regimes_set = REGI._get_regimes_set(regimes)
         self.regimes = regimes
-        USER.check_regimes(self.regimes_set)
+        USER.check_regimes(self.regimes_set,self.n,x.shape[1])
         self.regime_err_sep = regime_err_sep        
 
         if regime_err_sep == True:
@@ -788,7 +788,7 @@ class GM_Endog_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, yend=yend)
         self.regimes_set = REGI._get_regimes_set(regimes)
         self.regimes = regimes
-        USER.check_regimes(self.regimes_set)
+        USER.check_regimes(self.regimes_set,self.n,x.shape[1])
         self.regime_err_sep = regime_err_sep        
 
         if regime_err_sep == True:
@@ -1322,7 +1322,7 @@ class GM_Combo_Hom_Regimes(GM_Endog_Error_Hom_Regimes):
         cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, yend=yend, add_cons=False)     
         self.regimes_set = REGI._get_regimes_set(regimes)
         self.regimes = regimes
-        USER.check_regimes(self.regimes_set)
+        USER.check_regimes(self.regimes_set,n,x.shape[1])
         self.regime_err_sep = regime_err_sep        
         self.regime_lag_sep = regime_lag_sep 
 
