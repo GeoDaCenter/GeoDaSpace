@@ -10,7 +10,7 @@ import regimes as REGI
 import user_output as USER
 import summary_output as SUMMARY
 import multiprocessing as mp
-from twosls_regimes import TSLS_Regimes
+from twosls_regimes import TSLS_Regimes, _optimal_weight
 from twosls import BaseTSLS
 from utils import set_endog, set_endog_sparse, sp_att, set_warn, sphstack
 from robust import hac_multi
@@ -452,7 +452,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         self.cols2regi = cols2regi
         self.regimes_set = REGI._get_regimes_set(regimes)
         self.regimes = regimes
-        USER.check_regimes(self.regimes_set)
+        USER.check_regimes(self.regimes_set,self.n,x.shape[1])
         self.regime_err_sep = regime_err_sep        
         self.regime_lag_sep = regime_lag_sep        
         if regime_lag_sep == True:
@@ -561,6 +561,8 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         self.multi = results
         if robust == 'hac':
             hac_multi(self,gwk,constant=True)
+        if robust == 'ogmm':
+            set_warn(self,"Residuals treated as homoskedastic for the purpose of diagnostics.")
         self.chow = REGI.Chow(self)
         SUMMARY.GM_Lag_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=spat_diag, regimes=True)
 
@@ -589,10 +591,14 @@ def _work(y,x,regi_ids,r,yend,q,w_r,w_lags,lag_q,robust,sig2n_k,name_ds,name_y,n
         q_r = q
     yend_r, q_r = set_endog_sparse(y_r, x_r, w_r, yend_r, q_r, w_lags, lag_q)
     x_constant = USER.check_constant(x_r)
-    if robust == 'hac':
-        robust = None
-    model = BaseTSLS(y_r, x_constant, yend_r, q_r, robust=robust, sig2n_k=sig2n_k)
+    if robust == 'hac' or robust == 'ogmm':
+        robust2 = None
+    else:
+        robust2 = robust
+    model = BaseTSLS(y_r, x_constant, yend_r, q_r, robust=robust2, sig2n_k=sig2n_k)
     model.title = "SPATIAL TWO STAGE LEAST SQUARES ESTIMATION - REGIME %s" %r
+    if robust == 'ogmm':
+        _optimal_weight(model,sig2n_k,warn=False)
     model.robust = USER.set_robust(robust)
     model.name_ds = name_ds
     model.name_y = '%s_%s'%(str(r), name_y)
@@ -630,5 +636,5 @@ if __name__ == '__main__':
     regimes = db.by_col(r_var)
     w = pysal.queen_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    model = GM_Lag_Regimes(y, x, regimes, yend=yd, q=q, w=w, constant_regi='many', spat_diag=True, sig2n_k=False, lag_q=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal', regime_err_sep=False, robust='ogmm')
+    model = GM_Lag_Regimes(y, x, regimes, yend=yd, q=q, w=w, constant_regi='many', spat_diag=True, sig2n_k=False, lag_q=True, name_y=y_var, name_x=x_var, name_yend=yd_var, name_q=q_var, name_regimes=r_var, name_ds='columbus', name_w='columbus.gal', regime_err_sep=True, robust='white')
     print model.summary
