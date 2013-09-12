@@ -1052,8 +1052,9 @@ class GM_Combo(BaseGM_Combo):
         x_constant = USER.check_constant(x)
         BaseGM_Combo.__init__(self, y=y, x=x_constant, w=w.sparse, yend=yend2, q=q2,\
                                 w_lags=w_lags, lag_q=lag_q)
+        self.rho = self.betas[-2]
         self.predy_e, self.e_pred, warn = sp_att(w,self.y,\
-                   self.predy,yend2[:,-1].reshape(self.n,1),self.betas[-2])
+                   self.predy,yend2[:,-1].reshape(self.n,1),self.rho)
         set_warn(self, warn)
         self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES"        
         self.name_ds = USER.set_name_ds(name_ds)

@@ -1213,8 +1213,9 @@ class GM_Combo_Regimes(GM_Endog_Error_Regimes, REGI.Regimes_Frame):
                 name_ds=name_ds, name_regimes=name_regimes, summ=False, add_lag=add_lag)
 
         if regime_err_sep != True:
+            self.rho = self.betas[-2]
             self.predy_e, self.e_pred, warn = sp_att(w,self.y,\
-                   self.predy,yend[:,-1].reshape(self.n,1),self.betas[-2])
+                   self.predy,yend[:,-1].reshape(self.n,1),self.rho)
             set_warn(self, warn)
             self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES - REGIMES"
             SUMMARY.GM_Combo(reg=self, w=w, vm=vm, regimes=True)
@@ -1250,8 +1251,9 @@ def _work_endog_error(y,x,yend,q,regi_ids,r,w,name_ds,name_y,name_x,name_yend,na
     model = BaseGM_Endog_Error(y_r, x_constant, yend_r, q_r, w_r.sparse)
     set_warn(model, warn)
     if add_lag != False:
+        model.rho = model.betas[-2]
         model.predy_e, model.e_pred, warn = sp_att(w_r,model.y,\
-            model.predy,model.yend[:,-1].reshape(model.n,1),model.betas[-2])
+            model.predy,model.yend[:,-1].reshape(model.n,1),model.rho)
         set_warn(model, warn)  
     model.w = w_r
     model.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES - REGIME %s" %r
