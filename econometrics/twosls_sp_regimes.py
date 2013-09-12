@@ -453,6 +453,10 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         self.regimes_set = REGI._get_regimes_set(regimes)
         self.regimes = regimes
         USER.check_regimes(self.regimes_set,self.n,x.shape[1])
+        if regime_err_sep == True and robust == 'hac':
+            set_warn(self,"Error by regimes is incompatible with HAC estimation for Spatial Lag models. Hence, error and lag by regimes have been disabled for this model.")
+            regime_err_sep = False
+            regime_lag_sep = False
         self.regime_err_sep = regime_err_sep        
         self.regime_lag_sep = regime_lag_sep        
         if regime_lag_sep == True:
@@ -488,10 +492,12 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
             if regime_lag_sep:
                 self.sp_att_reg(w_i, regi_ids, yend2[:,-1].reshape(self.n,1))
             else:
+                self.rho = self.betas[-1]
                 self.predy_e, self.e_pred, warn = sp_att(w,self.y,self.predy,\
-                          yend2[:,-1].reshape(self.n,1),self.betas[-1])
+                          yend2[:,-1].reshape(self.n,1),self.rho)
                 set_warn(self,warn)
             self.regime_lag_sep=regime_lag_sep
+            print '#########', self.rho
             self.title = "SPATIAL "+ self.title
             SUMMARY.GM_Lag(reg=self, w=w, vm=vm, spat_diag=spat_diag, regimes=True)
 
@@ -572,10 +578,11 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         self.e_pred = np.zeros((self.n,1),float)
         counter = 1
         for r in self.regimes_set:
-            lambd = self.betas[(self.kr-self.kryd)*self.nr+counter*self.kryd-1]
+            self.rho = self.betas[(self.kr-self.kryd)*self.nr+counter*self.kryd-1]
             self.predy_e[regi_ids[r],], self.e_pred[regi_ids[r],], warn = sp_att(w_i[r],\
                           self.y[regi_ids[r]],self.predy[regi_ids[r]],\
-                          wy[regi_ids[r]],lambd)
+                          wy[regi_ids[r]],self.rho)
+            print '#########', self.rho
             counter += 1
 
 def _work(y,x,regi_ids,r,yend,q,w_r,w_lags,lag_q,robust,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_regimes):

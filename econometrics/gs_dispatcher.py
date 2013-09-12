@@ -1141,7 +1141,7 @@ def get_OLS_regimes(gui):
     robust_regs = get_white_hac_standard(reg, gui)
     for rob_reg in robust_regs:
         rob_reg.w, rob_reg.name_w = None, None
-        if gui.regime_err_sep:
+        try:
             for m in rob_reg.multi:
                 rob_reg.multi[m].w, rob_reg.multi[m].name_w = None, None
                 SUMMARY.beta_diag_ols(rob_reg.multi[
@@ -1151,7 +1151,7 @@ def get_OLS_regimes(gui):
             SUMMARY.summary_multi(
                 reg=rob_reg, multireg=rob_reg.multi, vm=gui.vc_matrix,
                     instruments=False, nonspat_diag=gui.ols_diag, spat_diag=False)
-        else:
+        except:
             SUMMARY.beta_diag_ols(rob_reg, rob_reg.robust)
             rob_reg.chow = REGI.Chow(rob_reg)
             SUMMARY.summary_chow(rob_reg)
@@ -1167,6 +1167,8 @@ def get_TSLS_regimes(gui):
         name_w0 = gui.w_list[0].name
     else:
         w0, name_w0 = None, None
+    #if gui.hac and gui.regime_err_sep:
+    #    gui.regime_err_sep = False
     reg = TSLS_Regimes(
         y=gui.y, x=gui.x, yend=gui.ye, q=gui.h, name_w=name_w0, w=w0,
                 regimes=gui.r, name_regimes=gui.name_r, regime_err_sep=gui.regime_err_sep,
@@ -1201,7 +1203,7 @@ def get_TSLS_regimes(gui):
     robust_regs = get_white_hac_standard(reg, gui)
     for rob_reg in robust_regs:
         rob_reg.w, rob_reg.name_w = None, None
-        if gui.regime_err_sep:
+        try:
             for m in rob_reg.multi:
                 rob_reg.multi[m].w, rob_reg.multi[m].name_w = None, None
                 SUMMARY.beta_diag(rob_reg.multi[m], rob_reg.multi[m].robust)
@@ -1211,7 +1213,7 @@ def get_TSLS_regimes(gui):
             SUMMARY.summary_multi(
                 reg=rob_reg, multireg=rob_reg.multi, vm=gui.vc_matrix,
                     instruments=True, nonspat_diag=False, spat_diag=False)
-        else:
+        except:
             SUMMARY.beta_diag(rob_reg, rob_reg.robust)
             SUMMARY.build_coefs_body_instruments(rob_reg)
             rob_reg.chow = REGI.Chow(rob_reg)
@@ -1225,6 +1227,9 @@ def get_TSLS_regimes(gui):
 def get_GM_Lag_endog_regimes(gui):
     output = []
     counter = 1
+    #if gui.hac and gui.regime_err_sep:
+    #    gui.regime_err_sep = False
+    #    gui.regime_lag_sep = False
     for w in gui.w_list:
         reg = GM_Lag_Regimes(y=gui.y, x=gui.x, w=w, yend=gui.ye, q=gui.h,
               regimes=gui.r, name_regimes=gui.name_r, cores=gui.cores,
@@ -1238,7 +1243,7 @@ def get_GM_Lag_endog_regimes(gui):
         counter += 1
     robust_regs = get_white_hac_lag(reg, gui, output)
     for rob_reg in robust_regs:
-        if gui.regime_err_sep:
+        try:
             for m in rob_reg.multi:
                 SUMMARY.beta_diag_lag(rob_reg.multi[
                                       m], rob_reg.multi[m].robust)
@@ -1248,7 +1253,7 @@ def get_GM_Lag_endog_regimes(gui):
             SUMMARY.summary_multi(
                 reg=rob_reg, multireg=rob_reg.multi, vm=gui.vc_matrix,
                     instruments=True, nonspat_diag=False, spat_diag=gui.spat_diag)
-        else:
+        except:
             SUMMARY.beta_diag_lag(rob_reg, rob_reg.robust)
             SUMMARY.build_coefs_body_instruments(rob_reg)
             rob_reg.chow = REGI.Chow(rob_reg)
@@ -1262,6 +1267,9 @@ def get_GM_Lag_endog_regimes(gui):
 def get_GM_Lag_noEndog_regimes(gui):
     output = []
     counter = 1
+    #if gui.hac and gui.regime_err_sep:
+    #    gui.regime_err_sep = False
+    #    gui.regime_lag_sep = False
     for w in gui.w_list:
         reg = GM_Lag_Regimes(y=gui.y, x=gui.x, w=w, vm=gui.vc_matrix,
               regimes=gui.r, name_regimes=gui.name_r, cores=gui.cores,
@@ -1274,7 +1282,7 @@ def get_GM_Lag_noEndog_regimes(gui):
         counter += 1
     robust_regs = get_white_hac_lag(reg, gui, output)
     for rob_reg in robust_regs:
-        if gui.regime_err_sep:
+        try:
             for m in rob_reg.multi:
                 SUMMARY.beta_diag_lag(rob_reg.multi[
                                       m], rob_reg.multi[m].robust)
@@ -1284,7 +1292,7 @@ def get_GM_Lag_noEndog_regimes(gui):
             SUMMARY.summary_multi(
                 reg=rob_reg, multireg=rob_reg.multi, vm=gui.vc_matrix,
                     instruments=True, nonspat_diag=False, spat_diag=gui.spat_diag)
-        else:
+        except:
             SUMMARY.beta_diag_lag(rob_reg, rob_reg.robust)
             SUMMARY.build_coefs_body_instruments(rob_reg)
             rob_reg.chow = REGI.Chow(rob_reg)
