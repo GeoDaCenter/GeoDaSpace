@@ -527,7 +527,7 @@ def beta_diag_lag(reg, robust, error=True):
     reg.__summary['summary_std_err'] = robust
     reg.__summary['summary_zt'] = 'z'
     reg.__summary['summary_r2'] = "%-20s:      %5.4f\n" % ('Pseudo R-squared',reg.pr2)
-    if (error and np.abs(reg.betas[-2])<1) or (not error and np.abs(reg.betas[-1])<1):
+    if np.abs(reg.rho)<1:
         reg.pr2_e = diagnostics_tsls.pr2_spatial(reg)
         reg.__summary['summary_r2'] += "%-20s:  %5.4f\n" % ('Spatial Pseudo R-squared',reg.pr2_e)
     else:

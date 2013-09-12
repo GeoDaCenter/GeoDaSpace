@@ -1331,8 +1331,9 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
                  name_regimes=name_regimes, summ=False, add_lag=add_lag)
 
         if regime_err_sep != True:
+            self.rho = self.betas[-2]
             self.predy_e, self.e_pred, warn = UTILS.sp_att(w,self.y,\
-                       self.predy,yend[:,-1].reshape(self.n,1),self.betas[-2])
+                       self.predy,yend[:,-1].reshape(self.n,1),self.rho)
             UTILS.set_warn(self,warn)
             self.regime_lag_sep=regime_lag_sep
             self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HET) - REGIMES"
@@ -1369,8 +1370,9 @@ def _work_endog_error(y,x,yend,q,regi_ids,r,w,max_iter,epsilon,step1c,inv_method
     model = BaseGM_Endog_Error_Het(y_r,x_constant,yend_r,q_r,w_r.sparse,max_iter=max_iter,epsilon=epsilon,step1c=step1c,inv_method=inv_method)
     set_warn(model, warn)
     if add_lag != False:
+        model.rho = model.betas[-2]
         model.predy_e, model.e_pred, warn = sp_att(w_r,model.y,\
-            model.predy,model.yend[:,-1].reshape(model.n,1),model.betas[-2])
+            model.predy,model.yend[:,-1].reshape(model.n,1),model.rho)
         set_warn(model, warn)  
     model.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HET) - REGIME %s" %r
     model.name_ds = name_ds

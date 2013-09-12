@@ -497,7 +497,6 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                           yend2[:,-1].reshape(self.n,1),self.rho)
                 set_warn(self,warn)
             self.regime_lag_sep=regime_lag_sep
-            print '#########', self.rho
             self.title = "SPATIAL "+ self.title
             SUMMARY.GM_Lag(reg=self, w=w, vm=vm, spat_diag=spat_diag, regimes=True)
 
@@ -545,7 +544,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                 results[r] = results_p[r]
             else:
                 results[r] = results_p[r].get()
-            results[r].predy_e, results[r].e_pred, warn = sp_att(w_i[r],results[r].y,results[r].predy, results[r].yend[:,-1].reshape(results[r].n,1),results[r].betas[-1])
+            results[r].predy_e, results[r].e_pred, warn = sp_att(w_i[r],results[r].y,results[r].predy, results[r].yend[:,-1].reshape(results[r].n,1),results[r].rho)
             set_warn(results[r],warn)
             results[r].w = w_i[r]
             self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
@@ -578,11 +577,10 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         self.e_pred = np.zeros((self.n,1),float)
         counter = 1
         for r in self.regimes_set:
-            self.rho = self.betas[(self.kr-self.kryd)*self.nr+counter*self.kryd-1]
+            self.rho = self.betas[(self.kr-self.kryd)*self.nr+self.kf-(self.yend.shape[1]-self.nr*self.kryd)+self.kryd*counter-1]
             self.predy_e[regi_ids[r],], self.e_pred[regi_ids[r],], warn = sp_att(w_i[r],\
                           self.y[regi_ids[r]],self.predy[regi_ids[r]],\
                           wy[regi_ids[r]],self.rho)
-            print '#########', self.rho
             counter += 1
 
 def _work(y,x,regi_ids,r,yend,q,w_r,w_lags,lag_q,robust,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_regimes):
@@ -606,6 +604,7 @@ def _work(y,x,regi_ids,r,yend,q,w_r,w_lags,lag_q,robust,sig2n_k,name_ds,name_y,n
     model.title = "SPATIAL TWO STAGE LEAST SQUARES ESTIMATION - REGIME %s" %r
     if robust == 'ogmm':
         _optimal_weight(model,sig2n_k,warn=False)
+    model.rho = model.betas[-1]
     model.robust = USER.set_robust(robust)
     model.name_ds = name_ds
     model.name_y = '%s_%s'%(str(r), name_y)
