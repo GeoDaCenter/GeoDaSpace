@@ -375,6 +375,9 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame, RegressionPropsY):
         self.regimes_set = REGI._get_regimes_set(regimes)
         self.regimes = regimes
         USER.check_regimes(self.regimes_set,self.n,x.shape[1])
+        if regime_err_sep == True and robust == 'hac':
+            set_warn(self,"Error by regimes is incompatible with HAC estimation. Hence, error by regimes has been disabled for this model.")
+            regime_err_sep = False
         self.regime_err_sep = regime_err_sep
         if regime_err_sep == True and set(cols2regi) == set([True]) and constant_regi == 'many':
             self.y = y
