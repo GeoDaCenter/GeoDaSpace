@@ -13,7 +13,7 @@ from geodaspace import DEBUG
 
 class preferencesModel(AbstractModel):
     """
-    Model for GeoDaSpace Prefernese with save/load support.
+    Model for GeoDaSpace Preferences with save/load support.
     """
     DEFAULTS = {
         'sig2n_k_other': False,
