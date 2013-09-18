@@ -68,6 +68,8 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.saveValuesResiduals = xrc.XRCCTRL(self, "saveValuesResiduals")
         self.showDetailedModelSpecLabel = xrc.XRCCTRL(self, "showDetailedModelSpecLabel")
         self.showDetailedModelSpec = xrc.XRCCTRL(self, "showDetailedModelSpec")
+        self.RegimeDefaultsLabel = xrc.XRCCTRL(self, "RegimeDefaultsLabel")
+        self.RegimeDefaults = xrc.XRCCTRL(self, "RegimeDefaults")
         self.RegimeErrorLabel = xrc.XRCCTRL(self, "RegimeErrorLabel")
         self.RegimeError = xrc.XRCCTRL(self, "RegimeError")
         self.RegimeLagLabel = xrc.XRCCTRL(self, "RegimeLagLabel")
@@ -105,6 +107,7 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_ShowVarCovarMatrix, self.ShowVarCovarMatrix)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_saveValuesResiduals, self.saveValuesResiduals)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_showDetailedModelSpec, self.showDetailedModelSpec)
+        self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_RegimeDefaults, self.RegimeDefaults)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_RegimeError, self.RegimeError)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_RegimeLag, self.RegimeLag)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_OLSdiagnostics, self.OLSdiagnostics)
@@ -213,6 +216,12 @@ class xrcgsPrefsDialog(wx.Dialog):
         # Replace with event handler code
         print "OnCheckbox_showDetailedModelSpec()"
 #!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_showDetailedModelSpec        
+
+#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_RegimeDefaults
+    def OnCheckbox_RegimeDefaults(self, evt):
+        # Replace with event handler code
+        print "OnCheckbox_RegimeDefaults()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_RegimeDefaults        
 
 #!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_RegimeError
     def OnCheckbox_RegimeError(self, evt):
@@ -765,6 +774,25 @@ def __init_resources():
                 <orient>wxVERTICAL</orient>
                 <object class="sizeritem">
                   <object class="wxFlexGridSizer">
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="RegimeDefaultsLabel">
+                        <label>Regime Defaults</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="RegimeDefaults">
+                        <label>Use default, model-dependent behavior.</label>
+                        <checked>1</checked>
+                        <style>wxSIMPLE_BORDER</style>
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                    </object>
                     <object class="sizeritem">
                       <object class="wxStaticText" name="RegimeErrorLabel">
                         <label>Error by regimes</label>

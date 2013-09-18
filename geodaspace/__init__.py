@@ -2,7 +2,7 @@ import types
 import inspect
 import pysal
 import version
-DEBUG = False
+DEBUG = True
 
 # enable 'kwt' extension
 pysal.core.FileIO.FileIO._register(

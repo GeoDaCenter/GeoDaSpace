@@ -126,6 +126,8 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         d['RegimeError'] = self.regimes_regime_error
         d['regimes_regime_lag'] = self.regimes_regime_lag
         d['RegimeLag'] = self.regimes_regime_lag
+        d['RegimeDefaults'] = self.regimes_regime_defaults
+        d['regimes_regime_defaults'] = self.regimes_regime_defaults
 
         self.model = preferencesModel()
         self.reset_model()
@@ -150,6 +152,10 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         if tag:
             if tag in self.dispatch:
                 self.dispatch[tag](value=self.model.getByTag(tag))
+                if tag == 'regimes_regime_error' or 'regimes_regime_lag':
+                    self.regimes_regime_defaults = False
+                    if DEBUG:
+                        print("Regime defaults changed.")
             else:
                 if DEBUG:
                     print "Warning: %s, has not been implemented" % tag
@@ -193,6 +199,8 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
     def __get_modified(self):
         return self.__mod
     modified = property(fget=__get_modified, fset=__set_modified)
+    if DEBUG:
+        print modified
 
     def error(self, msg, tagline="An Error has occurred"):
         """ Display an error message to the user """
@@ -241,6 +249,8 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
                 self.EndModal(wx.ID_OK)
             else:
                 return wx.ID_OK
+            if DEBUG:
+                print("Saved Preferences to config file.")
 
     def restore(self, evtName=None, evt=None, value=None):
         dlg = wx.MessageDialog(self, "All unsaved preferences will be lost.",
@@ -248,6 +258,9 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
                                style=wx.CANCEL | wx.OK | wx.ICON_QUESTION)
         if dlg.ShowModal() == wx.ID_OK:
             self.model.reset()
+            self.regimes_regime_defaults = True
+            if DEBUG:
+                print("Regime defaults restored.")
             self.modified = True
 
     def sig2n_k_ols(self, evtName=None, evt=None, value=None):
@@ -417,6 +430,21 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
                 self.RegimeError.Disable()
             else:
                 self.RegimeError.Enable()
+
+    def regimes_regime_defaults(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.regimes_regime_defaults = self.RegimeDefaults.GetValue()
+        elif value is not None:
+            if value:
+                self.model.regimes_regime_error = True
+                self.RegimeError.Disable()
+                self.RegimeLag.SetValue(self.model.regimes_regime_lag)
+                self.RegimeLag.Disable()
+            else:
+                self.model.regimes_regime_error = self.RegimeError.GetValue()
+                self.model.regimes_regime_lag = self.RegimeLag.GetValue()
+                self.RegimeError.Enable()
+                self.RegimeLag.Enable()
 
     def SetPrefs(self, prefs):
         for key in prefs:
