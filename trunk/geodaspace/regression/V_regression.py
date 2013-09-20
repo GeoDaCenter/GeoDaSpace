@@ -4,7 +4,7 @@ import sys
 import traceback
 import wx
 import geodaspace
-from geodaspace import textwindow, DEBUG
+from geodaspace import textwindow
 from geodaspace.icons import icons
 from geodaspace.regression.rc import OGRegression_xrc
 from geodaspace import weights
@@ -393,24 +393,12 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     self.SEHETCheckBox.Enable()
                     self.ST_LM.Disable()
                     self.ST_LM.SetValue(False)
-                    if m['config']['regimes_regime_defaults'] is True:
-                        if DEBUG:
-                            print self.model.data
-                        m['regimes_regime_error'] = False
-                    else:
-                        m['regimes_regime_error'] = m['config']['regimes_regime_error']
                 else:
                     self.ST_LM.Enable()
                     self.SEWhiteCheckBox.Enable()
                     self.SEHETCheckBox.Disable()
                     self.SEHETCheckBox.SetValue(False)
                     m['modelType']['error']['het'] = False
-                    if m['config']['regimes_regime_defaults'] is True:
-                        if DEBUG:
-                            print self.model.data
-                        m['regimes_regime_error'] = True
-                    else:
-                        m['regimes_regime_error'] = m['config']['regimes_regime_error']
 
                 if m['config']['gmm_inferenceOnLambda'] is False:
                     self.SEHETCheckBox.Disable()
@@ -428,11 +416,6 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                 elif m['modelType']['mType'] == 0 or\
                    m['modelType']['mType'] == 1:
                     self.SEHACCheckBox.Enable()
-
-                elif m['modelType']['method'] == 2:
-                    self.SEHACCheckBox.SetValue(False)
-                    self.SEHACCheckBox.Disable()
-
                 else:
                     self.SEHACCheckBox.SetValue(False)
                     m['modelType']['error']['hac'] = False
@@ -444,6 +427,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     self.SEWhiteCheckBox.Disable()
                     self.SEHETCheckBox.SetValue(False)
                     self.SEHETCheckBox.Disable()
+                    self.SEHACCheckBox.SetValue(False)
+                    self.SEHACCheckBox.Disable()
 
                 if len(m['spec']['H']) > 0 or len(m['spec']['YE']) > 0\
                    or m['modelType']['mType'] != 0:

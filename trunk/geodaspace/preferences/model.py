@@ -37,8 +37,7 @@ class preferencesModel(AbstractModel):
         'output_vm_summary': False,
         'output_show_detailed_spec': False,
         'regimes_regime_error': True,
-        'regimes_regime_lag': False,
-        'regimes_regime_defaults': True
+        'regimes_regime_lag': False
     }
     sig2n_k_other = AbstractModel.abstractProp('sig2n_k_other', bool)
     sig2n_k_ols = AbstractModel.abstractProp('sig2n_k_ols', bool)
@@ -71,8 +70,6 @@ class preferencesModel(AbstractModel):
     regimes_regime_error = AbstractModel.abstractProp(
         'regimes_regime_error', bool)
     regimes_regime_lag = AbstractModel.abstractProp('regimes_regime_lag', bool)
-    regimes_regime_defaults = AbstractModel.abstractProp(
-        'regimes_regime_defaults', bool)
 
     def __init__(self):
         AbstractModel.__init__(self)
