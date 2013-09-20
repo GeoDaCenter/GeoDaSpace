@@ -437,25 +437,6 @@
                 <object class="sizeritem">
                   <object class="wxFlexGridSizer">
                     <object class="sizeritem">
-                      <object class="wxStaticText" name="RegimeDefaultsLabel">
-                        <label>Regime Defaults</label>
-                        <XRCED>
-                          <assign_var>1</assign_var>
-                        </XRCED>
-                      </object>
-                    </object>
-                    <object class="sizeritem">
-                      <object class="wxCheckBox" name="RegimeDefaults">
-                        <label>Use default, model-dependent behavior.</label>
-                        <checked>1</checked>
-                        <style>wxSIMPLE_BORDER</style>
-                        <XRCED>
-                          <events>EVT_CHECKBOX</events>
-                          <assign_var>1</assign_var>
-                        </XRCED>
-                      </object>
-                    </object>
-                    <object class="sizeritem">
                       <object class="wxStaticText" name="RegimeErrorLabel">
                         <label>Error by regimes</label>
                         <XRCED>
