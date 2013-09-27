@@ -447,18 +447,16 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame, RegressionPropsY):
             hac_multi(self,gwk)
         self.chow = REGI.Chow(self)
         if spat_diag:
-            self.k = self.kf
-            self._cache = {}
-            if sig2n_k:
-                self.sig2 = self.sig2n_k
-            else:
-                self.sig2 = self.sig2n
-            self.x, name_x = REGI.Regimes_Frame.__init__(self, x,\
-                    self.regimes, 'many', 'all', name_x)
-            self.xtx = spdot(self.x.T, self.x)
-            self.xtxi = np.linalg.inv(self.xtx)
-                
+            self._get_spat_diag_props(x, sig2n_k)
         SUMMARY.OLS_multi(reg=self, multireg=self.multi, vm=vm, nonspat_diag=nonspat_diag, spat_diag=spat_diag, moran=moran, white_test=white_test, regimes=True, w=w)
+
+    def _get_spat_diag_props(self, x, sig2n_k):
+        self.k = self.kr
+        self._cache = {}
+        self.x, none = REGI.Regimes_Frame.__init__(self, x,\
+                self.regimes, 'many', 'all')
+        self.xtx = spdot(self.x.T, self.x)
+        self.xtxi = np.linalg.inv(self.xtx)                
 
 def _work(y,x,w,regi_ids,r,robust,sig2n_k,name_ds,name_y,name_x,name_w,name_regimes):
     y_r = y[regi_ids[r]]
