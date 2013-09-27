@@ -453,8 +453,8 @@ class OLS_Regimes(BaseOLS, REGI.Regimes_Frame, RegressionPropsY):
     def _get_spat_diag_props(self, x, sig2n_k):
         self.k = self.kr
         self._cache = {}
-        self.x, none = REGI.Regimes_Frame.__init__(self, x,\
-                self.regimes, 'many', 'all')
+        x = np.hstack((np.ones((x.shape[0], 1)), x))
+        self.x = REGI.regimeX_setup(x, self.regimes, [True] * x.shape[1], self.regimes_set)
         self.xtx = spdot(self.x.T, self.x)
         self.xtxi = np.linalg.inv(self.xtx)                
 

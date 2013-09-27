@@ -12,7 +12,7 @@ import summary_output as SUMMARY
 import multiprocessing as mp
 from twosls_regimes import TSLS_Regimes, _optimal_weight
 from twosls import BaseTSLS
-from utils import set_endog, set_endog_sparse, sp_att, set_warn, sphstack
+from utils import set_endog, set_endog_sparse, sp_att, set_warn, sphstack, spdot
 from robust import hac_multi
 from platform import system
 
@@ -471,7 +471,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
 
         if regime_err_sep == True and set(cols2regi) == set([True]) and constant_regi == 'many':
             self.y = y
-            self.GM_Lag_Regimes_Multi(y, x, w_i, regi_ids,\
+            self.GM_Lag_Regimes_Multi(y, x, w_i, w, regi_ids,\
                  yend=yend, q=q, w_lags=w_lags, lag_q=lag_q, cores=cores,\
                  robust=robust, gwk=gwk, sig2n_k=sig2n_k, cols2regi=cols2regi,\
                  spat_diag=spat_diag, vm=vm, name_y=name_y, name_x=name_x,\
@@ -500,7 +500,7 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
             self.title = "SPATIAL "+ self.title
             SUMMARY.GM_Lag(reg=self, w=w, vm=vm, spat_diag=spat_diag, regimes=True)
 
-    def GM_Lag_Regimes_Multi(self, y, x, w_i, regi_ids, cores=None,\
+    def GM_Lag_Regimes_Multi(self, y, x, w_i, w, regi_ids, cores=None,\
                  yend=None, q=None, w_lags=1, lag_q=True,\
                  robust=None, gwk=None, sig2n_k=False,cols2regi='all',\
                  spat_diag=False, vm=False, name_y=None, name_x=None,\
@@ -569,7 +569,10 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
         if robust == 'ogmm':
             set_warn(self,"Residuals treated as homoskedastic for the purpose of diagnostics.")
         self.chow = REGI.Chow(self)
-        SUMMARY.GM_Lag_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=spat_diag, regimes=True)
+        if spat_diag:
+            pass
+            #self._get_spat_diag_props(y, x, w, yend, q, w_lags, lag_q)
+        SUMMARY.GM_Lag_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=spat_diag, regimes=True, w=w)
 
     def sp_att_reg(self, w_i, regi_ids, wy):
         predy_e_r,e_pred_r = {},{}
@@ -582,6 +585,17 @@ class GM_Lag_Regimes(TSLS_Regimes, REGI.Regimes_Frame):
                           self.y[regi_ids[r]],self.predy[regi_ids[r]],\
                           wy[regi_ids[r]],self.rho)
             counter += 1
+
+    def _get_spat_diag_props(self,y, x, w, yend, q, w_lags, lag_q):
+        self._cache = {}
+        yend, q = set_endog(y, x, w, yend, q, w_lags, lag_q)
+        x = USER.check_constant(x)
+        x = REGI.regimeX_setup(x, self.regimes, [True] * x.shape[1], self.regimes_set)
+        self.z = sphstack(x,REGI.regimeX_setup(yend, self.regimes, [True] * (yend.shape[1]-1)+[False], self.regimes_set))
+        self.h = sphstack(x,REGI.regimeX_setup(q, self.regimes, [True] * q.shape[1], self.regimes_set))
+        hthi = np.linalg.inv(spdot(self.h.T,self.h))
+        zth = spdot(self.z.T,self.h)     
+        self.varb = np.linalg.inv(spdot(spdot(zth,hthi),zth.T))
 
 def _work(y,x,regi_ids,r,yend,q,w_r,w_lags,lag_q,robust,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_regimes):
     y_r = y[regi_ids[r]]
