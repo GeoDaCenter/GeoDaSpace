@@ -53,7 +53,7 @@ def OLS(reg, vm, w, nonspat_diag, spat_diag, moran, white_test, regimes=False):
     summary_warning(reg)
     summary(reg=reg, vm=vm, instruments=False, nonspat_diag=nonspat_diag, spat_diag=spat_diag)
 
-def OLS_multi(reg, multireg, vm, nonspat_diag, spat_diag, moran, white_test, regimes=False, sur=False):
+def OLS_multi(reg, multireg, vm, nonspat_diag, spat_diag, moran, white_test, regimes=False, sur=False, w=False):
     for m in multireg:
         mreg = multireg[m]
         mreg.__summary = {}
@@ -89,6 +89,9 @@ def OLS_multi(reg, multireg, vm, nonspat_diag, spat_diag, moran, white_test, reg
         summary_chow(reg)
     if sur:
         summary_sur(reg,u_cov=True)
+    if spat_diag:
+        # compute global diagnostics and organize summary output
+        spat_diag_ols(reg, w, moran)
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=False, nonspat_diag=nonspat_diag, spat_diag=spat_diag)
 
@@ -636,6 +639,9 @@ def summary_multi(reg, multireg, vm, instruments, short_intro=False, nonspat_dia
                 summary += reg.__summary['summary_chow']
             except:
                 pass
+            if spat_diag:
+                summary += summary_spat_diag_intro_global()
+                summary += reg.__summary['summary_spat_diag']
             try:
                 summary += reg.__summary['summary_other_end']
             except:
@@ -928,6 +934,13 @@ def summary_nonspat_diag_2(reg):
 def summary_spat_diag_intro():
     strSummary = ""
     strSummary += "\nDIAGNOSTICS FOR SPATIAL DEPENDENCE\n"
+    strSummary += "TEST                           MI/DF       VALUE           PROB\n" 
+    return strSummary
+
+def summary_spat_diag_intro_global():
+    strSummary = ""
+    strSummary += "\nDIAGNOSTICS FOR GLOBAL SPATIAL DEPENDENCE\n"
+    strSummary += "Residuals are treated as homoskedastic for the purpose of these tests\n"
     strSummary += "TEST                           MI/DF       VALUE           PROB\n" 
     return strSummary
 
