@@ -477,47 +477,6 @@ def w_regime(w, regi_ids, regi_i, transform=True, min_n=None):
         warn = "The regimes operation resulted in islands for regime %s." %regi_i
     return w_regi_i, warn
 
-def w_regimes_dict(w, regimes, regimes_set, transform=True, get_ids=None, min_n=None):
-    '''
-    Return a dictionary containing all subsets of W matrix according to regimes
-    ...
-
-    Attributes
-    ==========
-    w           : pysal W object
-                  Spatial weights object
-    regimes     : list
-                  list of n values with the mapping of each observation to a
-                  regime. Assumed to be aligned with 'x'.
-    regimes_set : list
-                  List of ordered regimes tags
-
-    Returns
-    =======
-    w_regi      : dictionary
-                  Dictionary containing the subsets of W according to regimes: [r1:w1, r2:w2, ..., rR:wR]
-    get_ids     : dictionary
-                  Contains lists with location of observations in y that are assigned to each regime
-    warn        : dictionary
-                  Contains the warnings respective to each regime
-    '''
-    regi_ids = dict((r, list(np.where(np.array(regimes) == r)[0])) for r in regimes_set)
-    w_ids = dict((r, map(w.id_order.__getitem__, regi_ids[r])) for r in regimes_set)
-    w_regi_i, warn = {},{}
-    for r in regimes_set:
-        w_regi_i[r] = pysal.weights.w_subset(w, w_ids[r],
-                silent_island_warning=True)
-        if min_n:
-            if w_regi_i[r].n < min_n:
-                raise Exception, "There are less observations than variables in regime %s." %r
-        if transform:
-            w_regi_i[r].transform = w.get_transform()
-        if w_regi_i[r].islands:
-            warn[r] = "The regimes operation resulted in islands for regime %s." %r
-    if get_ids:
-        get_ids = regi_ids
-    return w_regi_i, get_ids, warn
-
 def w_regimes(w, regimes, regimes_set, transform=True, get_ids=None, min_n=None):
     '''
     ######### DEPRECATED ##########

@@ -3,7 +3,7 @@ import regimes as REGI
 import user_output as USER
 import multiprocessing as mp
 import scipy.sparse as SP
-from utils import sphstack, set_warn, RegressionProps_basic, spdot
+from utils import sphstack, set_warn, RegressionProps_basic, spdot, sphstack
 from twosls import BaseTSLS
 from robust import hac_multi
 import summary_output as SUMMARY
@@ -372,7 +372,19 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         if robust == 'ogmm':
             set_warn(self,"Residuals treated as homoskedastic for the purpose of diagnostics.")
         self.chow = REGI.Chow(self)
-        SUMMARY.TSLS_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=spat_diag, regimes=True)
+        if spat_diag:
+            self._get_spat_diag_props(results, regi_ids, x, yend, q)
+        SUMMARY.TSLS_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=spat_diag, regimes=True, w=w)
+
+    def _get_spat_diag_props(self, results, regi_ids, x, yend, q):
+        self._cache = {}
+        x = USER.check_constant(x)
+        x = REGI.regimeX_setup(x, self.regimes, [True] * x.shape[1], self.regimes_set)
+        self.z = sphstack(x,REGI.regimeX_setup(yend, self.regimes, [True] * yend.shape[1], self.regimes_set))
+        self.h = sphstack(x,REGI.regimeX_setup(q, self.regimes, [True] * q.shape[1], self.regimes_set))
+        hthi = np.linalg.inv(spdot(self.h.T,self.h))
+        zth = spdot(self.z.T,self.h)     
+        self.varb = np.linalg.inv(spdot(spdot(zth,hthi),zth.T))
 
 def _work(y,x,w,regi_ids,r,yend,q,robust,sig2n_k,name_ds,name_y,name_x,name_yend,name_q,name_w,name_regimes):
     y_r = y[regi_ids[r]]

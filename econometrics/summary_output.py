@@ -109,7 +109,7 @@ def TSLS(reg, vm, w, spat_diag, regimes=False):
     summary_warning(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag)
 
-def TSLS_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False):
+def TSLS_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False, w=False):
     for m in multireg:
         mreg = multireg[m]
         mreg.__summary = {}
@@ -131,6 +131,9 @@ def TSLS_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False):
         summary_chow(reg)
     if sur:
         summary_sur(reg,u_cov=True)
+    if spat_diag:
+        # compute global diagnostics and organize summary output
+        spat_diag_instruments(reg, w)
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag)
 
@@ -149,7 +152,7 @@ def GM_Lag(reg, vm, w, spat_diag, regimes=False):
     summary_warning(reg)
     summary(reg=reg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag)
 
-def GM_Lag_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False):
+def GM_Lag_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False, w=False):
     for m in multireg:
         mreg = multireg[m]
         mreg.__summary = {}
@@ -170,6 +173,10 @@ def GM_Lag_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False):
     reg.__summary = {}
     if regimes:
         summary_chow(reg)
+    if spat_diag:
+        pass
+        # compute global diagnostics and organize summary output
+        #spat_diag_instruments(reg, w)
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag)
 
@@ -640,8 +647,12 @@ def summary_multi(reg, multireg, vm, instruments, short_intro=False, nonspat_dia
             except:
                 pass
             if spat_diag:
-                summary += summary_spat_diag_intro_global()
-                summary += reg.__summary['summary_spat_diag']
+                try:
+                    spat_diag_str = reg.__summary['summary_spat_diag']
+                    summary += summary_spat_diag_intro_global()
+                    summary += spat_diag_str
+                except:
+                    pass
             try:
                 summary += reg.__summary['summary_other_end']
             except:
