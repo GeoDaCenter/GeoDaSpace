@@ -243,8 +243,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
                 return wx.ID_OK
 
     def restore(self, evtName=None, evt=None, value=None):
-        dlg = wx.MessageDialog(self, "All unsaved preferences will be lost.",
-                               "Are you sure you wish to restore defaults?",
+        dlg = wx.MessageDialog(self, "All unsaved preferences will be lost.", "Are you sure you wish to restore defaults?",
                                style=wx.CANCEL | wx.OK | wx.ICON_QUESTION)
         if dlg.ShowModal() == wx.ID_OK:
             self.model.reset()
