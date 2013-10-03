@@ -407,7 +407,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
 
                 # HAC
                 # issue 163 here
-                if m['config']['regimes_regime_error'] is True:
+                if m['config']['regimes_regime_error'] is True and \
+                        m['spec']['R']:
                     self.SEHACCheckBox.Disable()
                     self.SEHACCheckBox.SetValue(False)
                     m['modelType']['error']['hac'] = False
