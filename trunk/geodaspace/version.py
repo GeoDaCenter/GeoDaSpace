@@ -60,6 +60,13 @@ def get_long_version():
 # version = "0.8.3"  # spreg r978, pysal 1.6.0dev
 # version_type = "alpha"
 # version_date = datetime.date(2013, 7, 29)
-version = "0.8.4"  # spreg r984, pysal 1.7.0dev
+# version = "0.8.4"  # spreg r984, pysal 1.7.0dev
+# version_type = "alpha"
+# version_date = datetime.date(2013, 8, 6)
+# version = "0.8.5"  # spreg r1014, pysal 1.7.0dev
+# version_type = "alpha"
+# version_date = datetime.date(2013, 10, 2)
+
+version = "0.8.6"  # spreg r1015, pysal 1.7.0dev
 version_type = "alpha"
-version_date = datetime.date(2013, 8, 6)
+version_date = datetime.date(2013, 10, 22)
