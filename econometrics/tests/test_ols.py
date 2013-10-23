@@ -27,6 +27,26 @@ class TestBaseOLS(unittest.TestCase):
            [ -2.15109867e+00,   6.80956787e-02,   3.33693910e-02]])
         np.testing.assert_array_almost_equal(ols.vm, vm,6)
 
+    def test_ols_white1(self):
+        self.X = np.hstack((np.ones(self.y.shape),self.X))
+        ols = EC.ols.BaseOLS(self.y,self.X,robust='white', sig2n_k=True)
+        np.testing.assert_array_almost_equal(ols.betas, np.array([[
+            46.42818268], [  0.62898397], [ -0.48488854]]))
+        vm = np.array([[  2.05819450e+02,  -6.83139266e+00,  -2.64825846e+00],
+       [ -6.83139266e+00,   2.58480813e-01,   8.07733167e-02],
+       [ -2.64825846e+00,   8.07733167e-02,   3.75817181e-02]])
+        np.testing.assert_array_almost_equal(ols.vm, vm,6)
+
+    def test_ols_white2(self):
+        self.X = np.hstack((np.ones(self.y.shape),self.X))
+        ols = EC.ols.BaseOLS(self.y,self.X,robust='white', sig2n_k=False)
+        np.testing.assert_array_almost_equal(ols.betas, np.array([[
+            46.42818268], [  0.62898397], [ -0.48488854]]))
+        vm = np.array([[  1.93218259e+02,  -6.41314413e+00,  -2.48612018e+00],
+       [ -6.41314413e+00,   2.42655457e-01,   7.58280116e-02],
+       [ -2.48612018e+00,   7.58280116e-02,   3.52807966e-02]])
+        np.testing.assert_array_almost_equal(ols.vm, vm,6)
+
     def test_OLS(self):
         ols = EC.OLS(self.y, self.X, self.w, spat_diag=True, moran=True, \
                 white_test=True, name_y='home value', name_x=['income','crime'], \

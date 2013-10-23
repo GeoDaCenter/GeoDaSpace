@@ -111,7 +111,7 @@ class BaseOLS(RegressionPropsY, RegressionPropsVM):
         self.n, self.k = self.x.shape
 
         if robust:
-            self.vm = ROBUST.robust_vm(reg=self, gwk=gwk)
+            self.vm = ROBUST.robust_vm(reg=self, gwk=gwk, sig2n_k=sig2n_k)
 
         self._cache = {}
         if sig2n_k:
@@ -458,6 +458,6 @@ if __name__ == '__main__':
     x = np.array([db.by_col(name) for name in x_var]).T
     w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    ols = OLS(y, x, w=w, nonspat_diag=True, spat_diag=True, name_y=y_var, name_x=x_var, name_ds='columbus', name_w='columbus.gal')
+    ols = OLS(y, x, w=w, nonspat_diag=False, spat_diag=False, name_y=y_var, name_x=x_var, name_ds='columbus', name_w='columbus.gal', robust='white', sig2n_k=True)
     print ols.summary
 
