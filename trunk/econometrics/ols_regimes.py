@@ -498,7 +498,7 @@ if __name__ == '__main__':
     regimes = db.by_col(r_var)
     w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    olsr = OLS_Regimes(y, x, regimes, w=w, constant_regi='many', nonspat_diag=False, spat_diag=True, name_y=y_var, name_x=['INC','HOVAL'], \
-                       name_ds='columbus', name_regimes=r_var, name_w='columbus.gal', regime_err_sep=True, cols2regi=[True,True], sig2n_k=False, robust='white')
+    olsr = OLS_Regimes(y, x, regimes, w=w, constant_regi='many', nonspat_diag=False, spat_diag=False, name_y=y_var, name_x=['INC','HOVAL'], \
+                       name_ds='columbus', name_regimes=r_var, name_w='columbus.gal', regime_err_sep=True, cols2regi=[True,True], sig2n_k=True, robust='white')
     print olsr.summary
 
