@@ -670,12 +670,9 @@ def get_white_hac_standard(reg, gui):
     if gui.white:
         # compute White std errors
         if len(gui.h) > 0:
-            print 'TSLS'
             sig2n_k = gui.sig2n_k_tsls
         else:
-            print 'OLS'
             sig2n_k = gui.sig2n_k_ols
-        print 'sig2n_k', sig2n_k
         if multireg:
             reg_robust = COPY.deepcopy(reg)
             reg_robust._cache = {}
