@@ -629,7 +629,7 @@ class Wildcard_Dict(dict):
             dict.__setitem__(self, key, value)
 
 
-def get_robust(reg_robust, robust, gwk=None):
+def get_robust(reg_robust, robust, gwk=None, sig2n_k=False):
     """Creates a new regression object, computes the robust standard errors,
     resets the regression object's internal cache and recompute the non-spatial
     diagnostics.
@@ -637,7 +637,7 @@ def get_robust(reg_robust, robust, gwk=None):
     reg_robust.robust = robust
     if gwk != None:
         reg_robust.name_gwk = gwk.name
-    reg_robust.vm = ROBUST.robust_vm(reg=reg_robust, gwk=gwk)
+    reg_robust.vm = ROBUST.robust_vm(reg=reg_robust, gwk=gwk, sig2n_k=sig2n_k)
     return reg_robust
 
 
@@ -669,16 +669,23 @@ def get_white_hac_standard(reg, gui):
         multireg = True
     if gui.white:
         # compute White std errors
+        if len(gui.h) > 0:
+            print 'TSLS'
+            sig2n_k = gui.sig2n_k_tsls
+        else:
+            print 'OLS'
+            sig2n_k = gui.sig2n_k_ols
+        print 'sig2n_k', sig2n_k
         if multireg:
             reg_robust = COPY.deepcopy(reg)
             reg_robust._cache = {}
             for m in reg_robust.multi:
-                reg_robust.multi[m] = get_robust(reg_robust.multi[m], 'white')
+                reg_robust.multi[m] = get_robust(reg_robust.multi[m],'white',sig2n_k=sig2n_k)
             robust_regs.append(robust_vm_multi(reg_robust))
         else:
             reg_robust = COPY.copy(reg)
             reg_robust._cache = {}
-            robust_regs.append(get_robust(reg_robust, 'white'))
+            robust_regs.append(get_robust(reg_robust,'white',sig2n_k=sig2n_k))
     if gui.hac:
         if len(gui.wk_list) == 0:
             raise Exception("must provide kernel weights matrix to use HAC")
@@ -716,12 +723,12 @@ def get_white_hac_lag(reg, gui, output):
                 reg_robust._cache = {}
                 for m in reg_robust.multi:
                     reg_robust.multi[m] = get_robust(
-                        reg_robust.multi[m], 'white')
+                        reg_robust.multi[m], 'white',sig2n_k=gui.sig2n_k_gmlag)
                 robust_regs.append(robust_vm_multi(reg_robust))
             else:
                 reg_robust = COPY.copy(reg)
                 reg_robust._cache = {}
-                robust_regs.append(get_robust(reg_robust, 'white'))
+                robust_regs.append(get_robust(reg_robust, 'white',sig2n_k=gui.sig2n_k_gmlag))
     if gui.hac:
         if len(gui.wk_list) == 0:
             raise Exception("must provide kernel weights matrix to use HAC")
@@ -801,8 +808,8 @@ compute the betas once even if the user asks for robust standard errors.
 
 def get_OLS(gui):
     reg = OLS(y=gui.y, x=gui.x,
-              nonspat_diag=gui.ols_diag, white_test=gui.white_test, spat_diag=False,
-              vm=gui.vc_matrix, name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,
+              #nonspat_diag=gui.ols_diag, white_test=gui.white_test, spat_diag=False,
+              #vm=gui.vc_matrix, name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,
               sig2n_k=gui.sig2n_k_ols)
     if gui.predy_resid:  # write out predicted values and residuals
         gui.pred_res, gui.header_pr, counter = collect_predy_resid(
