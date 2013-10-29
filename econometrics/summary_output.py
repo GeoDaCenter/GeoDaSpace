@@ -958,7 +958,7 @@ def summary_spat_diag_intro_global():
 def summary_spat_diag_ols(reg, moran):
     strSummary = ""
     if moran:
-        strSummary += "%-27s  %8.4f     %8.6f        %9.7f\n" % ("Moran's I (error)", reg.moran_res[0], reg.moran_res[1], reg.moran_res[2])
+        strSummary += "%-27s  %8.4f     %9.6f        %9.7f\n" % ("Moran's I (error)", reg.moran_res[0], reg.moran_res[1], reg.moran_res[2])
     strSummary += "%-27s      %2d    %12.6f        %9.7f\n" % ("Lagrange Multiplier (lag)", 1, reg.lm_lag[0], reg.lm_lag[1])
     strSummary += "%-27s      %2d    %12.6f        %9.7f\n" % ("Robust LM (lag)", 1, reg.rlm_lag[0], reg.rlm_lag[1])
     strSummary += "%-27s      %2d    %12.6f        %9.7f\n" % ("Lagrange Multiplier (error)", 1, reg.lm_error[0], reg.lm_error[1])
