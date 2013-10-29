@@ -805,8 +805,8 @@ compute the betas once even if the user asks for robust standard errors.
 
 def get_OLS(gui):
     reg = OLS(y=gui.y, x=gui.x,
-              #nonspat_diag=gui.ols_diag, white_test=gui.white_test, spat_diag=False,
-              #vm=gui.vc_matrix, name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,
+              nonspat_diag=gui.ols_diag, white_test=gui.white_test, spat_diag=False,
+              vm=gui.vc_matrix, name_y=gui.name_y, name_x=gui.name_x, name_ds=gui.name_ds,
               sig2n_k=gui.sig2n_k_ols)
     if gui.predy_resid:  # write out predicted values and residuals
         gui.pred_res, gui.header_pr, counter = collect_predy_resid(
