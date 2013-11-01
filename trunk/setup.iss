@@ -2,10 +2,10 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "GeoDaSpace"
-#define MyAppVersion "0.8.4"
+#define MyAppVersion "0.8.6"
 #define MyAppPublisher "GeoDa Center for Geospatial Analysis and Computation"
 #define MyAppURL "http://geodacenter.asu.edu"
-#define MyAppExeName "GeoDaSpace Windows 0.8.4.exe"
+#define MyAppExeName "GeoDaSpace Windows 0.8.6.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -36,7 +36,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
 
 [Files]
-Source: "C:\Documents and Settings\GeoDa Center\Desktop\spreg\trunk\dist\GeoDaSpace Windows 0.8.4.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Documents and Settings\GeoDa Center\Desktop\spreg\trunk\dist\GeoDaSpace Windows 0.8.6.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Documents and Settings\GeoDa Center\Desktop\spreg\trunk\dist\Microsoft.VC90.CRT\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "C:\Documents and Settings\GeoDa Center\Desktop\spreg\trunk\dist\tcl\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "C:\Documents and Settings\GeoDa Center\Desktop\spreg\trunk\dist\w9xpopen.exe"; DestDir: "{app}"; Flags: ignoreversion
