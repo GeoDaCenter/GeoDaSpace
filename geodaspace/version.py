@@ -9,7 +9,10 @@ def run_cmd(cmd):
     output = p.communicate()[0]
     return output
 
-spreg_revision = run_cmd("svn info /Users/gspace/Desktop/spreg/trunk | grep 'Revision' ")
+#spreg_revision = run_cmd("svn info /Users/gspace/Desktop/spreg/trunk | grep 'Revision' ")
+f = open('spreg-version.txt', 'r')
+spreg_revision = f.read()
+f.close()
 
 def get_long_version():
     s = ""
