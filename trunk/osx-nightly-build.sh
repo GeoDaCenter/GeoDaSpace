@@ -4,12 +4,12 @@ export PYTHONPATH
 PATH=/usr/local/git/bin:/Library/Frameworks/Python.framework/Versions/2.7/bin:$PATH
 export PATH
 
+
 cd ~/Desktop/pysal
 git fetch
 
 cd ~/Desktop/spreg/trunk
 svn update
-echo $(svnversion) > spreg-version.txt
 
 python  build_geodaspace.py 
 cd ~/Desktop/spreg/trunk/dist/
