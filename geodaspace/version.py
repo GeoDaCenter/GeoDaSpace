@@ -2,13 +2,21 @@ import datetime
 import subprocess
 
 version_date = datetime.date.today()
+# Current Release
+version = "0.8.6"  # spreg r1018, pysal 1.7.0dev
+
+# toggle these 2 below for official alpha releases
+#version_type = "alpha"
+version_type = 'nightly'
 
 def run_cmd(cmd):
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
     output = p.communicate()[0]
     return output
 
-spreg_revision = run_cmd("svn info /Users/gspace/Desktop/spreg/trunk | grep 'Revision' ")
+spreg_revision = run_cmd("tail -1 /Users/gspace/Desktop/spreg/trunk/rev.txt")
+spreg_revision = spreg_revision.strip('\n')
+#spreg_revision = 'Revision: 1029'
 
 def get_long_version():
     s = ""
@@ -64,10 +72,3 @@ def get_long_version():
 # version = "0.8.5"  # spreg r1014, pysal 1.7.0dev
 # version_date = datetime.date(2013, 10, 2)
 
-# Current Release
-version = "0.8.6"  # spreg r1018, pysal 1.7.0dev
-version_type = "alpha"
-# version_date = datetime.date(2013, 10, 23)
-
-# comment below for official alpha releases
-version_type = 'nightly'
