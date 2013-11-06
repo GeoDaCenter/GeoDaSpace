@@ -99,29 +99,29 @@ class LMtests:
 
     >>> lms = pysal.spreg.diagnostics_sp.LMtests(ols, w)
 
-    LM error test (rounded to 6 decimals)
+    LM error test:
 
-    >>> np.around(lms.lme, decimals=6)
+    >>> print lms.lme
     array([ 3.097094,  0.078432])
 
-    LM lag test (rounded to 6 decimals)
+    LM lag test:
 
-    >>> np.around(lms.lml, decimals=6)
+    >>> print lms.lml
     array([ 0.981552,  0.321816])
 
-    Robust LM error test (rounded to 6 decimals)
+    Robust LM error test:
 
-    >>> np.around(lms.rlme, decimals=6)
+    >>> print lms.rlme
     array([ 3.209187,  0.073226])
 
-    Robust LM lag test (rounded to 6 decimals)
+    Robust LM lag test:
 
-    >>> np.around(lms.rlml, decimals=6)
+    >>> print lms.rlml
     array([ 1.093645,  0.295665])
 
-    LM SARMA test (rounded to 6 decimals)
+    LM SARMA test:
 
-    >>> np.around(lms.sarma, decimals=6)
+    >>> print lms.sarma
     array([ 4.190739,  0.123025])
     """
     def __init__(self, ols, w, tests=['all']):
@@ -203,30 +203,30 @@ class MoranRes:
 
     >>> m = pysal.spreg.diagnostics_sp.MoranRes(ols, w, z=True)
 
-    Value of the Moran's I statistic rounded to 6 decimals
+    Value of the Moran's I statistic:
 
-    >>> np.around(m.I, decimals=6)
+    >>> print m.I
     0.17130999999999999
 
-    Value of the Moran's I expectation rounded to 6 decimals
+    Value of the Moran's I expectation:
 
-    >>> np.around(m.eI, decimals=6)
+    >>> print m.eI
     -0.034522999999999998
 
-    Value of the Moran's I variance rounded to 6 decimals
+    Value of the Moran's I variance:
 
-    >>> np.around(m.vI, decimals=6)
+    >>> print m.vI
     0.0081300000000000001
 
-    Value of the Moran's I standardized value rounded to 6 decimals. This is
+    Value of the Moran's I standardized value. This is
     distributed as a standard Normal(0, 1)
 
-    >>> np.around(m.zI, decimals=6)
+    >>> print m.zI
     2.2827389999999999
 
-    P-value of the standardized Moran's I value (z) rounded to 6 decimals
+    P-value of the standardized Moran's I value (z):
 
-    >>> np.around(m.p_norm, decimals=6)
+    >>> print m.p_norm
     0.022446000000000001
     """
     def __init__(self, ols, w, z=False):
@@ -392,7 +392,7 @@ class AKtest:
     def __init__(self, iv, w, case='nosp'):
         if case == 'gen':
             cache = spDcache(iv, w)
-            self.mi, self.ak, self.p = akTest(iv, w, cache)
+            self.mi, self.ak, self.p = akTest(iv, w, cache) 
         elif case == 'nosp':
             cache = spDcache(iv, w)
             self.mi = get_mI(iv, w, cache)
@@ -548,7 +548,7 @@ def lmErr(reg, w, spDcache):
     """
     lm = spDcache.utwuDs**2 / spDcache.t
     pval = chisqprob(lm, 1)
-    return (lm[0][0], pval[0][0])
+    return (round(lm[0][0],3), round(pval[0][0],4))
 
 def lmLag(ols, w, spDcache):
     """
@@ -580,7 +580,7 @@ def lmLag(ols, w, spDcache):
     """
     lm = spDcache.utwyDs**2 / (ols.n * spDcache.j)
     pval = chisqprob(lm, 1)
-    return (lm[0][0], pval[0][0])
+    return (round(lm[0][0],3), round(pval[0][0],4))
 
 def rlmErr(ols, w, spDcache):
     """
@@ -616,7 +616,7 @@ def rlmErr(ols, w, spDcache):
     den = spDcache.t * (1. - (spDcache.t / nj))
     lm = num / den
     pval = chisqprob(lm, 1)
-    return (lm[0][0], pval[0][0])
+    return (round(lm[0][0],3), round(pval[0][0],4))
 
 def rlmLag(ols, w, spDcache):
     """
@@ -648,7 +648,7 @@ def rlmLag(ols, w, spDcache):
     """
     lm = (spDcache.utwyDs - spDcache.utwuDs)**2 / ((ols.n * spDcache.j) - spDcache.t)
     pval = chisqprob(lm, 1)
-    return (lm[0][0], pval[0][0])
+    return (round(lm[0][0],3), round(pval[0][0],4))
 
 def lmSarma(ols, w, spDcache):
     """
@@ -683,7 +683,7 @@ def lmSarma(ols, w, spDcache):
     secnd = spDcache.utwuDs**2 / spDcache.t
     lm = first + secnd
     pval = chisqprob(lm, 2)
-    return (lm[0][0], pval[0][0])
+    return (round(lm[0][0],3), round(pval[0][0],4))
 
 def get_mI(reg, w, spDcache):
     """
@@ -713,7 +713,7 @@ def get_mI(reg, w, spDcache):
        Pion London
     """
     mi = (w.n * np.dot(reg.u.T, spDcache.wu)) / (w.s0 * reg.utu)
-    return mi[0][0]
+    return round(mi[0][0],3)
 
 def get_vI(ols, w, ei, spDcache):
     """
@@ -733,7 +733,7 @@ def get_eI(ols, w, spDcache):
     """
     Moran's I expectation using matrix M
     """
-    return - (w.n * spDcache.trA) / (w.s0 * (w.n - ols.k))
+    return round(- (w.n * spDcache.trA) / (w.s0 * (w.n - ols.k)),3)
 
 def get_zI(I, ei, vi):
     """
@@ -743,7 +743,7 @@ def get_zI(I, ei, vi):
     """
     z = abs((I - ei) / np.sqrt(vi))
     pval = norm.sf(z) * 2.
-    return (z, pval)
+    return (round(z,3), round(pval,4))
 
 def akTest(iv, w, spDcache):
     """
@@ -786,7 +786,7 @@ def akTest(iv, w, spDcache):
     phi2 = ( spDcache.t + (4.0 / iv.sig2n) * a ) / (s12 * w.n)
     ak = w.n * mi**2 / phi2
     pval = chisqprob(ak, 1)
-    return (mi, ak[0][0], pval[0][0])
+    return (mi, round(ak[0][0],3), round(pval[0][0],4))
 
 def _test():
     import doctest

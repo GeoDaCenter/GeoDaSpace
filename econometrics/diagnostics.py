@@ -617,7 +617,7 @@ def condition_index(reg):
     max_eigval = max(eigval)
     min_eigval = min(eigval)
     ci_result = sqrt(max_eigval/min_eigval)
-    return ci_result
+    return round(ci_result,3)
 
 
 
@@ -708,7 +708,7 @@ def jarque_bera(reg):
     K = (mu4/(mu2**2))      # kurtosis measure
     jb = n*(((S**2)/6)+((K-3)**2)/24)
     pvalue=stats.chisqprob(jb,2)
-    jb_result={"df":2,"jb":jb,'pvalue':pvalue}
+    jb_result={"df":2,"jb":round(jb,3),'pvalue':round(pvalue,4)}
     return jb_result 
 
 
@@ -866,7 +866,7 @@ def breusch_pagan(reg, z=None):
     bp = bp_array[0,0]
 
     pvalue=stats.chisqprob(bp,df)
-    bp_result={'df':df,'bp':bp, 'pvalue':pvalue}
+    bp_result={'df':df,'bp':round(bp,3), 'pvalue':round(pvalue,4)}
     return bp_result
 
 
@@ -1028,7 +1028,7 @@ def white(reg):
     wh = aux_r2*n
     df = k-1
     pvalue = stats.chisqprob(wh,df)
-    white_result={'df':df,'wh':wh, 'pvalue':pvalue}
+    white_result={'df':df,'wh':round(wh,3), 'pvalue':round(pvalue,4)}
     return white_result 
 
 def koenker_bassett(reg, z=None):
@@ -1191,7 +1191,7 @@ def koenker_bassett(reg, z=None):
     kb = kb_array[0,0]
     
     pvalue=stats.chisqprob(kb,df)
-    kb_result = {'kb':kb,'df':df,'pvalue':pvalue}
+    kb_result = {'kb':round(kb,3),'df':df,'pvalue':round(pvalue,4)}
     return kb_result
 
 
