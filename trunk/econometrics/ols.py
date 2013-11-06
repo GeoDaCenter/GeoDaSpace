@@ -370,21 +370,21 @@ class OLS(BaseOLS):
     ------------------------------------------------------------------------------------
     <BLANKLINE>
     REGRESSION DIAGNOSTICS
-    MULTICOLLINEARITY CONDITION NUMBER        12.537555
+    MULTICOLLINEARITY CONDITION NUMBER           12.538
     <BLANKLINE>
     TEST ON NORMALITY OF ERRORS
     TEST                             DF        VALUE           PROB
-    Jarque-Bera                       2       39.706155        0.0000000
+    Jarque-Bera                       2          39.706           0.0000
     <BLANKLINE>
     DIAGNOSTICS FOR HETEROSKEDASTICITY
     RANDOM COEFFICIENTS
     TEST                             DF        VALUE           PROB
-    Breusch-Pagan test                2        5.766791        0.0559445
-    Koenker-Bassett test              2        2.270038        0.3214160
+    Breusch-Pagan test                2           5.767           0.0559
+    Koenker-Bassett test              2           2.270           0.3214
     <BLANKLINE>
     SPECIFICATION ROBUST TEST
     TEST                             DF        VALUE           PROB
-    White                             5        2.906067        0.7144648
+    White                             5           2.906           0.7145
     ================================ END OF REPORT =====================================
 
     If the optional parameters w and spat_diag are passed to pysal.spreg.OLS,
@@ -405,11 +405,11 @@ class OLS(BaseOLS):
            [  0.62898397],
            [ -0.48488854]])
     >>> print ols.moran_res[0]
-    0.20373540938
+    0.204
     >>> print ols.moran_res[1]
-    2.59180452208
+    2.592
     >>> print ols.moran_res[2]
-    0.00954740031251
+    0.0095
 
     """
     def __init__(self, y, x,\
@@ -458,6 +458,6 @@ if __name__ == '__main__':
     x = np.array([db.by_col(name) for name in x_var]).T
     w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    ols = OLS(y, x, w=w, nonspat_diag=False, spat_diag=False, name_y=y_var, name_x=x_var, name_ds='columbus', name_w='columbus.gal', robust='white', sig2n_k=True)
+    ols = OLS(y, x, w=w, nonspat_diag=True, spat_diag=True, name_y=y_var, name_x=x_var, name_ds='columbus', name_w='columbus.gal', robust='white', sig2n_k=True)
     print ols.summary
 
