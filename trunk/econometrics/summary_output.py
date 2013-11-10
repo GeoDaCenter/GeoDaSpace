@@ -180,6 +180,18 @@ def GM_Lag_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False, w=False
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag)
 
+def ML_Lag(reg,w,vm,spat_diag):
+    reg.__summary = {}
+    # compute diagnostics and organize summary output
+    beta_diag_lag(reg, robust=None, error=False)
+    reg.__summary['summary_r2'] += "%-20s:%12.3f               %-22s:%12.3f\n" % ('Sigma-square ML',reg.sig2,'Log likelihood',reg.logll)
+    reg.__summary['summary_r2'] += "%-20s:%12.3f               %-22s:%12.3f\n" % ('S.E of regression',np.sqrt(reg.sig2),'Akaike info criterion',reg.aic)
+    reg.__summary['summary_r2'] += "                                                %-22s:%12.3f\n" % ('Schwarz criterion',reg.schwarz)
+    # build coefficients table body
+    summary_coefs_allx(reg, reg.z_stat)
+    summary(reg=reg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=spat_diag)
+
+
 def GM_Error(reg, vm, w, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
