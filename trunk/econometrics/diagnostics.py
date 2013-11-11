@@ -477,9 +477,9 @@ def akaike(reg):
 
     """
     k = reg.k       # (scalar) number of explanatory vars (including constant)
-    if reg.logll:   # ML estimation, logll already exists
+    try:   # ML estimation, logll already exists
         aic_result = 2.0*k - 2.0*reg.logll    # spatial coefficient included in k
-    else:           # OLS case
+    except AttributeError:           # OLS case
         n = reg.n       # (scalar) number of observations
         utu = reg.utu   # (scalar) residual sum of squares
         aic_result = 2*k + n*(np.log((2*np.pi*utu)/n)+1)
@@ -546,9 +546,9 @@ def schwarz(reg):
     """
     n = reg.n      # (scalar) number of observations
     k = reg.k      # (scalar) number of ind. variables (including constant)
-    if reg.logll:  # ML case logll already computed
+    try:  # ML case logll already computed
         sc_result = k*np.log(n) - 2.0 * reg.logll    #spatial coeff included in k
-    else:          # OLS case
+    except AttributeError:          # OLS case
         utu = reg.utu  # (scalar) residual sum of squares
         sc_result = k*np.log(n) + n*(np.log((2*np.pi*utu)/n)+1)
     return sc_result
