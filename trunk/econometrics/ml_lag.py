@@ -76,6 +76,7 @@ class BaseML_Lag(RegressionPropsY,RegressionPropsVM):
     e_pred       : array
                    prediction errors using reduced form predicted values
 
+
     Examples
     ________
     
@@ -273,6 +274,10 @@ class ML_Lag(BaseML_Lag):
                    Sigma squared used in computations
     logll        : float
                    maximized log-likelihood (including constant terms)
+    aic          : float
+                   Akaike information criterion
+    schwarz      : float
+                   Schwarz criterion
     predy_e      : array
                    predicted values from reduced form
     e_pred       : array
@@ -284,8 +289,6 @@ class ML_Lag(BaseML_Lag):
                    (using reduced form))
     utu          : float
                    Sum of squared residuals
-    sig2         : float
-                   Sigma squared used in computations
     std_err      : array
                    1xk array of standard errors of the betas    
     z_stat       : list of tuples
@@ -302,6 +305,75 @@ class ML_Lag(BaseML_Lag):
     title        : string
                    Name of the regression method used
 
+    Examples
+    ________
+    
+    >>> import numpy as np
+    >>> import pysal as ps
+    >>> db = ps.open(ps.examples.get_path("NAT.dbf"),'r')
+    >>> ds_name = "NAT.DBF"
+    >>> y_name = "HR90"
+    >>> y = np.array(db.by_col(y_name))
+    >>> y.shape = (len(y),1)
+    >>> x_names = ["RD90","PS90","UE90","DV90","MA90"]
+    >>> x = np.array([db.by_col(var) for var in x_names]).T
+    >>> ww = ps.open(ps.examples.get_path("nat_queen.gal"))
+    >>> w = ww.read()
+    >>> ww.close()
+    >>> w_name = "nat_queen.gal"
+    >>> w.transform = 'r'    
+    >>> mllag = ML_Lag(y,x,w,name_y=y_name,name_x=x_names,\
+               name_w=w_name,name_ds=ds_name)
+    >>> mllag.betas
+    array([[ 0.25947684],
+           [ 4.72089573],
+           [ 3.78620266],
+           [ 1.33082082],
+           [-0.30710289],
+           [ 0.54401778],
+           [-0.05818301]])
+    >>> mllag.rho
+    0.25947683843934927
+    >>> mllag.mean_y
+    6.1828596097520139
+    >>> mllag.std_y
+    6.6414072574382219
+    >>> np.diag(mllag.vm1)
+    array([ 0.00047592,  1.03187549,  0.0185945 ,  0.00960746,  0.00154471,
+            0.00291311,  0.00072912,  0.38173541])
+    >>> np.diag(mllag.vm)
+    array([ 0.00047592,  1.03187549,  0.0185945 ,  0.00960746,  0.00154471,
+            0.00291311,  0.00072912])
+    >>> mllag.sig2
+    24.177907346138792
+    >>> mllag.logll
+    -9310.066561028063
+    >>> mllag.aic
+    18634.133122056126
+    >>> mllag.schwarz
+    18676.373270610504
+    >>> mllag.pr2
+    0.4517881496602787
+    >>> mllag.pr2_e
+    0.4240924753162001
+    >>> mllag.utu
+    74588.84416283817
+    >>> mllag.std_err
+    array([ 0.02181564,  1.01581272,  0.13636164,  0.09801765,  0.03930277,
+            0.05397326,  0.02700222])
+    >>> mllag.z_stat
+    [(11.894075700594495, 1.270518244305543e-32), (4.6474075615389543, 3.3613263917249882e-06), (27.765892761446501, 1.1202900497091704e-169), (13.577359336227, 5.4558186395130739e-42), (-7.8137720571406533, 5.5501428615937059e-15), (10.079394113838037, 6.8145021229414526e-24), (-2.1547494553901676, 0.031181445463091203)]
+    >>> mllag.name_y
+    'HR90'
+    >>> mllag.name_x
+    ['W_HR90', 'CONSTANT', 'RD90', 'PS90', 'UE90', 'DV90', 'MA90']
+    >>> mllag.name_w
+    'nat_queen.gal'
+    >>> mllag.name_ds
+    'NAT.DBF'
+    >>> mllag.title
+    'MAXIMUM LIKELIHOOD SPATIAL LAG (METHOD = FULL)'
+    
     References
     ----------
 
