@@ -76,6 +76,48 @@ class BaseML_Lag(RegressionPropsY,RegressionPropsVM):
     e_pred       : array
                    prediction errors using reduced form predicted values
 
+    Examples
+    ________
+    
+    >>> import numpy as np
+    >>> import pysal as ps
+    >>> db = ps.open(ps.examples.get_path("NAT.dbf"),'r')
+    >>> y_name = "HR90"
+    >>> y = np.array(db.by_col(y_name))
+    >>> y.shape = (len(y),1)
+    >>> x_names = ["RD90","PS90","UE90","DV90","MA90"]
+    >>> x = np.array([db.by_col(var) for var in x_names]).T
+    >>> x = np.hstack((np.ones((len(y),1)),x))
+    >>> ww = ps.open(ps.examples.get_path("nat_queen.gal"))
+    >>> w = ww.read()
+    >>> ww.close()
+    >>> w.transform = 'r'
+    >>> mllag = BaseML_Lag(y,x,w)
+    >>> mllag.rho
+    0.2594768384189946
+    >>> mllag.betas
+    array([[ 0.25947684],
+           [ 4.72089573],
+           [ 3.78620266],
+           [ 1.33082082],
+           [-0.30710289],
+           [ 0.54401778],
+           [-0.05818301]])
+    >>> mllag.mean_y
+    6.1828596097520139
+    >>> mllag.std_y
+    6.6414072574382219
+    >>> np.diag(mllag.vm1)
+    array([ 0.00047592,  1.03187549,  0.0185945 ,  0.00960746,  0.00154471,
+            0.00291311,  0.00072912,  0.38173541])
+    >>> np.diag(mllag.vm)
+    array([ 0.00047592,  1.03187549,  0.0185945 ,  0.00960746,  0.00154471,
+            0.00291311,  0.00072912])
+    >>> mllag.sig2
+    24.17790734618789
+    >>> mllag.logll
+    -9310.066561028063
+    
 
     References
     ----------
@@ -299,9 +341,16 @@ def lag_c_loglik(rho,n,e0,e1,W):
     clik = nlsig2 - jacob  # this is the negative of the concentrated log lik for minimization
     return clik
 
+def _test():
+    import doctest
+    start_suppress = np.get_printoptions()['suppress']
+    np.set_printoptions(precision=8,suppress=True)
+    doctest.testmod()
+    np.set_printoptions(suppress=start_suppress)
 
 if __name__ == "__main__":
-    
+    _test()
+       
     import numpy as np
     import pysal as ps
     db = ps.open(ps.examples.get_path("NAT.dbf"),'r')
@@ -319,4 +368,5 @@ if __name__ == "__main__":
     mllag = ML_Lag(y,x,w,name_y=y_name,name_x=x_names,\
                name_w=w_name,name_ds=ds_name)
     print mllag.summary
+    
     
