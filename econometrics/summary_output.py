@@ -180,7 +180,7 @@ def GM_Lag_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False, w=False
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag)
 
-def ML_Lag(reg,w,vm,spat_diag):
+def ML_Lag(reg,w,vm,spat_diag):  #extra space
     reg.__summary = {}
     # compute diagnostics and organize summary output
     beta_diag_lag(reg, robust=None, error=False)
@@ -191,6 +191,16 @@ def ML_Lag(reg,w,vm,spat_diag):
     summary_coefs_allx(reg, reg.z_stat)
     summary(reg=reg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=spat_diag)
 
+def ML_Error(reg,w,vm,spat_diag):   # extra space
+    reg.__summary = {}
+    # compute diagnostics and organize summary output
+    beta_diag(reg, robust=None)
+    reg.__summary['summary_r2'] += "%-20s:%12.3f               %-22s:%12.3f\n" % ('Sigma-square ML',reg.sig2,'Log likelihood',reg.logll)
+    reg.__summary['summary_r2'] += "%-20s:%12.3f               %-22s:%12.3f\n" % ('S.E of regression',np.sqrt(reg.sig2),'Akaike info criterion',reg.aic)
+    reg.__summary['summary_r2'] += "                                                %-22s:%12.3f\n" % ('Schwarz criterion',reg.schwarz)
+    # build coefficients table body
+    summary_coefs_allx(reg, reg.z_stat)
+    summary(reg=reg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=spat_diag)
 
 def GM_Error(reg, vm, w, regimes=False):
     reg.__summary = {}
@@ -731,7 +741,7 @@ def summary_open(multi=False):
         strSummary += "----------\n"
     return strSummary
 
-def summary_intro(reg,short):
+def summary_intro(reg,short):    #extra space
     title = "SUMMARY OF OUTPUT: " + reg.title + "\n"
     strSummary = title
     strSummary += "-" * (len(title)-1) + "\n"
@@ -920,7 +930,7 @@ def summary_r2(reg, ols, spatial_lag):
                 strSummary += "%-20s:%12.4f\n" % ('Spatial Pseudo R-squared',reg.pr2_e)
     return strSummary
 """
-def summary_nonspat_diag_1(reg):
+def summary_nonspat_diag_1(reg): # extra space
     strSummary = ""
     strSummary += "%-20s:%12.3f               %-22s:%12.4f\n" % ('Sum squared residual',reg.utu,'F-statistic',reg.f_stat[0])
     strSummary += "%-20s:%12.3f               %-22s:%12.4g\n" % ('Sigma-square',reg.sig2,'Prob(F-statistic)',reg.f_stat[1])
