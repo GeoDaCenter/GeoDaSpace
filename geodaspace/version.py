@@ -62,3 +62,4 @@ def get_long_version():
 # version = "0.8.5"  # spreg r1014, pysal 1.7.0dev
 # version_date = datetime.date(2013, 10, 2)
 
+rev='1040'
