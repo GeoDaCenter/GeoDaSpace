@@ -930,13 +930,13 @@ def summary_r2(reg, ols, spatial_lag):
                 strSummary += "%-20s:%12.4f\n" % ('Spatial Pseudo R-squared',reg.pr2_e)
     return strSummary
 """
-def summary_nonspat_diag_1(reg): # extra space
+def summary_nonspat_diag_1(reg): # extra space d
     strSummary = ""
-    strSummary += "%-20s:%12.3f               %-22s:%12.4f\n" % ('Sum squared residual',reg.utu,'F-statistic',reg.f_stat[0])
-    strSummary += "%-20s:%12.3f               %-22s:%12.4g\n" % ('Sigma-square',reg.sig2,'Prob(F-statistic)',reg.f_stat[1])
-    strSummary += "%-20s:%12.3f               %-22s:%12.3f\n" % ('S.E. of regression',np.sqrt(reg.sig2),'Log likelihood',reg.logll)
-    strSummary += "%-20s:%12.3f               %-22s:%12.3f\n" % ('Sigma-square ML',reg.sig2ML,'Akaike info criterion',reg.aic)
-    strSummary += "%-20s:%12.4f               %-22s:%12.3f\n" % ('S.E of regression ML',np.sqrt(reg.sig2ML),'Schwarz criterion',reg.schwarz)
+    strSummary += "%-20s:%12.3f                %-22s:%12.4f\n" % ('Sum squared residual',reg.utu,'F-statistic',reg.f_stat[0])
+    strSummary += "%-20s:%12.3f                %-22s:%12.4g\n" % ('Sigma-square',reg.sig2,'Prob(F-statistic)',reg.f_stat[1])
+    strSummary += "%-20s:%12.3f                %-22s:%12.3f\n" % ('S.E. of regression',np.sqrt(reg.sig2),'Log likelihood',reg.logll)
+    strSummary += "%-20s:%12.3f                %-22s:%12.3f\n" % ('Sigma-square ML',reg.sig2ML,'Akaike info criterion',reg.aic)
+    strSummary += "%-20s:%12.4f                %-22s:%12.3f\n" % ('S.E of regression ML',np.sqrt(reg.sig2ML),'Schwarz criterion',reg.schwarz)
     return strSummary
     
 def summary_nonspat_diag_2(reg):
