@@ -97,23 +97,23 @@ class BaseML_Lag(RegressionPropsY,RegressionPropsVM):
     >>> mllag.rho
     0.2594768384189946
     >>> mllag.betas
-    array([[ 0.25947684],
-           [ 4.72089573],
+    array([[ 4.72089573],
            [ 3.78620266],
            [ 1.33082082],
            [-0.30710289],
            [ 0.54401778],
-           [-0.05818301]])
+           [-0.05818301],
+           [ 0.25947684]])
     >>> mllag.mean_y
     6.1828596097520139
     >>> mllag.std_y
     6.6414072574382219
     >>> np.diag(mllag.vm1)
-    array([ 0.00047592,  1.03187549,  0.0185945 ,  0.00960746,  0.00154471,
-            0.00291311,  0.00072912,  0.38173541])
+    array([ 1.03187549,  0.0185945 ,  0.00960746,  0.00154471,  0.00291311,
+            0.00072912,  0.00047592,  0.38173541])
     >>> np.diag(mllag.vm)
-    array([ 0.00047592,  1.03187549,  0.0185945 ,  0.00960746,  0.00154471,
-            0.00291311,  0.00072912])
+    array([ 1.03187549,  0.0185945 ,  0.00960746,  0.00154471,  0.00291311,
+            0.00072912,  0.00047592])
     >>> mllag.sig2
     24.17790734618789
     >>> mllag.logll
@@ -163,7 +163,7 @@ class BaseML_Lag(RegressionPropsY,RegressionPropsVM):
         # b, residuals and predicted values
         
         b = b0 - self.rho*b1
-        self.betas = np.vstack((self.rho,b))   # rho is first coefficient
+        self.betas = np.vstack((b,self.rho))   # rho added as last coefficient
         self.u = e0 - self.rho * e1
         self.predy = self.y - self.u
         
@@ -193,11 +193,11 @@ class BaseML_Lag(RegressionPropsY,RegressionPropsVM):
         wpyTwpy = np.dot(wpredy.T,wpredy)
         xTwpy = np.dot(x.T,wpredy)
         
-        v1 = np.vstack((tr2+tr3+wpyTwpy/self.sig2,
-                       xTwpy/self.sig2,
-                       tr1/self.sig2))    
-        v2 = np.vstack((xTwpy.T/self.sig2,xtx/self.sig2,np.zeros((1,self.k))))
-        v3 = np.vstack((tr1/self.sig2,np.zeros((self.k,1)),self.n/(2.0 * self.sig2**2) ))
+        # order of variables is beta, rho, sigma2
+        
+        v1 = np.vstack((xtx/self.sig2,xTwpy.T/self.sig2,np.zeros((1,self.k))))
+        v2 = np.vstack((xTwpy/self.sig2,tr2+tr3+wpyTwpy/self.sig2,tr1/self.sig2))
+        v3 = np.vstack((np.zeros((self.k,1)),tr1/self.sig2,self.n/(2.0 * self.sig2**2)))
         
         v = np.hstack((v1,v2,v3))
         
@@ -325,13 +325,13 @@ class ML_Lag(BaseML_Lag):
     >>> mllag = ML_Lag(y,x,w,name_y=y_name,name_x=x_names,\
                name_w=w_name,name_ds=ds_name)
     >>> mllag.betas
-    array([[ 0.25947684],
-           [ 4.72089573],
+    array([[ 4.72089573],
            [ 3.78620266],
            [ 1.33082082],
            [-0.30710289],
            [ 0.54401778],
-           [-0.05818301]])
+           [-0.05818301],
+           [ 0.25947684]])
     >>> mllag.rho
     0.25947683843934927
     >>> mllag.mean_y
@@ -339,11 +339,11 @@ class ML_Lag(BaseML_Lag):
     >>> mllag.std_y
     6.6414072574382219
     >>> np.diag(mllag.vm1)
-    array([ 0.00047592,  1.03187549,  0.0185945 ,  0.00960746,  0.00154471,
-            0.00291311,  0.00072912,  0.38173541])
+    array([ 1.03187549,  0.0185945 ,  0.00960746,  0.00154471,  0.00291311,
+            0.00072912,  0.00047592,  0.38173541])
     >>> np.diag(mllag.vm)
-    array([ 0.00047592,  1.03187549,  0.0185945 ,  0.00960746,  0.00154471,
-            0.00291311,  0.00072912])
+    array([ 1.03187549,  0.0185945 ,  0.00960746,  0.00154471,  0.00291311,
+            0.00072912,  0.00047592])
     >>> mllag.sig2
     24.177907346138792
     >>> mllag.logll
@@ -359,14 +359,14 @@ class ML_Lag(BaseML_Lag):
     >>> mllag.utu
     74588.84416283817
     >>> mllag.std_err
-    array([ 0.02181564,  1.01581272,  0.13636164,  0.09801765,  0.03930277,
-            0.05397326,  0.02700222])
+    array([ 1.01581272,  0.13636164,  0.09801765,  0.03930277,  0.05397326,
+            0.02700222,  0.02181564])
     >>> mllag.z_stat
-    [(11.894075700594495, 1.270518244305543e-32), (4.6474075615389543, 3.3613263917249882e-06), (27.765892761446501, 1.1202900497091704e-169), (13.577359336227, 5.4558186395130739e-42), (-7.8137720571406533, 5.5501428615937059e-15), (10.079394113838037, 6.8145021229414526e-24), (-2.1547494553901676, 0.031181445463091203)]
+    [(4.6474075615389188, 3.3613263917255613e-06), (27.765892761446498, 1.1202900497091704e-169), (13.577359336226991, 5.4558186395136194e-42), (-7.8137720571406506, 5.550142861593825e-15), (10.079394113838038, 6.8145021229412587e-24), (-2.1547494553901481, 0.031181445463092729), (11.894075700594495, 1.270518244305543e-32)]
     >>> mllag.name_y
     'HR90'
     >>> mllag.name_x
-    ['W_HR90', 'CONSTANT', 'RD90', 'PS90', 'UE90', 'DV90', 'MA90']
+    ['CONSTANT', 'RD90', 'PS90', 'UE90', 'DV90', 'MA90', 'W_HR90']
     >>> mllag.name_w
     'nat_queen.gal'
     >>> mllag.name_ds
@@ -395,7 +395,7 @@ class ML_Lag(BaseML_Lag):
         self.name_y = USER.set_name_y(name_y)
         self.name_x = USER.set_name_x(name_x, x)
         name_ylag = USER.set_name_yend_sp(self.name_y)
-        self.name_x.insert(0,name_ylag)
+        self.name_x.append(name_ylag)  #rho changed to last position
         self.name_w = USER.set_name_w(name_w, w)
         self.aic = DIAG.akaike(reg=self)
         self.schwarz = DIAG.schwarz(reg=self)
