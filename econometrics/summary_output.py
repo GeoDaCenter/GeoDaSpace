@@ -180,24 +180,24 @@ def GM_Lag_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False, w=False
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag)
 
-def ML_Lag(reg,w,vm,spat_diag):  #extra space
+def ML_Lag(reg,w,vm,spat_diag):  #extra space d
     reg.__summary = {}
     # compute diagnostics and organize summary output
     beta_diag_lag(reg, robust=None, error=False)
-    reg.__summary['summary_r2'] += "%-20s:%12.3f               %-22s:%12.3f\n" % ('Sigma-square ML',reg.sig2,'Log likelihood',reg.logll)
-    reg.__summary['summary_r2'] += "%-20s:%12.3f               %-22s:%12.3f\n" % ('S.E of regression',np.sqrt(reg.sig2),'Akaike info criterion',reg.aic)
-    reg.__summary['summary_r2'] += "                                                %-22s:%12.3f\n" % ('Schwarz criterion',reg.schwarz)
+    reg.__summary['summary_r2'] += "%-20s:%12.3f                %-22s:%12.3f\n" % ('Sigma-square ML',reg.sig2,'Log likelihood',reg.logll)
+    reg.__summary['summary_r2'] += "%-20s:%12.3f                %-22s:%12.3f\n" % ('S.E of regression',np.sqrt(reg.sig2),'Akaike info criterion',reg.aic)
+    reg.__summary['summary_r2'] += "                                                 %-22s:%12.3f\n" % ('Schwarz criterion',reg.schwarz)
     # build coefficients table body
     summary_coefs_allx(reg, reg.z_stat)
     summary(reg=reg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=spat_diag)
 
-def ML_Error(reg,w,vm,spat_diag):   # extra space
+def ML_Error(reg,w,vm,spat_diag):   # extra space d
     reg.__summary = {}
     # compute diagnostics and organize summary output
     beta_diag(reg, robust=None)
-    reg.__summary['summary_r2'] += "%-20s:%12.3f               %-22s:%12.3f\n" % ('Sigma-square ML',reg.sig2,'Log likelihood',reg.logll)
-    reg.__summary['summary_r2'] += "%-20s:%12.3f               %-22s:%12.3f\n" % ('S.E of regression',np.sqrt(reg.sig2),'Akaike info criterion',reg.aic)
-    reg.__summary['summary_r2'] += "                                                %-22s:%12.3f\n" % ('Schwarz criterion',reg.schwarz)
+    reg.__summary['summary_r2'] += "%-20s:%12.3f                %-22s:%12.3f\n" % ('Sigma-square ML',reg.sig2,'Log likelihood',reg.logll)
+    reg.__summary['summary_r2'] += "%-20s:%12.3f                %-22s:%12.3f\n" % ('S.E of regression',np.sqrt(reg.sig2),'Akaike info criterion',reg.aic)
+    reg.__summary['summary_r2'] += "                                                 %-22s:%12.3f\n" % ('Schwarz criterion',reg.schwarz)
     # build coefficients table body
     summary_coefs_allx(reg, reg.z_stat)
     summary(reg=reg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=spat_diag)
@@ -741,17 +741,17 @@ def summary_open(multi=False):
         strSummary += "----------\n"
     return strSummary
 
-def summary_intro(reg,short):    #extra space
+def summary_intro(reg,short):    #extra space d
     title = "SUMMARY OF OUTPUT: " + reg.title + "\n"
     strSummary = title
     strSummary += "-" * (len(title)-1) + "\n"
     strSummary += "%-20s:%12s\n" % ('Data set',reg.name_ds)
     if reg.name_w:
         strSummary += "%-20s:%12s\n" % ('Weights matrix',reg.name_w)
-    strSummary += "%-20s:%12s               %-22s:%12d\n" % ('Dependent Variable',reg.name_y,'Number of Observations',reg.n)
+    strSummary += "%-20s:%12s                %-22s:%12d\n" % ('Dependent Variable',reg.name_y,'Number of Observations',reg.n)
     if not short:
-        strSummary += "%-20s:%12.4f               %-22s:%12d\n" % ('Mean dependent var',reg.mean_y,'Number of Variables',reg.k)
-        strSummary += "%-20s:%12.4f               %-22s:%12d\n" % ('S.D. dependent var',reg.std_y,'Degrees of Freedom',reg.n-reg.k)
+        strSummary += "%-20s:%12.4f                %-22s:%12d\n" % ('Mean dependent var',reg.mean_y,'Number of Variables',reg.k)
+        strSummary += "%-20s:%12.4f                %-22s:%12d\n" % ('S.D. dependent var',reg.std_y,'Degrees of Freedom',reg.n-reg.k)
     #strSummary += '\n'
     return strSummary
 
@@ -827,7 +827,7 @@ def summary_coefs_instruments(reg):
     inst2 += insts
     reg.__summary['summary_coefs_instruments'] = inst2
 
-def summary_iteration(reg):
+def summary_iteration(reg):  # extra space d
     """Reports the number of iterations computed.
     """
     try:
@@ -835,7 +835,7 @@ def summary_iteration(reg):
             step1c = 'Yes'
         else:
             step1c = 'No'
-        txt = "%-20s:%12s               %-22s:%12s\n" % ('N. of iterations',reg.iteration,'Step1c computed',step1c)
+        txt = "%-20s:%12s                %-22s:%12s\n" % ('N. of iterations',reg.iteration,'Step1c computed',step1c)
     except:
         txt = "%-20s:%12s\n" % ('N. of iterations',reg.iteration)        
     try:
