@@ -8,19 +8,27 @@ export PYTHONPATH
 PATH=/usr/local/git/bin:/Library/Frameworks/Python.framework/Versions/2.7/bin:$PATH
 export PATH
 
-# delete last nightly build
-rm /Volumes/GeoDa/Projects/GeoDaSpace/Nightly/*
+# mount afp
+mkdir -p /Volumes/GeoDa
+mount_afp afp://username:password@geodude.asu.edu/GeoDa/ /Volumes/GeoDa
 
-# fetch changes in pysal
+# fetch and merge changes in pysal
 cd ~/Desktop/pysal
-git fetch
+git pull
+if [ $? = "0" ]
+then
+
+# retrieve changes in spreg 
+svn update
+if [ $? = "0" ]
+then
 
 # clean up old build data
 cd ~/Desktop/spreg/trunk
 /usr/bin/make clean
 
-# retrieve changes in spreg 
-svn update
+# delete last nightly build
+rm /Volumes/GeoDa/Projects/GeoDaSpace/Nightly/*
 
 # paste svn version number into version script
 echo "rev = '$(svn info | grep Revision: | cut -c11-)'" >> ~/Desktop/spreg/trunk/geodaspace/version.py
@@ -33,5 +41,7 @@ cd ~/Desktop/spreg/trunk/dist/
 hdiutil create -fs HFS+ -srcfolder GeoDaSpace\ OSX\ 0.8.6.app/ GeoDaSpace_OSX_Nightly.dmg
 
 # copy to file server
-cp GeoDaSpace_OSX_Nightly.dmg /Volumes/GeoDa/Projects/GeoDaSpace/Nightly/
+#cp GeoDaSpace_OSX_Nightly.dmg /Volumes/GeoDa/Projects/GeoDaSpace/Nightly/
 
+fi
+fi
