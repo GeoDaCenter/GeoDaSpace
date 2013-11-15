@@ -433,25 +433,25 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
 
 		# the matrix
                 if len(m['spec']['H']) > 0 or len(m['spec']['YE']) > 0\
-                   or m['modelType']['mType'] == 1 or m['modelType']['mType'] == 2:
-
-                    self.OLS_radiobutton.SetValue(False)
-                    self.OLS_radiobutton.Disable()
-                    self.GMM_radiobutton.Enable()
-                    self.ML_radiobutton.Enable()
-
-
-		elif len(m['spec']['H']) > 0 or len(m['spec']['YE']) > 0\
-                   or m['modelType']['mType'] == 3:
+                    or m['modelType']['mType'] != 0:
+                    if m['modelType']['method'] == 0: #set GMM default
+                        m['modelType']['method'] = 1
                     self.OLS_radiobutton.SetValue(False)
                     self.OLS_radiobutton.Disable()
                     self.GMM_radiobutton.Enable()
                     self.GMM_radiobutton.SetValue(True)
-                    self.ML_radiobutton.Disable()
-                    self.ML_radiobutton.SetValue(False)
-                    m['modelType']['method'] = 1
-                    self.SEHETCheckBox.Enable()
-
+                    if m['modelType']['mType'] != 3 and len(m['spec']['H']) == 0\
+                        and len(m['spec']['YE']) == 0:
+                        self.ML_radiobutton.Enable()
+                    else:
+                        self.ML_radiobutton.Disable()
+                        self.ML_radiobutton.SetValue(False)
+                        self.GMM_radiobutton.SetValue(True)
+                        m['modelType']['method'] = 1
+                    if m['modelType']['method'] == 1:
+                        self.GMM_radiobutton.SetValue(True)
+                    if m['modelType']['method'] == 2:
+                        self.ML_radiobutton.SetValue(True)
                 else:
                     self.OLS_radiobutton.SetValue(True)
                     self.OLS_radiobutton.Enable()
@@ -460,6 +460,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     self.GMM_radiobutton.SetValue(False)
                     self.ML_radiobutton.Disable()
                     self.ML_radiobutton.SetValue(False)
+
 
     def setTitle(self):
         if self.modelFileName:
