@@ -311,6 +311,7 @@
                     <object class="sizeritem">
                       <object class="wxStaticText" name="MLdiagnosticsLabel">
                         <label>ML Diagnostics</label>
+                        <tooltip>Report diagnostics in summary.</tooltip>
                         <XRCED>
                           <assign_var>1</assign_var>
                         </XRCED>
@@ -339,58 +340,35 @@
                     </object>
                     <object class="spacer"/>
                     <object class="sizeritem">
-                      <object class="wxStaticText" name="MLFullCheckbox">
+                      <object class="wxRadioButton" name="MLFull">
                         <label>Full</label>
-                      </object>
-                      <flag>wxLEFT</flag>
-                      <border>10</border>
-                    </object>
-                    <object class="sizeritem">
-                      <object class="wxCheckBox" name="MLFull">
-                        <checked>1</checked>
+                        <value>1</value>
+                        <style>wxRB_GROUP</style>
                         <XRCED>
-                          <events>EVT_CHECKBOX</events>
+                          <events>EVT_RADIOBUTTON</events>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
-                      <flag>wxALIGN_CENTRE</flag>
                     </object>
                     <object class="sizeritem">
-                      <object class="wxStaticText" name="MLOrdCheckbox">
+                      <object class="wxRadioButton" name="MLOrd">
                         <label>Ord</label>
-                      </object>
-                      <flag>wxLEFT</flag>
-                      <border>10</border>
-                    </object>
-                    <object class="sizeritem">
-                      <object class="wxCheckBox" name="MLOrd">
                         <XRCED>
-                          <events>EVT_CHECKBOX</events>
+                          <events>EVT_RADIOBUTTON</events>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
-                      <flag>wxALIGN_CENTRE</flag>
                     </object>
                     <object class="sizeritem">
-                      <object class="wxStaticText" name="MLFutureCheckbox">
-                        <label>Future</label>
+                      <object class="wxRadioButton" name="MLFuture">
+                        <label>future</label>
+                        <tooltip>A placeholder for future developments.</tooltip>
                         <enabled>0</enabled>
-                        <hidden>1</hidden>
-                      </object>
-                      <flag>wxLEFT</flag>
-                      <border>10</border>
-                    </object>
-                    <object class="sizeritem">
-                      <object class="wxCheckBox" name="MLFuture">
-                        <enabled>0</enabled>
-                        <hidden>1</hidden>
                         <XRCED>
-                          <events>EVT_CHECKBOX</events>
+                          <events>EVT_RADIOBUTTON</events>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
-                      <flag>wxALIGN_CENTRE</flag>
-                      <border>10</border>
                     </object>
                     <cols>2</cols>
                     <rows>8</rows>
@@ -541,10 +519,6 @@
             </object>
             <label>Output</label>
           </object>
-          <size>450,300</size>
-          <XRCED>
-            <assign_var>1</assign_var>
-          </XRCED>
           <object class="notebookpage">
             <object class="wxPanel" name="regimes">
               <object class="wxBoxSizer">
@@ -761,6 +735,10 @@
             </object>
             <label>Other</label>
           </object>
+          <size>500,300</size>
+          <XRCED>
+            <assign_var>1</assign_var>
+          </XRCED>
         </object>
         <option>1</option>
         <flag>wxALL|wxEXPAND</flag>
@@ -807,7 +785,7 @@
         <border>15</border>
       </object>
     </object>
-    <size>650,400</size>
+    <size>680,400</size>
     <title>GeoDaSpace Preferences</title>
     <centered>1</centered>
     <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>

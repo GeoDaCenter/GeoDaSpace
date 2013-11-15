@@ -130,8 +130,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
 	d['MLdiagnostics'] = self.ml_diagnostics
 	d['ml_full'] = self.ml_full
 	d['MLFull'] = self.ml_full
-	d['ml_ord'] = self.ml_ord
-	d['MLOrd'] = self.ml_ord
+	d['MLOrd'] = self.ml_full
 
         self.model = preferencesModel()
         self.reset_model()
@@ -434,12 +433,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
             self.model.ml_full = self.MLFull.GetValue()
         elif value is not None:
             self.MLFull.SetValue(self.model.ml_full)
-
-    def ml_ord(self, evtName=None, evt=None, value=None):
-        if evt:
-            self.model.ml_ord = self.MLOrd.GetValue()
-        elif value is not None:
-            self.MLOrd.SetValue(self.model.ml_ord)
+	    self.MLOrd.SetValue(not self.model.ml_full)
 
     def SetPrefs(self, prefs):
         for key in prefs:

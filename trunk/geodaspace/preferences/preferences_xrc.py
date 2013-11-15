@@ -107,9 +107,9 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.Bind(wx.EVT_CHOICE, self.OnChoice_CompInverse, self.CompInverse)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_Step1c, self.Step1c)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_MLdiagnostics, self.MLdiagnostics)
-        self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_MLFull, self.MLFull)
-        self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_MLOrd, self.MLOrd)
-        self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_MLFuture, self.MLFuture)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_MLFull, self.MLFull)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_MLOrd, self.MLOrd)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_MLFuture, self.MLFuture)
         self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_NumSpatialLags, self.NumSpatialLags)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_IncludeLagsofUserInst, self.IncludeLagsofUserInst)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_ShowVarCovarMatrix, self.ShowVarCovarMatrix)
@@ -200,23 +200,23 @@ class xrcgsPrefsDialog(wx.Dialog):
         print "OnCheckbox_MLdiagnostics()"
 #!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_MLdiagnostics        
 
-#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_MLFull
-    def OnCheckbox_MLFull(self, evt):
+#!XRCED:begin-block:xrcgsPrefsDialog.OnRadiobutton_MLFull
+    def OnRadiobutton_MLFull(self, evt):
         # Replace with event handler code
-        print "OnCheckbox_MLFull()"
-#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_MLFull        
+        print "OnRadiobutton_MLFull()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnRadiobutton_MLFull        
 
-#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_MLOrd
-    def OnCheckbox_MLOrd(self, evt):
+#!XRCED:begin-block:xrcgsPrefsDialog.OnRadiobutton_MLOrd
+    def OnRadiobutton_MLOrd(self, evt):
         # Replace with event handler code
-        print "OnCheckbox_MLOrd()"
-#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_MLOrd        
+        print "OnRadiobutton_MLOrd()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnRadiobutton_MLOrd        
 
-#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_MLFuture
-    def OnCheckbox_MLFuture(self, evt):
+#!XRCED:begin-block:xrcgsPrefsDialog.OnRadiobutton_MLFuture
+    def OnRadiobutton_MLFuture(self, evt):
         # Replace with event handler code
-        print "OnCheckbox_MLFuture()"
-#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_MLFuture        
+        print "OnRadiobutton_MLFuture()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnRadiobutton_MLFuture        
 
 #!XRCED:begin-block:xrcgsPrefsDialog.OnSpinctrl_NumSpatialLags
     def OnSpinctrl_NumSpatialLags(self, evt):
@@ -674,6 +674,7 @@ def __init_resources():
                     <object class="sizeritem">
                       <object class="wxStaticText" name="MLdiagnosticsLabel">
                         <label>ML Diagnostics</label>
+                        <tooltip>Report diagnostics in summary.</tooltip>
                         <XRCED>
                           <assign_var>1</assign_var>
                         </XRCED>
@@ -702,58 +703,35 @@ def __init_resources():
                     </object>
                     <object class="spacer"/>
                     <object class="sizeritem">
-                      <object class="wxStaticText" name="MLFullCheckbox">
+                      <object class="wxRadioButton" name="MLFull">
                         <label>Full</label>
-                      </object>
-                      <flag>wxLEFT</flag>
-                      <border>10</border>
-                    </object>
-                    <object class="sizeritem">
-                      <object class="wxCheckBox" name="MLFull">
-                        <checked>1</checked>
+                        <value>1</value>
+                        <style>wxRB_GROUP</style>
                         <XRCED>
-                          <events>EVT_CHECKBOX</events>
+                          <events>EVT_RADIOBUTTON</events>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
-                      <flag>wxALIGN_CENTRE</flag>
                     </object>
                     <object class="sizeritem">
-                      <object class="wxStaticText" name="MLOrdCheckbox">
+                      <object class="wxRadioButton" name="MLOrd">
                         <label>Ord</label>
-                      </object>
-                      <flag>wxLEFT</flag>
-                      <border>10</border>
-                    </object>
-                    <object class="sizeritem">
-                      <object class="wxCheckBox" name="MLOrd">
                         <XRCED>
-                          <events>EVT_CHECKBOX</events>
+                          <events>EVT_RADIOBUTTON</events>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
-                      <flag>wxALIGN_CENTRE</flag>
                     </object>
                     <object class="sizeritem">
-                      <object class="wxStaticText" name="MLFutureCheckbox">
-                        <label>Future</label>
+                      <object class="wxRadioButton" name="MLFuture">
+                        <label>future</label>
+                        <tooltip>A placeholder for future developments.</tooltip>
                         <enabled>0</enabled>
-                        <hidden>1</hidden>
-                      </object>
-                      <flag>wxLEFT</flag>
-                      <border>10</border>
-                    </object>
-                    <object class="sizeritem">
-                      <object class="wxCheckBox" name="MLFuture">
-                        <enabled>0</enabled>
-                        <hidden>1</hidden>
                         <XRCED>
-                          <events>EVT_CHECKBOX</events>
+                          <events>EVT_RADIOBUTTON</events>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
-                      <flag>wxALIGN_CENTRE</flag>
-                      <border>10</border>
                     </object>
                     <cols>2</cols>
                     <rows>8</rows>
@@ -904,10 +882,6 @@ def __init_resources():
             </object>
             <label>Output</label>
           </object>
-          <size>450,300</size>
-          <XRCED>
-            <assign_var>1</assign_var>
-          </XRCED>
           <object class="notebookpage">
             <object class="wxPanel" name="regimes">
               <object class="wxBoxSizer">
@@ -1124,6 +1098,10 @@ def __init_resources():
             </object>
             <label>Other</label>
           </object>
+          <size>500,300</size>
+          <XRCED>
+            <assign_var>1</assign_var>
+          </XRCED>
         </object>
         <option>1</option>
         <flag>wxALL|wxEXPAND</flag>
@@ -1170,7 +1148,7 @@ def __init_resources():
         <border>15</border>
       </object>
     </object>
-    <size>650,400</size>
+    <size>680,400</size>
     <title>GeoDaSpace Preferences</title>
     <centered>1</centered>
     <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
