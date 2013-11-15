@@ -20,7 +20,7 @@ import pysal
 WHITE_TOOL_TIP = "White, H. (1980), Econometrica"
 HAC_TOOL_TIP = "Kelejian, H. and Prucha, I. (2007), Journal of Econometrics"
 HET_TOOL_TIP = "Kelejian, H. and Prucha, I. (2010), Journal of Econometrics"
-ML_TOOL_TIP = "(Coming soon)"
+#ML_TOOL_TIP = "(Coming soon)"
 # R_TOOL_TIP = "Regime indicators"
 
 myEVT_LIST_BOX_UPDATE = wx.NewEventType()
@@ -256,7 +256,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
             wx.EVT_RADIOBUTTON, self.updateModelType)  # pas
         self.ML_radiobutton.Bind(
             wx.EVT_RADIOBUTTON, self.updateModelType)  # pas
-        self.ML_radiobutton.SetToolTipString(ML_TOOL_TIP)
+        #self.ML_radiobutton.SetToolTipString(ML_TOOL_TIP)
 
         # self.ModelTypeRadioBox.Bind(wx.EVT_RADIOBOX, self.updateModelType)
         # self.ENDO_CHECK.Bind(wx.EVT_CHECKBOX, self.updateModelType)
@@ -431,23 +431,34 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     self.SEHACCheckBox.SetValue(False)
                     self.SEHACCheckBox.Disable()
 
+		# the matrix
                 if len(m['spec']['H']) > 0 or len(m['spec']['YE']) > 0\
-                   or m['modelType']['mType'] != 0:
+                   or m['modelType']['mType'] == 1 or m['modelType']['mType'] == 2:
 
                     self.OLS_radiobutton.SetValue(False)
                     self.OLS_radiobutton.Disable()
                     self.GMM_radiobutton.Enable()
+                    self.ML_radiobutton.Enable()
+
+
+		elif len(m['spec']['H']) > 0 or len(m['spec']['YE']) > 0\
+                   or m['modelType']['mType'] == 3:
+                    self.OLS_radiobutton.SetValue(False)
+                    self.OLS_radiobutton.Disable()
+                    self.GMM_radiobutton.Enable()
                     self.GMM_radiobutton.SetValue(True)
-                    m['modelType']['method'] = 1
+                    self.ML_radiobutton.Disable()
                     self.ML_radiobutton.SetValue(False)
+                    m['modelType']['method'] = 1
+                    self.SEHETCheckBox.Enable()
 
                 else:
-
                     self.OLS_radiobutton.SetValue(True)
                     self.OLS_radiobutton.Enable()
                     m['modelType']['method'] = 0
                     self.GMM_radiobutton.Disable()
                     self.GMM_radiobutton.SetValue(False)
+                    self.ML_radiobutton.Disable()
                     self.ML_radiobutton.SetValue(False)
 
     def setTitle(self):
@@ -608,8 +619,13 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         modelSetup['mType'] = [m.GetValue()
                                for m in self.MODELTYPES].index(True)
 
-        modelSetup['method'] = [m.GetValue()
-                                for m in self.METHOD].index(True)
+        try:
+	    modelSetup['method'] = [m.GetValue()
+			 for m in self.METHOD].index(True)
+	except ValueError as e:
+	    print(e)
+	    modelSetup['method'] = 1
+	    pass
         # modelSetup['method'] = self.ml_checkbox.GetValue()
         # modelSetup['mType'] = self.ModelTypeRadioBox.GetSelection()
         # modelSetup['endogenous'] = self.EndogenousRadioBox.GetSelection()
@@ -633,9 +649,15 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         if not setup['mType'] == [m.GetValue()
                                   for m in self.MODELTYPES].index(True):
             self.MODELTYPES[setup['mType']].SetValue(True)
-        if not setup['method'] == [m.GetValue()
+
+	try:
+            if not setup['method'] == [m.GetValue()
                                    for m in self.METHOD].index(True):
-            self.METHOD[setup['method']].SetValue(True)
+	        self.METHOD[setup['method']].SetValue(True)
+	except ValueError as e:
+	    print(e)
+	    pass
+
         if not setup['error']['white'] == self.SEWhiteCheckBox.GetValue():
             self.SEWhiteCheckBox.SetValue(setup['error']['white'])
         if not setup['error']['hac'] == self.SEHACCheckBox.GetValue():
