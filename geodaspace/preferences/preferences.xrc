@@ -294,6 +294,121 @@
             <label>GMM</label>
           </object>
           <object class="notebookpage">
+            <object class="wxPanel" name="ML">
+              <object class="wxBoxSizer">
+                <orient>wxVERTICAL</orient>
+                <object class="sizeritem">
+                  <object class="wxFlexGridSizer">
+                    <object class="sizeritem">
+                      <object class="wxStaticText">
+                        <label>Diagnostics</label>
+                        <font>
+                          <weight>bold</weight>
+                        </font>
+                      </object>
+                    </object>
+                    <object class="spacer"/>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="MLdiagnosticsLabel">
+                        <label>ML Diagnostics</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxLEFT</flag>
+                      <border>10</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="MLdiagnostics">
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="ML Methods">
+                        <label>Methods</label>
+                        <font>
+                          <weight>bold</weight>
+                        </font>
+                      </object>
+                      <flag>wxTOP</flag>
+                      <border>15</border>
+                    </object>
+                    <object class="spacer"/>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="MLFullCheckbox">
+                        <label>Full</label>
+                      </object>
+                      <flag>wxLEFT</flag>
+                      <border>10</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="MLFull">
+                        <checked>1</checked>
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="MLOrdCheckbox">
+                        <label>Ord</label>
+                      </object>
+                      <flag>wxLEFT</flag>
+                      <border>10</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="MLOrd">
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="MLFutureCheckbox">
+                        <label>Future</label>
+                        <enabled>0</enabled>
+                        <hidden>1</hidden>
+                      </object>
+                      <flag>wxLEFT</flag>
+                      <border>10</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="MLFuture">
+                        <enabled>0</enabled>
+                        <hidden>1</hidden>
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
+                      <border>10</border>
+                    </object>
+                    <cols>2</cols>
+                    <rows>8</rows>
+                    <vgap>7</vgap>
+                    <hgap>25</hgap>
+                  </object>
+                  <flag>wxALL|wxALIGN_CENTRE</flag>
+                  <border>10</border>
+                </object>
+              </object>
+              <size>650,300</size>
+              <XRCED>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <label>ML</label>
+          </object>
+          <object class="notebookpage">
             <object class="wxPanel" name="instruments">
               <object class="wxBoxSizer">
                 <orient>wxVERTICAL</orient>

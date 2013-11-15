@@ -126,6 +126,12 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         d['RegimeError'] = self.regimes_regime_error
         d['regimes_regime_lag'] = self.regimes_regime_lag
         d['RegimeLag'] = self.regimes_regime_lag
+	d['ml_diagnostics'] = self.ml_diagnostics
+	d['MLdiagnostics'] = self.ml_diagnostics
+	d['ml_full'] = self.ml_full
+	d['MLFull'] = self.ml_full
+	d['ml_ord'] = self.ml_ord
+	d['MLOrd'] = self.ml_ord
 
         self.model = preferencesModel()
         self.reset_model()
@@ -416,6 +422,24 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
                 self.RegimeError.Disable()
             else:
                 self.RegimeError.Enable()
+
+    def ml_diagnostics(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.ml_diagnostics = self.MLdiagnostics.GetValue()
+        elif value is not None:
+            self.MLdiagnostics.SetValue(self.model.ml_diagnostics)
+
+    def ml_full(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.ml_full = self.MLFull.GetValue()
+        elif value is not None:
+            self.MLFull.SetValue(self.model.ml_full)
+
+    def ml_ord(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.ml_ord = self.MLOrd.GetValue()
+        elif value is not None:
+            self.MLOrd.SetValue(self.model.ml_ord)
 
     def SetPrefs(self, prefs):
         for key in prefs:
