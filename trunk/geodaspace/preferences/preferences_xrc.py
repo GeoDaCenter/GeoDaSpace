@@ -56,6 +56,12 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.CompInverse = xrc.XRCCTRL(self, "CompInverse")
         self.Step1cLabel = xrc.XRCCTRL(self, "Step1cLabel")
         self.Step1c = xrc.XRCCTRL(self, "Step1c")
+        self.ML = xrc.XRCCTRL(self, "ML")
+        self.MLdiagnosticsLabel = xrc.XRCCTRL(self, "MLdiagnosticsLabel")
+        self.MLdiagnostics = xrc.XRCCTRL(self, "MLdiagnostics")
+        self.MLFull = xrc.XRCCTRL(self, "MLFull")
+        self.MLOrd = xrc.XRCCTRL(self, "MLOrd")
+        self.MLFuture = xrc.XRCCTRL(self, "MLFuture")
         self.instruments = xrc.XRCCTRL(self, "instruments")
         self.NumSpatialLagsLabel = xrc.XRCCTRL(self, "NumSpatialLagsLabel")
         self.NumSpatialLags = xrc.XRCCTRL(self, "NumSpatialLags")
@@ -100,6 +106,10 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_inferenceOnLambda, self.inferenceOnLambda)
         self.Bind(wx.EVT_CHOICE, self.OnChoice_CompInverse, self.CompInverse)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_Step1c, self.Step1c)
+        self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_MLdiagnostics, self.MLdiagnostics)
+        self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_MLFull, self.MLFull)
+        self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_MLOrd, self.MLOrd)
+        self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_MLFuture, self.MLFuture)
         self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_NumSpatialLags, self.NumSpatialLags)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_IncludeLagsofUserInst, self.IncludeLagsofUserInst)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_ShowVarCovarMatrix, self.ShowVarCovarMatrix)
@@ -183,6 +193,30 @@ class xrcgsPrefsDialog(wx.Dialog):
         # Replace with event handler code
         print "OnCheckbox_Step1c()"
 #!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_Step1c        
+
+#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_MLdiagnostics
+    def OnCheckbox_MLdiagnostics(self, evt):
+        # Replace with event handler code
+        print "OnCheckbox_MLdiagnostics()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_MLdiagnostics        
+
+#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_MLFull
+    def OnCheckbox_MLFull(self, evt):
+        # Replace with event handler code
+        print "OnCheckbox_MLFull()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_MLFull        
+
+#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_MLOrd
+    def OnCheckbox_MLOrd(self, evt):
+        # Replace with event handler code
+        print "OnCheckbox_MLOrd()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_MLOrd        
+
+#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_MLFuture
+    def OnCheckbox_MLFuture(self, evt):
+        # Replace with event handler code
+        print "OnCheckbox_MLFuture()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_MLFuture        
 
 #!XRCED:begin-block:xrcgsPrefsDialog.OnSpinctrl_NumSpatialLags
     def OnSpinctrl_NumSpatialLags(self, evt):
@@ -621,6 +655,121 @@ def __init_resources():
               </XRCED>
             </object>
             <label>GMM</label>
+          </object>
+          <object class="notebookpage">
+            <object class="wxPanel" name="ML">
+              <object class="wxBoxSizer">
+                <orient>wxVERTICAL</orient>
+                <object class="sizeritem">
+                  <object class="wxFlexGridSizer">
+                    <object class="sizeritem">
+                      <object class="wxStaticText">
+                        <label>Diagnostics</label>
+                        <font>
+                          <weight>bold</weight>
+                        </font>
+                      </object>
+                    </object>
+                    <object class="spacer"/>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="MLdiagnosticsLabel">
+                        <label>ML Diagnostics</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxLEFT</flag>
+                      <border>10</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="MLdiagnostics">
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="ML Methods">
+                        <label>Methods</label>
+                        <font>
+                          <weight>bold</weight>
+                        </font>
+                      </object>
+                      <flag>wxTOP</flag>
+                      <border>15</border>
+                    </object>
+                    <object class="spacer"/>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="MLFullCheckbox">
+                        <label>Full</label>
+                      </object>
+                      <flag>wxLEFT</flag>
+                      <border>10</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="MLFull">
+                        <checked>1</checked>
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="MLOrdCheckbox">
+                        <label>Ord</label>
+                      </object>
+                      <flag>wxLEFT</flag>
+                      <border>10</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="MLOrd">
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="MLFutureCheckbox">
+                        <label>Future</label>
+                        <enabled>0</enabled>
+                        <hidden>1</hidden>
+                      </object>
+                      <flag>wxLEFT</flag>
+                      <border>10</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="MLFuture">
+                        <enabled>0</enabled>
+                        <hidden>1</hidden>
+                        <XRCED>
+                          <events>EVT_CHECKBOX</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
+                      <border>10</border>
+                    </object>
+                    <cols>2</cols>
+                    <rows>8</rows>
+                    <vgap>7</vgap>
+                    <hgap>25</hgap>
+                  </object>
+                  <flag>wxALL|wxALIGN_CENTRE</flag>
+                  <border>10</border>
+                </object>
+              </object>
+              <size>650,300</size>
+              <XRCED>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <label>ML</label>
           </object>
           <object class="notebookpage">
             <object class="wxPanel" name="instruments">
