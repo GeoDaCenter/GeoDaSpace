@@ -713,6 +713,7 @@ def __init_resources():
                         </XRCED>
                       </object>
                     </object>
+                    <object class="spacer"/>
                     <object class="sizeritem">
                       <object class="wxRadioButton" name="MLOrd">
                         <label>Ord</label>
@@ -727,6 +728,7 @@ def __init_resources():
                         <label>future</label>
                         <tooltip>A placeholder for future developments.</tooltip>
                         <enabled>0</enabled>
+                        <hidden>1</hidden>
                         <XRCED>
                           <events>EVT_RADIOBUTTON</events>
                           <assign_var>1</assign_var>
