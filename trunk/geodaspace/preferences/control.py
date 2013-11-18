@@ -126,12 +126,12 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         d['RegimeError'] = self.regimes_regime_error
         d['regimes_regime_lag'] = self.regimes_regime_lag
         d['RegimeLag'] = self.regimes_regime_lag
-	d['ml_diagnostics'] = self.ml_diagnostics
-	d['MLdiagnostics'] = self.ml_diagnostics
-	d['ml_full'] = self.ml_full
-	d['MLFull'] = self.ml_full
-	d['MLOrd'] = self.ml_full
-	#d['MLfuture'] = self.ml_full ?
+        d['ml_diagnostics'] = self.ml_diagnostics
+        d['MLdiagnostics'] = self.ml_diagnostics
+        d['ml_full'] = self.ml_full
+        d['MLFull'] = self.ml_full
+        d['MLOrd'] = self.ml_full
+    #d['MLfuture'] = self.ml_full ?
 
         self.model = preferencesModel()
         self.reset_model()
@@ -249,7 +249,8 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
                 return wx.ID_OK
 
     def restore(self, evtName=None, evt=None, value=None):
-        dlg = wx.MessageDialog(self, "All unsaved preferences will be lost.", "Are you sure you wish to restore defaults?",
+        dlg = wx.MessageDialog(self, "All unsaved preferences will be lost.",
+                               "Are you sure you wish to restore defaults?",
                                style=wx.CANCEL | wx.OK | wx.ICON_QUESTION)
         if dlg.ShowModal() == wx.ID_OK:
             self.model.reset()
@@ -434,8 +435,8 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
             self.model.ml_full = self.MLFull.GetValue()
         elif value is not None:
             self.MLFull.SetValue(self.model.ml_full)
-	    self.MLOrd.SetValue(not self.model.ml_full)
-	    #self.MLfuture.SetValue(not self.model.ml_full) ?
+        self.MLOrd.SetValue(not self.model.ml_full)
+        #self.MLfuture.SetValue(not self.model.ml_full) ?
 
     def SetPrefs(self, prefs):
         for key in prefs:

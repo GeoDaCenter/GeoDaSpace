@@ -5,8 +5,8 @@ version_date = datetime.date.today()
 version = "0.8.6"  # spreg r1018, pysal 1.7.0dev
 
 # toggle these 2 below for official alpha releases
-#version_type = "alpha"
-version_type = 'nightly'
+version_type = "alpha"
+#version_type = 'nightly'
 
 def get_long_version():
     s = ""
@@ -22,8 +22,8 @@ def get_long_version():
         s += " | "
         s += "spReg revision "
         s += rev
-    s += " | "
-    s += version_date.strftime('%B %d, %Y')
+        s += " | "
+        s += version_date.strftime('%B %d, %Y')
     return s
 
 # Version History

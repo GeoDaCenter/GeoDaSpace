@@ -12,6 +12,7 @@ from geodaspace import DEBUG
 
 
 class preferencesModel(AbstractModel):
+
     """
     Model for GeoDaSpace Preferences with save/load support.
     """
@@ -38,9 +39,9 @@ class preferencesModel(AbstractModel):
         'output_show_detailed_spec': False,
         'regimes_regime_error': True,
         'regimes_regime_lag': False,
-	'ml_diagnostics': False,
-	'ml_full': True,
-	'ml_ord': False
+        'ml_diagnostics': False,
+        'ml_full': True,
+        'ml_ord': False
     }
     sig2n_k_other = AbstractModel.abstractProp('sig2n_k_other', bool)
     sig2n_k_ols = AbstractModel.abstractProp('sig2n_k_ols', bool)
