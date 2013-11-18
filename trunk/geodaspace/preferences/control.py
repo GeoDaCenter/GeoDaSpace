@@ -131,6 +131,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
 	d['ml_full'] = self.ml_full
 	d['MLFull'] = self.ml_full
 	d['MLOrd'] = self.ml_full
+	#d['MLfuture'] = self.ml_full ?
 
         self.model = preferencesModel()
         self.reset_model()
@@ -434,6 +435,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         elif value is not None:
             self.MLFull.SetValue(self.model.ml_full)
 	    self.MLOrd.SetValue(not self.model.ml_full)
+	    #self.MLfuture.SetValue(not self.model.ml_full) ?
 
     def SetPrefs(self, prefs):
         for key in prefs:
