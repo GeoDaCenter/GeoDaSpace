@@ -128,10 +128,11 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         d['RegimeLag'] = self.regimes_regime_lag
         d['ml_diagnostics'] = self.ml_diagnostics
         d['MLdiagnostics'] = self.ml_diagnostics
-        d['ml_full'] = self.ml_full
-        d['MLFull'] = self.ml_full
-        d['MLOrd'] = self.ml_full
-    #d['MLfuture'] = self.ml_full ?
+        d['ml_epsilon'] = self.ml_epsilon
+        d['ToleranceCriterion'] = self.ml_epsilon
+        d['ml_method'] = self.ml_method
+        d['MLFull'] = self.ml_method
+        d['MLOrd'] = self.ml_method
 
         self.model = preferencesModel()
         self.reset_model()
@@ -430,13 +431,28 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         elif value is not None:
             self.MLdiagnostics.SetValue(self.model.ml_diagnostics)
 
-    def ml_full(self, evtName=None, evt=None, value=None):
+    def ml_epsilon(self, evtName=None, evt=None, value=None):
         if evt:
-            self.model.ml_full = self.MLFull.GetValue()
+            try:
+                self.model.ml_epsilon = float(
+                    self.MLToleranceCriterion.GetValue())
+            except:
+                pass
         elif value is not None:
-            self.MLFull.SetValue(self.model.ml_full)
-        self.MLOrd.SetValue(not self.model.ml_full)
-        #self.MLfuture.SetValue(not self.model.ml_full) ?
+            try:
+                curval = float(self.MLToleranceCriterion.GetValue())
+            except:
+                curval = None
+            if self.model.ml_epsilon != curval:
+                self.MLToleranceCriterion.SetValue(str(self.model.ml_epsilon))
+
+    def ml_method(self, evtName=None, evt=None, value=None):
+        if evt:
+            self.model.ml_method = self.MLFull.GetValue()
+        elif value is not None:
+            self.MLFull.SetValue(self.model.ml_method)
+        self.MLOrd.SetValue(not self.model.ml_method)
+        #self.MLfuture.SetValue(not self.model.ml_method) ?
 
     def SetPrefs(self, prefs):
         for key in prefs:

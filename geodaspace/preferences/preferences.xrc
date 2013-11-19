@@ -372,6 +372,23 @@
                         </XRCED>
                       </object>
                     </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="ToleranceCriterionLabel">
+                        <label>Tolerance Criterion</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxTextCtrl" name="MLToleranceCriterion">
+                        <value>0.00001</value>
+                        <XRCED>
+                          <events>EVT_TEXT</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                    </object>
                     <cols>2</cols>
                     <rows>8</rows>
                     <vgap>7</vgap>
