@@ -40,8 +40,9 @@ class preferencesModel(AbstractModel):
         'regimes_regime_error': True,
         'regimes_regime_lag': False,
         'ml_diagnostics': False,
-        'ml_full': True,
-        'ml_ord': False
+        'ml_epsilon': 1e-05,
+        'ml_method': True
+        #'ml_ord': False
     }
     sig2n_k_other = AbstractModel.abstractProp('sig2n_k_other', bool)
     sig2n_k_ols = AbstractModel.abstractProp('sig2n_k_ols', bool)
@@ -75,8 +76,9 @@ class preferencesModel(AbstractModel):
         'regimes_regime_error', bool)
     regimes_regime_lag = AbstractModel.abstractProp('regimes_regime_lag', bool)
     ml_diagnostics = AbstractModel.abstractProp('ml_diagnostics', bool)
-    ml_full = AbstractModel.abstractProp('ml_full', bool)
-    ml_ord = AbstractModel.abstractProp('ml_ord', bool)
+    ml_epsilon = AbstractModel.abstractProp('ml_epsilon', float)
+    ml_method = AbstractModel.abstractProp('ml_method', bool)
+    #ml_ord = AbstractModel.abstractProp('ml_ord', bool)
 
     def __init__(self):
         AbstractModel.__init__(self)

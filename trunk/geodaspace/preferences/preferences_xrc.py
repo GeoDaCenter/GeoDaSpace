@@ -62,6 +62,8 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.MLFull = xrc.XRCCTRL(self, "MLFull")
         self.MLOrd = xrc.XRCCTRL(self, "MLOrd")
         self.MLFuture = xrc.XRCCTRL(self, "MLFuture")
+        self.ToleranceCriterionLabel = xrc.XRCCTRL(self, "ToleranceCriterionLabel")
+        self.MLToleranceCriterion = xrc.XRCCTRL(self, "MLToleranceCriterion")
         self.instruments = xrc.XRCCTRL(self, "instruments")
         self.NumSpatialLagsLabel = xrc.XRCCTRL(self, "NumSpatialLagsLabel")
         self.NumSpatialLags = xrc.XRCCTRL(self, "NumSpatialLags")
@@ -110,6 +112,7 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_MLFull, self.MLFull)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_MLOrd, self.MLOrd)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_MLFuture, self.MLFuture)
+        self.Bind(wx.EVT_TEXT, self.OnText_MLToleranceCriterion, self.MLToleranceCriterion)
         self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_NumSpatialLags, self.NumSpatialLags)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_IncludeLagsofUserInst, self.IncludeLagsofUserInst)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_ShowVarCovarMatrix, self.ShowVarCovarMatrix)
@@ -217,6 +220,12 @@ class xrcgsPrefsDialog(wx.Dialog):
         # Replace with event handler code
         print "OnRadiobutton_MLFuture()"
 #!XRCED:end-block:xrcgsPrefsDialog.OnRadiobutton_MLFuture        
+
+#!XRCED:begin-block:xrcgsPrefsDialog.OnText_MLToleranceCriterion
+    def OnText_MLToleranceCriterion(self, evt):
+        # Replace with event handler code
+        print "OnText_MLToleranceCriterion()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnText_MLToleranceCriterion        
 
 #!XRCED:begin-block:xrcgsPrefsDialog.OnSpinctrl_NumSpatialLags
     def OnSpinctrl_NumSpatialLags(self, evt):
@@ -731,6 +740,23 @@ def __init_resources():
                         <hidden>1</hidden>
                         <XRCED>
                           <events>EVT_RADIOBUTTON</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="ToleranceCriterionLabel">
+                        <label>Tolerance Criterion</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxTextCtrl" name="MLToleranceCriterion">
+                        <value>0.00001</value>
+                        <XRCED>
+                          <events>EVT_TEXT</events>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
