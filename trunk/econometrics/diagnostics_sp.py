@@ -548,7 +548,7 @@ def lmErr(reg, w, spDcache):
     """
     lm = spDcache.utwuDs**2 / spDcache.t
     pval = chisqprob(lm, 1)
-    return (round(lm[0][0],3), round(pval[0][0],4))
+    return (lm[0][0], pval[0][0])
 
 def lmLag(ols, w, spDcache):
     """
@@ -580,7 +580,7 @@ def lmLag(ols, w, spDcache):
     """
     lm = spDcache.utwyDs**2 / (ols.n * spDcache.j)
     pval = chisqprob(lm, 1)
-    return (round(lm[0][0],3), round(pval[0][0],4))
+    return (lm[0][0], pval[0][0])
 
 def rlmErr(ols, w, spDcache):
     """
@@ -616,7 +616,7 @@ def rlmErr(ols, w, spDcache):
     den = spDcache.t * (1. - (spDcache.t / nj))
     lm = num / den
     pval = chisqprob(lm, 1)
-    return (round(lm[0][0],3), round(pval[0][0],4))
+    return (lm[0][0], pval[0][0])
 
 def rlmLag(ols, w, spDcache):
     """
@@ -648,7 +648,7 @@ def rlmLag(ols, w, spDcache):
     """
     lm = (spDcache.utwyDs - spDcache.utwuDs)**2 / ((ols.n * spDcache.j) - spDcache.t)
     pval = chisqprob(lm, 1)
-    return (round(lm[0][0],3), round(pval[0][0],4))
+    return (lm[0][0], pval[0][0])
 
 def lmSarma(ols, w, spDcache):
     """
@@ -683,7 +683,7 @@ def lmSarma(ols, w, spDcache):
     secnd = spDcache.utwuDs**2 / spDcache.t
     lm = first + secnd
     pval = chisqprob(lm, 2)
-    return (round(lm[0][0],3), round(pval[0][0],4))
+    return (lm[0][0], pval[0][0])
 
 def get_mI(reg, w, spDcache):
     """
@@ -713,7 +713,7 @@ def get_mI(reg, w, spDcache):
        Pion London
     """
     mi = (w.n * np.dot(reg.u.T, spDcache.wu)) / (w.s0 * reg.utu)
-    return round(mi[0][0],3)
+    return mi[0][0]
 
 def get_vI(ols, w, ei, spDcache):
     """
@@ -733,7 +733,7 @@ def get_eI(ols, w, spDcache):
     """
     Moran's I expectation using matrix M
     """
-    return round(- (w.n * spDcache.trA) / (w.s0 * (w.n - ols.k)),3)
+    return - (w.n * spDcache.trA) / (w.s0 * (w.n - ols.k))
 
 def get_zI(I, ei, vi):
     """
@@ -743,7 +743,7 @@ def get_zI(I, ei, vi):
     """
     z = abs((I - ei) / np.sqrt(vi))
     pval = norm.sf(z) * 2.
-    return (round(z,3), round(pval,4))
+    return (z, pval)
 
 def akTest(iv, w, spDcache):
     """
@@ -786,7 +786,7 @@ def akTest(iv, w, spDcache):
     phi2 = ( spDcache.t + (4.0 / iv.sig2n) * a ) / (s12 * w.n)
     ak = w.n * mi**2 / phi2
     pval = chisqprob(ak, 1)
-    return (mi, round(ak[0][0],3), round(pval[0][0],4))
+    return (mi, ak[0][0], pval[0][0])
 
 def _test():
     import doctest

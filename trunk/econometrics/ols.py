@@ -334,12 +334,12 @@ class OLS(BaseOLS):
     array([[ 46.42818268],
            [  0.62898397],
            [ -0.48488854]])
-    >>> print ols.t_stat[2][0]
-    -2.65440864272
-    >>> print ols.t_stat[2][1]
-    0.0108745049098
-    >>> ols.r2
-    0.34951437785126105
+    >>> print round(ols.t_stat[2][0],3)
+    -2.654
+    >>> print round(ols.t_stat[2][1],3)
+    0.011
+    >>> print round(ols.r2,3)
+    0.35
 
     Or we can easily obtain a full summary of all the results nicely formatted and
     ready to be printed:
@@ -350,16 +350,16 @@ class OLS(BaseOLS):
     SUMMARY OF OUTPUT: ORDINARY LEAST SQUARES
     -----------------------------------------
     Data set            :    columbus
-    Dependent Variable  :  home value               Number of Observations:          49
-    Mean dependent var  :     38.4362               Number of Variables   :           3
-    S.D. dependent var  :     18.4661               Degrees of Freedom    :          46
+    Dependent Variable  :  home value                Number of Observations:          49
+    Mean dependent var  :     38.4362                Number of Variables   :           3
+    S.D. dependent var  :     18.4661                Degrees of Freedom    :          46
     R-squared           :      0.3495
     Adjusted R-squared  :      0.3212
-    Sum squared residual:   10647.015               F-statistic           :     12.3582
-    Sigma-square        :     231.457               Prob(F-statistic)     :   5.064e-05
-    S.E. of regression  :      15.214               Log likelihood        :    -201.368
-    Sigma-square ML     :     217.286               Akaike info criterion :     408.735
-    S.E of regression ML:     14.7406               Schwarz criterion     :     414.411
+    Sum squared residual:   10647.015                F-statistic           :     12.3582
+    Sigma-square        :     231.457                Prob(F-statistic)     :   5.064e-05
+    S.E. of regression  :      15.214                Log likelihood        :    -201.368
+    Sigma-square ML     :     217.286                Akaike info criterion :     408.735
+    S.E of regression ML:     14.7406                Schwarz criterion     :     414.411
     <BLANKLINE>
     ------------------------------------------------------------------------------------
                 Variable     Coefficient       Std.Error     t-Statistic     Probability
@@ -395,8 +395,8 @@ class OLS(BaseOLS):
     GAL or GWT file.  In this case a rook contiguity weights matrix is built,
     but PySAL also offers queen contiguity, distance weights and k nearest
     neighbor weights among others. In the example, the Moran's I of the
-    residuals is 0.2037 with a standardized value of 2.5918 and a p-value of
-    0.009547.
+    residuals is 0.204 with a standardized value of 2.592 and a p-value of
+    0.0095.
 
     >>> w = pysal.weights.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     >>> ols = OLS(y, X, w, spat_diag=True, moran=True, name_y='home value', name_x=['income','crime'], name_ds='columbus')
@@ -404,11 +404,11 @@ class OLS(BaseOLS):
     array([[ 46.42818268],
            [  0.62898397],
            [ -0.48488854]])
-    >>> print ols.moran_res[0]
+    >>> print round(ols.moran_res[0],3)
     0.204
-    >>> print ols.moran_res[1]
+    >>> print round(ols.moran_res[1],3)
     2.592
-    >>> print ols.moran_res[2]
+    >>> print round(ols.moran_res[2],4)
     0.0095
 
     """
@@ -458,6 +458,6 @@ if __name__ == '__main__':
     x = np.array([db.by_col(name) for name in x_var]).T
     w = pysal.rook_from_shapefile(pysal.examples.get_path("columbus.shp"))
     w.transform = 'r'
-    ols = OLS(y, x, w=w, nonspat_diag=True, spat_diag=True, name_y=y_var, name_x=x_var, name_ds='columbus', name_w='columbus.gal', robust='white', sig2n_k=True)
+    ols = OLS(y, x, w=w, nonspat_diag=True, spat_diag=True, name_y=y_var, name_x=x_var, name_ds='columbus', name_w='columbus.gal', robust='white', sig2n_k=True, moran=True)
     print ols.summary
 

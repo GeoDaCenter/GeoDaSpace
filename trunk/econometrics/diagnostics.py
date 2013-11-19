@@ -608,8 +608,8 @@ def condition_index(reg):
 
     Print the result.
 
-    >>> print("%12.12f"%testresult)
-    6.541827751444
+    >>> print("%12.3f"%testresult)
+    6.542
 
     """
     if hasattr(reg, 'xtx'):
@@ -622,7 +622,7 @@ def condition_index(reg):
     max_eigval = max(eigval)
     min_eigval = min(eigval)
     ci_result = sqrt(max_eigval/min_eigval)
-    return round(ci_result,3)
+    return ci_result
 
 
 
@@ -692,13 +692,13 @@ def jarque_bera(reg):
 
     Print the test statistic. 
 
-    >>> print("%12.12f"%testresult['jb'])
-    1.835752520076
+    >>> print("%12.3f"%testresult['jb'])
+    1.836
 
     Print the associated p-value.
 
-    >>> print("%12.12f"%testresult['pvalue'])
-    0.399366291249
+    >>> print("%12.4f"%testresult['pvalue'])
+    0.3994
 
     """
     n = reg.n               # (scalar) number of observations
@@ -713,7 +713,7 @@ def jarque_bera(reg):
     K = (mu4/(mu2**2))      # kurtosis measure
     jb = n*(((S**2)/6)+((K-3)**2)/24)
     pvalue=stats.chisqprob(jb,2)
-    jb_result={"df":2,"jb":round(jb,3),'pvalue':round(pvalue,4)}
+    jb_result={"df":2,"jb":jb,'pvalue':pvalue}
     return jb_result 
 
 
@@ -799,13 +799,13 @@ def breusch_pagan(reg, z=None):
 
     Print the test statistic.
 
-    >>> print("%12.12f"%testresult['bp'])
-    7.900441675960
+    >>> print("%12.3f"%testresult['bp'])
+    7.9
 
     Print the associated p-value. 
 
-    >>> print("%12.12f"%testresult['pvalue'])
-    0.019250450075
+    >>> print("%12.4f"%testresult['pvalue'])
+    0.0193
 
     """
     e2 = reg.u**2
@@ -871,7 +871,7 @@ def breusch_pagan(reg, z=None):
     bp = bp_array[0,0]
 
     pvalue=stats.chisqprob(bp,df)
-    bp_result={'df':df,'bp':round(bp,3), 'pvalue':round(pvalue,4)}
+    bp_result={'df':df,'bp':bp, 'pvalue':pvalue}
     return bp_result
 
 
@@ -944,18 +944,18 @@ def white(reg):
 
     Print the degrees of freedom for the test.
 
-    >>> testresult['df']
+    >>> print testresult['df']
     5
 
     Print the test statistic.
 
-    >>> print("%12.12f"%testresult['wh'])
-    19.946008239903
+    >>> print("%12.3f"%testresult['wh'])
+    19.946
 
     Print the associated p-value. 
 
-    >>> print("%12.12f"%testresult['pvalue'])
-    0.001279222817
+    >>> print("%12.4f"%testresult['pvalue'])
+    0.0013
 
     """
     e = reg.u**2
@@ -1033,7 +1033,7 @@ def white(reg):
     wh = aux_r2*n
     df = k-1
     pvalue = stats.chisqprob(wh,df)
-    white_result={'df':df,'wh':round(wh,3), 'pvalue':round(pvalue,4)}
+    white_result={'df':df,'wh':wh, 'pvalue':pvalue}
     return white_result 
 
 def koenker_bassett(reg, z=None):
@@ -1119,13 +1119,13 @@ def koenker_bassett(reg, z=None):
 
     Print the test statistic.
 
-    >>> print("%12.12f"%testresult['kb'])
-    5.694087931707
+    >>> print("%12.3f"%testresult['kb'])
+    5.694
 
     Print the associated p-value. 
 
-    >>> print("%12.12f"%testresult['pvalue'])
-    0.058015563638
+    >>> print("%12.4f"%testresult['pvalue'])
+    0.058
 
     """
     # The notation here matches that of Greene (2003).
@@ -1196,7 +1196,7 @@ def koenker_bassett(reg, z=None):
     kb = kb_array[0,0]
     
     pvalue=stats.chisqprob(kb,df)
-    kb_result = {'kb':round(kb,3),'df':df,'pvalue':round(pvalue,4)}
+    kb_result = {'kb':kb,'df':df,'pvalue':pvalue}
     return kb_result
 
 
