@@ -129,7 +129,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         d['ml_diagnostics'] = self.ml_diagnostics
         d['MLdiagnostics'] = self.ml_diagnostics
         d['ml_epsilon'] = self.ml_epsilon
-        d['ToleranceCriterion'] = self.ml_epsilon
+        d['MLToleranceCriterion'] = self.ml_epsilon
         d['ml_method'] = self.ml_method
         d['MLFull'] = self.ml_method
         d['MLOrd'] = self.ml_method
