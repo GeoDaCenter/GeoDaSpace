@@ -12,6 +12,8 @@ from twosls_sp_regimes import GM_Lag_Regimes
 from error_sp_het_regimes import GM_Error_Het_Regimes, GM_Endog_Error_Het_Regimes, GM_Combo_Het_Regimes
 from error_sp_regimes import GM_Endog_Error_Regimes, GM_Error_Regimes, GM_Combo_Regimes
 from error_sp_hom_regimes import GM_Endog_Error_Hom_Regimes, GM_Error_Hom_Regimes, GM_Combo_Hom_Regimes
+from ml_error import ML_Error
+from ml_lag import ML_Lag
 import robust as ROBUST
 import summary_output as SUMMARY
 import user_output as USER
@@ -121,12 +123,19 @@ class Spmodel:
                       If True, the spatial parameter for spatial lag is also
                       computed according to different regimes. If False (default),
                       the spatial parameter is fixed accross regimes.
-    cores         : int
-                    Amount of cores to be used for multiprocessing tasks.
-                    Default: None, which is same as maximum number possible.
+    cores       : int
+                  Amount of cores to be used for multiprocessing tasks.
+                  Default: None, which is same as maximum number possible.
     method      : string
                   If 'gm' computes models using GM estimators. If 'ml' uses
                   maximum-likelihood. If 'ols', computes OLS.
+    ml_diag     : boolean
+                  Run diagnostics for ML models
+    ml_method   : string
+                  if 'full', brute force calculation in ML (full matrix expressions)
+                  if 'ord', use Ord's method in ML
+    ml_epsilon  : float
+                  Tolerance criterion for ML models          
 
     Returns
     -------
@@ -168,7 +177,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=False, kp_het=False, inf_lambda=False, method='ols')
+        white=False, hac=False, kp_het=False, inf_lambda=False, method='ols',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
@@ -181,7 +191,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=True, hac=False, kp_het=False, inf_lambda=False, method='ols')
+        white=True, hac=False, kp_het=False, inf_lambda=False, method='ols',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[wk], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
@@ -194,7 +205,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=True, kp_het=False, inf_lambda=False, method='ols')
+        white=False, hac=True, kp_het=False, inf_lambda=False, method='ols',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
@@ -207,7 +219,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm')
+        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
@@ -220,7 +233,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=True, hac=False, kp_het=False, inf_lambda=False, method='gm')
+        white=True, hac=False, kp_het=False, inf_lambda=False, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
@@ -233,7 +247,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm')
+        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
@@ -246,7 +261,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm')
+        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
@@ -259,7 +275,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=False, kp_het=True, inf_lambda=False, method='gm')
+        white=False, hac=False, kp_het=True, inf_lambda=False, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
@@ -272,7 +289,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=False, kp_het=False, inf_lambda=True, method='gm')
+        white=False, hac=False, kp_het=False, inf_lambda=True, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
@@ -285,7 +303,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=False, kp_het=True, inf_lambda=True, method='gm')
+        white=False, hac=False, kp_het=True, inf_lambda=True, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_x
     ['CONSTANT', 'inc', 'hoval', 'lambda']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
@@ -298,7 +317,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm')
+        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc', 'hoval'],\
@@ -311,7 +331,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=False, kp_het=True, inf_lambda=False, method='gm')
+        white=False, hac=False, kp_het=True, inf_lambda=False, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
 
@@ -333,7 +354,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm')
+        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
@@ -346,7 +368,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=True, hac=False, kp_het=False, inf_lambda=False, method='gm')
+        white=True, hac=False, kp_het=False, inf_lambda=False, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[wk], y=y, name_y='crime', x=X, name_x=['inc'],\
@@ -359,7 +382,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=True, kp_het=False, inf_lambda=False, method='gm')
+        white=False, hac=True, kp_het=False, inf_lambda=False, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
@@ -372,7 +396,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm')
+        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
@@ -385,7 +410,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=True, hac=False, kp_het=False, inf_lambda=False, method='gm')
+        white=True, hac=False, kp_het=False, inf_lambda=False, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
@@ -398,7 +424,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm')
+        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
@@ -411,7 +438,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm')
+        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'lambda']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
@@ -424,7 +452,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=False, kp_het=True, inf_lambda=False, method='gm')
+        white=False, hac=False, kp_het=True, inf_lambda=False, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'lambda']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
@@ -437,7 +466,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm')
+        white=False, hac=False, kp_het=False, inf_lambda=False, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
     >>> reg = Spmodel(name_ds='columbus', w_list=[w, w2], wk_list=[], y=y, name_y='crime', x=X, name_x=['inc'],\
@@ -450,7 +480,8 @@ class Spmodel:
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
         regime_err_sep=None, regime_lag_sep=None, cores=None,\
-        white=False, hac=False, kp_het=True, inf_lambda=False, method='gm')
+        white=False, hac=False, kp_het=True, inf_lambda=False, method='gm',\
+        ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
     ['CONSTANT', 'inc', 'hoval', 'W_crime', 'lambda']
 
@@ -466,7 +497,8 @@ class Spmodel:
         instrument_lags, lag_user_inst,
         vc_matrix, predy_resid,
         ols_diag, moran, white_test,
-            regime_err_sep, regime_lag_sep, cores, method, ids=None):
+        regime_err_sep, regime_lag_sep, cores, method, 
+        ml_epsilon=0.00001,ml_method='full',ml_diag=False,ids=None): #remove default values from ml args.
 
         self.name_ds = name_ds
         self.w_list = w_list
@@ -509,6 +541,9 @@ class Spmodel:
         self.regime_lag_sep = regime_lag_sep
         self.cores = cores
         self.method = method
+        self.ml_epsilon = ml_epsilon
+        self.ml_method = ml_method
+        self.ml_diag = ml_diag
         self.ids = ids
 
         if predy_resid:
@@ -564,6 +599,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,
             ols_diag, moran, white_test,
             regime_err_sep, regime_lag_sep, cores, method, ids=None):
     """
+    DEPRECATED
     spmodel originally ran the dispatcher. The class Spmodel now runs the
     dispatcher, and was created when this module was refactored for ease of
     maintenance.  The spmodel function is simply a little glue so that the old
@@ -1533,9 +1569,34 @@ def get_GM_Combo_Het_noEndog_regimes(gui):
         counter += 1
     return output
 
+def get_ML_Lag(gui):
+    output = []
+    counter = 1
+    for w in gui.w_list:
+        reg = ML_Lag(y=gui.y, x=gui.x, w=w, method=gui.ml_method, epsilon=gui.epsilon,
+              spat_diag=gui.ml_diag, vm=gui.vc_matrix, name_y=gui.name_y,
+              name_x=gui.name_x, name_ds=gui.name_ds, name_w=w.name)
+        run_predy_resid(gui, reg, 'ml_', True, counter)
+        output.append(reg)
+        counter += 1
+    return output
 
-def get_ML(gui):
-    raise Exception("ML estimators coming soon...")
+def get_ML_Error(gui):    
+    output = []
+    counter = 1
+    for w in gui.w_list:
+        reg = ML_Error(y=gui.y, x=gui.x, w=w, method=gui.ml_method, epsilon=gui.epsilon,
+              spat_diag=gui.ml_diag, vm=gui.vc_matrix, name_y=gui.name_y,
+              name_x=gui.name_x, name_ds=gui.name_ds, name_w=w.name)
+        run_predy_resid(gui, reg, 'ml_', False, counter)
+        output.append(reg)
+        counter += 1
+    return output
+
+
+
+def get_error_msg(gui):
+    raise Exception("This specfication is not currently available.")
 
 
 ##############################################################################
@@ -1587,14 +1648,14 @@ model_getter[('Spatial Lag+Error', True, False,
               True, 'gm')] = get_GM_Combo_endog_regimes
 model_getter[('Spatial Lag+Error', False, False,
               True, 'gm')] = get_GM_Combo_noEndog_regimes
-model_getter[('Standard', False, '*', False, 'ml')] = get_ML
-model_getter[('Standard', False, '*', True, 'ml')] = get_ML
-model_getter[('Spatial Lag', False, '*', False, 'ml')] = get_ML
-model_getter[('Spatial Lag', False, '*', True, 'ml')] = get_ML
-model_getter[('Spatial Error', False, '*', False, 'ml')] = get_ML
-model_getter[('Spatial Error', False, '*', True, 'ml')] = get_ML
-model_getter[('Spatial Lag+Error', False, '*', False, 'ml')] = get_ML
-model_getter[('Spatial Lag+Error', False, '*', True, 'ml')] = get_ML
+model_getter[('Standard', False, '*', False, 'ml')] = get_error_msg
+model_getter[('Standard', False, '*', True, 'ml')] = get_error_msg
+model_getter[('Spatial Lag', False, '*', False, 'ml')] = get_ML_Lag
+model_getter[('Spatial Lag', False, '*', True, 'ml')] = get_error_msg
+model_getter[('Spatial Error', False, '*', False, 'ml')] = get_ML_Error
+model_getter[('Spatial Error', False, '*', True, 'ml')] = get_error_msg
+model_getter[('Spatial Lag+Error', False, '*', False, 'ml')] = get_error_msg
+model_getter[('Spatial Lag+Error', False, '*', True, 'ml')] = get_error_msg
 
 
 def _test():
