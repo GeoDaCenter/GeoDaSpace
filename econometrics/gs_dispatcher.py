@@ -499,7 +499,7 @@ class Spmodel:
         vc_matrix, predy_resid,
         ols_diag, moran, white_test,
         regime_err_sep, regime_lag_sep, cores, method, 
-        ml_epsilon,ml_method='full',ml_diag=False,ids=None): #remove default values from ml args.
+        ml_epsilon=0.00001,ml_method='full',ml_diag=False,ids=None): #remove default values from ml args.
 
         self.name_ds = name_ds
         self.w_list = w_list
@@ -543,7 +543,7 @@ class Spmodel:
         self.cores = cores
         self.method = method
         self.ml_epsilon = ml_epsilon
-        self.ml_method = ml_method
+        self.ml_method = ml_method.lower()
         self.ml_diag = ml_diag
         self.ids = ids
 
@@ -590,9 +590,7 @@ class Spmodel:
 
 def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,
             h, name_h, r, name_r, s, name_s, t, name_t,
-            model_type,
-            spat_diag,
-            white, hac, kp_het,
+            model_type, spat_diag, white, hac, kp_het,
             sig2n_k_ols, sig2n_k_tsls, sig2n_k_gmlag,
             max_iter, stop_crit, inf_lambda, comp_inverse, step1c,
             instrument_lags, lag_user_inst,
@@ -609,9 +607,7 @@ def spmodel(name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,
     result = Spmodel(
         name_ds, w_list, wk_list, y, name_y, x, name_x, ye, name_ye,
         h, name_h, r, name_r, s, name_s, t, name_t,
-        model_type,
-        spat_diag,
-        white, hac, kp_het,
+        model_type, spat_diag, white, hac, kp_het,
         sig2n_k_ols, sig2n_k_tsls, sig2n_k_gmlag,
         max_iter, stop_crit, inf_lambda, comp_inverse, step1c,
         instrument_lags, lag_user_inst,
