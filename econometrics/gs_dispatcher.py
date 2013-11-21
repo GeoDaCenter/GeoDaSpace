@@ -20,6 +20,7 @@ import user_output as USER
 import regimes as REGI
 
 INV_METHODS = ("Power Expansion", "True Inverse",)
+ML_METHODS = ("Full", "Ord",)
 
 
 class Spmodel:

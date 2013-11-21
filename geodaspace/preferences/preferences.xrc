@@ -328,6 +328,9 @@
                       </object>
                       <flag>wxALIGN_CENTRE</flag>
                     </object>
+                    
+                    
+                    
                     <object class="sizeritem">
                       <object class="wxStaticText" name="ML Methods">
                         <label>Methods</label>
@@ -340,38 +343,33 @@
                     </object>
                     <object class="spacer"/>
                     <object class="sizeritem">
-                      <object class="wxRadioButton" name="MLFull">
-                        <label>Full</label>
-                        <value>1</value>
-                        <style>wxRB_GROUP</style>
+                      <object class="wxStaticText" name="MLMethodLabel">
+                        <label>ML Method</label>
                         <XRCED>
-                          <events>EVT_RADIOBUTTON</events>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
+                      <flag>wxLEFT</flag>
+                      <border>10</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxChoice" name="MLMethod">
+                        <content>
+                          <item>Full</item>
+                          <item>Ord</item>
+                        </content>
+                        <XRCED>
+                          <events>EVT_CHOICE</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
                     </object>
                     <object class="spacer"/>
-                    <object class="sizeritem">
-                      <object class="wxRadioButton" name="MLOrd">
-                        <label>Ord</label>
-                        <XRCED>
-                          <events>EVT_RADIOBUTTON</events>
-                          <assign_var>1</assign_var>
-                        </XRCED>
-                      </object>
-                    </object>
-                    <object class="sizeritem">
-                      <object class="wxRadioButton" name="MLFuture">
-                        <label>future</label>
-                        <tooltip>A placeholder for future developments.</tooltip>
-                        <enabled>0</enabled>
-                        <hidden>1</hidden>
-                        <XRCED>
-                          <events>EVT_RADIOBUTTON</events>
-                          <assign_var>1</assign_var>
-                        </XRCED>
-                      </object>
-                    </object>
+                    
+                    <object class="spacer"/>
+                    
+                    
                     <object class="sizeritem">
                       <object class="wxStaticText" name="ToleranceCriterionLabel">
                         <label>Tolerance Criterion</label>
