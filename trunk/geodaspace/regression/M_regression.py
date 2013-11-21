@@ -5,7 +5,7 @@ import copy
 from geodaspace import abstractmodel
 import pysal
 import numpy as np
-from econometrics.gs_dispatcher import spmodel
+from econometrics.gs_dispatcher import Spmodel
 from geodaspace.preferences.model import preferencesModel
 from geodaspace.weights.model import GeoDaSpace_W_Obj
 
@@ -398,7 +398,7 @@ class guiRegModel(abstractmodel.AbstractModel):
 
         print w_list, wk_list
         fname = os.path.basename(data['fname'])
-        results = spmodel(
+        results = Spmodel(
             name_ds=fname,
             w_list=w_list,
             wk_list=wk_list,
@@ -442,7 +442,7 @@ class guiRegModel(abstractmodel.AbstractModel):
             regime_lag_sep=config['regimes_regime_lag'],
             cores=config['other_numcores'],
             method=method
-        )
+        ).output
         print results
         for r in results:
             path.write(r.summary)
