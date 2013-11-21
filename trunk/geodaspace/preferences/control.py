@@ -16,7 +16,9 @@ import preferences_xrc
 from tooltips import tips
 
 from econometrics.gs_dispatcher import INV_METHODS
+from econometrics.gs_dispatcher import ML_METHODS
 # INV_METHODS = ('Power exp','True inv',)
+# ML_METHODS = ('Full','Ord',)
 
 STD_DEV_PAGE = 0
 GMM_PAGE = 1
@@ -66,6 +68,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         remapEvtsToDispatcher(self, self.evtDispatch)
         preferences_xrc.xrcgsPrefsDialog.__init__(self, parent)
         self.CompInverse.SetItems(list(INV_METHODS))
+        self.MLMethod.SetItems(list(ML_METHODS))
         self.numcores.SetItems(map(str, CPU_OPTIONS))
         self.SetEscapeId(self.cancelButton.GetId())
         self.SetAffirmativeId(self.saveButton.GetId())
@@ -131,8 +134,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         d['ml_epsilon'] = self.ml_epsilon
         d['MLToleranceCriterion'] = self.ml_epsilon
         d['ml_method'] = self.ml_method
-        d['MLFull'] = self.ml_method
-        d['MLOrd'] = self.ml_method
+        d['MLMethod'] = self.ml_method
 
         self.model = preferencesModel()
         self.reset_model()
@@ -448,11 +450,12 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
 
     def ml_method(self, evtName=None, evt=None, value=None):
         if evt:
-            self.model.ml_method = self.MLFull.GetValue()
+            self.model.ml_method = ML_METHODS[
+                self.MLMethod.GetSelection()]
         elif value is not None:
-            self.MLFull.SetValue(self.model.ml_method)
-        self.MLOrd.SetValue(not self.model.ml_method)
-        #self.MLfuture.SetValue(not self.model.ml_method) ?
+            self.MLMethod.SetSelection(
+                ML_METHODS.index(self.model.ml_method))
+
 
     def SetPrefs(self, prefs):
         for key in prefs:

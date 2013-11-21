@@ -59,9 +59,8 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.ML = xrc.XRCCTRL(self, "ML")
         self.MLdiagnosticsLabel = xrc.XRCCTRL(self, "MLdiagnosticsLabel")
         self.MLdiagnostics = xrc.XRCCTRL(self, "MLdiagnostics")
-        self.MLFull = xrc.XRCCTRL(self, "MLFull")
-        self.MLOrd = xrc.XRCCTRL(self, "MLOrd")
-        self.MLFuture = xrc.XRCCTRL(self, "MLFuture")
+        self.MLMethodLabel = xrc.XRCCTRL(self, "MLMethodLabel")
+        self.MLMethod = xrc.XRCCTRL(self, "MLMethod")
         self.ToleranceCriterionLabel = xrc.XRCCTRL(self, "ToleranceCriterionLabel")
         self.MLToleranceCriterion = xrc.XRCCTRL(self, "MLToleranceCriterion")
         self.instruments = xrc.XRCCTRL(self, "instruments")
@@ -109,9 +108,7 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.Bind(wx.EVT_CHOICE, self.OnChoice_CompInverse, self.CompInverse)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_Step1c, self.Step1c)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_MLdiagnostics, self.MLdiagnostics)
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_MLFull, self.MLFull)
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_MLOrd, self.MLOrd)
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadiobutton_MLFuture, self.MLFuture)
+        self.Bind(wx.EVT_CHOICE, self.OnChoice_MLMethod, self.MLMethod)
         self.Bind(wx.EVT_TEXT, self.OnText_MLToleranceCriterion, self.MLToleranceCriterion)
         self.Bind(wx.EVT_SPINCTRL, self.OnSpinctrl_NumSpatialLags, self.NumSpatialLags)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_IncludeLagsofUserInst, self.IncludeLagsofUserInst)
@@ -203,23 +200,11 @@ class xrcgsPrefsDialog(wx.Dialog):
         print "OnCheckbox_MLdiagnostics()"
 #!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_MLdiagnostics        
 
-#!XRCED:begin-block:xrcgsPrefsDialog.OnRadiobutton_MLFull
-    def OnRadiobutton_MLFull(self, evt):
+#!XRCED:begin-block:xrcgsPrefsDialog.OnChoice_MLMethod
+    def OnChoice_MLMethod(self, evt):
         # Replace with event handler code
-        print "OnRadiobutton_MLFull()"
-#!XRCED:end-block:xrcgsPrefsDialog.OnRadiobutton_MLFull        
-
-#!XRCED:begin-block:xrcgsPrefsDialog.OnRadiobutton_MLOrd
-    def OnRadiobutton_MLOrd(self, evt):
-        # Replace with event handler code
-        print "OnRadiobutton_MLOrd()"
-#!XRCED:end-block:xrcgsPrefsDialog.OnRadiobutton_MLOrd        
-
-#!XRCED:begin-block:xrcgsPrefsDialog.OnRadiobutton_MLFuture
-    def OnRadiobutton_MLFuture(self, evt):
-        # Replace with event handler code
-        print "OnRadiobutton_MLFuture()"
-#!XRCED:end-block:xrcgsPrefsDialog.OnRadiobutton_MLFuture        
+        print "OnChoice_MLMethod()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnChoice_MLMethod        
 
 #!XRCED:begin-block:xrcgsPrefsDialog.OnText_MLToleranceCriterion
     def OnText_MLToleranceCriterion(self, evt):
@@ -700,6 +685,9 @@ def __init_resources():
                       </object>
                       <flag>wxALIGN_CENTRE</flag>
                     </object>
+                    
+                    
+                    
                     <object class="sizeritem">
                       <object class="wxStaticText" name="ML Methods">
                         <label>Methods</label>
@@ -712,38 +700,33 @@ def __init_resources():
                     </object>
                     <object class="spacer"/>
                     <object class="sizeritem">
-                      <object class="wxRadioButton" name="MLFull">
-                        <label>Full</label>
-                        <value>1</value>
-                        <style>wxRB_GROUP</style>
+                      <object class="wxStaticText" name="MLMethodLabel">
+                        <label>ML Method</label>
                         <XRCED>
-                          <events>EVT_RADIOBUTTON</events>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
+                      <flag>wxLEFT</flag>
+                      <border>10</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxChoice" name="MLMethod">
+                        <content>
+                          <item>Full</item>
+                          <item>Ord</item>
+                        </content>
+                        <XRCED>
+                          <events>EVT_CHOICE</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALIGN_CENTRE</flag>
                     </object>
                     <object class="spacer"/>
-                    <object class="sizeritem">
-                      <object class="wxRadioButton" name="MLOrd">
-                        <label>Ord</label>
-                        <XRCED>
-                          <events>EVT_RADIOBUTTON</events>
-                          <assign_var>1</assign_var>
-                        </XRCED>
-                      </object>
-                    </object>
-                    <object class="sizeritem">
-                      <object class="wxRadioButton" name="MLFuture">
-                        <label>future</label>
-                        <tooltip>A placeholder for future developments.</tooltip>
-                        <enabled>0</enabled>
-                        <hidden>1</hidden>
-                        <XRCED>
-                          <events>EVT_RADIOBUTTON</events>
-                          <assign_var>1</assign_var>
-                        </XRCED>
-                      </object>
-                    </object>
+                    
+                    <object class="spacer"/>
+                    
+                    
                     <object class="sizeritem">
                       <object class="wxStaticText" name="ToleranceCriterionLabel">
                         <label>Tolerance Criterion</label>
