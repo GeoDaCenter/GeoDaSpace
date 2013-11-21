@@ -608,7 +608,7 @@ def condition_index(reg):
 
     Print the result.
 
-    >>> print("%12.3f"%testresult)
+    >>> print("%1.3f"%testresult)
     6.542
 
     """
@@ -692,12 +692,12 @@ def jarque_bera(reg):
 
     Print the test statistic. 
 
-    >>> print("%12.3f"%testresult['jb'])
+    >>> print("%1.3f"%testresult['jb'])
     1.836
 
     Print the associated p-value.
 
-    >>> print("%12.4f"%testresult['pvalue'])
+    >>> print("%1.4f"%testresult['pvalue'])
     0.3994
 
     """
@@ -799,12 +799,12 @@ def breusch_pagan(reg, z=None):
 
     Print the test statistic.
 
-    >>> print("%12.3f"%testresult['bp'])
-    7.9
+    >>> print("%1.3f"%testresult['bp'])
+    7.900
 
     Print the associated p-value. 
 
-    >>> print("%12.4f"%testresult['pvalue'])
+    >>> print("%1.4f"%testresult['pvalue'])
     0.0193
 
     """
@@ -949,12 +949,12 @@ def white(reg):
 
     Print the test statistic.
 
-    >>> print("%12.3f"%testresult['wh'])
+    >>> print("%1.3f"%testresult['wh'])
     19.946
 
     Print the associated p-value. 
 
-    >>> print("%12.4f"%testresult['pvalue'])
+    >>> print("%1.4f"%testresult['pvalue'])
     0.0013
 
     """
@@ -1119,13 +1119,13 @@ def koenker_bassett(reg, z=None):
 
     Print the test statistic.
 
-    >>> print("%12.3f"%testresult['kb'])
+    >>> print("%1.3f"%testresult['kb'])
     5.694
 
     Print the associated p-value. 
 
-    >>> print("%12.4f"%testresult['pvalue'])
-    0.058
+    >>> print("%1.4f"%testresult['pvalue'])
+    0.0580
 
     """
     # The notation here matches that of Greene (2003).
