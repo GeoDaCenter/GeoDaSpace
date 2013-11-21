@@ -37,7 +37,11 @@ class AbstractModel(object):
     def next(self):
         tags = self.TAGS + [k for k in self._modelData if k not in self.TAGS]
         for key in tags:
-            yield key, self.__getattribute__(key)
+            try:
+                yield key, self.__getattribute__(key)
+            except AttributeError as e:
+                print(e, "Warning: preference no longer exists.")
+                pass
 
     def getByTag(self, tag):
         return self.__getattribute__(tag)
