@@ -1573,7 +1573,7 @@ def get_ML_Lag(gui):
     output = []
     counter = 1
     for w in gui.w_list:
-        reg = ML_Lag(y=gui.y, x=gui.x, w=w, method=gui.ml_method, epsilon=gui.epsilon,
+        reg = ML_Lag(y=gui.y, x=gui.x, w=w, method=gui.ml_method, epsilon=gui.ml_epsilon,
               spat_diag=gui.ml_diag, vm=gui.vc_matrix, name_y=gui.name_y,
               name_x=gui.name_x, name_ds=gui.name_ds, name_w=w.name)
         run_predy_resid(gui, reg, 'ml_', True, counter)
@@ -1585,7 +1585,7 @@ def get_ML_Error(gui):
     output = []
     counter = 1
     for w in gui.w_list:
-        reg = ML_Error(y=gui.y, x=gui.x, w=w, method=gui.ml_method, epsilon=gui.epsilon,
+        reg = ML_Error(y=gui.y, x=gui.x, w=w, method=gui.ml_method, epsilon=gui.ml_epsilon,
               spat_diag=gui.ml_diag, vm=gui.vc_matrix, name_y=gui.name_y,
               name_x=gui.name_x, name_ds=gui.name_ds, name_w=w.name)
         run_predy_resid(gui, reg, 'ml_', False, counter)
