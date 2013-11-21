@@ -498,7 +498,7 @@ class Spmodel:
         vc_matrix, predy_resid,
         ols_diag, moran, white_test,
         regime_err_sep, regime_lag_sep, cores, method, 
-        ml_epsilon=0.00001,ml_method='full',ml_diag=False,ids=None): #remove default values from ml args.
+        ml_epsilon,ml_method='full',ml_diag=False,ids=None): #remove default values from ml args.
 
         self.name_ds = name_ds
         self.w_list = w_list
