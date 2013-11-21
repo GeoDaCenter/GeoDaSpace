@@ -441,6 +441,9 @@ class guiRegModel(abstractmodel.AbstractModel):
             regime_err_sep=config['regimes_regime_error'],
             regime_lag_sep=config['regimes_regime_lag'],
             cores=config['other_numcores'],
+            ml_epsilon=config['ml_epsilon'],
+            ml_method=config['ml_method'],
+            ml_diag=config['ml_diagnostics'],
             method=method
         ).output
         print results
