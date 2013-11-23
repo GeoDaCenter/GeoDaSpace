@@ -75,51 +75,58 @@ class BaseML_Lag(RegressionPropsY,RegressionPropsVM):
                    predicted values from reduced form
     e_pred       : array
                    prediction errors using reduced form predicted values
-
-
+                   
+                   
     Examples
     ________
     
     >>> import numpy as np
     >>> import pysal as ps
-    >>> db = ps.open(ps.examples.get_path("NAT.dbf"),'r')
-    >>> y_name = "HR90"
-    >>> y = np.array(db.by_col(y_name))
+    >>> db =  ps.open(ps.examples.get_path("baltim.dbf"),'r')
+    >>> ds_name = "baltim.dbf"
+    >>> y_name = "PRICE"
+    >>> y = np.array(db.by_col(y_name)).T
     >>> y.shape = (len(y),1)
-    >>> x_names = ["RD90","PS90","UE90","DV90","MA90"]
+    >>> x_names = ["NROOM","NBATH","PATIO","FIREPL","AC","GAR","AGE","LOTSZ","SQFT"]
     >>> x = np.array([db.by_col(var) for var in x_names]).T
     >>> x = np.hstack((np.ones((len(y),1)),x))
-    >>> ww = ps.open(ps.examples.get_path("nat_queen.gal"))
+    >>> ww = ps.open(ps.examples.get_path("baltim_q.gal"))
     >>> w = ww.read()
     >>> ww.close()
     >>> w.transform = 'r'
+    >>> w_name = "baltim_q.gal"
     >>> mllag = BaseML_Lag(y,x,w)
-    >>> mllag.rho
-    0.2594768384189946
+    >>> "{0:.6f}".format(mllag.rho)
+    '0.425885'
     >>> mllag.betas
-    array([[ 4.72089573],
-           [ 3.78620266],
-           [ 1.33082082],
-           [-0.30710289],
-           [ 0.54401778],
-           [-0.05818301],
-           [ 0.25947684]])
-    >>> mllag.mean_y
-    6.1828596097520139
-    >>> mllag.std_y
-    6.6414072574382219
+    array([[ 4.36748209],
+           [ 0.75021751],
+           [ 5.61164021],
+           [ 7.04965543],
+           [ 7.72458035],
+           [ 6.12309367],
+           [ 4.63746781],
+           [-0.11073844],
+           [ 0.06789793],
+           [ 0.07935403],
+           [ 0.42588451]])
+    >>> "{0:.6f}".format(mllag.mean_y)
+    '44.307180'
+    >>> "{0:.6f}".format(mllag.std_y)
+    '23.606077'
     >>> np.diag(mllag.vm1)
-    array([ 1.03187549,  0.0185945 ,  0.00960746,  0.00154471,  0.00291311,
-            0.00072912,  0.00047592,  0.38173541])
+    array([  23.87164958,    1.12216517,    3.05930338,    7.34155519,
+              5.66953642,    5.46976543,    2.86841645,    0.00258505,
+              0.00021333,    0.02659621,    0.0032439 ,  220.12921049])
     >>> np.diag(mllag.vm)
-    array([ 1.03187549,  0.0185945 ,  0.00960746,  0.00154471,  0.00291311,
-            0.00072912,  0.00047592])
-    >>> mllag.sig2
-    24.17790734618789
-    >>> mllag.logll
-    -9310.066561028063
+    array([ 23.87164958,   1.12216517,   3.05930338,   7.34155519,
+             5.66953642,   5.46976543,   2.86841645,   0.00258505,
+             0.00021333,   0.02659621,   0.0032439 ])
+    >>> "{0:.6f}".format(mllag.sig2)
+    '151.458698'
+    >>> "{0:.6f}".format(mllag.logll)
+    '-832.937174'
     
-
     References
     ----------
 
@@ -310,67 +317,74 @@ class ML_Lag(BaseML_Lag):
     
     >>> import numpy as np
     >>> import pysal as ps
-    >>> db = ps.open(ps.examples.get_path("NAT.dbf"),'r')
-    >>> ds_name = "NAT.DBF"
-    >>> y_name = "HR90"
-    >>> y = np.array(db.by_col(y_name))
+    >>> db =  ps.open(ps.examples.get_path("baltim.dbf"),'r')
+    >>> ds_name = "baltim.dbf"
+    >>> y_name = "PRICE"
+    >>> y = np.array(db.by_col(y_name)).T
     >>> y.shape = (len(y),1)
-    >>> x_names = ["RD90","PS90","UE90","DV90","MA90"]
+    >>> x_names = ["NROOM","NBATH","PATIO","FIREPL","AC","GAR","AGE","LOTSZ","SQFT"]
     >>> x = np.array([db.by_col(var) for var in x_names]).T
-    >>> ww = ps.open(ps.examples.get_path("nat_queen.gal"))
+    >>> ww = ps.open(ps.examples.get_path("baltim_q.gal"))
     >>> w = ww.read()
     >>> ww.close()
-    >>> w_name = "nat_queen.gal"
+    >>> w_name = "baltim_q.gal"
     >>> w.transform = 'r'    
     >>> mllag = ML_Lag(y,x,w,name_y=y_name,name_x=x_names,\
                name_w=w_name,name_ds=ds_name)
     >>> mllag.betas
-    array([[ 4.72089573],
-           [ 3.78620266],
-           [ 1.33082082],
-           [-0.30710289],
-           [ 0.54401778],
-           [-0.05818301],
-           [ 0.25947684]])
-    >>> mllag.rho
-    0.25947683843934927
-    >>> mllag.mean_y
-    6.1828596097520139
-    >>> mllag.std_y
-    6.6414072574382219
+    array([[ 4.36748208],
+           [ 0.75021751],
+           [ 5.61164021],
+           [ 7.04965543],
+           [ 7.72458035],
+           [ 6.12309367],
+           [ 4.63746781],
+           [-0.11073844],
+           [ 0.06789793],
+           [ 0.07935403],
+           [ 0.42588451]])
+    >>> "{0:.6f}".format(mllag.rho)
+    '0.425885'
+    >>> "{0:.6f}".format(mllag.mean_y)
+    '44.307180'
+    >>> "{0:.6f}".format(mllag.std_y)
+    '23.606077'
     >>> np.diag(mllag.vm1)
-    array([ 1.03187549,  0.0185945 ,  0.00960746,  0.00154471,  0.00291311,
-            0.00072912,  0.00047592,  0.38173541])
+    array([  23.87164958,    1.12216517,    3.05930338,    7.34155519,
+              5.66953642,    5.46976543,    2.86841645,    0.00258505,
+              0.00021333,    0.02659621,    0.0032439 ,  220.12921049])
     >>> np.diag(mllag.vm)
-    array([ 1.03187549,  0.0185945 ,  0.00960746,  0.00154471,  0.00291311,
-            0.00072912,  0.00047592])
-    >>> mllag.sig2
-    24.177907346138792
-    >>> mllag.logll
-    -9310.066561028063
-    >>> mllag.aic
-    18634.133122056126
-    >>> mllag.schwarz
-    18676.373270610504
-    >>> mllag.pr2
-    0.4517881496602787
-    >>> mllag.pr2_e
-    0.4240924753162001
-    >>> mllag.utu
-    74588.84416283817
+    array([ 23.87164958,   1.12216517,   3.05930338,   7.34155519,
+             5.66953642,   5.46976543,   2.86841645,   0.00258505,
+             0.00021333,   0.02659621,   0.0032439 ])
+    >>> "{0:.6f}".format(mllag.sig2)
+    '151.458698'
+    >>> "{0:.6f}".format(mllag.logll)
+    '-832.937174'
+    >>> "{0:.6f}".format(mllag.aic)
+    '1687.874348'
+    >>> "{0:.6f}".format(mllag.schwarz)
+    '1724.744787'
+    >>> "{0:.6f}".format(mllag.pr2)
+    '0.727081'
+    >>> "{0:.6f}".format(mllag.pr2_e)
+    '0.706198'
+    >>> "{0:.6f}".format(mllag.utu)
+    '31957.785345'
     >>> mllag.std_err
-    array([ 1.01581272,  0.13636164,  0.09801765,  0.03930277,  0.05397326,
-            0.02700222,  0.02181564])
+    array([ 4.88586221,  1.05932298,  1.74908644,  2.70953044,  2.38107884,
+            2.33875297,  1.69364   ,  0.05084342,  0.01460569,  0.16308345,
+            0.05695527])
     >>> mllag.z_stat
-    [(4.6474075615389188, 3.3613263917255613e-06), (27.765892761446498, 1.1202900497091704e-169), (13.577359336226991, 5.4558186395136194e-42), (-7.8137720571406506, 5.550142861593825e-15), (10.079394113838038, 6.8145021229412587e-24), (-2.1547494553901481, 0.031181445463092729), (11.894075700594495, 1.270518244305543e-32)]
+    [(0.89390201615523512, 0.37137431896163586), (0.70820469757581495, 0.47881814938957667), (3.2083264024394027, 0.0013350988198983671), (2.6017996804830945, 0.0092736002685895099), (3.2441514459565561, 0.0011780109434751905), (2.6181019379550383, 0.0088420386668909643), (2.7381662070921924, 0.0061782842812455737), (-2.1780287227448394, 0.029403898423607633), (4.6487325619022561, 3.3398091232666756e-06), (0.48658540505105097, 0.62655216850545958), (7.4775260351363597, 7.573476741490055e-14)]
     >>> mllag.name_y
-    'HR90'
+    'PRICE'
     >>> mllag.name_x
-    ['CONSTANT', 'RD90', 'PS90', 'UE90', 'DV90', 'MA90', 'W_HR90']
+    ['CONSTANT', 'NROOM', 'NBATH', 'PATIO', 'FIREPL', 'AC', 'GAR', 'AGE', 'LOTSZ', 'SQFT', 'W_PRICE']
     >>> mllag.name_w
-    'nat_queen.gal'
+    'baltim_q.gal'
     >>> mllag.name_ds
-    'NAT.DBF'
+    'baltim.dbf'
     >>> mllag.title
     'MAXIMUM LIKELIHOOD SPATIAL LAG (METHOD = FULL)'
     
@@ -425,6 +439,7 @@ if __name__ == "__main__":
        
     import numpy as np
     import pysal as ps
+    """
     db = ps.open(ps.examples.get_path("NAT.dbf"),'r')
     ds_name = "NAT.DBF"
     y_name = "HR90"
@@ -436,6 +451,19 @@ if __name__ == "__main__":
     w = ww.read()
     ww.close()
     w_name = "nat_queen.gal"
+    """
+    db =  ps.open(ps.examples.get_path("baltim.dbf"),'r')
+    ds_name = "baltim.dbf"
+    y_name = "PRICE"
+    y = np.array(db.by_col(y_name)).T
+    y.shape = (len(y),1)
+    x_names = ["NROOM","NBATH","PATIO","FIREPL","AC","GAR","AGE","LOTSZ","SQFT"]
+    x = np.array([db.by_col(var) for var in x_names]).T
+    ww = ps.open(ps.examples.get_path("baltim_q.gal"))
+    w = ww.read()
+    ww.close()
+    w_name = "baltim_q.gal"
+    
     w.transform = 'r'
     mllag = ML_Lag(y,x,w,name_y=y_name,name_x=x_names,\
                name_w=w_name,name_ds=ds_name)
