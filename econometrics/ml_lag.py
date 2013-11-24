@@ -95,7 +95,38 @@ class BaseML_Lag(RegressionPropsY,RegressionPropsVM):
     >>> ww.close()
     >>> w.transform = 'r'
     >>> w_name = "baltim_q.gal"
-    >>> mllag = BaseML_Lag(y,x,w)
+    >>> mllag = BaseML_Lag(y,x,w,method='ord')
+    >>> "{0:.6f}".format(mllag.rho)
+    '0.425885'
+    >>> mllag.betas
+    array([[ 4.36748209],
+           [ 0.75021751],
+           [ 5.61164021],
+           [ 7.04965543],
+           [ 7.72458035],
+           [ 6.12309367],
+           [ 4.63746781],
+           [-0.11073844],
+           [ 0.06789793],
+           [ 0.07935403],
+           [ 0.42588451]])
+    >>> "{0:.6f}".format(mllag.mean_y)
+    '44.307180'
+    >>> "{0:.6f}".format(mllag.std_y)
+    '23.606077'
+    >>> np.diag(mllag.vm1)
+    array([  23.87164958,    1.12216517,    3.05930338,    7.34155519,
+              5.66953642,    5.46976543,    2.86841645,    0.00258505,
+              0.00021333,    0.02659621,    0.0032439 ,  220.12921049])
+    >>> np.diag(mllag.vm)
+    array([ 23.87164958,   1.12216517,   3.05930338,   7.34155519,
+             5.66953642,   5.46976543,   2.86841645,   0.00258505,
+             0.00021333,   0.02659621,   0.0032439 ])
+    >>> "{0:.6f}".format(mllag.sig2)
+    '151.458698'
+    >>> "{0:.6f}".format(mllag.logll)
+    '-832.937174'
+     >>> mllag = BaseML_Lag(y,x,w)
     >>> "{0:.6f}".format(mllag.rho)
     '0.425885'
     >>> mllag.betas
@@ -127,6 +158,7 @@ class BaseML_Lag(RegressionPropsY,RegressionPropsVM):
     >>> "{0:.6f}".format(mllag.logll)
     '-832.937174'
     
+       
     References
     ----------
 
@@ -152,13 +184,22 @@ class BaseML_Lag(RegressionPropsY,RegressionPropsVM):
         b1 = np.dot(xtxi,xtyl)
         e0 = self.y - np.dot(x,b0)
         e1 = ylag - np.dot(x,b1)
-        
+        methodML = method.upper()
         # call minimizer using concentrated log-likelihood to get rho
-        if method.upper() == 'FULL':
-            res = minimize_scalar(lag_c_loglik,0.0,bounds=(-1.0,1.0),
+        if methodML in ['FULL','ORD']:
+            if methodML == 'FULL':
+                res = minimize_scalar(lag_c_loglik,0.0,bounds=(-1.0,1.0),
                               args=(self.n,e0,e1,W),method='bounded',
                               tol=epsilon)
- 
+            elif methodML == 'ORD':
+                evals = la.eigvals(W)
+                res = minimize_scalar(lag_c_loglik_ord,0.0,bounds=(-1.0,1.0),
+                              args=(self.n,e0,e1,evals),method='bounded',
+                              tol=epsilon)
+        else:
+            print "{0} is an unsupported method".format(methodML)  # program will crash, need to catch
+            self = None
+            return
 
         self.rho = res.x[0][0]
     
@@ -387,7 +428,66 @@ class ML_Lag(BaseML_Lag):
     'baltim.dbf'
     >>> mllag.title
     'MAXIMUM LIKELIHOOD SPATIAL LAG (METHOD = FULL)'
+    >>> mllag = ML_Lag(y,x,w,method='ord',name_y=y_name,name_x=x_names,\
+               name_w=w_name,name_ds=ds_name)
+    >>> mllag.betas
+    array([[ 4.36748209],
+           [ 0.75021751],
+           [ 5.61164021],
+           [ 7.04965543],
+           [ 7.72458035],
+           [ 6.12309367],
+           [ 4.63746781],
+           [-0.11073844],
+           [ 0.06789793],
+           [ 0.07935403],
+           [ 0.42588451]])
+    >>> "{0:.6f}".format(mllag.rho)
+    '0.425885'
+    >>> "{0:.6f}".format(mllag.mean_y)
+    '44.307180'
+    >>> "{0:.6f}".format(mllag.std_y)
+    '23.606077'
+    >>> np.diag(mllag.vm1)
+    array([  23.87164958,    1.12216517,    3.05930338,    7.34155519,
+              5.66953642,    5.46976543,    2.86841645,    0.00258505,
+              0.00021333,    0.02659621,    0.0032439 ,  220.12921049])
+    >>> np.diag(mllag.vm)
+    array([ 23.87164958,   1.12216517,   3.05930338,   7.34155519,
+             5.66953642,   5.46976543,   2.86841645,   0.00258505,
+             0.00021333,   0.02659621,   0.0032439 ])
+    >>> "{0:.6f}".format(mllag.sig2)
+    '151.458698'
+    >>> "{0:.6f}".format(mllag.logll)
+    '-832.937174'
+    >>> "{0:.6f}".format(mllag.aic)
+    '1687.874348'
+    >>> "{0:.6f}".format(mllag.schwarz)
+    '1724.744787'
+    >>> "{0:.6f}".format(mllag.pr2)
+    '0.727081'
+    >>> "{0:.6f}".format(mllag.pr2_e)
+    '0.706198'
+    >>> "{0:.6f}".format(mllag.utu)
+    '31957.785346'
+    >>> mllag.std_err
+    array([ 4.88586221,  1.05932298,  1.74908644,  2.70953044,  2.38107884,
+            2.33875297,  1.69364   ,  0.05084342,  0.01460569,  0.16308345,
+            0.05695527])
+    >>> mllag.z_stat
+    [(0.89390201672363734, 0.37137431865749004), (0.7082046974962386, 0.47881814943898637), (3.2083264024253926, 0.0013350988199634112), (2.6017996806499499, 0.0092736002640778862), (3.244151446156208, 0.0011780109426494522), (2.6181019380516624, 0.0088420386643871668), (2.7381662071436508, 0.0061782842802788028), (-2.1780287230318915, 0.029403898402238067), (4.6487325621497737, 3.3398091192594897e-06), (0.4865854051484923, 0.62655216843639261), (7.4775260336346125, 7.5734768280062278e-14)]
+    >>> mllag.name_y
+    'PRICE'
+    >>> mllag.name_x
+    ['CONSTANT', 'NROOM', 'NBATH', 'PATIO', 'FIREPL', 'AC', 'GAR', 'AGE', 'LOTSZ', 'SQFT', 'W_PRICE']
+    >>> mllag.name_w
+    'baltim_q.gal'
+    >>> mllag.name_ds
+    'baltim.dbf'
+    >>> mllag.title
+    'MAXIMUM LIKELIHOOD SPATIAL LAG (METHOD = ORD)'
     
+       
     References
     ----------
 
@@ -402,18 +502,22 @@ class ML_Lag(BaseML_Lag):
         USER.check_y(y, n)
         USER.check_weights(w, y, w_required=True)        
         x_constant = USER.check_constant(x)
-        BaseML_Lag.__init__(self,y=y,x=x_constant,w=w,method=method,epsilon=epsilon)
-        self.k += 1  # increase by 1 to have correct aic and sc, include rho in count
-        self.title = "MAXIMUM LIKELIHOOD SPATIAL LAG" + " (METHOD = " + method.upper() + ")"
-        self.name_ds = USER.set_name_ds(name_ds)
-        self.name_y = USER.set_name_y(name_y)
-        self.name_x = USER.set_name_x(name_x, x)
-        name_ylag = USER.set_name_yend_sp(self.name_y)
-        self.name_x.append(name_ylag)  #rho changed to last position
-        self.name_w = USER.set_name_w(name_w, w)
-        self.aic = DIAG.akaike(reg=self)
-        self.schwarz = DIAG.schwarz(reg=self)
-        SUMMARY.ML_Lag(reg=self,w=w,vm=vm,spat_diag=spat_diag)
+        method = method.upper()
+        if method in ['FULL','ORD']:
+            BaseML_Lag.__init__(self,y=y,x=x_constant,w=w,method=method,epsilon=epsilon)
+            self.k += 1  # increase by 1 to have correct aic and sc, include rho in count
+            self.title = "MAXIMUM LIKELIHOOD SPATIAL LAG" + " (METHOD = " + method + ")"
+            self.name_ds = USER.set_name_ds(name_ds)
+            self.name_y = USER.set_name_y(name_y)
+            self.name_x = USER.set_name_x(name_x, x)
+            name_ylag = USER.set_name_yend_sp(self.name_y)
+            self.name_x.append(name_ylag)  #rho changed to last position
+            self.name_w = USER.set_name_w(name_w, w)
+            self.aic = DIAG.akaike(reg=self)
+            self.schwarz = DIAG.schwarz(reg=self)
+            SUMMARY.ML_Lag(reg=self,w=w,vm=vm,spat_diag=spat_diag)
+        else:
+            raise Exception,"{0} is an unsupported method".format(method)
 
 
 def lag_c_loglik(rho,n,e0,e1,W):
@@ -426,6 +530,19 @@ def lag_c_loglik(rho,n,e0,e1,W):
     jacob = np.log(np.linalg.det(a))
     clik = nlsig2 - jacob  # this is the negative of the concentrated log lik for minimization
     return clik
+
+def lag_c_loglik_ord(rho,n,e0,e1,evals):
+    #concentrated log-lik for lag model, no constants, Ord eigenvalue method
+    er = e0 - rho*e1
+    sig2 = np.dot(er.T,er)/n
+    nlsig2 = (n/2.0)*np.log(sig2)
+    revals = rho * evals
+    jacob = np.log(1-revals).sum()
+    if isinstance(jacob,complex):
+        jacob = jacob.real
+    clik = nlsig2 - jacob  # this is the negative of the concentrated log lik for minimization
+    return clik
+
 
 def _test():
     import doctest
@@ -465,8 +582,10 @@ if __name__ == "__main__":
     w_name = "baltim_q.gal"
     
     w.transform = 'r'
-    mllag = ML_Lag(y,x,w,name_y=y_name,name_x=x_names,\
+    mllag = ML_Lag(y,x,w,method='full',name_y=y_name,name_x=x_names,\
                name_w=w_name,name_ds=ds_name)
     print mllag.summary
-    
+    mllag1 = ML_Lag(y,x,w,method='ord',name_y=y_name,name_x=x_names,\
+               name_w=w_name,name_ds=ds_name)
+    print mllag1.summary   
     
