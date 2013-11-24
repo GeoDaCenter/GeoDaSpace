@@ -57,6 +57,7 @@ class BaseML_Lag(RegressionPropsY,RegressionPropsVM):
     method       : string
                    log Jacobian method
                    if 'full': brute force (full matrix computations)
+                   if 'ord' : Ord eigenvalue method
     epsilon      : float
                    tolerance criterion used in minimize_scalar function and inverse_product
     mean_y       : float
@@ -126,7 +127,7 @@ class BaseML_Lag(RegressionPropsY,RegressionPropsVM):
     '151.458698'
     >>> "{0:.6f}".format(mllag.logll)
     '-832.937174'
-     >>> mllag = BaseML_Lag(y,x,w)
+    >>> mllag = BaseML_Lag(y,x,w)
     >>> "{0:.6f}".format(mllag.rho)
     '0.425885'
     >>> mllag.betas
@@ -269,6 +270,7 @@ class ML_Lag(BaseML_Lag):
                    Spatial weights sparse matrix 
     method       : string
                    if 'full', brute force calculation (full matrix expressions)
+                   if 'ord', Ord eigenvalue method
     epsilon      : float
                    tolerance criterion in mimimize_scalar function and inverse_product
     spat_diag    : boolean

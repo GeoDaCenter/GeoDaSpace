@@ -59,6 +59,7 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM):
     method       : string
                    log Jacobian method
                    if 'full': brute force (full matrix computations)
+                   if 'ord' : Ord eigenvalue method
     epsilon      : float
                    tolerance criterion used in minimize_scalar function and inverse_product
     mean_y       : float
@@ -91,8 +92,8 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM):
     >>> ww.close()
     >>> w.transform = 'r'
     >>> mlerr = BaseML_Error(y,x,w)
-    >>> mlerr.lam
-    0.29907782498171109
+    >>> "{0:.6f}".format(mlerr.lam)
+    '0.299078'
     >>> mlerr.betas
     array([[ 6.14922483],
            [ 4.40242014],
@@ -100,18 +101,38 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM):
            [-0.37807312],
            [ 0.48578576],
            [ 0.29907782]])
-    >>> mlerr.mean_y
-    9.5492931620846928
-    >>> mlerr.std_y
-    7.0388508798387219
+    >>> "{0:.6f}".format(mlerr.mean_y)
+    '9.549293'
+    >>> "{0:.6f}".format(mlerr.std_y)
+    '7.038851'
     >>> np.diag(mlerr.vm)
     array([ 1.06476526,  0.05548248,  0.04544514,  0.00614425,  0.01481356,
             0.00143001])
-    >>> mlerr.sig2
-    array([[ 32.40685441]])
-    >>> mlerr.logll
-    -4471.4070668878976
-
+    >>> "{0:.6f}".format(mlerr.sig2[0][0])
+    '32.406854'
+    >>> "{0:.6f}".format(mlerr.logll)
+    '-4471.407067'
+    >>> mlerr1 = BaseML_Error(y,x,w,method='ord')
+    >>> "{0:.6f}".format(mlerr1.lam)
+    '0.299078'
+    >>> mlerr1.betas
+    array([[ 6.14922544],
+           [ 4.40242023],
+           [ 1.77837137],
+           [-0.37807319],
+           [ 0.48578573],
+           [ 0.2990777 ]])
+    >>> "{0:.6f}".format(mlerr1.mean_y)
+    '9.549293'
+    >>> "{0:.6f}".format(mlerr1.std_y)
+    '7.038851'
+    >>> np.diag(mlerr1.vm)
+    array([ 1.06476515,  0.05548247,  0.04544514,  0.00614425,  0.01481356,
+            0.00143001])
+    >>> "{0:.6f}".format(mlerr1.sig2[0][0])
+    '32.406855'
+    >>> "{0:.6f}".format(mlerr1.logll)
+    '-4471.407067'
 
     References
     ----------
@@ -134,10 +155,21 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM):
         
         # call minimizer using concentrated log-likelihood to get lambda
         
-        if method.upper() == 'FULL':
-            res = minimize_scalar(err_c_loglik,0.0,bounds=(-1.0,1.0),
+        methodML = method.upper()
+        if methodML in ['FULL','ORD']:
+            if methodML == 'FULL':
+                res = minimize_scalar(err_c_loglik,0.0,bounds=(-1.0,1.0),
                               args=(self.n,self.y,ylag,self.x,xlag,W),method='bounded',
                               tol=epsilon)
+            elif methodML == 'ORD':
+                evals = la.eigvals(W)
+                res = minimize_scalar(err_c_loglik_ord,0.0,bounds=(-1.0,1.0),
+                              args=(self.n,self.y,ylag,self.x,xlag,evals),method='bounded',
+                              tol=epsilon)
+        else:
+            print "{0} is an unsupported method".format(methodML)  # program will crash, need to catch
+            self = None
+            return
   
         self.lam = res.x
         
@@ -217,6 +249,7 @@ class ML_Error(BaseML_Error):
                    Spatial weights sparse matrix 
     method       : string
                    if 'full', brute force calculation (full matrix expressions)
+                   ir 'ord', Ord eigenvalue method
     epsilon      : float
                    tolerance criterion in mimimize_scalar function and inverse_product
     spat_diag    : boolean
@@ -370,17 +403,20 @@ class ML_Error(BaseML_Error):
         USER.check_y(y, n)
         USER.check_weights(w, y, w_required=True)        
         x_constant = USER.check_constant(x)
-        BaseML_Error.__init__(self,y=y,x=x_constant,w=w,method=method,epsilon=epsilon)
-        self.title = "MAXIMUM LIKELIHOOD SPATIAL ERROR" + " (METHOD = " + method.upper() + ")"
-        self.name_ds = USER.set_name_ds(name_ds)
-        self.name_y = USER.set_name_y(name_y)
-        self.name_x = USER.set_name_x(name_x, x)
-        self.name_x.append('lambda')
-        self.name_w = USER.set_name_w(name_w, w)
-        self.aic = DIAG.akaike(reg=self)
-        self.schwarz = DIAG.schwarz(reg=self)
-        SUMMARY.ML_Error(reg=self,w=w,vm=vm,spat_diag=spat_diag)
-
+        method = method.upper()
+        if method in ['FULL','ORD']:
+            BaseML_Error.__init__(self,y=y,x=x_constant,w=w,method=method,epsilon=epsilon)
+            self.title = "MAXIMUM LIKELIHOOD SPATIAL ERROR" + " (METHOD = " + method + ")"
+            self.name_ds = USER.set_name_ds(name_ds)
+            self.name_y = USER.set_name_y(name_y)
+            self.name_x = USER.set_name_x(name_x, x)
+            self.name_x.append('lambda')
+            self.name_w = USER.set_name_w(name_w, w)
+            self.aic = DIAG.akaike(reg=self)
+            self.schwarz = DIAG.schwarz(reg=self)
+            SUMMARY.ML_Error(reg=self,w=w,vm=vm,spat_diag=spat_diag)
+        else:
+            raise Exception,"{0} is an unsupported method".format(method)
 
 def err_c_loglik(lam,n,y,ylag,x,xlag,W):
     #concentrated log-lik for error model, no constants, brute force
@@ -401,6 +437,26 @@ def err_c_loglik(lam,n,y,ylag,x,xlag,W):
     clik = nlsig2 - jacob  # this is the negative of the concentrated log lik for minimization
     return clik
 
+def err_c_loglik_ord(lam,n,y,ylag,x,xlag,evals):
+    #concentrated log-lik for error model, no constants, brute force
+    ys = y - lam*ylag
+    xs = x - lam*xlag
+    ysys = np.dot(ys.T,ys)
+    xsxs = np.dot(xs.T,xs)
+    xsxsi = np.linalg.inv(xsxs)
+    xsys = np.dot(xs.T,ys)
+    x1 = np.dot(xsxsi,xsys)
+    x2 = np.dot(xsys.T,x1)
+    ee = ysys - x2
+    sig2 = ee[0][0]/n
+    nlsig2 = (n/2.0)*np.log(sig2)
+    revals = lam * evals
+    jacob = np.log(1-revals).sum()
+    if isinstance(jacob,complex):
+        jacob = jacob.real
+    clik = nlsig2 - jacob  # this is the negative of the concentrated log lik for minimization
+    return clik
+
 def _test():
     import doctest
     start_suppress = np.get_printoptions()['suppress']
@@ -410,7 +466,7 @@ def _test():
 
 if __name__ == "__main__":
     _test()
-       
+           
     import numpy as np
     import pysal as ps
     db = ps.open(ps.examples.get_path("south.dbf"),'r')
@@ -428,3 +484,7 @@ if __name__ == "__main__":
     mlerror = ML_Error(y,x,w,name_y=y_name,name_x=x_names,\
                name_w=w_name,name_ds=ds_name)
     print mlerror.summary
+    mlerror1 = ML_Error(y,x,w,method='ord',name_y=y_name,name_x=x_names,\
+               name_w=w_name,name_ds=ds_name)
+    print mlerror1.summary
+    
