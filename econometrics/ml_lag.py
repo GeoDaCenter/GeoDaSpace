@@ -12,6 +12,7 @@ from pysal.spreg.utils import RegressionPropsY,RegressionPropsVM,inverse_prod
 import econometrics.diagnostics as DIAG  # uses latest, needs to switch to pysal
 import econometrics.user_output as USER
 import econometrics.summary_output as SUMMARY
+from econometrics.w_utils import symmetrize
 
 __all__ = ["ML_Lag"]
 
@@ -193,7 +194,12 @@ class BaseML_Lag(RegressionPropsY,RegressionPropsVM):
                               args=(self.n,e0,e1,W),method='bounded',
                               tol=epsilon)
             elif methodML == 'ORD':
-                evals = la.eigvals(W)
+                if w.asymmetry(intrinsic=False) == []:  # check on symmetry structure
+                    ww = symmetrize(w)
+                    WW = ww.todense()
+                    evals = la.eigvalsh(WW)
+                else:
+                    evals = la.eigvals(W)
                 res = minimize_scalar(lag_c_loglik_ord,0.0,bounds=(-1.0,1.0),
                               args=(self.n,e0,e1,evals),method='bounded',
                               tol=epsilon)
@@ -433,7 +439,7 @@ class ML_Lag(BaseML_Lag):
     >>> mllag = ML_Lag(y,x,w,method='ord',name_y=y_name,name_x=x_names,\
                name_w=w_name,name_ds=ds_name)
     >>> mllag.betas
-    array([[ 4.36748209],
+    array([[ 4.36748208],
            [ 0.75021751],
            [ 5.61164021],
            [ 7.04965543],
@@ -471,13 +477,13 @@ class ML_Lag(BaseML_Lag):
     >>> "{0:.6f}".format(mllag.pr2_e)
     '0.706198'
     >>> "{0:.6f}".format(mllag.utu)
-    '31957.785346'
+    '31957.785345'
     >>> mllag.std_err
     array([ 4.88586221,  1.05932298,  1.74908644,  2.70953044,  2.38107884,
             2.33875297,  1.69364   ,  0.05084342,  0.01460569,  0.16308345,
             0.05695527])
     >>> mllag.z_stat
-    [(0.89390201672363734, 0.37137431865749004), (0.7082046974962386, 0.47881814943898637), (3.2083264024253926, 0.0013350988199634112), (2.6017996806499499, 0.0092736002640778862), (3.244151446156208, 0.0011780109426494522), (2.6181019380516624, 0.0088420386643871668), (2.7381662071436508, 0.0061782842802788028), (-2.1780287230318915, 0.029403898402238067), (4.6487325621497737, 3.3398091192594897e-06), (0.4865854051484923, 0.62655216843639261), (7.4775260336346125, 7.5734768280062278e-14)]
+    [(0.89390201615523512, 0.37137431896163586), (0.70820469757581495, 0.47881814938957667), (3.2083264024394027, 0.0013350988198983671), (2.6017996804830945, 0.0092736002685895099), (3.2441514459565561, 0.0011780109434751905), (2.6181019379550383, 0.0088420386668909643), (2.7381662070921924, 0.0061782842812455737), (-2.1780287227448394, 0.029403898423607633), (4.6487325619022561, 3.3398091232666756e-06), (0.48658540505105097, 0.62655216850545958), (7.4775260351363597, 7.573476741490055e-14)]
     >>> mllag.name_y
     'PRICE'
     >>> mllag.name_x
