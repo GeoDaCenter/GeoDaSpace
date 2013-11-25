@@ -11,7 +11,7 @@ from math import sqrt
 from utils import spmultiply, sphstack, spmin, spmax
 
 
-__all__ = [ "f_stat", "t_stat", "r2", "ar2", "se_betas", "log_likelihood", "akaike", "schwarz", "condition_index", "jarque_bera", "breusch_pagan", "white", "koenker_bassett", "vif" ]
+__all__ = [ "f_stat", "t_stat", "r2", "ar2", "se_betas", "log_likelihood", "akaike", "schwarz", "condition_index", "jarque_bera", "breusch_pagan", "white", "koenker_bassett", "vif", "likratiotest" ]
 
 
 
@@ -1349,6 +1349,82 @@ def constant_check(array):
             break
     return constant
         
+def likratiotest(reg0,reg1):
+    """
+    Likelihood ratio test statistic
+
+    Parameters
+    ----------
+    
+    reg0         : regression object for constrained model (H0)
+    reg1         : regression object for unconstrained model (H1)
+    
+    Returns
+    -------
+    
+    likratio     : dictionary
+                   contains the statistic (likr), the degrees of
+                   freedom (df) and the p-value (pvalue)
+    likr         : float
+                   likelihood ratio statistic
+    df           : integer
+                   degrees of freedom
+    p-value      : float
+                   p-value
+                   
+    References
+    ----------
+    .. [1] W. Greene. 2012. Econometric Analysis. Prentice Hall, Upper
+       Saddle River.
+       
+    Examples
+    --------
+
+    >>> import numpy as np
+    >>> import pysal as ps
+    >>> import scipy.stats as stats
+    >>> import econometrics.ml_lag as lag  # ADJUST before transfer to PySAL
+    
+    Use the baltim sample data set
+    
+    >>> db =  ps.open(ps.examples.get_path("baltim.dbf"),'r')
+    >>> y_name = "PRICE"
+    >>> y = np.array(db.by_col(y_name)).T
+    >>> y.shape = (len(y),1)
+    >>> x_names = ["NROOM","NBATH","PATIO","FIREPL","AC","GAR","AGE","LOTSZ","SQFT"]
+    >>> x = np.array([db.by_col(var) for var in x_names]).T
+    >>> ww = ps.open(ps.examples.get_path("baltim_q.gal"))
+    >>> w = ww.read()
+    >>> ww.close()
+    >>> w.transform = 'r'
+    
+    OLS regression
+    
+    >>> ols1 = ps.spreg.OLS(y,x)
+    
+    ML Lag regression
+    
+    >>> mllag1 = lag.ML_Lag(y,x,w)     # adjust call to psyal path
+    
+    >>> lr = likratiotest(ols1,mllag1)
+    
+    >>> print "Likelihood Ratio Test: {0:.4f}       df: {1}        p-value: {2:.4f}".format(lr["likr"],lr["df"],lr["p-value"])
+    Likelihood Ratio Test: 44.5721       df: 1        p-value: 0.0000
+  
+    """
+    
+    likratio = {}
+    
+    try:
+        likr = 2.0 * (reg1.logll - reg0.logll)
+    except AttributeError:
+        raise Exception,"Missing or improper log-likelihoods in regression objects"
+    if likr < 0.0:  # always enforces positive likelihood ratio
+        likr = -likr
+    pvalue=stats.chisqprob(likr,1)
+    likratio = {"likr":likr,"df":1,"p-value":pvalue}
+    return likratio
+
 
 def _test():
     import doctest
