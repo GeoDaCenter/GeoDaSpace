@@ -12,6 +12,7 @@ from pysal.spreg.utils import RegressionPropsY,RegressionPropsVM
 import econometrics.diagnostics as DIAG  # uses latest, needs to switch to pysal
 import econometrics.user_output as USER
 import econometrics.summary_output as SUMMARY
+from econometrics.w_utils import symmetrize
 
 __all__ = ["ML_Error"]
 
@@ -116,21 +117,21 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM):
     >>> "{0:.6f}".format(mlerr1.lam)
     '0.299078'
     >>> mlerr1.betas
-    array([[ 6.14922544],
-           [ 4.40242023],
-           [ 1.77837137],
-           [-0.37807319],
-           [ 0.48578573],
-           [ 0.2990777 ]])
+    array([[ 6.14922482],
+           [ 4.40242014],
+           [ 1.77837125],
+           [-0.37807312],
+           [ 0.48578576],
+           [ 0.29907783]])
     >>> "{0:.6f}".format(mlerr1.mean_y)
     '9.549293'
     >>> "{0:.6f}".format(mlerr1.std_y)
     '7.038851'
     >>> np.diag(mlerr1.vm)
-    array([ 1.06476515,  0.05548247,  0.04544514,  0.00614425,  0.01481356,
+    array([ 1.06476526,  0.05548248,  0.04544514,  0.00614425,  0.01481356,
             0.00143001])
     >>> "{0:.6f}".format(mlerr1.sig2[0][0])
-    '32.406855'
+    '32.406854'
     >>> "{0:.6f}".format(mlerr1.logll)
     '-4471.407067'
 
@@ -162,7 +163,12 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM):
                               args=(self.n,self.y,ylag,self.x,xlag,W),method='bounded',
                               tol=epsilon)
             elif methodML == 'ORD':
-                evals = la.eigvals(W)
+                if w.asymmetry(intrinsic=False) == []:  # check on symmetry structure
+                    ww = symmetrize(w)
+                    WW = ww.todense()
+                    evals = la.eigvalsh(WW)
+                else:
+                    evals = la.eigvals(W)
                 res = minimize_scalar(err_c_loglik_ord,0.0,bounds=(-1.0,1.0),
                               args=(self.n,self.y,ylag,self.x,xlag,evals),method='bounded',
                               tol=epsilon)
