@@ -9,6 +9,7 @@ import numpy.linalg as la
 import pysal as ps
 from scipy.optimize import minimize_scalar
 from pysal.spreg.utils import RegressionPropsY,RegressionPropsVM,inverse_prod
+from utils import spdot
 import econometrics.diagnostics as DIAG  # uses latest, needs to switch to pysal
 import econometrics.user_output as USER
 import econometrics.summary_output as SUMMARY
@@ -28,8 +29,8 @@ class BaseML_Lag(RegressionPropsY,RegressionPropsVM):
     x            : array
                    Two dimensional array with n rows and one column for each
                    independent (exogenous) variable, excluding the constant
-    w            : Sparse matrix
-                   Spatial weights sparse matrix 
+    w            : pysal W object
+                   Spatial weights object 
     method       : string
                    if 'full', brute force calculation (full matrix expressions)
     epsilon      : float
@@ -178,14 +179,14 @@ class BaseML_Lag(RegressionPropsY,RegressionPropsVM):
         W = w.full()[0]
         ylag = ps.lag_spatial(w,y)
         # b0, b1, e0 and e1
-        xtx = np.dot(self.x.T,self.x)
+        xtx = spdot(self.x.T,self.x)
         xtxi = la.inv(xtx)
-        xty = np.dot(self.x.T,self.y)
-        xtyl = np.dot(self.x.T,ylag)
+        xty = spdot(self.x.T,self.y)
+        xtyl = spdot(self.x.T,ylag)
         b0 = np.dot(xtxi,xty)
         b1 = np.dot(xtxi,xtyl)
-        e0 = self.y - np.dot(x,b0)
-        e1 = ylag - np.dot(x,b1)
+        e0 = self.y - spdot(x,b0)
+        e1 = ylag - spdot(x,b1)
         methodML = method.upper()
         # call minimizer using concentrated log-likelihood to get rho
         if methodML in ['FULL','ORD']:
@@ -222,7 +223,7 @@ class BaseML_Lag(RegressionPropsY,RegressionPropsVM):
         self.u = e0 - self.rho * e1
         self.predy = self.y - self.u
         
-        xb = np.dot(x,b)
+        xb = spdot(x,b)
         
         self.predy_e = inverse_prod(w.sparse,xb,self.rho,inv_method="power_exp",threshold=epsilon)
         self.e_pred = self.y - self.predy_e
@@ -246,7 +247,7 @@ class BaseML_Lag(RegressionPropsY,RegressionPropsVM):
 
         wpredy = ps.lag_spatial(w,self.predy_e)
         wpyTwpy = np.dot(wpredy.T,wpredy)
-        xTwpy = np.dot(x.T,wpredy)
+        xTwpy = spdot(x.T,wpredy)
         
         # order of variables is beta, rho, sigma2
         
@@ -272,8 +273,8 @@ class ML_Lag(BaseML_Lag):
     x            : array
                    Two dimensional array with n rows and one column for each
                    independent (exogenous) variable, excluding the constant
-    w            : Sparse matrix
-                   Spatial weights sparse matrix 
+    w            : pysal W object
+                   Spatial weights object 
     method       : string
                    if 'full', brute force calculation (full matrix expressions)
                    if 'ord', Ord eigenvalue method

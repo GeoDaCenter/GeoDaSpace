@@ -180,7 +180,7 @@ def GM_Lag_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False, w=False
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=spat_diag)
 
-def ML_Lag(reg,w,vm,spat_diag):  #extra space d
+def ML_Lag(reg,w,vm,spat_diag, regimes=False):  #extra space d
     reg.__summary = {}
     # compute diagnostics and organize summary output
     beta_diag_lag(reg, robust=None, error=False)
@@ -189,7 +189,31 @@ def ML_Lag(reg,w,vm,spat_diag):  #extra space d
     reg.__summary['summary_r2'] += "                                                 %-22s:%12.3f\n" % ('Schwarz criterion',reg.schwarz)
     # build coefficients table body
     summary_coefs_allx(reg, reg.z_stat)
+    if regimes:
+        summary_regimes(reg)
+    summary_warning(reg)
     summary(reg=reg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=spat_diag)
+
+def ML_Lag_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False, w=False):  #extra space d
+    for m in multireg:
+        mreg = multireg[m]
+        mreg.__summary = {}
+        # compute diagnostics and organize summary output
+        beta_diag_lag(mreg, robust=None, error=False)
+        mreg.__summary['summary_r2'] += "%-20s:%12.3f                %-22s:%12.3f\n" % ('Sigma-square ML',mreg.sig2,'Log likelihood',mreg.logll)
+        mreg.__summary['summary_r2'] += "%-20s:%12.3f                %-22s:%12.3f\n" % ('S.E of regression',np.sqrt(mreg.sig2),'Akaike info criterion',mreg.aic)
+        mreg.__summary['summary_r2'] += "                                                 %-22s:%12.3f\n" % ('Schwarz criterion',mreg.schwarz)
+        # build coefficients table body
+        summary_coefs_allx(mreg, mreg.z_stat)
+        if regimes:
+            summary_regimes(mreg,chow=False)
+        summary_warning(mreg)
+        multireg[m].__summary = mreg.__summary
+    reg.__summary = {}
+    if regimes:
+        summary_chow(reg)
+    summary_warning(reg)
+    summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=spat_diag)
 
 def ML_Error(reg,w,vm,spat_diag):   # extra space d
     reg.__summary = {}
