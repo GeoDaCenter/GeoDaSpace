@@ -173,9 +173,7 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM):
                               args=(self.n,self.y,ylag,self.x,xlag,evals),method='bounded',
                               tol=epsilon)
         else:
-            print "{0} is an unsupported method".format(methodML)  # program will crash, need to catch
-            self = None
-            return
+            raise Exception,"{0} is an unsupported method".format(method)
   
         self.lam = res.x
         

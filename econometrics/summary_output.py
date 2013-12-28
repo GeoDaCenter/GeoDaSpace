@@ -226,6 +226,27 @@ def ML_Error(reg,w,vm,spat_diag):   # extra space d
     summary_coefs_allx(reg, reg.z_stat)
     summary(reg=reg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=spat_diag)
 
+def ML_Error_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False, w=False):   # extra space d
+    for m in multireg:
+        mreg = multireg[m]
+        mreg.__summary = {}
+        # compute diagnostics and organize summary output
+        beta_diag(mreg, robust=None)
+        mreg.__summary['summary_r2'] += "%-20s:%12.3f                %-22s:%12.3f\n" % ('Sigma-square ML',mreg.sig2,'Log likelihood',mreg.logll)
+        mreg.__summary['summary_r2'] += "%-20s:%12.3f                %-22s:%12.3f\n" % ('S.E of regression',np.sqrt(mreg.sig2),'Akaike info criterion',mreg.aic)
+        mreg.__summary['summary_r2'] += "                                                 %-22s:%12.3f\n" % ('Schwarz criterion',mreg.schwarz)
+        # build coefficients table body
+        summary_coefs_allx(mreg, mreg.z_stat)
+        if regimes:
+            summary_regimes(mreg,chow=False)
+        summary_warning(mreg)
+        multireg[m].__summary = mreg.__summary
+    reg.__summary = {}
+    if regimes:
+        summary_chow(reg)
+    summary_warning(reg)
+    summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=spat_diag)
+
 def GM_Error(reg, vm, w, regimes=False):
     reg.__summary = {}
     # compute diagnostics and organize summary output
