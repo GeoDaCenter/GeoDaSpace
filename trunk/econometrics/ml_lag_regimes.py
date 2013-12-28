@@ -4,15 +4,15 @@ ML Estimation of Spatial Lag Model with Regimes
 
 __author__ = "Luc Anselin luc.anselin@asu.edu, Pedro V. Amaral pedro.amaral@asu.edu"
 
-import numpy as np
 import pysal
+import numpy as np
 import regimes as REGI
 import user_output as USER
 import summary_output as SUMMARY
 import diagnostics as DIAG
 import multiprocessing as mp
 from ml_lag import BaseML_Lag
-from utils import set_warn#, sphstack, spdot, set_endog, set_endog_sparse, sp_att
+from utils import set_warn
 from platform import system
 
 __all__ = ["ML_Lag_Regimes"]
@@ -57,13 +57,10 @@ class ML_Lag_Regimes(BaseML_Lag, REGI.Regimes_Frame):
                    If True (default), the spatial parameter for spatial lag is also
                    computed according to different regimes. If False, 
                    the spatial parameter is fixed accross regimes.
-                   Option valid only when regime_err_sep=True
     cores        : integer
                    Specifies the number of cores to be used in multiprocessing
                    Default: all cores available (specified as cores=None).
                    Note: Multiprocessing currently not available on Windows.
-    spat_diag    : boolean
-                   if True, include spatial diagnostics
     vm           : boolean
                    if True, include variance-covariance matrix in summary
                    results
@@ -240,48 +237,46 @@ class ML_Lag_Regimes(BaseML_Lag, REGI.Regimes_Frame):
     >>> w.transform = 'r'    
 
     Since in this example we are interested in checking whether the results vary
-    by regimes, we can create a regime variable that separates the observations
-    according to their Y coordinate. If their Y coordinate is above median, they 
-    are considered North (True), otherwise they are considered South (False):
+    by regimes, we use CITCOU to define whether the location is in the city or 
+    outside the city (in the county):
 
-    >>> y_coord = np.array(db.by_col("Y"))>544.5
-    >>> regimes = y_coord.tolist()
+    >>> regimes = db.by_col("CITCOU")
 
     Now we can run the regression with all parameters:
 
     >>> mllag = ML_Lag_Regimes(y,x,regimes,w=w,name_y=y_name,name_x=x_names,\
-               name_w=w_name,name_ds=ds_name,name_regimes="North")
+               name_w=w_name,name_ds=ds_name,name_regimes="CITCOU")
     >>> mllag.betas
-    array([[  0.6851015 ],
-           [  1.84230141],
-           [ -0.10124497],
-           [  0.5216767 ],
-           [-13.1808747 ],
-           [  6.05875608],
-           [ -0.37885137],
-           [  0.64358635],
-           [  0.60094022]])
+    array([[-15.00586577],
+           [  4.49600801],
+           [ -0.03180518],
+           [  0.34995882],
+           [ -4.54040395],
+           [  3.92187578],
+           [ -0.17021393],
+           [  0.81941371],
+           [  0.53850323]])
     >>> "{0:.6f}".format(mllag.rho)
-    '0.600940'
+    '0.538503'
     >>> "{0:.6f}".format(mllag.mean_y)
     '44.307180'
     >>> "{0:.6f}".format(mllag.std_y)
     '23.606077'
     >>> np.diag(mllag.vm1)
-    array([  47.23823169,    2.68291135,    0.00419922,    0.06663205,
-             60.82235916,    2.84462323,    0.00808569,    0.04916512,
-              0.00382126,  415.65867203])
+    array([  47.42000914,    2.39526578,    0.00506895,    0.06480022,
+             69.67653371,    3.20661492,    0.01156766,    0.04862014,
+              0.00400775,  390.72738025])
     >>> np.diag(mllag.vm)
-    array([ 47.23823169,   2.68291135,   0.00419922,   0.06663205,
-            60.82235916,   2.84462323,   0.00808569,   0.04916512,   0.00382126])
+    array([ 47.42000914,   2.39526578,   0.00506895,   0.06480022,
+            69.67653371,   3.20661492,   0.01156766,   0.04862014,   0.00400775])
     >>> "{0:.6f}".format(mllag.sig2)
-    '205.227070'
+    '200.044334'
     >>> "{0:.6f}".format(mllag.logll)
-    '-869.609447'
+    '-864.985056'
     >>> "{0:.6f}".format(mllag.aic)
-    '1755.218895'
+    '1745.970112'
     >>> "{0:.6f}".format(mllag.schwarz)
-    '1782.033760'
+    '1772.784977'
     >>> mllag.title
     'MAXIMUM LIKELIHOOD SPATIAL LAG - REGIMES (METHOD = full)'
     """
@@ -420,7 +415,7 @@ def _test():
 
 if __name__ == "__main__":
     _test()
-    """   
+
     import numpy as np
     import pysal as ps
     db =  ps.open(ps.examples.get_path("baltim.dbf"),'r')
@@ -435,16 +430,8 @@ if __name__ == "__main__":
     ww.close()
     w_name = "baltim_q.gal"
     w.transform = 'r'
-
-    regimes = []
-    y_coord = np.array(db.by_col("Y"))
-    for i in y_coord:
-        if i > 544.5:
-            regimes.append("North")
-        else:
-            regimes.append("South")            
+    regimes = db.by_col("CITCOU")
     
     mllag = ML_Lag_Regimes(y,x,regimes,w=w,method='full',name_y=y_name,name_x=x_names,\
                name_w=w_name,name_ds=ds_name,regime_lag_sep=True, constant_regi='many')
     print mllag.summary
-    """
