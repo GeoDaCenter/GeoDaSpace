@@ -219,12 +219,75 @@ class ML_Lag_Regimes(BaseML_Lag, REGI.Regimes_Frame):
     .. [1] Anselin, L. (1988) "Spatial Econometrics: Methods and Models".
     Kluwer Academic Publishers. Dordrecht.
                    
-    Examples
+    Example
     ________
+
+    Open data baltim.dbf using pysal and create the variables matrices and weights matrix.
     
+    >>> import numpy as np
+    >>> import pysal as ps
+    >>> db =  ps.open(ps.examples.get_path("baltim.dbf"),'r')
+    >>> ds_name = "baltim.dbf"
+    >>> y_name = "PRICE"
+    >>> y = np.array(db.by_col(y_name)).T
+    >>> y.shape = (len(y),1)
+    >>> x_names = ["NROOM","AGE","SQFT"]
+    >>> x = np.array([db.by_col(var) for var in x_names]).T
+    >>> ww = ps.open(ps.examples.get_path("baltim_q.gal"))
+    >>> w = ww.read()
+    >>> ww.close()
+    >>> w_name = "baltim_q.gal"
+    >>> w.transform = 'r'    
+
+    Since in this example we are interested in checking whether the results vary
+    by regimes, we can create a regime variable that separates the observations
+    according to their Y coordinate. If their Y coordinate is above median, they 
+    are considered North (True), otherwise they are considered South (False):
+
+    >>> y_coord = np.array(db.by_col("Y"))>544.5
+    >>> regimes = y_coord.tolist()
+
+    Now we can run the regression with all parameters:
+
+    >>> mllag = ML_Lag_Regimes(y,x,regimes,w=w,name_y=y_name,name_x=x_names,\
+               name_w=w_name,name_ds=ds_name,name_regimes="North")
+    >>> mllag.betas
+    array([[  0.6851015 ],
+           [  1.84230141],
+           [ -0.10124497],
+           [  0.5216767 ],
+           [-13.1808747 ],
+           [  6.05875608],
+           [ -0.37885137],
+           [  0.64358635],
+           [  0.60094022]])
+    >>> "{0:.6f}".format(mllag.rho)
+    '0.600940'
+    >>> "{0:.6f}".format(mllag.mean_y)
+    '44.307180'
+    >>> "{0:.6f}".format(mllag.std_y)
+    '23.606077'
+    >>> np.diag(mllag.vm1)
+    array([  47.23823169,    2.68291135,    0.00419922,    0.06663205,
+             60.82235916,    2.84462323,    0.00808569,    0.04916512,
+              0.00382126,  415.65867203])
+    >>> np.diag(mllag.vm)
+    array([ 47.23823169,   2.68291135,   0.00419922,   0.06663205,
+            60.82235916,   2.84462323,   0.00808569,   0.04916512,   0.00382126])
+    >>> "{0:.6f}".format(mllag.sig2)
+    '205.227070'
+    >>> "{0:.6f}".format(mllag.logll)
+    '-869.609447'
+    >>> "{0:.6f}".format(mllag.aic)
+    '1755.218895'
+    >>> "{0:.6f}".format(mllag.schwarz)
+    '1782.033760'
+    >>> mllag.title
+    'MAXIMUM LIKELIHOOD SPATIAL LAG - REGIMES (METHOD = full)'
     """
-    def __init__(self, y, x, regimes, constant_regi='many',\
-                 cols2regi='all', w=None, method='full', epsilon=0.0000001,\
+
+    def __init__(self, y, x, regimes, w=None, constant_regi='many',\
+                 cols2regi='all', method='full', epsilon=0.0000001,\
                  regime_lag_sep=False, cores=None, spat_diag=False,\
                  vm=False, name_y=None, name_x=None,\
                  name_w=None, name_ds=None, name_regimes=None):
@@ -357,7 +420,7 @@ def _test():
 
 if __name__ == "__main__":
     _test()
-       
+    """   
     import numpy as np
     import pysal as ps
     db =  ps.open(ps.examples.get_path("baltim.dbf"),'r')
@@ -373,9 +436,15 @@ if __name__ == "__main__":
     w_name = "baltim_q.gal"
     w.transform = 'r'
 
-    regimes = [0]*(w.n/2)
-    regimes.extend([1]*(w.n-w.n/2))
+    regimes = []
+    y_coord = np.array(db.by_col("Y"))
+    for i in y_coord:
+        if i > 544.5:
+            regimes.append("North")
+        else:
+            regimes.append("South")            
     
     mllag = ML_Lag_Regimes(y,x,regimes,w=w,method='full',name_y=y_name,name_x=x_names,\
                name_w=w_name,name_ds=ds_name,regime_lag_sep=True, constant_regi='many')
     print mllag.summary
+    """
