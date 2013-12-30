@@ -1,26 +1,25 @@
 """
-ML Estimation of Spatial Lag Model with Regimes
+ML Estimation of Spatial Error Model
 """
 
 __author__ = "Luc Anselin luc.anselin@asu.edu, Pedro V. Amaral pedro.amaral@asu.edu"
 
 import pysal
 import numpy as np
+import multiprocessing as mp
 import regimes as REGI
 import user_output as USER
 import summary_output as SUMMARY
 import diagnostics as DIAG
-import multiprocessing as mp
-from ml_lag import BaseML_Lag
 from utils import set_warn
+from ml_error import BaseML_Error
 from platform import system
 
-__all__ = ["ML_Lag_Regimes"]
+__all__ = ["ML_Error_Regimes"]
 
-
-class ML_Lag_Regimes(BaseML_Lag, REGI.Regimes_Frame):
+class ML_Error_Regimes(BaseML_Error, REGI.Regimes_Frame):
     """
-    ML estimation of the spatial lag model with regimes (note no consistency 
+    ML estimation of the spatial error model with regimes (note no consistency 
     checks, diagnostics or constants added); Anselin (1988) [1]_
     
     Parameters
@@ -53,10 +52,8 @@ class ML_Lag_Regimes(BaseML_Lag, REGI.Regimes_Frame):
                    if 'full', brute force calculation (full matrix expressions)
     epsilon      : float
                    tolerance criterion in mimimize_scalar function and inverse_product
-    regime_lag_sep: boolean
-                   If True (default), the spatial parameter for spatial lag is also
-                   computed according to different regimes. If False, 
-                   the spatial parameter is fixed accross regimes.
+    regime_err_sep : boolean
+                   If True, a separate regression is run for each regime.
     cores        : integer
                    Specifies the number of cores to be used in multiprocessing
                    Default: all cores available (specified as cores=None).
@@ -84,12 +81,14 @@ class ML_Lag_Regimes(BaseML_Lag, REGI.Regimes_Frame):
                    conjunction with the print command)
     betas        : array
                    (k+1)x1 array of estimated coefficients (rho first)
-    rho          : float
+    lam          : float
                    estimate of spatial autoregressive coefficient
                    Only available in dictionary 'multi' when multiple regressions
                    (see 'multi' below for details)
     u            : array
                    nx1 array of residuals
+    e_filtered   : array
+                   nx1 array of spatially filtered residuals
     predy        : array
                    nx1 array of predicted y values
     n            : integer
@@ -129,25 +128,8 @@ class ML_Lag_Regimes(BaseML_Lag, REGI.Regimes_Frame):
                    maximized log-likelihood (including constant terms)
                    Only available in dictionary 'multi' when multiple regressions
                    (see 'multi' below for details)
-    aic          : float
-                   Akaike information criterion
-                   Only available in dictionary 'multi' when multiple regressions
-                   (see 'multi' below for details)
-    schwarz      : float
-                   Schwarz criterion
-                   Only available in dictionary 'multi' when multiple regressions
-                   (see 'multi' below for details)
-    predy_e      : array
-                   predicted values from reduced form
-    e_pred       : array
-                   prediction errors using reduced form predicted values
     pr2          : float
                    Pseudo R squared (squared correlation between y and ypred)
-                   Only available in dictionary 'multi' when multiple regressions
-                   (see 'multi' below for details)
-    pr2_e        : float
-                   Pseudo R squared (squared correlation between y and ypred_e
-                   (using reduced form))
                    Only available in dictionary 'multi' when multiple regressions
                    (see 'multi' below for details)
     std_err      : array
@@ -221,159 +203,83 @@ class ML_Lag_Regimes(BaseML_Lag, REGI.Regimes_Frame):
     Example
     ________
 
-    Open data baltim.dbf using pysal and create the variables matrices and weights matrix.
-    
-    >>> import numpy as np
-    >>> import pysal as ps
-    >>> db =  ps.open(ps.examples.get_path("baltim.dbf"),'r')
-    >>> ds_name = "baltim.dbf"
-    >>> y_name = "PRICE"
-    >>> y = np.array(db.by_col(y_name)).T
-    >>> y.shape = (len(y),1)
-    >>> x_names = ["NROOM","AGE","SQFT"]
-    >>> x = np.array([db.by_col(var) for var in x_names]).T
-    >>> ww = ps.open(ps.examples.get_path("baltim_q.gal"))
-    >>> w = ww.read()
-    >>> ww.close()
-    >>> w_name = "baltim_q.gal"
-    >>> w.transform = 'r'    
-
-    Since in this example we are interested in checking whether the results vary
-    by regimes, we use CITCOU to define whether the location is in the city or 
-    outside the city (in the county):
-
-    >>> regimes = db.by_col("CITCOU")
-
-    Now we can run the regression with all parameters:
-
-    >>> mllag = ML_Lag_Regimes(y,x,regimes,w=w,name_y=y_name,name_x=x_names,\
-               name_w=w_name,name_ds=ds_name,name_regimes="CITCOU")
-    >>> mllag.betas
-    array([[-15.00586577],
-           [  4.49600801],
-           [ -0.03180518],
-           [  0.34995882],
-           [ -4.54040395],
-           [  3.92187578],
-           [ -0.17021393],
-           [  0.81941371],
-           [  0.53850323]])
-    >>> "{0:.6f}".format(mllag.rho)
-    '0.538503'
-    >>> "{0:.6f}".format(mllag.mean_y)
-    '44.307180'
-    >>> "{0:.6f}".format(mllag.std_y)
-    '23.606077'
-    >>> np.diag(mllag.vm1)
-    array([  47.42000914,    2.39526578,    0.00506895,    0.06480022,
-             69.67653371,    3.20661492,    0.01156766,    0.04862014,
-              0.00400775,  390.72738025])
-    >>> np.diag(mllag.vm)
-    array([ 47.42000914,   2.39526578,   0.00506895,   0.06480022,
-            69.67653371,   3.20661492,   0.01156766,   0.04862014,   0.00400775])
-    >>> "{0:.6f}".format(mllag.sig2)
-    '200.044334'
-    >>> "{0:.6f}".format(mllag.logll)
-    '-864.985056'
-    >>> "{0:.6f}".format(mllag.aic)
-    '1745.970112'
-    >>> "{0:.6f}".format(mllag.schwarz)
-    '1772.784977'
-    >>> mllag.title
-    'MAXIMUM LIKELIHOOD SPATIAL LAG - REGIMES (METHOD = full)'
     """
 
     def __init__(self, y, x, regimes, w=None, constant_regi='many',\
                  cols2regi='all', method='full', epsilon=0.0000001,\
-                 regime_lag_sep=False, cores=None, spat_diag=False,\
+                 regime_err_sep=False, cores=None, spat_diag=False,\
                  vm=False, name_y=None, name_x=None,\
                  name_w=None, name_ds=None, name_regimes=None):
 
-        n = USER.check_arrays(y, x)
+        n = USER.check_arrays(y,x)
         USER.check_y(y, n)
-        USER.check_weights(w, y, w_required=True)
-        USER.check_spat_diag(spat_diag, w)
-        name_y = USER.set_name_y(name_y)
-        self.name_y = name_y
-        self.name_x_r = USER.set_name_x(name_x, x) + [USER.set_name_yend_sp(name_y)]
-        self.method = method
-        self.epsilon = epsilon
-        self.name_regimes = USER.set_name_ds(name_regimes)
-        self.constant_regi=constant_regi
-        self.n = n
-        cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x, add_cons=False)    
+        USER.check_weights(w, y, w_required=True)        
+        self.constant_regi = constant_regi
         self.cols2regi = cols2regi
+        self.regime_err_sep = regime_err_sep
+        self.name_ds = USER.set_name_ds(name_ds)
+        self.name_y = USER.set_name_y(name_y)
+        self.name_w = USER.set_name_w(name_w, w)
+        self.name_regimes = USER.set_name_ds(name_regimes)
+        self.n = n
+        self.y = y
+
+        x_constant = USER.check_constant(x)
+        name_x = USER.set_name_x(name_x, x)
+        self.name_x_r = name_x
+
+        cols2regi = REGI.check_cols2regi(constant_regi, cols2regi, x)
         self.regimes_set = REGI._get_regimes_set(regimes)
         self.regimes = regimes
-        self.regime_lag_sep = regime_lag_sep
-        self._cache = {}
-        self.name_ds = USER.set_name_ds(name_ds)
-        self.name_w = USER.set_name_w(name_w, w)
         USER.check_regimes(self.regimes_set,self.n,x.shape[1])
+        self.regime_err_sep = regime_err_sep        
 
-        if regime_lag_sep == True:
-            if not (set(cols2regi) == set([True]) and constant_regi == 'many'):
-                raise Exception, "All variables must vary by regimes if regime_lag_sep = True."
-            cols2regi += [True]
-            w_i,regi_ids,warn = REGI.w_regimes(w, regimes, self.regimes_set, transform=True, get_ids=True, min_n=len(cols2regi)+1)
-            set_warn(self,warn)
+        if regime_err_sep == True:
+            if set(cols2regi) == set([True]):
+                self._error_regimes_multi(y, x, regimes, w, cores,\
+                 method, epsilon, cols2regi, vm, name_x, spat_diag)
+            else:
+                raise Exception, "All coefficients must vary accross regimes if regime_err_sep = True."
         else:
-            cols2regi += [False]
-
-        if set(cols2regi) == set([True]) and constant_regi == 'many':
-            self.y = y
-            self.ML_Lag_Regimes_Multi(y, x, w_i, w, regi_ids,\
-                 cores=cores, cols2regi=cols2regi, method=method, epsilon=epsilon,\
-                 spat_diag=spat_diag, vm=vm, name_y=name_y, name_x=name_x,\
-                 name_regimes=self.name_regimes,\
-                 name_w=name_w, name_ds=name_ds)
-        else:
-            #if regime_lag_sep == True: 
-            #    w = REGI.w_regimes_union(w, w_i, self.regimes_set)
-            name_x = USER.set_name_x(name_x, x,constant=True)
-            x, self.name_x = REGI.Regimes_Frame.__init__(self, x, \
-                    regimes, constant_regi, cols2regi=cols2regi[:-1], names=name_x)
-            self.name_x.append("_Global_"+USER.set_name_yend_sp(name_y))
-            BaseML_Lag.__init__(self, y=y, x=x, w=w, method=method, epsilon=epsilon)
-            self.kf += 1 #Adding a fixed k to account for spatial lag.
-            self.chow = REGI.Chow(self)
+            """
+            BaseML_Error.__init__(self,y=y,x=x_constant,w=w,method=method,epsilon=epsilon)
+            self.title = "MAXIMUM LIKELIHOOD SPATIAL ERROR" + " (METHOD = " + method + ")"
+            self.name_ds = USER.set_name_ds(name_ds)
+            self.name_y = USER.set_name_y(name_y)
+            self.name_x = USER.set_name_x(name_x, x)
+            self.name_x.append('lambda')
+            self.name_w = USER.set_name_w(name_w, w)
             self.aic = DIAG.akaike(reg=self)
             self.schwarz = DIAG.schwarz(reg=self)
-            self.regime_lag_sep=regime_lag_sep
-            self.title = "MAXIMUM LIKELIHOOD SPATIAL LAG - REGIMES" + " (METHOD = " + method + ")"
-            SUMMARY.ML_Lag(reg=self, w=w, vm=vm, spat_diag=spat_diag, regimes=True)
-            
-    def ML_Lag_Regimes_Multi(self, y, x, w_i, w, regi_ids,\
-                 cores, cols2regi, method, epsilon,\
-                 spat_diag, vm, name_y, name_x,\
-                 name_regimes, name_w, name_ds):
-        pool = mp.Pool(cores)
-        name_x = USER.set_name_x(name_x, x)+ [USER.set_name_yend_sp(name_y)]
+            SUMMARY.ML_Error(reg=self,w=w,vm=vm,spat_diag=spat_diag)   
+            """
+    def _error_regimes_multi(self, y, x, regimes, w, cores,\
+                 method, epsilon, cols2regi, vm, name_x, spat_diag):
+
+        regi_ids = dict((r, list(np.where(np.array(regimes) == r)[0])) for r in self.regimes_set)    
         results_p = {}
         for r in self.regimes_set:
             if system() == 'Windows':
                 is_win = True
-                results_p[r] = _work(*(y,x,regi_ids,r,w_i[r],method,epsilon,name_ds,name_y,name_x,name_w,name_regimes))
-            else:                
-                results_p[r] = pool.apply_async(_work,args=(y,x,regi_ids,r,w_i[r],method,epsilon,name_ds,name_y,name_x,name_w,name_regimes, ))
+                results_p[r] = _work_error(*(y,x,regi_ids,r,w,method,epsilon,self.name_ds,self.name_y,name_x+['lambda'],self.name_w,self.name_regimes))
+            else:
+                pool = mp.Pool(cores)
+                results_p[r] = pool.apply_async(_work_error,args=(y,x,regi_ids,r,w,method,epsilon,self.name_ds,self.name_y,name_x+['lambda'],self.name_w,self.name_regimes, ))
                 is_win = False
         self.kryd = 0
-        self.kr = len(cols2regi) + 1
+        self.kr = len(cols2regi)+1
         self.kf = 0
         self.nr = len(self.regimes_set)
-        self.name_x_r = name_x
-        self.name_regimes = name_regimes
         self.vm = np.zeros((self.nr*self.kr,self.nr*self.kr),float)
         self.betas = np.zeros((self.nr*self.kr,1),float)
         self.u = np.zeros((self.n,1),float)
         self.predy = np.zeros((self.n,1),float)
-        self.predy_e = np.zeros((self.n,1),float)
-        self.e_pred = np.zeros((self.n,1),float)
+        self.e_filtered = np.zeros((self.n,1),float)
+        self.name_y, self.name_x = [],[]
         if not is_win:
             pool.close()
             pool.join()
         results = {}
-        self.name_y, self.name_x = [],[]
         counter = 0
         for r in self.regimes_set:
             if is_win:
@@ -384,21 +290,23 @@ class ML_Lag_Regimes(BaseML_Lag, REGI.Regimes_Frame):
             self.betas[(counter*self.kr):((counter+1)*self.kr),] = results[r].betas
             self.u[regi_ids[r],]=results[r].u
             self.predy[regi_ids[r],]=results[r].predy
-            self.predy_e[regi_ids[r],]=results[r].predy_e
-            self.e_pred[regi_ids[r],]=results[r].e_pred
+            self.e_filtered[regi_ids[r],]=results[r].e_filtered
             self.name_y += results[r].name_y
             self.name_x += results[r].name_x
             counter += 1
+        self.chow = REGI.Chow(self)            
         self.multi = results
-        self.chow = REGI.Chow(self)
-        SUMMARY.ML_Lag_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=spat_diag, regimes=True, w=w)
+        SUMMARY.ML_Error_multi(reg=self, multireg=self.multi, vm=vm, spat_diag=spat_diag, regimes=True, w=w)
 
-def _work(y,x,regi_ids,r,w_r,method,epsilon,name_ds,name_y,name_x,name_w,name_regimes):
+def _work_error(y,x,regi_ids,r,w,method,epsilon,name_ds,name_y,name_x,name_w,name_regimes):
+    w_r,warn = REGI.w_regime(w, regi_ids[r], r, transform=True)
     y_r = y[regi_ids[r]]
     x_r = x[regi_ids[r]]
     x_constant = USER.check_constant(x_r)
-    model = BaseML_Lag(y_r,x_constant,w_r,method=method,epsilon=epsilon)
-    model.title = "MAXIMUM LIKELIHOOD SPATIAL LAG - REGIME "+str(r)+" (METHOD = "+method+")"
+    model = BaseML_Error(y=y_r,x=x_constant,w=w_r,method=method,epsilon=epsilon)
+    set_warn(model, warn)
+    model.w = w_r
+    model.title = "MAXIMUM LIKELIHOOD SPATIAL ERROR - REGIME "+str(r)+" (METHOD = "+method+")"
     model.name_ds = name_ds
     model.name_y = '%s_%s'%(str(r), name_y)
     model.name_x = ['%s_%s'%(str(r), i) for i in name_x]
@@ -411,15 +319,16 @@ def _work(y,x,regi_ids,r,w_r,method,epsilon,name_ds,name_y,name_x,name_w,name_re
 def _test():
     import doctest
     start_suppress = np.get_printoptions()['suppress']
-    np.set_printoptions(suppress=True)    
+    np.set_printoptions(precision=8,suppress=True)
     doctest.testmod()
     np.set_printoptions(suppress=start_suppress)
 
 if __name__ == "__main__":
     _test()
-
+           
     import numpy as np
     import pysal as ps
+
     db =  ps.open(ps.examples.get_path("baltim.dbf"),'r')
     ds_name = "baltim.dbf"
     y_name = "PRICE"
@@ -432,8 +341,16 @@ if __name__ == "__main__":
     ww.close()
     w_name = "baltim_q.gal"
     w.transform = 'r'
-    regimes = db.by_col("CITCOU")
+
+    regimes = []
+    y_coord = np.array(db.by_col("Y"))
+    for i in y_coord:
+        if i > 544.5:
+            regimes.append("North")
+        else:
+            regimes.append("South")            
     
-    mllag = ML_Lag_Regimes(y,x,regimes,w=w,method='full',name_y=y_name,name_x=x_names,\
-               name_w=w_name,name_ds=ds_name,regime_lag_sep=True, constant_regi='many')
-    print mllag.summary
+    mlerror = ML_Error_Regimes(y,x,regimes,w=w,method='full',name_y=y_name,\
+            name_x=x_names,name_w=w_name,name_ds=ds_name,regime_err_sep=True)
+    print mlerror.summary
+    
