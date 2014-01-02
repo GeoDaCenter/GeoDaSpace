@@ -203,6 +203,66 @@ class ML_Error_Regimes(BaseML_Error, REGI.Regimes_Frame):
     Example
     ________
 
+    Open data baltim.dbf using pysal and create the variables matrices and weights matrix.
+    
+    >>> import numpy as np
+    >>> import pysal as ps
+    >>> db =  ps.open(ps.examples.get_path("baltim.dbf"),'r')
+    >>> ds_name = "baltim.dbf"
+    >>> y_name = "PRICE"
+    >>> y = np.array(db.by_col(y_name)).T
+    >>> y.shape = (len(y),1)
+    >>> x_names = ["NROOM","AGE","SQFT"]
+    >>> x = np.array([db.by_col(var) for var in x_names]).T
+    >>> ww = ps.open(ps.examples.get_path("baltim_q.gal"))
+    >>> w = ww.read()
+    >>> ww.close()
+    >>> w_name = "baltim_q.gal"
+    >>> w.transform = 'r'    
+
+    Since in this example we are interested in checking whether the results vary
+    by regimes, we use CITCOU to define whether the location is in the city or 
+    outside the city (in the county):
+
+    >>> regimes = db.by_col("CITCOU")
+
+    Now we can run the regression with all parameters:
+
+    >>> mllag = ML_Error_Regimes(y,x,regimes,w=w,name_y=y_name,name_x=x_names,\
+               name_w=w_name,name_ds=ds_name,name_regimes="CITCOU")
+    >>> mllag.betas
+    array([[-15.00586577],
+           [  4.49600801],
+           [ -0.03180518],
+           [  0.34995882],
+           [ -4.54040395],
+           [  3.92187578],
+           [ -0.17021393],
+           [  0.81941371],
+           [  0.53850323]])
+    >>> "{0:.6f}".format(mllag.lam)
+    '0.538503'
+    >>> "{0:.6f}".format(mllag.mean_y)
+    '44.307180'
+    >>> "{0:.6f}".format(mllag.std_y)
+    '23.606077'
+    >>> np.diag(mllag.vm1)
+    array([  47.42000914,    2.39526578,    0.00506895,    0.06480022,
+             69.67653371,    3.20661492,    0.01156766,    0.04862014,
+              0.00400775,  390.72738025])
+    >>> np.diag(mllag.vm)
+    array([ 47.42000914,   2.39526578,   0.00506895,   0.06480022,
+            69.67653371,   3.20661492,   0.01156766,   0.04862014,   0.00400775])
+    >>> "{0:.6f}".format(mllag.sig2)
+    '200.044334'
+    >>> "{0:.6f}".format(mllag.logll)
+    '-864.985056'
+    >>> "{0:.6f}".format(mllag.aic)
+    '1745.970112'
+    >>> "{0:.6f}".format(mllag.schwarz)
+    '1772.784977'
+    >>> mllag.title
+    'MAXIMUM LIKELIHOOD SPATIAL LAG - REGIMES (METHOD = full)'
     """
 
     def __init__(self, y, x, regimes, w=None, constant_regi='many',\
