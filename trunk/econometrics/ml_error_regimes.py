@@ -117,7 +117,7 @@ class ML_Error_Regimes(BaseML_Error, REGI.Regimes_Frame):
     vm           : array
                    Variance covariance matrix (k+1 x k+1), all coefficients
     vm1          : array
-                   Variance covariance matrix (k+2 x k+2), includes sig2
+                   variance covariance matrix for lambda, sigma (2 x 2)
                    Only available in dictionary 'multi' when multiple regressions
                    (see 'multi' below for details)
     sig2         : float
@@ -231,38 +231,37 @@ class ML_Error_Regimes(BaseML_Error, REGI.Regimes_Frame):
     >>> mllag = ML_Error_Regimes(y,x,regimes,w=w,name_y=y_name,name_x=x_names,\
                name_w=w_name,name_ds=ds_name,name_regimes="CITCOU")
     >>> mllag.betas
-    array([[-15.00586577],
-           [  4.49600801],
-           [ -0.03180518],
-           [  0.34995882],
-           [ -4.54040395],
-           [  3.92187578],
-           [ -0.17021393],
-           [  0.81941371],
-           [  0.53850323]])
+    array([[ -2.39491278],
+           [  4.873757  ],
+           [ -0.02911854],
+           [  0.33275008],
+           [ 31.79618475],
+           [  2.98102401],
+           [ -0.23710892],
+           [  0.80581127],
+           [  0.61770744]])
     >>> "{0:.6f}".format(mllag.lam)
-    '0.538503'
+    '0.617707'
     >>> "{0:.6f}".format(mllag.mean_y)
     '44.307180'
     >>> "{0:.6f}".format(mllag.std_y)
     '23.606077'
-    >>> np.diag(mllag.vm1)
-    array([  47.42000914,    2.39526578,    0.00506895,    0.06480022,
-             69.67653371,    3.20661492,    0.01156766,    0.04862014,
-              0.00400775,  390.72738025])
+    >>> mllag.vm1
+    array([[   0.00502785,   -0.35354172],
+           [  -0.35354172,  441.3038669 ]])
     >>> np.diag(mllag.vm)
-    array([ 47.42000914,   2.39526578,   0.00506895,   0.06480022,
-            69.67653371,   3.20661492,   0.01156766,   0.04862014,   0.00400775])
-    >>> "{0:.6f}".format(mllag.sig2)
-    '200.044334'
+    array([ 58.50551173,   2.42952002,   0.00721525,   0.06391736,
+            80.59249161,   3.1610047 ,   0.0119782 ,   0.0499432 ,   0.00502785])
+    >>> mllag.sig2
+    array([[ 209.60639741]])
     >>> "{0:.6f}".format(mllag.logll)
-    '-864.985056'
+    '-870.333106'
     >>> "{0:.6f}".format(mllag.aic)
-    '1745.970112'
+    '1756.666212'
     >>> "{0:.6f}".format(mllag.schwarz)
-    '1772.784977'
+    '1783.481077'
     >>> mllag.title
-    'MAXIMUM LIKELIHOOD SPATIAL LAG - REGIMES (METHOD = full)'
+    'MAXIMUM LIKELIHOOD SPATIAL ERROR - REGIMES (METHOD = full)'
     """
 
     def __init__(self, y, x, regimes, w=None, constant_regi='many',\
