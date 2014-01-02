@@ -12,11 +12,12 @@ from pysal.spreg.utils import RegressionPropsY,RegressionPropsVM
 import econometrics.diagnostics as DIAG  # uses latest, needs to switch to pysal
 import econometrics.user_output as USER
 import econometrics.summary_output as SUMMARY
+import regimes as REGI
 from econometrics.w_utils import symmetrize
 
 __all__ = ["ML_Error"]
 
-class BaseML_Error(RegressionPropsY,RegressionPropsVM):
+class BaseML_Error(RegressionPropsY,RegressionPropsVM,REGI.Regimes_Frame):
     """
     ML estimation of the spatial error model (note no consistency 
     checks, diagnostics or constants added); Anselin (1988) [1]_
@@ -34,6 +35,9 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM):
                    if 'full', brute force calculation (full matrix expressions)
     epsilon      : float
                    tolerance criterion in mimimize_scalar function and inverse_product
+    regimes_att  : dictionary
+                   Dictionary containing elements to be used in case of a regimes model,
+                   i.e. 'x' before regimes, 'regimes' list and 'cols2regi'
 
     Attributes
     ----------
@@ -142,20 +146,22 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM):
     Kluwer Academic Publishers. Dordrecht.
 
     """
-    def __init__(self,y,x,w,method='full',epsilon=0.0000001):
+    def __init__(self,y,x,w,method='full',epsilon=0.0000001,regimes_att=None):
         # set up main regression variables and spatial filters
         self.y = y
-        self.x = x
+        if regimes_att:
+            self.x = x.toarray()
+        else:
+            self.x = x
         self.n, self.k = self.x.shape
         self.method = method
         self.epsilon = epsilon
         W = w.full()[0]
                
         ylag = ps.lag_spatial(w,self.y)
-        xlag = ps.lag_spatial(w,self.x)
-        
-        # call minimizer using concentrated log-likelihood to get lambda
-        
+        xlag = self.get_x_lag(w, regimes_att)
+
+        # call minimizer using concentrated log-likelihood to get lambda       
         methodML = method.upper()
         if methodML in ['FULL','ORD']:
             if methodML == 'FULL':
@@ -194,7 +200,7 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM):
         
         self.betas = np.vstack((b,self.lam))
 
-        self.u = y - np.dot(x,b)
+        self.u = y - np.dot(self.x,b)
         self.predy = self.y - self.u
 
         # residual variance
@@ -236,6 +242,17 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM):
         self.vm = np.vstack((vv,vv1))
         
         self._cache = {}
+
+    def get_x_lag(self, w, regimes_att):
+        if regimes_att:
+            xlag = ps.lag_spatial(w,regimes_att['x'])
+            xlag = REGI.Regimes_Frame.__init__(self, xlag,\
+                        regimes_att['regimes'], constant_regi=None, cols2regi=regimes_att['cols2regi'])[0]
+            xlag = xlag.toarray()
+        else:
+            xlag = ps.lag_spatial(w,self.x)
+        return xlag
+            
 
 class ML_Error(BaseML_Error):
     """
