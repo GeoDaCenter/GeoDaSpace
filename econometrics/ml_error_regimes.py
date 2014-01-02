@@ -241,18 +241,26 @@ class ML_Error_Regimes(BaseML_Error, REGI.Regimes_Frame):
             else:
                 raise Exception, "All coefficients must vary accross regimes if regime_err_sep = True."
         else:
-            """
-            BaseML_Error.__init__(self,y=y,x=x_constant,w=w,method=method,epsilon=epsilon)
-            self.title = "MAXIMUM LIKELIHOOD SPATIAL ERROR" + " (METHOD = " + method + ")"
-            self.name_ds = USER.set_name_ds(name_ds)
-            self.name_y = USER.set_name_y(name_y)
-            self.name_x = USER.set_name_x(name_x, x)
+            regimes_att = {}
+            regimes_att['x'] = x_constant
+            regimes_att['regimes'] = regimes
+            regimes_att['cols2regi'] = cols2regi
+            x, name_x = REGI.Regimes_Frame.__init__(self, x_constant,\
+                    regimes, constant_regi=None, cols2regi=cols2regi,\
+                    names=name_x)
+
+            BaseML_Error.__init__(self,y=y,x=x,w=w,method=method,epsilon=epsilon,regimes_att=regimes_att)
+
+            self.title = "MAXIMUM LIKELIHOOD SPATIAL ERROR - REGIMES" + " (METHOD = " + method + ")"
+            self.name_x = USER.set_name_x(name_x, x, constant=True)
             self.name_x.append('lambda')
-            self.name_w = USER.set_name_w(name_w, w)
+            self.kf += 1 #Adding a fixed k to account for lambda.
+            self.chow = REGI.Chow(self)
             self.aic = DIAG.akaike(reg=self)
             self.schwarz = DIAG.schwarz(reg=self)
-            SUMMARY.ML_Error(reg=self,w=w,vm=vm,spat_diag=spat_diag)   
-            """
+            self._cache = {}
+            SUMMARY.ML_Error(reg=self,w=w,vm=vm,spat_diag=spat_diag,regimes=True)  
+
     def _error_regimes_multi(self, y, x, regimes, w, cores,\
                  method, epsilon, cols2regi, vm, name_x, spat_diag):
 
@@ -351,6 +359,6 @@ if __name__ == "__main__":
             regimes.append("South")            
     
     mlerror = ML_Error_Regimes(y,x,regimes,w=w,method='full',name_y=y_name,\
-            name_x=x_names,name_w=w_name,name_ds=ds_name,regime_err_sep=True)
+            name_x=x_names,name_w=w_name,name_ds=ds_name,regime_err_sep=False)
     print mlerror.summary
     

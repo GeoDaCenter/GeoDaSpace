@@ -215,7 +215,7 @@ def ML_Lag_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False, w=False
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=spat_diag)
 
-def ML_Error(reg,w,vm,spat_diag):   # extra space d
+def ML_Error(reg,w,vm,spat_diag, regimes=False):   # extra space d
     reg.__summary = {}
     # compute diagnostics and organize summary output
     beta_diag(reg, robust=None)
@@ -224,6 +224,9 @@ def ML_Error(reg,w,vm,spat_diag):   # extra space d
     reg.__summary['summary_r2'] += "                                                 %-22s:%12.3f\n" % ('Schwarz criterion',reg.schwarz)
     # build coefficients table body
     summary_coefs_allx(reg, reg.z_stat)
+    if regimes:
+        summary_regimes(reg)
+    summary_warning(reg)
     summary(reg=reg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=spat_diag)
 
 def ML_Error_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False, w=False):   # extra space d
