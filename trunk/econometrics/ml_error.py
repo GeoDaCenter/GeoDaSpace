@@ -9,11 +9,11 @@ import numpy.linalg as la
 import pysal as ps
 from scipy.optimize import minimize_scalar
 from pysal.spreg.utils import RegressionPropsY,RegressionPropsVM
-import econometrics.diagnostics as DIAG  # uses latest, needs to switch to pysal
-import econometrics.user_output as USER
-import econometrics.summary_output as SUMMARY
+import diagnostics as DIAG
+import user_output as USER
+import summary_output as SUMMARY
 import regimes as REGI
-from econometrics.w_utils import symmetrize
+from w_utils import symmetrize
 
 __all__ = ["ML_Error"]
 

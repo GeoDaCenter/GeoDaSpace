@@ -1383,7 +1383,7 @@ def likratiotest(reg0,reg1):
     >>> import numpy as np
     >>> import pysal as ps
     >>> import scipy.stats as stats
-    >>> import econometrics.ml_lag as lag  # ADJUST before transfer to PySAL
+    >>> import pysal.spreg.ml_lag as lag
     
     Use the baltim sample data set
     
@@ -1404,7 +1404,7 @@ def likratiotest(reg0,reg1):
     
     ML Lag regression
     
-    >>> mllag1 = lag.ML_Lag(y,x,w)     # adjust call to psyal path
+    >>> mllag1 = lag.ML_Lag(y,x,w)
     
     >>> lr = likratiotest(ols1,mllag1)
     

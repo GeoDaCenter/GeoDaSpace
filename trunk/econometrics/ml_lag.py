@@ -10,10 +10,10 @@ import pysal as ps
 from scipy.optimize import minimize_scalar
 from pysal.spreg.utils import RegressionPropsY,RegressionPropsVM,inverse_prod
 from utils import spdot
-import econometrics.diagnostics as DIAG  # uses latest, needs to switch to pysal
-import econometrics.user_output as USER
-import econometrics.summary_output as SUMMARY
-from econometrics.w_utils import symmetrize
+import diagnostics as DIAG
+import user_output as USER
+import summary_output as SUMMARY
+from w_utils import symmetrize
 
 __all__ = ["ML_Lag"]
 
