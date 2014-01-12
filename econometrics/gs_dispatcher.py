@@ -13,6 +13,7 @@ from error_sp_het_regimes import GM_Error_Het_Regimes, GM_Endog_Error_Het_Regime
 from error_sp_regimes import GM_Endog_Error_Regimes, GM_Error_Regimes, GM_Combo_Regimes
 from error_sp_hom_regimes import GM_Endog_Error_Hom_Regimes, GM_Error_Hom_Regimes, GM_Combo_Hom_Regimes
 from ml_error import ML_Error
+from ml_error_regimes import ML_Error_Regimes
 from ml_lag import ML_Lag
 from ml_lag_regimes import ML_Lag_Regimes
 import robust as ROBUST
@@ -1604,6 +1605,21 @@ def get_ML_Error(gui):
         counter += 1
     return output
 
+def get_ML_Error_regimes(gui):    
+    output = []
+    counter = 1
+    for w in gui.w_list:
+        reg = ML_Error_Regimes(y=gui.y, x=gui.x, regimes=gui.r, w=w, 
+              method=gui.ml_method, epsilon=gui.ml_epsilon, 
+              regime_err_sep=gui.regime_err_sep, cores=gui.cores,
+              spat_diag=gui.ml_diag, vm=gui.vc_matrix, name_y=gui.name_y,
+              name_x=gui.name_x, name_ds=gui.name_ds, name_w=w.name,
+              name_regimes=gui.name_r)
+        run_predy_resid(gui, reg, 'ml_', False, counter)
+        output.append(reg)
+        counter += 1
+    return output
+
 
 
 def get_error_msg(gui):
@@ -1664,7 +1680,7 @@ model_getter[('Standard', False, '*', True, 'ml')] = get_error_msg
 model_getter[('Spatial Lag', False, '*', False, 'ml')] = get_ML_Lag
 model_getter[('Spatial Lag', False, '*', True, 'ml')] = get_ML_Lag_regimes
 model_getter[('Spatial Error', False, '*', False, 'ml')] = get_ML_Error
-model_getter[('Spatial Error', False, '*', True, 'ml')] = get_error_msg
+model_getter[('Spatial Error', False, '*', True, 'ml')] = get_ML_Error_regimes
 model_getter[('Spatial Lag+Error', False, '*', False, 'ml')] = get_error_msg
 model_getter[('Spatial Lag+Error', False, '*', True, 'ml')] = get_error_msg
 
