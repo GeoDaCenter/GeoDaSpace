@@ -99,13 +99,13 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM,REGI.Regimes_Frame):
     >>> mlerr = BaseML_Error(y,x,w)
     >>> "{0:.6f}".format(mlerr.lam)
     '0.299078'
-    >>> mlerr.betas
-    array([[ 6.14922483],
-           [ 4.40242014],
-           [ 1.77837126],
-           [-0.37807312],
-           [ 0.48578576],
-           [ 0.29907782]])
+    >>> np.around(mlerr.betas, decimals=4)
+    array([[ 6.1492],
+           [ 4.4024],
+           [ 1.7784],
+           [-0.3781],
+           [ 0.4858],
+           [ 0.2991]])
     >>> "{0:.6f}".format(mlerr.mean_y)
     '9.549293'
     >>> "{0:.6f}".format(mlerr.std_y)

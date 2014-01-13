@@ -248,7 +248,7 @@ class ML_Lag_Regimes(BaseML_Lag, REGI.Regimes_Frame):
 
     >>> mllag = ML_Lag_Regimes(y,x,regimes,w=w,name_y=y_name,name_x=x_names,\
                name_w=w_name,name_ds=ds_name,name_regimes="CITCOU")
-    >>> mllag.betas
+    >>> np.around(mllag.betas, decimals=4)
     array([[-15.00586577],
            [  4.49600801],
            [ -0.03180518],
@@ -264,11 +264,11 @@ class ML_Lag_Regimes(BaseML_Lag, REGI.Regimes_Frame):
     '44.307180'
     >>> "{0:.6f}".format(mllag.std_y)
     '23.606077'
-    >>> np.diag(mllag.vm1)
+    >>> np.around(np.diag(mllag.vm1), decimals=4)
     array([  47.42000914,    2.39526578,    0.00506895,    0.06480022,
              69.67653371,    3.20661492,    0.01156766,    0.04862014,
               0.00400775,  390.72738025])
-    >>> np.diag(mllag.vm)
+    >>> np.around(np.diag(mllag.vm), decimals=4)
     array([ 47.42000914,   2.39526578,   0.00506895,   0.06480022,
             69.67653371,   3.20661492,   0.01156766,   0.04862014,   0.00400775])
     >>> "{0:.6f}".format(mllag.sig2)
