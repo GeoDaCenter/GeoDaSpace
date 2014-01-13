@@ -101,28 +101,28 @@ class LMtests:
 
     LM error test:
 
-    >>> print lms.lme
-    array([ 3.097094,  0.078432])
+    >>> print round(lms.lme[0],4), round(lms.lme[1],4)
+    3.0971 0.0784
 
     LM lag test:
 
-    >>> print lms.lml
-    array([ 0.981552,  0.321816])
+    >>> print round(lms.lml[0],4), round(lms.lml[1],4)
+    0.9816 0.3218
 
     Robust LM error test:
 
-    >>> print lms.rlme
-    array([ 3.209187,  0.073226])
+    >>> print round(lms.rlme[0],4), round(lms.rlme[1],4)
+    3.2092 0.0732
 
     Robust LM lag test:
 
-    >>> print lms.rlml
-    array([ 1.093645,  0.295665])
+    >>> print round(lms.rlml[0],4), round(lms.rlml[1],4)
+    1.0936 0.2957
 
     LM SARMA test:
 
-    >>> print lms.sarma
-    array([ 4.190739,  0.123025])
+    >>> print round(lms.sarma[0],4), round(lms.sarma[1],4)
+    4.1907 0.123
     """
     def __init__(self, ols, w, tests=['all']):
         cache = spDcache(ols, w)
@@ -205,29 +205,29 @@ class MoranRes:
 
     Value of the Moran's I statistic:
 
-    >>> print m.I
-    0.17130999999999999
+    >>> print round(m.I,4)
+    0.1713
 
     Value of the Moran's I expectation:
 
-    >>> print m.eI
-    -0.034522999999999998
+    >>> print round(m.eI,4)
+    -0.0345
 
     Value of the Moran's I variance:
 
-    >>> print m.vI
-    0.0081300000000000001
+    >>> print round(m.vI,4)
+    0.0081
 
     Value of the Moran's I standardized value. This is
     distributed as a standard Normal(0, 1)
 
-    >>> print m.zI
-    2.2827389999999999
+    >>> print round(m.zI,4)
+    2.2827
 
     P-value of the standardized Moran's I value (z):
 
-    >>> print m.p_norm
-    0.022446000000000001
+    >>> print round(m.p_norm,4)
+    0.0224
     """
     def __init__(self, ols, w, z=False):
         cache = spDcache(ols, w)
