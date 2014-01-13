@@ -228,39 +228,39 @@ class ML_Error_Regimes(BaseML_Error, REGI.Regimes_Frame):
 
     Now we can run the regression with all parameters:
 
-    >>> mllag = ML_Error_Regimes(y,x,regimes,w=w,name_y=y_name,name_x=x_names,\
+    >>> mlerr = ML_Error_Regimes(y,x,regimes,w=w,name_y=y_name,name_x=x_names,\
                name_w=w_name,name_ds=ds_name,name_regimes="CITCOU")
-    >>> mllag.betas
-    array([[ -2.39491278],
-           [  4.873757  ],
-           [ -0.02911854],
-           [  0.33275008],
-           [ 31.79618475],
-           [  2.98102401],
-           [ -0.23710892],
-           [  0.80581127],
-           [  0.61770744]])
-    >>> "{0:.6f}".format(mllag.lam)
+    >>> np.around(mlerr.betas, decimals=4)
+    array([[ -2.3949],
+           [  4.8738],
+           [ -0.0291],
+           [  0.3328],
+           [ 31.7962],
+           [  2.981 ],
+           [ -0.2371],
+           [  0.8058],
+           [  0.6177]])
+    >>> "{0:.6f}".format(mlerr.lam)
     '0.617707'
-    >>> "{0:.6f}".format(mllag.mean_y)
+    >>> "{0:.6f}".format(mlerr.mean_y)
     '44.307180'
-    >>> "{0:.6f}".format(mllag.std_y)
+    >>> "{0:.6f}".format(mlerr.std_y)
     '23.606077'
-    >>> mllag.vm1
-    array([[   0.00502785,   -0.35354172],
-           [  -0.35354172,  441.3038669 ]])
-    >>> np.diag(mllag.vm)
-    array([ 58.50551173,   2.42952002,   0.00721525,   0.06391736,
-            80.59249161,   3.1610047 ,   0.0119782 ,   0.0499432 ,   0.00502785])
-    >>> mllag.sig2
-    array([[ 209.60639741]])
-    >>> "{0:.6f}".format(mllag.logll)
+    >>> np.around(mlerr.vm1, decimals=4)
+    array([[   0.005 ,   -0.3535],
+           [  -0.3535,  441.3039]])
+    >>> np.around(np.diag(mlerr.vm), decimals=4)
+    array([ 58.5055,   2.4295,   0.0072,   0.0639,  80.5925,   3.161 ,
+             0.012 ,   0.0499,   0.005 ])
+    >>> np.around(mlerr.sig2, decimals=4)
+    array([[ 209.6064]])
+    >>> "{0:.6f}".format(mlerr.logll)
     '-870.333106'
-    >>> "{0:.6f}".format(mllag.aic)
+    >>> "{0:.6f}".format(mlerr.aic)
     '1756.666212'
-    >>> "{0:.6f}".format(mllag.schwarz)
+    >>> "{0:.6f}".format(mlerr.schwarz)
     '1783.481077'
-    >>> mllag.title
+    >>> mlerr.title
     'MAXIMUM LIKELIHOOD SPATIAL ERROR - REGIMES (METHOD = full)'
     """
 
@@ -386,13 +386,12 @@ def _work_error(y,x,regi_ids,r,w,method,epsilon,name_ds,name_y,name_x,name_w,nam
 def _test():
     import doctest
     start_suppress = np.get_printoptions()['suppress']
-    np.set_printoptions(precision=8,suppress=True)
+    np.set_printoptions(suppress=True)    
     doctest.testmod()
     np.set_printoptions(suppress=start_suppress)
 
 if __name__ == "__main__":
     _test()
-           
     import numpy as np
     import pysal as ps
 
@@ -420,4 +419,3 @@ if __name__ == "__main__":
     mlerror = ML_Error_Regimes(y,x,regimes,w=w,method='full',name_y=y_name,\
             name_x=x_names,name_w=w_name,name_ds=ds_name,regime_err_sep=False)
     print mlerror.summary
-    

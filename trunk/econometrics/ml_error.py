@@ -85,6 +85,7 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM,REGI.Regimes_Frame):
     
     >>> import numpy as np
     >>> import pysal as ps
+    >>> np.set_printoptions(suppress=True) #prevent scientific format
     >>> db = ps.open(ps.examples.get_path("south.dbf"),'r')
     >>> y_name = "HR90"
     >>> y = np.array(db.by_col(y_name))
@@ -120,24 +121,23 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM,REGI.Regimes_Frame):
     >>> mlerr1 = BaseML_Error(y,x,w,method='ord')
     >>> "{0:.6f}".format(mlerr1.lam)
     '0.299078'
-    >>> mlerr1.betas
-    array([[ 6.14922482],
-           [ 4.40242014],
-           [ 1.77837125],
-           [-0.37807312],
-           [ 0.48578576],
-           [ 0.29907783]])
+    >>> np.around(mlerr1.betas, decimals=4)
+    array([[ 6.1492],
+           [ 4.4024],
+           [ 1.7784],
+           [-0.3781],
+           [ 0.4858],
+           [ 0.2991]])
     >>> "{0:.6f}".format(mlerr1.mean_y)
     '9.549293'
     >>> "{0:.6f}".format(mlerr1.std_y)
     '7.038851'
-    >>> np.diag(mlerr1.vm)
-    array([ 1.06476526,  0.05548248,  0.04544514,  0.00614425,  0.01481356,
-            0.00143001])
-    >>> "{0:.6f}".format(mlerr1.sig2[0][0])
-    '32.406854'
-    >>> "{0:.6f}".format(mlerr1.logll)
-    '-4471.407067'
+    >>> np.around(np.diag(mlerr1.vm), decimals=4)
+    array([ 1.0648,  0.0555,  0.0454,  0.0061,  0.0148,  0.0014])
+    >>> "{0:.4f}".format(mlerr1.sig2[0][0])
+    '32.4069'
+    >>> "{0:.4f}".format(mlerr1.logll)
+    '-4471.4071'
 
     References
     ----------
@@ -351,6 +351,7 @@ class ML_Error(BaseML_Error):
     
     >>> import numpy as np
     >>> import pysal as ps
+    >>> np.set_printoptions(suppress=True)  #prevent scientific format
     >>> db = ps.open(ps.examples.get_path("south.dbf"),'r')
     >>> ds_name = "south.dbf"
     >>> y_name = "HR90"
@@ -365,39 +366,42 @@ class ML_Error(BaseML_Error):
     >>> w.transform = 'r'    
     >>> mlerr = ML_Error(y,x,w,name_y=y_name,name_x=x_names,\
                name_w=w_name,name_ds=ds_name)
-    >>> mlerr.betas
-    array([[ 6.14922483],
-           [ 4.40242014],
-           [ 1.77837126],
-           [-0.37807312],
-           [ 0.48578576],
-           [ 0.29907782]])
-    >>> mlerr.lam
-    0.29907782498171109
-    >>> mlerr.mean_y
-    9.5492931620846928
-    >>> mlerr.std_y
-    7.0388508798387219
-    >>> np.diag(mlerr.vm)
-    array([ 1.06476526,  0.05548248,  0.04544514,  0.00614425,  0.01481356,
-            0.00143001])
-    >>> mlerr.sig2
-    array([[ 32.40685441]])
-    >>> mlerr.logll
-    -4471.4070668878976
-    >>> mlerr.aic
-    8952.8141337757952
-    >>> mlerr.schwarz
-    8979.0779458660618
-    >>> mlerr.pr2
-    0.3057664820479337
-    >>> mlerr.utu
-    48534.914822750536
-    >>> mlerr.std_err
-    array([ 1.03187463,  0.23554719,  0.21317867,  0.07838525,  0.12171098,
-            0.03781546])
-    >>> mlerr.z_stat
-    [(5.9592751135203628, 2.5335925730458786e-09), (18.690182933636418, 5.9508613184155246e-78), (8.3421632972520374, 7.2943628086320888e-17), (-4.8232686335636661, 1.4122456267155579e-06), (3.9913060806046299, 6.5710406923833137e-05), (7.9088780562343812, 2.5971885919948263e-15)]
+    >>> np.around(mlerr.betas, decimals=4)
+    array([[ 6.1492],
+           [ 4.4024],
+           [ 1.7784],
+           [-0.3781],
+           [ 0.4858],
+           [ 0.2991]])
+    >>> "{0:.4f}".format(mlerr.lam)
+    '0.2991'
+    >>> "{0:.4f}".format(mlerr.mean_y)
+    '9.5493'
+    >>> "{0:.4f}".format(mlerr.std_y)
+    '7.0389'
+    >>> np.around(np.diag(mlerr.vm), decimals=4)
+    array([ 1.0648,  0.0555,  0.0454,  0.0061,  0.0148,  0.0014])
+    >>> np.around(mlerr.sig2, decimals=4)
+    array([[ 32.4069]])
+    >>> "{0:.4f}".format(mlerr.logll)
+    '-4471.4071'
+    >>> "{0:.4f}".format(mlerr.aic)
+    '8952.8141'
+    >>> "{0:.4f}".format(mlerr.schwarz)
+    '8979.0779'
+    >>> "{0:.4f}".format(mlerr.pr2)
+    '0.3058'
+    >>> "{0:.4f}".format(mlerr.utu)
+    '48534.9148'
+    >>> np.around(mlerr.std_err, decimals=4)
+    array([ 1.0319,  0.2355,  0.2132,  0.0784,  0.1217,  0.0378])
+    >>> np.around(mlerr.z_stat, decimals=4)
+    array([[  5.9593,   0.    ],
+           [ 18.6902,   0.    ],
+           [  8.3422,   0.    ],
+           [ -4.8233,   0.    ],
+           [  3.9913,   0.0001],
+           [  7.9089,   0.    ]])
     >>> mlerr.name_y
     'HR90'
     >>> mlerr.name_x
@@ -481,13 +485,12 @@ def err_c_loglik_ord(lam,n,y,ylag,x,xlag,evals):
 def _test():
     import doctest
     start_suppress = np.get_printoptions()['suppress']
-    np.set_printoptions(precision=8,suppress=True)
+    np.set_printoptions(suppress=True)    
     doctest.testmod()
     np.set_printoptions(suppress=start_suppress)
 
 if __name__ == "__main__":
     _test()
-           
     import numpy as np
     import pysal as ps
     db = ps.open(ps.examples.get_path("south.dbf"),'r')
@@ -508,4 +511,4 @@ if __name__ == "__main__":
     mlerror1 = ML_Error(y,x,w,method='ord',name_y=y_name,name_x=x_names,\
                name_w=w_name,name_ds=ds_name)
     print mlerror1.summary
-    
+
