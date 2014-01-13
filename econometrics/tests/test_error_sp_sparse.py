@@ -146,8 +146,8 @@ class TestBaseGMEndogError(unittest.TestCase):
        [ -15.78336736,    0.54023504,    0.23112032],
        [  -8.38021053,    0.23112032,    0.14497738]])
         np.testing.assert_array_almost_equal(reg.vm,vm,4)
-        sig2 = 192.50040382591442
-        self.assertAlmostEqual(reg.sig2,sig2,4)
+        sig2 = 192.5002
+        self.assertAlmostEqual(round(reg.sig2,4),round(sig2,4),4)
 
 class TestGMEndogError(unittest.TestCase):
     def setUp(self):
@@ -199,8 +199,8 @@ class TestGMEndogError(unittest.TestCase):
         np.testing.assert_array_almost_equal(reg.vm,vm,4)
         pr2 = 0.346472557570858
         self.assertAlmostEqual(reg.pr2,pr2)
-        sig2 = 192.50040382591442
-        self.assertAlmostEqual(reg.sig2,sig2,4)
+        sig2 = 192.5002
+        self.assertAlmostEqual(round(reg.sig2,4),round(sig2,4),4)
         std_err = np.array([ 23.003401  ,   0.73500657,   0.38075777])
         np.testing.assert_array_almost_equal(reg.std_err,std_err,4)
         z_stat = np.array([[ 2.40664208,  0.01609994], [ 0.63144305,  0.52775088], [-1.75659016,  0.07898769]])
@@ -320,5 +320,4 @@ if __name__ == '__main__':
     np.set_printoptions(suppress=True) 
     unittest.main()
     np.set_printoptions(suppress=start_suppress)
-
 
