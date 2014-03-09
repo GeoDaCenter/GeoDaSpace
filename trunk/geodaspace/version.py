@@ -3,11 +3,11 @@ import datetime
 # version_date = datetime.date.today()  # doing this causes the date string in the gui to update every day it is run!
 # Current Release. Note: when you bump, change srcfolder in osx-nightly-build script
 version = "0.8.7"  # spreg r1083, pysal 1.7.0dev
-version_date = datetime.date(2014, 3, 7
-)
+version_date = datetime.date(2014, 3, 7)
+
 # toggle these 2 below for official alpha releases
-version_type = "alpha"
-#version_type = 'nightly'
+# version_type = "alpha"
+version_type = 'nightly'
 
 def get_long_version():
     s = ""
@@ -17,7 +17,9 @@ def get_long_version():
         s += "spReg revision "
         s += rev
         s += " | "
+        version_date = datetime.date.today()
         s += version_date.strftime('%B %d, %Y')
+        s += " | "
     if version_type == 'alpha':
         s += "(alpha) "
         s += " | "
@@ -65,4 +67,9 @@ def get_long_version():
 # version = "0.8.5"  # spreg r1014, pysal 1.7.0dev
 # version_date = datetime.date(2013, 10, 2)
 
-rev='1040'
+rev='1083'
+rev = '1084'
+rev = '1084'
+rev = '1084'
+rev = '1084'
+rev = '1084'
