@@ -54,8 +54,8 @@ class ML_Lag_Regimes(BaseML_Lag, REGI.Regimes_Frame):
     epsilon      : float
                    tolerance criterion in mimimize_scalar function and inverse_product
     regime_lag_sep: boolean
-                   If True (default), the spatial parameter for spatial lag is also
-                   computed according to different regimes. If False, 
+                   If True, the spatial parameter for spatial lag is also
+                   computed according to different regimes. If False (default), 
                    the spatial parameter is fixed accross regimes.
     cores        : integer
                    Specifies the number of cores to be used in multiprocessing
