@@ -448,6 +448,8 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                         self.ML_radiobutton.SetValue(False)
                         self.GMM_radiobutton.SetValue(True)
                         m['modelType']['method'] = 1
+                        if m['modelType']['mType'] == 3:
+                            self.SEHETCheckBox.Enable()
                     if m['modelType']['method'] == 1:
                         self.GMM_radiobutton.SetValue(True)
                     if m['modelType']['method'] == 2:
