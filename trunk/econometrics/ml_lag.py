@@ -33,6 +33,7 @@ class BaseML_Lag(RegressionPropsY,RegressionPropsVM):
                    Spatial weights object 
     method       : string
                    if 'full', brute force calculation (full matrix expressions)
+                   if 'ord', Ord eigenvalue method
     epsilon      : float
                    tolerance criterion in mimimize_scalar function and inverse_product
 
