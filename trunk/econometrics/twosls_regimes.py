@@ -67,10 +67,10 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
                    If True, then use n-k to estimate sigma^2. If False, use n.
     vm           : boolean
                    If True, include variance-covariance matrix in summary
-    cores        : integer
-                   Specifies the number of cores to be used in multiprocessing
-                   Default: all cores available (specified as cores=None).
-                   Note: Multiprocessing currently not available on Windows.
+    cores        : boolean
+                   Specifies if multiprocessing is to be used
+                   Default: no multiprocessing, cores = False
+                   Note: Multiprocessing may not work on all platforms.
     name_y       : string
                    Name of dependent variable for use in output
     name_x       : list of strings
@@ -268,7 +268,7 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
              w=None, robust=None, gwk=None, sig2n_k=True,\
              spat_diag=False, vm=False, constant_regi='many',\
              cols2regi='all', regime_err_sep=True, name_y=None, name_x=None,\
-             cores=None, name_yend=None, name_q=None, name_regimes=None,\
+             cores=False, name_yend=None, name_q=None, name_regimes=None,\
              name_w=None, name_gwk=None, name_ds=None, summ=True):
        
         n = USER.check_arrays(y, x)
@@ -327,6 +327,7 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
     def _tsls_regimes_multi(self, x, yend, q, w, regi_ids, cores,\
                  gwk, sig2n_k, robust, spat_diag, vm, name_x, name_yend, name_q):
         results_p = {}
+        """
         for r in self.regimes_set:
             if system() != 'Windows':
                 is_win = True
@@ -335,6 +336,14 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
                 pool = mp.Pool(cores)
                 results_p[r] = pool.apply_async(_work,args=(self.y,x,w,regi_ids,r,yend,q,robust,sig2n_k,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes))
                 is_win = False
+        """
+        for r in self.regimes_set:
+            if cores:
+                pool = mp.Pool(None)
+                results_p[r] = pool.apply_async(_work,args=(self.y,x,w,regi_ids,r,yend,q,robust,sig2n_k,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes))
+            else:
+                results_p[r] = _work(*(self.y,x,w,regi_ids,r,yend,q,robust,sig2n_k,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes))
+            
         self.kryd = 0
         self.kr = x.shape[1]+yend.shape[1]+1
         self.kf = 0
@@ -343,17 +352,30 @@ class TSLS_Regimes(BaseTSLS, REGI.Regimes_Frame):
         self.betas = np.zeros((self.nr*self.kr,1),float)
         self.u = np.zeros((self.n,1),float)
         self.predy = np.zeros((self.n,1),float)
+        """
         if not is_win:
             pool.close()
             pool.join()
+        """
+        if cores:
+            pool.close()
+            pool.join()
+        
         results = {}
         self.name_y, self.name_x, self.name_yend, self.name_q, self.name_z, self.name_h = [],[],[],[],[],[]
         counter = 0
         for r in self.regimes_set:
+            """
             if is_win:
                 results[r] = results_p[r]
             else:
                 results[r] = results_p[r].get()
+            """
+            if not cores:
+                results[r] = results_p[r]
+            else:
+                results[r] = results_p[r].get()
+            
             self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
             self.betas[(counter*self.kr):((counter+1)*self.kr),] = results[r].betas
             self.u[regi_ids[r],]=results[r].u
