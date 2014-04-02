@@ -328,9 +328,6 @@
                       </object>
                       <flag>wxALIGN_CENTRE</flag>
                     </object>
-                    
-                    
-                    
                     <object class="sizeritem">
                       <object class="wxStaticText" name="ML Methods">
                         <label>Methods</label>
@@ -366,10 +363,7 @@
                       <flag>wxALIGN_CENTRE</flag>
                     </object>
                     <object class="spacer"/>
-                    
                     <object class="spacer"/>
-                    
-                    
                     <object class="sizeritem">
                       <object class="wxStaticText" name="ToleranceCriterionLabel">
                         <label>Tolerance Criterion</label>
@@ -681,12 +675,9 @@
                       </object>
                     </object>
                     <object class="sizeritem">
-                      <object class="wxChoice" name="numcores">
-                        <content>
-                          <item/>
-                        </content>
+                      <object class="wxCheckBox" name="numcores">
                         <XRCED>
-                          <events>EVT_CHOICE</events>
+                          <events>EVT_CHECKBOX</events>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>

@@ -1,10 +1,5 @@
 # System
 import json
-try:
-    import multiprocessing
-    CPU_COUNT = multiprocessing.cpu_count()
-except:
-    CPU_COUNT = 1
 # 3rd Party
 # Local
 from geodaspace import AbstractModel
@@ -30,7 +25,7 @@ class preferencesModel(AbstractModel):
         'instruments_w_lags': 1,
         'other_ols_diagnostics': True,
         'white_test': False,
-        'other_numcores': CPU_COUNT,
+        'other_numcores': False,
         'other_residualMoran': False,
         'other_missingValueCheck': False,
         'other_missingValue': 0.0,
@@ -59,7 +54,7 @@ class preferencesModel(AbstractModel):
         'other_ols_diagnostics', bool)
     white_test = AbstractModel.abstractProp(
         'white_test', bool)
-    other_numcores = AbstractModel.abstractProp('other_numcores', int)
+    other_numcores = AbstractModel.abstractProp('other_numcores', bool)
     other_residualMoran = AbstractModel.abstractProp(
         'other_residualMoran', bool)
     other_missingValueCheck = AbstractModel.abstractProp(
