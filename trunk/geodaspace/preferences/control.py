@@ -1,12 +1,5 @@
 # system
 import os
-
-try:
-    import multiprocessing
-    CPU_COUNT = multiprocessing.cpu_count()
-except:
-    CPU_COUNT = 1
-CPU_OPTIONS = range(CPU_COUNT, 0, -1)
 # 3rd Part
 import wx
 # local
@@ -69,7 +62,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
         preferences_xrc.xrcgsPrefsDialog.__init__(self, parent)
         self.CompInverse.SetItems(list(INV_METHODS))
         self.MLMethod.SetItems(list(ML_METHODS))
-        self.numcores.SetItems(map(str, CPU_OPTIONS))
+        #self.numcores.SetItems(map(str, CPU_OPTIONS))
         self.SetEscapeId(self.cancelButton.GetId())
         self.SetAffirmativeId(self.saveButton.GetId())
 
@@ -371,13 +364,9 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
 
     def other_numcores(self, evtName=None, evt=None, value=None):
         if evt:
-            self.model.other_numcores = CPU_OPTIONS[
-                self.numcores.GetSelection()]
+            self.model.other_numcores = self.numcores.GetValue()
         elif value is not None:
-            if value < 1:  # default, USE ALL
-                self.numcores.SetSelection(0)
-            else:
-                self.numcores.SetSelection(CPU_OPTIONS.index(value))
+            self.numcores.SetValue(self.model.other_numcores)
 
     def other_residualMoran(self, evtName=None, evt=None, value=None):
         if evt:

@@ -120,7 +120,7 @@ class xrcgsPrefsDialog(wx.Dialog):
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_OLSdiagnostics, self.OLSdiagnostics)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_WhiteTest, self.WhiteTest)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_residualMoran, self.residualMoran)
-        self.Bind(wx.EVT_CHOICE, self.OnChoice_numcores, self.numcores)
+        self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_numcores, self.numcores)
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox_missingValueCheck, self.missingValueCheck)
         self.Bind(wx.EVT_TEXT, self.OnText_missingValue, self.missingValue)
         self.Bind(wx.EVT_BUTTON, self.OnButton_restoreButton, self.restoreButton)
@@ -272,11 +272,11 @@ class xrcgsPrefsDialog(wx.Dialog):
         print "OnCheckbox_residualMoran()"
 #!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_residualMoran        
 
-#!XRCED:begin-block:xrcgsPrefsDialog.OnChoice_numcores
-    def OnChoice_numcores(self, evt):
+#!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_numcores
+    def OnCheckbox_numcores(self, evt):
         # Replace with event handler code
-        print "OnChoice_numcores()"
-#!XRCED:end-block:xrcgsPrefsDialog.OnChoice_numcores        
+        print "OnCheckbox_numcores()"
+#!XRCED:end-block:xrcgsPrefsDialog.OnCheckbox_numcores        
 
 #!XRCED:begin-block:xrcgsPrefsDialog.OnCheckbox_missingValueCheck
     def OnCheckbox_missingValueCheck(self, evt):
@@ -685,9 +685,6 @@ def __init_resources():
                       </object>
                       <flag>wxALIGN_CENTRE</flag>
                     </object>
-                    
-                    
-                    
                     <object class="sizeritem">
                       <object class="wxStaticText" name="ML Methods">
                         <label>Methods</label>
@@ -723,10 +720,7 @@ def __init_resources():
                       <flag>wxALIGN_CENTRE</flag>
                     </object>
                     <object class="spacer"/>
-                    
                     <object class="spacer"/>
-                    
-                    
                     <object class="sizeritem">
                       <object class="wxStaticText" name="ToleranceCriterionLabel">
                         <label>Tolerance Criterion</label>
@@ -1038,12 +1032,9 @@ def __init_resources():
                       </object>
                     </object>
                     <object class="sizeritem">
-                      <object class="wxChoice" name="numcores">
-                        <content>
-                          <item/>
-                        </content>
+                      <object class="wxCheckBox" name="numcores">
                         <XRCED>
-                          <events>EVT_CHOICE</events>
+                          <events>EVT_CHECKBOX</events>
                           <assign_var>1</assign_var>
                         </XRCED>
                       </object>
