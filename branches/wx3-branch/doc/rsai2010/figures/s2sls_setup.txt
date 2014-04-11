@@ -1,0 +1,15 @@
+>>> w = pysal.rook_from_shapefile("examples/columbus.shp")
+>>> w.transform = 'r'
+>>>
+>>> reg = STSLS(X, y, w, w_lags=2)
+>>>
+>>> reg.betas
+array([[ 45.45909249],
+       [ -1.0410089 ],
+       [ -0.25953844],
+       [  0.41929355]])
+>>>
+>>> import diagnostics
+>>> diagnostics.se_betas(reg)
+array([ 11.19151175,   0.38861224,   0.09240593,   0.18758518])
+>>>

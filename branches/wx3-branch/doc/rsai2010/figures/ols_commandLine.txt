@@ -1,0 +1,18 @@
+>>> import numpy as np
+>>> import pysal
+>>>
+>>> db=pysal.open("examples/columbus.dbf","r")
+>>> y = np.array(db.by_col("CRIME"))
+>>> y = np.reshape(y, (49,1))
+>>> X = []
+>>> X.append(db.by_col("INC"))
+>>> X.append(db.by_col("HOVAL"))
+>>> X = np.array(X).T
+>>>
+>>> ols = OLS(X, y, name_x=['INC','HOVAL'],\
+	      name_y='CRIME', name_ds='columbus')
+>>>
+>>> ols.betas
+array([[ 68.6189611 ],
+       [ -1.59731083],
+       [ -0.27393148]])

@@ -1,0 +1,12 @@
+:mod:`econometrics.spError` --- spError
+===============================
+
+The :mod:`econometrics.spError` module provides ....
+
+.. versionadded:: 0.1
+
+
+.. automodule:: econometrics.spError
+    :synopsis: Diagnostic code for spReg: Python Spatial Regression Analysis Library
+    :members:
+

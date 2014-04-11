@@ -1,0 +1,73 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxFrame" name="TextWindow">
+    <title>Results</title>
+    <object class="wxToolBar" name="TextWindowToolBar">
+      <object class="tool" name="ToolNew">
+        <bitmap stock_id="wxART_NEW"/>
+        <tooltip>Create A New Results File...</tooltip>
+      </object>
+      <object class="tool" name="ToolOpen">
+        <bitmap stock_id="wxART_FILE_OPEN"/>
+        <tooltip>Open Results File...</tooltip>
+      </object>
+      <object class="tool" name="ToolSave">
+        <bitmap stock_id="wxART_FILE_SAVE"/>
+        <tooltip>Save Results File</tooltip>
+      </object>
+      <object class="tool" name="ToolSaveAs">
+        <bitmap stock_id="wxART_FILE_SAVE_AS"/>
+        <tooltip>Save Results File As...</tooltip>
+      </object>
+      <object class="separator"/>
+      <object class="tool" name="ToolFontSmaller">
+        <bitmap>../icons/list-remove.png</bitmap>
+        <tooltip>Decrease Font Size</tooltip>
+        <label>TOOL</label>
+      </object>
+      <object class="tool" name="ToolFontBigger">
+        <bitmap>../icons/list-add.png</bitmap>
+        <tooltip>Increase Font Size</tooltip>
+        <label>TOOL</label>
+      </object>
+      <style>wxTB_FLAT|wxTB_HORIZONTAL</style>
+      <XRCED>
+        <assign_var>1</assign_var>
+      </XRCED>
+    </object>
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxPanel" name="Panel">
+          <object class="wxBoxSizer">
+            <orient>wxVERTICAL</orient>
+            <object class="sizeritem">
+              <object class="wxTextCtrl" name="Text">
+                <size>700,300</size>
+                <font>
+                  <size>10</size>
+                  <style>normal</style>
+                  <weight>normal</weight>
+                  <underlined>0</underlined>
+                  <family>default</family>
+                  <face>Courier New</face>
+                </font>
+                <style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LINEWRAP</style>
+                <XRCED>
+                  <assign_var>1</assign_var>
+                </XRCED>
+              </object>
+              <option>1</option>
+              <flag>wxALL|wxEXPAND|wxADJUST_MINSIZE</flag>
+            </object>
+          </object>
+          <XRCED>
+            <assign_var>1</assign_var>
+          </XRCED>
+        </object>
+        <option>1</option>
+        <flag>wxALL|wxEXPAND</flag>
+      </object>
+    </object>
+  </object>
+</resource>

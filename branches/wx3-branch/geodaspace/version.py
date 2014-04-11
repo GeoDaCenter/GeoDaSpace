@@ -1,0 +1,75 @@
+import datetime
+
+# version_date = datetime.date.today()  # doing this causes the date string in the gui to update every day it is run!
+# Current Release. Note: when you bump, change srcfolder in osx-nightly-build script
+version = "0.8.7"  # spreg r1083, pysal 1.7.0dev
+version_date = datetime.date(2014, 3, 7)
+
+# toggle these 2 below for official alpha releases
+# version_type = "alpha"
+version_type = 'nightly'
+
+def get_long_version():
+    s = ""
+    if version_type == 'nightly':
+        s += "(nightly) "
+        s += " | "
+        s += "spReg revision "
+        s += rev
+        s += " | "
+        version_date = datetime.date.today()
+        s += version_date.strftime('%B %d, %Y')
+        s += " | "
+    if version_type == 'alpha':
+        s += "(alpha) "
+        s += " | "
+        s += version_date.strftime('%B %d, %Y')
+        s += " | "
+    elif version_type == 'beta':
+        s += "(beta) "
+    s += "Release "
+    s += version
+    return s
+
+# Version History
+# version = "0.7.0" #spreg r682, pysal r1069
+# version_date = datetime.date(2011,12,14)
+# version = "0.7.1" #spreg r683, pysal r1070
+# version_date = datetime.date(2011,12,15)
+# version = "0.7.2" #spreg r683, pysal r1070
+# version_date = datetime.date(2011,12,23)
+# version = "0.7.3" #spreg r688, pysal r1070
+# version_date = datetime.date(2012, 1, 9)
+# version = "0.7.3.1" #spreg r707, pysal r1157
+# version_date = datetime.date(2012, 2, 7)
+# version = "0.7.4" #spreg r770, pysal r1334
+# version_date = datetime.date(2012, 8, 13)
+# version = "0.7.5" #spreg r786, pysal r1353
+# version_date = datetime.date(2012, 9, 6)
+# version = "0.7.6"  #spreg r798, pysal r1353
+# version_date = datetime.date(2012, 9, 7)
+# version = "0.7.7"  #spreg r854, pysal r1403
+# version_date = datetime.date(2012, 12, 6)
+# version = "0.7.8"  #spreg r886, pysal r1450
+# version_date = datetime.date(2013, 2, 22)
+# version = "0.7.9"  #spreg r898, pysal 1.6.0dev
+# version_date = datetime.date(2013, 4, 22)
+# version = "0.8.0"  #spreg r904, pysal 1.6.0dev
+# version_date = datetime.date(2013, 4, 26)
+# version = "0.8.1"  # spreg r918, pysal 1.6.0dev
+# version_date = datetime.date(2013, 5, 29)
+# version = "0.8.2"  # spreg r970, pysal 1.6.0dev
+# version_date = datetime.date(2013, 7, 3)
+# version = "0.8.3"  # spreg r978, pysal 1.6.0dev
+# version_date = datetime.date(2013, 7, 29)
+# version = "0.8.4"  # spreg r984, pysal 1.7.0dev
+# version_date = datetime.date(2013, 8, 6)
+# version = "0.8.5"  # spreg r1014, pysal 1.7.0dev
+# version_date = datetime.date(2013, 10, 2)
+
+rev='1083'
+rev = '1084'
+rev = '1084'
+rev = '1084'
+rev = '1084'
+rev = '1084'

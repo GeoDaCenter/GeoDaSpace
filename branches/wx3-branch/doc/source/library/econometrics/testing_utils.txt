@@ -1,0 +1,12 @@
+:mod:`econometrics.testing_utils` --- testing_utils
+===============================
+
+The :mod:`econometrics.testing_utils` module provides ....
+
+.. versionadded:: 0.1
+
+
+.. automodule:: econometrics.testing_utils
+    :synopsis: Diagnostic code for spReg: Python Spatial Regression Analysis Library
+    :members:
+

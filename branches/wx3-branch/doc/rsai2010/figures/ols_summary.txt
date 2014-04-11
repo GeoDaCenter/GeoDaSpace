@@ -1,0 +1,43 @@
+>>> print ols.summary
+REGRESSION
+----------
+SUMMARY OF OUTPUT: ORDINARY LEAST SQUARES ESTIMATION
+----------------------------------------------------
+Data set            :    columbus
+Dependent Variable  :       CRIME  Number of Observations:          49
+Mean dependent var  :     35.1288  Number of Variables   :           3
+S.D. dependent var  :     16.5605  Degrees of Freedom    :          46
+
+R-squared           :    0.552404  F-statistic           :     28.3856
+Adjusted R-squared  :    0.532943  Prob(F-statistic)     :9.3407471e-09
+Sum squared residual:    6014.893  Log likelihood        :    -187.377
+Sigma-square        :     130.759  Akaike info criterion :     380.754
+S.E. of regression  :      11.435  Schwarz criterion     :     386.430
+Sigma-square ML     :     130.759
+S.E of regression ML:     11.4350
+
+----------------------------------------------------------------------------
+    Variable     Coefficient       Std.Error     t-Statistic     Probability
+----------------------------------------------------------------------------
+    CONSTANT      68.6189611       4.7354861      14.4903731     9.21089e-19
+         INC      -1.5973108       0.3341308      -4.7804962     1.82896e-05
+       HOVAL      -0.2739315       0.1031987      -2.6544086       0.0108745
+----------------------------------------------------------------------------
+
+
+REGRESSION DIAGNOSTICS
+MULTICOLLINEARITY CONDITION NUMBER    6.541828
+TEST ON NORMALITY OF ERRORS
+TEST                  DF          VALUE            PROB
+Jarque-Bera            2           1.835753        0.3993663
+
+DIAGNOSTICS FOR HETEROSKEDASTICITY
+RANDOM COEFFICIENTS
+TEST                  DF          VALUE            PROB
+Breusch-Pagan test     2          10.012850        0.0066948
+Koenker-Bassett test   2           7.216564        0.0270984
+SPECIFICATION ROBUST TEST
+TEST                  DF          VALUE            PROB
+White                  5          19.946008        0.0012792
+
+========================= END OF REPORT ==============================

@@ -1,0 +1,1145 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxDialog" name="DIALOGWEIGHTS">
+    <object class="wxBoxSizer">
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <object class="sizeritem">
+                <object class="wxPanel" name="InputPanel">
+                  <object class="wxBoxSizer">
+                    <object class="sizeritem">
+                      <object class="wxStaticText">
+                        <label>Input File</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALL|wxALIGN_CENTRE</flag>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxChoice" name="InputShapeChoice">
+                        <XRCED>
+                          <events>EVT_CHOICE</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <option>1</option>
+                      <flag>wxALL|wxALIGN_CENTRE</flag>
+                      <border>5</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxBitmapButton" name="OpenShape">
+                        <bitmap stock_id="wxART_FILE_OPEN"/>
+                        <style>wxBU_AUTODRAW|wxBU_EXACTFIT</style>
+                        <XRCED>
+                          <events>EVT_BUTTON</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALL|wxALIGN_RIGHT</flag>
+                      <border>2</border>
+                    </object>
+                  </object>
+                  <XRCED>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxALL|wxEXPAND|wxALIGN_CENTRE_HORIZONTAL</flag>
+                <border>2</border>
+              </object>
+              <object class="sizeritem">
+                <object class="wxPanel" name="OutputPanel">
+                  <object class="wxBoxSizer">
+                    <object class="sizeritem">
+                      <object class="wxStaticText">
+                        <label>Save output as</label>
+                        <XRCED>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALL|wxALIGN_CENTRE</flag>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxTextCtrl" name="OutputText">
+                        <style>wxTE_READONLY</style>
+                        <XRCED>
+                          <events>EVT_TEXT</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <option>1</option>
+                      <flag>wxALL|wxALIGN_CENTRE</flag>
+                      <border>5</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxBitmapButton" name="OpenOutput">
+                        <bitmap stock_id="wxART_FILE_SAVE"/>
+                        <style>wxBU_AUTODRAW|wxBU_EXACTFIT</style>
+                        <XRCED>
+                          <events>EVT_BUTTON</events>
+                          <assign_var>1</assign_var>
+                        </XRCED>
+                      </object>
+                      <flag>wxALL|wxALIGN_CENTRE</flag>
+                    </object>
+                  </object>
+                  <enabled>0</enabled>
+                  <hidden>1</hidden>
+                  <XRCED>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxALL|wxEXPAND|wxALIGN_CENTRE_HORIZONTAL</flag>
+                <border>2</border>
+              </object>
+              <object class="sizeritem">
+                <object class="wxBoxSizer">
+                  <object class="sizeritem">
+                    <object class="wxStaticText">
+                      <label>Select an ID Variable for the weights file</label>
+                    </object>
+                    <flag>wxALL|wxALIGN_CENTRE_VERTICAL|wxADJUST_MINSIZE</flag>
+                    <border>2</border>
+                  </object>
+                  <object class="spacer">
+                    <size>3,5d</size>
+                    <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                    <border>2</border>
+                    <XRCED>
+                      <assign_var>1</assign_var>
+                    </XRCED>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxChoice" name="IdvarChoice">
+                      <XRCED>
+                        <events>EVT_CHOICE</events>
+                        <assign_var>1</assign_var>
+                      </XRCED>
+                    </object>
+                    <option>1</option>
+                    <flag>wxALL|wxALIGN_CENTRE</flag>
+                    <border>2</border>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxBitmapButton" name="addIDVar">
+                      <bitmap>../regression/rc/list-add.png</bitmap>
+                      <tooltip>Add ID Variable...</tooltip>
+                      <XRCED>
+                        <events>EVT_BUTTON</events>
+                        <assign_var>1</assign_var>
+                      </XRCED>
+                    </object>
+                    <flag>wxALL|wxALIGN_CENTRE</flag>
+                    <border>2</border>
+                  </object>
+                  <orient>wxHORIZONTAL</orient>
+                  <XRCED>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxALL|wxEXPAND</flag>
+                <border>2</border>
+              </object>
+              <object class="sizeritem">
+                <object class="wxBoxSizer">
+                  <object class="sizeritem">
+                    <object class="wxNotebook" name="weightsNotebook">
+                      <object class="notebookpage">
+                        <object class="wxPanel" name="ContiguityPanel">
+                          <object class="wxBoxSizer">
+                            <object class="sizeritem">
+                              <object class="wxBoxSizer">
+                                <object class="sizeritem">
+                                  <object class="wxFlexGridSizer">
+                                    <object class="sizeritem">
+                                      <object class="wxRadioButton" name="RadioQueen">
+                                        <label>Queen</label>
+                                        <value>1</value>
+                                        <XRCED>
+                                          <events>EVT_RADIOBUTTON</events>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxLEFT|wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                      <border>2</border>
+                                    </object>
+                                    <object class="spacer">
+                                      <size>25,5d</size>
+                                      <XRCED>
+                                        <assign_var>1</assign_var>
+                                      </XRCED>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxBoxSizer">
+                                        <object class="sizeritem">
+                                          <object class="wxStaticText">
+                                            <label>Order of contiguity</label>
+                                            <XRCED>
+                                              <assign_var>1</assign_var>
+                                            </XRCED>
+                                          </object>
+                                          <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                          <border>2</border>
+                                        </object>
+                                        <object class="sizeritem">
+                                          <object class="wxSpinCtrl" name="ContiguityOrderSpin">
+                                            <value>1</value>
+                                            <min>1</min>
+                                            <XRCED>
+                                              <events>EVT_SPINCTRL</events>
+                                              <assign_var>1</assign_var>
+                                            </XRCED>
+                                          </object>
+                                          <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                          <border>2</border>
+                                        </object>
+                                        <orient>wxHORIZONTAL</orient>
+                                        <XRCED>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                      <border>2</border>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxRadioButton" name="RadioRook">
+                                        <label>Rook</label>
+                                        <XRCED>
+                                          <events>EVT_RADIOBUTTON</events>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                      <border>2</border>
+                                    </object>
+                                    <object class="spacer">
+                                      <size>25,5d</size>
+                                      <XRCED>
+                                        <assign_var>1</assign_var>
+                                      </XRCED>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxBoxSizer">
+                                        <orient>wxHORIZONTAL</orient>
+                                        <XRCED>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                        <object class="sizeritem">
+                                          <object class="wxCheckBox" name="ContiguityIncludeLowerCheck">
+                                            <label>Include lower orders</label>
+                                            <XRCED>
+                                              <events>EVT_CHECKBOX</events>
+                                              <assign_var>1</assign_var>
+                                            </XRCED>
+                                          </object>
+                                          <flag>wxLEFT|wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                          <border>2</border>
+                                        </object>
+                                      </object>
+                                    </object>
+                                    <cols>3</cols>
+                                    <rows>2</rows>
+                                    <XRCED>
+                                      <assign_var>1</assign_var>
+                                    </XRCED>
+                                  </object>
+                                  <flag>wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL</flag>
+                                  <border>2</border>
+                                </object>
+                                <orient>wxHORIZONTAL</orient>
+                                <XRCED>
+                                  <assign_var>1</assign_var>
+                                </XRCED>
+                              </object>
+                              <flag>wxALL|wxALIGN_CENTRE_HORIZONTAL</flag>
+                              <border>2</border>
+                            </object>
+                            <orient>wxVERTICAL</orient>
+                            <XRCED>
+                              <assign_var>1</assign_var>
+                            </XRCED>
+                          </object>
+                          <XRCED>
+                            <assign_var>1</assign_var>
+                          </XRCED>
+                        </object>
+                        <label>Contiguity</label>
+                        <selected>1</selected>
+                      </object>
+                      <object class="notebookpage">
+                        <object class="wxPanel" name="DistancePanel">
+                          <object class="wxBoxSizer">
+                            <orient>wxVERTICAL</orient>
+                            <XRCED>
+                              <assign_var>1</assign_var>
+                            </XRCED>
+                            <object class="sizeritem">
+                              <object class="wxBoxSizer">
+                                <object class="sizeritem">
+                                  <object class="wxBoxSizer">
+                                    <object class="sizeritem">
+                                      <object class="wxStaticText">
+                                        <label>Select distance metric</label>
+                                      </object>
+                                      <flag>wxLEFT|wxRIGHT|wxALIGN_CENTRE</flag>
+                                      <border>6</border>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxChoice" name="DdistMethodChoice">
+                                        <XRCED>
+                                          <events>EVT_CHOICE</events>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <option>1</option>
+                                      <flag>wxLEFT|wxRIGHT|wxALIGN_CENTRE</flag>
+                                      <border>10</border>
+                                    </object>
+                                    <orient>wxHORIZONTAL</orient>
+                                  </object>
+                                  <option>1</option>
+                                  <flag>wxBOTTOM|wxEXPAND</flag>
+                                  <border>10</border>
+                                </object>
+                                <object class="sizeritem">
+                                  <object class="wxBoxSizer">
+                                    <object class="sizeritem">
+                                      <object class="wxRadioButton" name="KnnRadio">
+                                        <size>80,-1d</size>
+                                        <label>k-Nearest Neighbors</label>
+                                        <XRCED>
+                                          <events>EVT_RADIOBUTTON</events>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxLEFT|wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                      <border>2</border>
+                                    </object>
+                                    <object class="spacer">
+                                      <size>5,5d</size>
+                                      <XRCED>
+                                        <assign_var>1</assign_var>
+                                      </XRCED>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxBoxSizer">
+                                        <orient>wxHORIZONTAL</orient>
+                                        <XRCED>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                        <object class="sizeritem">
+                                          <object class="wxStaticText">
+                                            <size>50,-1d</size>
+                                            <label># of neighbors</label>
+                                          </object>
+                                          <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                          <border>2</border>
+                                        </object>
+                                        <object class="sizeritem">
+                                          <object class="wxSpinCtrl" name="NumNeighSpin">
+                                            <size>45,-1d</size>
+                                            <value>4</value>
+                                            <min>2</min>
+                                            <XRCED>
+                                              <events>EVT_SPINCTRL</events>
+                                              <assign_var>1</assign_var>
+                                            </XRCED>
+                                          </object>
+                                        </object>
+                                      </object>
+                                      <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                      <border>2</border>
+                                    </object>
+                                    <orient>wxHORIZONTAL</orient>
+                                    <XRCED>
+                                      <assign_var>1</assign_var>
+                                    </XRCED>
+                                  </object>
+                                  <flag>wxALL|wxEXPAND</flag>
+                                  <border>2</border>
+                                </object>
+                                <object class="sizeritem">
+                                  <object class="wxBoxSizer">
+                                    <object class="sizeritem">
+                                      <object class="wxRadioButton" name="ThresholdRadio">
+                                        <label>Binary Distance Band</label>
+                                        <value>1</value>
+                                        <XRCED>
+                                          <events>EVT_RADIOBUTTON</events>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxLEFT|wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                      <border>2</border>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxBoxSizer">
+                                        <object class="sizeritem">
+                                          <object class="wxBoxSizer">
+                                            <object class="sizeritem">
+                                              <object class="wxStaticText">
+                                                <label>Cut-off point</label>
+                                              </object>
+                                              <flag>wxALL|wxALIGN_CENTRE</flag>
+                                              <border>2</border>
+                                            </object>
+                                            <object class="sizeritem">
+                                              <object class="wxSlider" name="ThresholdSlider">
+                                                <value>0</value>
+                                                <min>0</min>
+                                                <max>100000</max>
+                                                <style>wxSL_HORIZONTAL</style>
+                                                <XRCED>
+                                                  <events>EVT_SCROLL|EVT_SCROLL_TOP|EVT_SCROLL_BOTTOM|EVT_SCROLL_LINEUP|EVT_SCROLL_LINEDOWN|EVT_SCROLL_PAGEUP|EVT_SCROLL_PAGEDOWN|EVT_SCROLL_THUMBTRACK|EVT_SCROLL_THUMBRELEASE|EVT_SCROLL_CHANGED|EVT_SCROLL|EVT_SCROLL_TOP|EVT_SCROLL_BOTTOM|EVT_SCROLL_LINEUP|EVT_SCROLL_LINEDOWN|EVT_SCROLL_PAGEUP|EVT_SCROLL_PAGEDOWN|EVT_SCROLL_THUMBTRACK|EVT_SCROLL_THUMBRELEASE|EVT_SCROLL_CHANGED</events>
+                                                  <assign_var>1</assign_var>
+                                                </XRCED>
+                                              </object>
+                                              <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+                                              <border>2</border>
+                                            </object>
+                                            <orient>wxVERTICAL</orient>
+                                          </object>
+                                          <option>3</option>
+                                          <flag>wxLEFT</flag>
+                                          <border>20</border>
+                                        </object>
+                                        <object class="sizeritem">
+                                          <object class="wxTextCtrl" name="CutoffText">
+                                            <style>wxTE_RIGHT</style>
+                                            <XRCED>
+                                              <events>EVT_TEXT</events>
+                                              <assign_var>1</assign_var>
+                                            </XRCED>
+                                          </object>
+                                          <option>2</option>
+                                          <flag>wxLEFT|wxALIGN_CENTRE</flag>
+                                          <border>15</border>
+                                        </object>
+                                        <orient>wxHORIZONTAL</orient>
+                                        <XRCED>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+                                      <border>2</border>
+                                    </object>
+                                    <orient>wxVERTICAL</orient>
+                                    <XRCED>
+                                      <assign_var>1</assign_var>
+                                    </XRCED>
+                                  </object>
+                                  <flag>wxLEFT|wxALL|wxEXPAND</flag>
+                                  <border>2</border>
+                                </object>
+                                <object class="sizeritem">
+                                  <object class="wxBoxSizer">
+                                    <object class="sizeritem">
+                                      <object class="wxRadioButton" name="InverseRadio">
+                                        <size>80,-1d</size>
+                                        <label>Inverse Distance</label>
+                                        <XRCED>
+                                          <events>EVT_RADIOBUTTON</events>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxLEFT|wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                      <border>2</border>
+                                    </object>
+                                    <object class="spacer">
+                                      <size>5,5d</size>
+                                      <XRCED>
+                                        <assign_var>1</assign_var>
+                                      </XRCED>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxBoxSizer">
+                                        <orient>wxHORIZONTAL</orient>
+                                        <XRCED>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                        <object class="sizeritem">
+                                          <object class="wxStaticText">
+                                            <size>50,-1d</size>
+                                            <label>Power</label>
+                                          </object>
+                                          <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                          <border>2</border>
+                                        </object>
+                                        <object class="sizeritem">
+                                          <object class="wxSpinCtrl" name="PowerSpin">
+                                            <size>45,-1d</size>
+                                            <value>1</value>
+                                            <min>1</min>
+                                            <XRCED>
+                                              <events>EVT_SPINCTRL</events>
+                                              <assign_var>1</assign_var>
+                                            </XRCED>
+                                          </object>
+                                        </object>
+                                      </object>
+                                    </object>
+                                    <orient>wxHORIZONTAL</orient>
+                                    <XRCED>
+                                      <assign_var>1</assign_var>
+                                    </XRCED>
+                                  </object>
+                                  <flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND</flag>
+                                  <border>2</border>
+                                </object>
+                                <orient>wxVERTICAL</orient>
+                                <XRCED>
+                                  <assign_var>1</assign_var>
+                                </XRCED>
+                                <object class="sizeritem">
+                                  <object class="wxBoxSizer">
+                                    <object class="sizeritem">
+                                      <object class="wxBoxSizer">
+                                        <object class="sizeritem">
+                                          <object class="wxStaticText">
+                                            <label>Cut-off point</label>
+                                          </object>
+                                          <flag>wxALL|wxALIGN_CENTRE</flag>
+                                          <border>2</border>
+                                        </object>
+                                        <object class="sizeritem">
+                                          <object class="wxSlider" name="ThresholdSlider2">
+                                            <value>0</value>
+                                            <min>0</min>
+                                            <max>100000</max>
+                                            <style>wxSL_HORIZONTAL</style>
+                                            <XRCED>
+                                              <events>EVT_SCROLL|EVT_SCROLL_TOP|EVT_SCROLL_BOTTOM|EVT_SCROLL_LINEUP|EVT_SCROLL_LINEDOWN|EVT_SCROLL_PAGEUP|EVT_SCROLL_PAGEDOWN|EVT_SCROLL_THUMBTRACK|EVT_SCROLL_THUMBRELEASE|EVT_SCROLL_CHANGED|EVT_SCROLL|EVT_SCROLL_TOP|EVT_SCROLL_BOTTOM|EVT_SCROLL_LINEUP|EVT_SCROLL_LINEDOWN|EVT_SCROLL_PAGEUP|EVT_SCROLL_PAGEDOWN|EVT_SCROLL_THUMBTRACK|EVT_SCROLL_THUMBRELEASE|EVT_SCROLL_CHANGED</events>
+                                              <assign_var>1</assign_var>
+                                            </XRCED>
+                                          </object>
+                                          <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+                                          <border>2</border>
+                                        </object>
+                                        <orient>wxVERTICAL</orient>
+                                      </object>
+                                      <option>3</option>
+                                      <flag>wxLEFT</flag>
+                                      <border>20</border>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxTextCtrl" name="CutoffText2">
+                                        <style>wxTE_RIGHT</style>
+                                        <XRCED>
+                                          <events>EVT_TEXT</events>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <option>2</option>
+                                      <flag>wxLEFT|wxALIGN_CENTRE</flag>
+                                      <border>15</border>
+                                    </object>
+                                    <orient>wxHORIZONTAL</orient>
+                                    <XRCED>
+                                      <assign_var>1</assign_var>
+                                    </XRCED>
+                                  </object>
+                                  <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+                                  <border>2</border>
+                                </object>
+                              </object>
+                              <flag>wxALL|wxEXPAND|wxALIGN_CENTRE_HORIZONTAL</flag>
+                              <border>2</border>
+                            </object>
+                          </object>
+                          <XRCED>
+                            <assign_var>1</assign_var>
+                          </XRCED>
+                        </object>
+                        <label>Distance</label>
+                      </object>
+                      <object class="notebookpage">
+                        <object class="wxPanel" name="KernelPanel">
+                          <object class="wxBoxSizer">
+                            <object class="sizeritem">
+                              <object class="wxBoxSizer">
+                                <object class="sizeritem">
+                                  <object class="wxBoxSizer">
+                                    <object class="sizeritem">
+                                      <object class="wxStaticText">
+                                        <label>Select distance metric</label>
+                                      </object>
+                                      <flag>wxLEFT|wxRIGHT|wxALIGN_CENTRE</flag>
+                                      <border>2</border>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxChoice" name="KdistMethodChoice">
+                                        <XRCED>
+                                          <events>EVT_CHOICE</events>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <option>1</option>
+                                      <flag>wxLEFT|wxRIGHT|wxALIGN_CENTRE</flag>
+                                      <border>10</border>
+                                    </object>
+                                    <orient>wxHORIZONTAL</orient>
+                                  </object>
+                                  <option>1</option>
+                                  <flag>wxBOTTOM|wxEXPAND</flag>
+                                  <border>10</border>
+                                </object>
+                                <object class="sizeritem">
+                                  <object class="wxBoxSizer">
+                                    <object class="sizeritem">
+                                      <object class="wxStaticText">
+                                        <size>50,-1d</size>
+                                        <label>Kernel function</label>
+                                      </object>
+                                      <flag>wxLEFT|wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                      <border>2</border>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxChoice" name="KFuncChoice">
+                                        <content>
+                                          <item>Uniform</item>
+                                          <item>Triangular</item>
+                                          <item>Epanechnikov</item>
+                                          <item>Quartic</item>
+                                          <item>Gaussian</item>
+                                        </content>
+                                        <selection>0</selection>
+                                        <XRCED>
+                                          <events>EVT_CHOICE</events>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                      <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                      <border>2</border>
+                                    </object>
+                                    <object class="spacer">
+                                      <size>30,-1d</size>
+                                    </object>
+                                    <orient>wxHORIZONTAL</orient>
+                                  </object>
+                                  <flag>wxTOP|wxLEFT|wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                  <border>2</border>
+                                </object>
+                                <object class="spacer">
+                                  <size>2,2d</size>
+                                </object>
+                                <object class="sizeritem">
+                                  <object class="wxBoxSizer">
+                                    <object class="sizeritem">
+                                      <object class="wxStaticText">
+                                        <size>50,-1d</size>
+                                        <label># of neighbors</label>
+                                      </object>
+                                      <flag>wxLEFT|wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                      <border>2</border>
+                                    </object>
+                                    <object class="sizeritem">
+                                      <object class="wxSpinCtrl" name="KNumNeighSpin">
+                                        <value>4</value>
+                                        <min>2</min>
+                                        <XRCED>
+                                          <events>EVT_SPINCTRL</events>
+                                          <assign_var>1</assign_var>
+                                        </XRCED>
+                                      </object>
+                                    </object>
+                                    <orient>wxHORIZONTAL</orient>
+                                  </object>
+                                  <flag>wxLEFT|wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                                  <border>2</border>
+                                </object>
+                                <orient>wxVERTICAL</orient>
+                                <XRCED>
+                                  <assign_var>1</assign_var>
+                                </XRCED>
+                              </object>
+                              <flag>wxALL|wxALIGN_CENTRE_HORIZONTAL</flag>
+                              <border>2</border>
+                            </object>
+                            <orient>wxVERTICAL</orient>
+                            <XRCED>
+                              <assign_var>1</assign_var>
+                            </XRCED>
+                          </object>
+                          <XRCED>
+                            <assign_var>1</assign_var>
+                          </XRCED>
+                        </object>
+                        <label>Adaptive Kernel</label>
+                      </object>
+                      <size>200,-1d</size>
+                      <XRCED>
+                        <events>EVT_NOTEBOOK_PAGE_CHANGED</events>
+                        <assign_var>1</assign_var>
+                      </XRCED>
+                    </object>
+                    <option>1</option>
+                    <flag>wxALL|wxEXPAND</flag>
+                    <border>2</border>
+                  </object>
+                  <orient>wxHORIZONTAL</orient>
+                  <XRCED>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <option>1</option>
+                <flag>wxEXPAND|wxALIGN_CENTRE</flag>
+                <border>2</border>
+              </object>
+              <object class="sizeritem">
+                <object class="wxBoxSizer">
+                  <object class="sizeritem">
+                    <object class="wxButton" name="CreateButton">
+                      <label>Create</label>
+                      <XRCED>
+                        <events>EVT_BUTTON</events>
+                        <assign_var>1</assign_var>
+                      </XRCED>
+                    </object>
+                    <flag>wxALL|wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL</flag>
+                    <border>2</border>
+                  </object>
+                  <object class="spacer">
+                    <size>30,-1d</size>
+                    <XRCED>
+                      <assign_var>1</assign_var>
+                    </XRCED>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxButton" name="CloseButton">
+                      <label>Cancel</label>
+                      <XRCED>
+                        <events>EVT_BUTTON</events>
+                        <assign_var>1</assign_var>
+                      </XRCED>
+                    </object>
+                    <flag>wxALL|wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL</flag>
+                    <border>2</border>
+                  </object>
+                  <orient>wxHORIZONTAL</orient>
+                  <XRCED>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxALL|wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL</flag>
+                <border>5</border>
+              </object>
+              <orient>wxVERTICAL</orient>
+              <XRCED>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <option>1</option>
+            <flag>wxALL|wxEXPAND</flag>
+            <border>2</border>
+          </object>
+          <orient>wxVERTICAL</orient>
+          <XRCED>
+            <assign_var>1</assign_var>
+          </XRCED>
+        </object>
+        <option>1</option>
+        <flag>wxALL|wxEXPAND</flag>
+        <border>2</border>
+      </object>
+      <orient>wxVERTICAL</orient>
+      <XRCED>
+        <assign_var>1</assign_var>
+      </XRCED>
+    </object>
+    <title>Weights Creation</title>
+    <centered>1</centered>
+    <style>wxCAPTION|wxSYSTEM_MENU|wxRESIZE_BORDER|wxRESIZE_BOX|wxCLOSE_BOX</style>
+    <XRCED>
+      <events>EVT_CLOSE</events>
+    </XRCED>
+  </object>
+  <object class="wxFrame" name="mainGUI">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <object class="sizeritem">
+            <object class="wxButton" name="ModelWeigths">
+              <label>Create Model Weights...</label>
+              <XRCED>
+                <events>EVT_BUTTON</events>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE</flag>
+            <border>35</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="KernelWeights">
+              <label>Create Kernel Weights...</label>
+              <XRCED>
+                <events>EVT_BUTTON</events>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE</flag>
+            <border>35</border>
+          </object>
+          <label>Create Weights</label>
+          <orient>wxVERTICAL</orient>
+        </object>
+        <flag>wxALL|wxEXPAND</flag>
+        <border>10</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <label>Weights Props</label>
+          <orient>wxVERTICAL</orient>
+          <object class="sizeritem">
+            <object class="wxButton" name="WeightsProps">
+              <label>Open Weights Properties...</label>
+              <XRCED>
+                <events>EVT_BUTTON</events>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE</flag>
+            <border>35</border>
+          </object>
+        </object>
+        <flag>wxALL|wxEXPAND</flag>
+        <border>10</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxButton" name="Quit">
+              <label>Quit</label>
+              <XRCED>
+                <events>EVT_BUTTON</events>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <flag>wxALL|wxALIGN_RIGHT</flag>
+            <border>20</border>
+          </object>
+          <object class="spacer">
+            <size>350,0</size>
+          </object>
+          <orient>wxVERTICAL</orient>
+        </object>
+        <flag>wxALL|wxALIGN_RIGHT</flag>
+        <border>2</border>
+      </object>
+    </object>
+    <title>GeoDa Weights -- Demo Application</title>
+  </object>
+  <object class="wxDialog" name="AddIDVar">
+    <title>Add New ID Variable</title>
+    <centered>1</centered>
+    <style>wxDEFAULT_DIALOG_STYLE</style>
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxStaticText">
+          <label>Enter new ID variable name:</label>
+        </object>
+        <flag>wxALL|wxALIGN_CENTRE</flag>
+        <border>5</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxTextCtrl" name="idVarName">
+          <XRCED>
+            <assign_var>1</assign_var>
+          </XRCED>
+        </object>
+        <flag>wxALL|wxEXPAND</flag>
+        <border>5</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticText">
+          <label>Existing Variables</label>
+        </object>
+        <flag>wxALL|wxALIGN_CENTRE</flag>
+        <border>5</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxListBox" name="existingVarsListBox">
+          <size>-1,190</size>
+          <XRCED>
+            <assign_var>1</assign_var>
+          </XRCED>
+        </object>
+        <flag>wxALL|wxEXPAND</flag>
+        <border>5</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxButton" name="save">
+              <label>Save to DBF File</label>
+              <XRCED>
+                <events>EVT_BUTTON</events>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE</flag>
+            <border>10</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="cancel">
+              <label>Cancel</label>
+              <XRCED>
+                <events>EVT_BUTTON</events>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE</flag>
+            <border>10</border>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <flag>wxBOTTOM</flag>
+        <border>5</border>
+      </object>
+    </object>
+  </object>
+  <object class="wxDialog" name="weightsProperties">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Select W:</label>
+            </object>
+            <flag>wxRIGHT</flag>
+            <border>10</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxChoice" name="selectWChoice">
+              <size>350,-1</size>
+              <XRCED>
+                <events>EVT_CHOICE</events>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <option>1</option>
+            <flag>wxEXPAND</flag>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+        <border>10</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <object class="sizeritem">
+            <object class="wxFlexGridSizer">
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Name:</label>
+                </object>
+                <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="nameTC">
+                  <style>wxTE_READONLY</style>
+                  <XRCED>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxALL|wxEXPAND|wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Transform:</label>
+                </object>
+                <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxChoice" name="transformChoice">
+                  <XRCED>
+                    <events>EVT_CHOICE</events>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxEXPAND|wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Islands:</label>
+                </object>
+                <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="islandsTC">
+                  <style>wxTE_READONLY</style>
+                  <XRCED>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxEXPAND|wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxBoxSizer">
+                  <object class="sizeritem">
+                    <object class="wxStaticText">
+                      <label>Neighbors of:</label>
+                    </object>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxChoice" name="idListChoice">
+                      <size>80,-1</size>
+                      <XRCED>
+                        <events>EVT_CHOICE</events>
+                        <assign_var>1</assign_var>
+                      </XRCED>
+                    </object>
+                  </object>
+                  <orient>wxVERTICAL</orient>
+                </object>
+                <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="weightsTC">
+                  <size>-1,50</size>
+                  <style>wxTE_MULTILINE|wxTE_READONLY</style>
+                  <XRCED>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxEXPAND</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Cardinalities:</label>
+                </object>
+                <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="cardinalitiesTC">
+                  <size>-1,50</size>
+                  <style>wxTE_MULTILINE|wxTE_READONLY</style>
+                  <XRCED>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxEXPAND</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Ids:</label>
+                </object>
+                <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="idsTC">
+                  <size>-1,50</size>
+                  <style>wxTE_MULTILINE|wxTE_READONLY</style>
+                  <XRCED>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxEXPAND</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Histogram:</label>
+                </object>
+                <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="histogramTC">
+                  <size>-1,50</size>
+                  <tooltip>[(NumNeighbors, Count), ....]</tooltip>
+                  <style>wxTE_MULTILINE|wxTE_READONLY</style>
+                  <XRCED>
+                    <assign_var>1</assign_var>
+                  </XRCED>
+                </object>
+                <flag>wxEXPAND</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Viewer:</label>
+                </object>
+                <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxBoxSizer">
+                  <object class="sizeritem">
+                    <object class="wxButton" name="viewerButton">
+                      <label>Launch...</label>
+                      <font>
+                        <size>13</size>
+                        <style>normal</style>
+                        <weight>normal</weight>
+                        <underlined>0</underlined>
+                        <family>default</family>
+                        <face>Lucida Grande</face>
+                        <encoding/>
+                      </font>
+                      <XRCED>
+                        <events>EVT_BUTTON</events>
+                        <assign_var>1</assign_var>
+                      </XRCED>
+                    </object>
+                    <flag>wxALIGN_CENTRE</flag>
+                  </object>
+                  <orient>wxHORIZONTAL</orient>
+                  <object class="sizeritem">
+                    <object class="wxStaticText">
+                      <label>*Experimental</label>
+                      <font>
+                        <size>10</size>
+                        <style>normal</style>
+                        <weight>normal</weight>
+                        <underlined>0</underlined>
+                        <family>default</family>
+                        <face>applicationfont</face>
+                        <encoding/>
+                      </font>
+                    </object>
+                    <flag>wxLEFT|wxALIGN_BOTTOM</flag>
+                    <border>5</border>
+                  </object>
+                </object>
+              </object>
+              <cols>2</cols>
+              <rows>8</rows>
+              <vgap>8</vgap>
+              <hgap>5</hgap>
+              <growablecols>1</growablecols>
+              <growablerows>3,4,5,6</growablerows>
+            </object>
+            <option>1</option>
+            <flag>wxALL|wxEXPAND</flag>
+            <border>5</border>
+          </object>
+          <label>Properties</label>
+          <orient>wxVERTICAL</orient>
+        </object>
+        <option>1</option>
+        <flag>wxALL|wxEXPAND</flag>
+        <border>5</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxButton" name="closeButton">
+              <label>Close</label>
+              <XRCED>
+                <events>EVT_BUTTON</events>
+                <assign_var>1</assign_var>
+              </XRCED>
+            </object>
+            <flag>wxALL</flag>
+            <border>10</border>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <flag>wxALIGN_CENTRE</flag>
+      </object>
+    </object>
+    <title>Weights Properties Editor</title>
+    <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
+  </object>
+</resource>

@@ -1,0 +1,18 @@
+>>> db = pysal.open('examples/columbus.dbf','r')
+>>> y = np.array([db.by_col('HOVAL')]).T
+>>> x = np.array([db.by_col('INC'), db.by_col('CRIME')]).T
+>>> w = pysal.open('examples/columbus.gal', 'r').read()
+>>> w.transform = 'r'
+>>>
+>>> lm_all = LMtests(x, y, w)
+>>>
+>>> lm_all.lme
+(3.992947267432295, 0.045691076106858394)
+>>> lm_all.lml
+(1.8194874340454195, 0.17737430099228549)
+>>> lm_all.rlme
+(2.8712886542421709, 0.090172642054033358)
+>>> lm_all.rlml
+(0.69782882085529507, 0.4035142049850427)
+>>> lm_all.sarma
+(4.6907760882875902, 0.095810016400331821)
