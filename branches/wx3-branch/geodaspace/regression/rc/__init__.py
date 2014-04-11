@@ -1,1 +1,1 @@
-import OGRegression_xrc
+import view

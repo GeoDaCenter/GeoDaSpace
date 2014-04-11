@@ -1,1 +1,1 @@
-import SpatialLag_xrc
+import view

@@ -1,6 +1,6 @@
 import wx
 from control import preferencesDialog
-from preferences_xrc import xrcDemo
+from view import xrcDemo
 
 
 class demo(xrcDemo):

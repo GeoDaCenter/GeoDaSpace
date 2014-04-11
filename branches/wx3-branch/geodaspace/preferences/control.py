@@ -5,7 +5,7 @@ import wx
 # local
 from geodaspace import remapEvtsToDispatcher, DEBUG
 from model import preferencesModel
-import preferences_xrc
+import view
 from tooltips import tips
 
 from econometrics.gs_dispatcher import INV_METHODS
@@ -20,7 +20,7 @@ OUTPUT_PAGE = 3
 OTHER_PAGE = 4
 
 
-class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
+class preferencesDialog(view.xrcgsPrefsDialog):
     """
     GeoDaSpace Preference Dialog --
     Displays a Dialog for editing GeoDaSpace Preferences
@@ -59,7 +59,7 @@ class preferencesDialog(preferences_xrc.xrcgsPrefsDialog):
     def __init__(self, parent=None):
         self.__mod = False
         remapEvtsToDispatcher(self, self.evtDispatch)
-        preferences_xrc.xrcgsPrefsDialog.__init__(self, parent)
+        view.xrcgsPrefsDialog.__init__(self, parent)
         self.CompInverse.SetItems(list(INV_METHODS))
         self.MLMethod.SetItems(list(ML_METHODS))
         #self.numcores.SetItems(map(str, CPU_OPTIONS))

@@ -14,7 +14,7 @@ from geodaspace.weights.control import ENABLE_CONTIGUITY_WEIGHTS,\
 from geodaspace import spatialLag
 from geodaspace.preferences import preferencesDialog
 import variableTools
-import M_regression
+import model
 import pysal
 
 WHITE_TOOL_TIP = "White, H. (1980), Econometrica"
@@ -189,7 +189,7 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
         self.X_ListBox.SetDropTarget(ListBoxDropTarget(self.X_ListBox))
 
         # The Model
-        self.model = M_regression.guiRegModel()
+        self.model = model.guiRegModel()
         self.model.data['config'] = self.config.GetPrefs()
         self.model.addListener(self.populate)
         # self.model.addListener(self.verbose)

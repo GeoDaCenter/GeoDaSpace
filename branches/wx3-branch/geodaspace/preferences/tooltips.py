@@ -21,7 +21,7 @@ for widget in tips:
 notice that is the widget's Label is named "widgetLabel" the label will be
 given the tooltip as well.
 """
-import preferences_xrc
+import view
 
 tips = {
     'CompInverse': "Warning for \"true inverse\": Slow Computation Times!",
