@@ -1,11 +1,11 @@
 import os.path
 import wx
-from geodaspace.spatialLag.rc import SpatialLag_xrc
+from geodaspace.spatialLag.rc import view
 #from geodaspace.abstractmodel import AbstractModel
 from models import M_CreateSpatialLag, M_spLagVariable
 
 
-class C_spLagVariable(SpatialLag_xrc.xrcSpLagVariable):
+class C_spLagVariable(view.xrcSpLagVariable):
     """ Control for an XRC panel that contains, [textCtrl] = W*[dropDown] """
     def __init__(self, parent=None):
         SpatialLag_xrc.xrcSpLagVariable.__init__(self, parent)
@@ -116,7 +116,7 @@ class C_spLagVariable(SpatialLag_xrc.xrcSpLagVariable):
                 self.model.set('caution', False, True)
 
 
-class C_CreateSpatialLag(SpatialLag_xrc.xrcCreateSpatialLag):
+class C_CreateSpatialLag(view.xrcCreateSpatialLag):
     def __init__(self, parent=None, dataFile=None, wtFiles=[''], vars=[''],
                  results=[], dialogMode=False):
         self.results = results

@@ -1,7 +1,7 @@
 import wx
 from geodaspace.regression import variableTools
-from geodaspace.regression import M_regression
-from geodaspace.regression import V_regression
+from geodaspace.regression import model
+from geodaspace.regression import control
 import sys
 import multiprocessing
 
@@ -25,7 +25,7 @@ class guiApp(wx.App):
         x, y, X, Y = wx.ClientDisplayRect()
         maxWidth = X - x
         maxHeight = Y - y
-        self.regFrame = V_regression.guiRegView(results=self.results)
+        self.regFrame = control.guiRegView(results=self.results)
         width, height = self.regFrame.GetSize()
         if height > maxHeight:
             height = maxHeight - DOCK_SIZE

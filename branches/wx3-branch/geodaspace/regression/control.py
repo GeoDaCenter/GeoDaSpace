@@ -6,7 +6,7 @@ import wx
 import geodaspace
 from geodaspace import textwindow
 from geodaspace.icons import icons
-from geodaspace.regression.rc import OGRegression_xrc
+from geodaspace.regression.rc import view
 from geodaspace import weights
 from geodaspace.weights.control import ENABLE_CONTIGUITY_WEIGHTS,\
     ENABLE_DISTANCE_WEIGHTS, ENABLE_KERNEL_WEIGHTS, WEIGHT_TYPES_FILTER,\
@@ -125,10 +125,10 @@ class ListBoxUpdateEvent(wx.PyCommandEvent):
         wx.PyCommandEvent.__init__(self, evtType, id)
 
 
-class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
+class guiRegView(view.xrcGMM_REGRESSION):
     def __init__(self, parent=None, results=None):
         self.results = results
-        OGRegression_xrc.xrcGMM_REGRESSION.__init__(self, parent)
+        view.xrcGMM_REGRESSION.__init__(self, parent)
         self.SendSizeEvent()
 
         # Linux Fix for Drag and Drop

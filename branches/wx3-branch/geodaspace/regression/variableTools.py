@@ -1,9 +1,8 @@
 import wx
 import random
 import sys
-from geodaspace.regression.rc import OGRegression_xrc
+from geodaspace.regression.rc import view
 from geodaspace.abstractmodel import AbstractModel
-
 
 class mVariableSelector(AbstractModel):
     def __init__(self, data):
@@ -59,7 +58,7 @@ class vVariableSelector(wx.MiniFrame):
     def __init__(self, parent=None, style=wx.DEFAULT_FRAME_STYLE,
                  size=(200, 400), values=None):
         wx.MiniFrame.__init__(self, parent=parent, style=style, size=size)
-        self.panel = OGRegression_xrc.xrcVariablePanel(self)
+        self.panel = view.xrcVariablePanel(self)
         self.sourcelist = self.panel.variableList
         self.sourcelist.Bind(wx.EVT_LIST_BEGIN_DRAG, self._startDrag)
         # self.panel.ToolBar.Bind(wx.EVT_MENU, self.spatialLag, id =
