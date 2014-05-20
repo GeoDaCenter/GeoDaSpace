@@ -392,6 +392,7 @@ class ML_Lag_Regimes(BaseML_Lag, REGI.Regimes_Frame):
         if cores:
             pool.close()
             pool.join()
+        
         results = {}
         self.name_y, self.name_x = [],[]
         counter = 0
