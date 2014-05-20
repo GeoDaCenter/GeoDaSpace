@@ -54,10 +54,10 @@ class ML_Error_Regimes(BaseML_Error, REGI.Regimes_Frame):
                    tolerance criterion in mimimize_scalar function and inverse_product
     regime_err_sep : boolean
                    If True, a separate regression is run for each regime.
-    cores        : integer
-                   Specifies the number of cores to be used in multiprocessing
-                   Default: all cores available (specified as cores=None).
-                   Note: Multiprocessing currently not available on Windows.
+    cores        : boolean
+                   Specifies if multiprocessing is to be used
+                   Default: no multiprocessing, cores = False
+                   Note: Multiprocessing may not work on all platforms.
     spat_diag    : boolean
                    if True, include spatial diagnostics
     vm           : boolean
@@ -266,7 +266,7 @@ class ML_Error_Regimes(BaseML_Error, REGI.Regimes_Frame):
 
     def __init__(self, y, x, regimes, w=None, constant_regi='many',\
                  cols2regi='all', method='full', epsilon=0.0000001,\
-                 regime_err_sep=False, cores=None, spat_diag=False,\
+                 regime_err_sep=False, cores=False, spat_diag=False,\
                  vm=False, name_y=None, name_x=None,\
                  name_w=None, name_ds=None, name_regimes=None):
 
@@ -325,6 +325,7 @@ class ML_Error_Regimes(BaseML_Error, REGI.Regimes_Frame):
 
         regi_ids = dict((r, list(np.where(np.array(regimes) == r)[0])) for r in self.regimes_set)    
         results_p = {}
+        """
         for r in self.regimes_set:
             if system() == 'Windows':
                 is_win = True
@@ -333,6 +334,14 @@ class ML_Error_Regimes(BaseML_Error, REGI.Regimes_Frame):
                 pool = mp.Pool(cores)
                 results_p[r] = pool.apply_async(_work_error,args=(y,x,regi_ids,r,w,method,epsilon,self.name_ds,self.name_y,name_x+['lambda'],self.name_w,self.name_regimes, ))
                 is_win = False
+        """
+        for r in self.regimes_set:
+            if cores:
+                pool = mp.Pool(None)
+                results_p[r] = pool.apply_async(_work_error,args=(y,x,regi_ids,r,w,method,epsilon,self.name_ds,self.name_y,name_x+['lambda'],self.name_w,self.name_regimes, ))
+            else:
+                results_p[r] = _work_error(*(y,x,regi_ids,r,w,method,epsilon,self.name_ds,self.name_y,name_x+['lambda'],self.name_w,self.name_regimes))
+                
         self.kryd = 0
         self.kr = len(cols2regi)+1
         self.kf = 0
@@ -343,16 +352,29 @@ class ML_Error_Regimes(BaseML_Error, REGI.Regimes_Frame):
         self.predy = np.zeros((self.n,1),float)
         self.e_filtered = np.zeros((self.n,1),float)
         self.name_y, self.name_x = [],[]
+        """
         if not is_win:
             pool.close()
             pool.join()
+        """
+        if cores:
+            pool.close()
+            pool.join()
+        
         results = {}
         counter = 0
         for r in self.regimes_set:
+            """
             if is_win:
                 results[r] = results_p[r]
             else:
                 results[r] = results_p[r].get()
+            """
+            if not cores:
+                results[r] = results_p[r]
+            else:
+                results[r] = results_p[r].get()
+            
             self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
             self.betas[(counter*self.kr):((counter+1)*self.kr),] = results[r].betas
             self.u[regi_ids[r],]=results[r].u
@@ -417,5 +439,6 @@ if __name__ == "__main__":
             regimes.append("South")            
     
     mlerror = ML_Error_Regimes(y,x,regimes,w=w,method='full',name_y=y_name,\
-            name_x=x_names,name_w=w_name,name_ds=ds_name,regime_err_sep=False)
+            name_x=x_names,name_w=w_name,name_ds=ds_name,regime_err_sep=False,\
+            name_regimes="North")
     print mlerror.summary
