@@ -62,10 +62,10 @@ class GM_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     vm           : boolean
                    If True, include variance-covariance matrix in summary
                    results
-    cores        : integer
-                   Specifies the number of cores to be used in multiprocessing
-                   Default: all cores available (specified as cores=None).
-                   Note: Multiprocessing currently not available on Windows.
+    cores        : boolean
+                   Specifies if multiprocessing is to be used
+                   Default: no multiprocessing, cores = False
+                   Note: Multiprocessing may not work on all platforms.
     name_y       : string
                    Name of dependent variable for use in output
     name_x       : list of strings
@@ -287,7 +287,7 @@ class GM_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
 
     def __init__(self, y, x, regimes, w, max_iter=1, epsilon=0.00001, step1c=False,\
                  constant_regi='many', cols2regi='all', regime_err_sep=False,\
-                 cores=None, vm=False, name_y=None, name_x=None, name_w=None,\
+                 cores=False, vm=False, name_y=None, name_x=None, name_w=None,\
                  name_ds=None, name_regimes=None):
 
         n = USER.check_arrays(y, x)
@@ -380,6 +380,7 @@ class GM_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
 
         regi_ids = dict((r, list(np.where(np.array(regimes) == r)[0])) for r in self.regimes_set)    
         results_p = {}
+        """
         for r in self.regimes_set:
             if system() == 'Windows':
                 is_win = True
@@ -388,6 +389,14 @@ class GM_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
                 pool = mp.Pool(cores)
                 results_p[r] = pool.apply_async(_work_error,args=(y,x,regi_ids,r,w,max_iter,epsilon,step1c,self.name_ds,self.name_y,name_x+['lambda'],self.name_w,self.name_regimes, ))
                 is_win = False
+        """
+        for r in self.regimes_set:
+            if cores:
+                pool = mp.Pool(None)
+                results_p[r] = pool.apply_async(_work_error,args=(y,x,regi_ids,r,w,max_iter,epsilon,step1c,self.name_ds,self.name_y,name_x+['lambda'],self.name_w,self.name_regimes, ))
+            else:
+                results_p[r] = _work_error(*(y,x,regi_ids,r,w,max_iter,epsilon,step1c,self.name_ds,self.name_y,name_x+['lambda'],self.name_w,self.name_regimes))
+        
         self.kryd = 0
         self.kr = len(cols2regi)+1
         self.kf = 0
@@ -397,17 +406,30 @@ class GM_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         self.u = np.zeros((self.n,1),float)
         self.predy = np.zeros((self.n,1),float)
         self.e_filtered = np.zeros((self.n,1),float)
+        """
         if not is_win:
             pool.close()
             pool.join()
+        """
+        if cores:
+            pool.close()
+            pool.join()
+                
         results = {}
         self.name_y, self.name_x = [],[]
         counter = 0
         for r in self.regimes_set:
+            """
             if is_win:
                 results[r] = results_p[r]
             else:
                 results[r] = results_p[r].get()
+            """
+            if not cores:
+                results[r] = results_p[r]
+            else:
+                results[r] = results_p[r].get()
+                        
             self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
             self.betas[(counter*self.kr):((counter+1)*self.kr),] = results[r].betas
             self.u[regi_ids[r],]=results[r].u
@@ -477,10 +499,10 @@ class GM_Endog_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     vm           : boolean
                    If True, include variance-covariance matrix in summary
                    results
-    cores        : integer
-                   Specifies the number of cores to be used in multiprocessing
-                   Default: all cores available (specified as cores=None).
-                   Note: Multiprocessing currently not available on Windows.
+    cores        : boolean
+                   Specifies if multiprocessing is to be used
+                   Default: no multiprocessing, cores = False
+                   Note: Multiprocessing may not work on all platforms.
     name_y       : string
                    Name of dependent variable for use in output
     name_x       : list of strings
@@ -744,7 +766,7 @@ class GM_Endog_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     def __init__(self, y, x, yend, q, regimes, w,\
                  max_iter=1, epsilon=0.00001, step1c=False,\
                  constant_regi='many', cols2regi='all', regime_err_sep=False,\
-                 inv_method='power_exp', cores=None,\
+                 inv_method='power_exp', cores=False,\
                  vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None, name_w=None, name_ds=None,\
                  name_regimes=None, summ=True, add_lag=False):
@@ -867,6 +889,7 @@ class GM_Endog_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
             self.predy_e = np.zeros((self.n,1),float)
             self.e_pred = np.zeros((self.n,1),float)
         results_p = {}
+        """
         for r in self.regimes_set:
             if system() == 'Windows':
                 is_win = True
@@ -875,6 +898,14 @@ class GM_Endog_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
                 pool = mp.Pool(cores)        
                 results_p[r] = pool.apply_async(_work_endog_error,args=(y,x,yend,q,regi_ids,r,w,max_iter,epsilon,step1c,inv_method,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes,add_lag, ))
                 is_win = False
+        """
+        for r in self.regimes_set:
+            if cores:
+                pool = mp.Pool(None)
+                results_p[r] = pool.apply_async(_work_endog_error,args=(y,x,yend,q,regi_ids,r,w,max_iter,epsilon,step1c,inv_method,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes,add_lag, ))
+            else:
+                results_p[r] = _work_endog_error(*(y,x,yend,q,regi_ids,r,w,max_iter,epsilon,step1c,inv_method,self.name_ds,self.name_y,name_x,name_yend,name_q,self.name_w,self.name_regimes,add_lag))
+                        
         self.kryd,self.kf = 0,0
         self.kr = len(cols2regi)+1
         self.nr = len(self.regimes_set)
@@ -883,17 +914,30 @@ class GM_Endog_Error_Het_Regimes(RegressionPropsY, REGI.Regimes_Frame):
         self.u = np.zeros((self.n,1),float)
         self.predy = np.zeros((self.n,1),float)
         self.e_filtered = np.zeros((self.n,1),float)
+        """
         if not is_win:
             pool.close()
             pool.join()
+        """
+        if cores:
+            pool.close()
+            pool.join()
+                
         results = {}
         self.name_y, self.name_x, self.name_yend, self.name_q, self.name_z, self.name_h = [],[],[],[],[],[]
         counter = 0
         for r in self.regimes_set:
+            """
             if is_win:
                 results[r] = results_p[r]
             else:
                 results[r] = results_p[r].get()
+            """
+            if not cores:
+                results[r] = results_p[r]
+            else:
+                results[r] = results_p[r].get()
+                        
             self.vm[(counter*self.kr):((counter+1)*self.kr),(counter*self.kr):((counter+1)*self.kr)] = results[r].vm
             self.betas[(counter*self.kr):((counter+1)*self.kr),] = results[r].betas
             self.u[regi_ids[r],]=results[r].u
@@ -985,10 +1029,10 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
     vm           : boolean
                    If True, include variance-covariance matrix in summary
                    results
-    cores        : integer
-                   Specifies the number of cores to be used in multiprocessing
-                   Default: all cores available (specified as cores=None).
-                   Note: Multiprocessing currently not available on Windows.
+    cores        : boolean
+                   Specifies if multiprocessing is to be used
+                   Default: no multiprocessing, cores = False
+                   Note: Multiprocessing may not work on all platforms.
     name_y       : string
                    Name of dependent variable for use in output
     name_x       : list of strings
@@ -1285,7 +1329,7 @@ class GM_Combo_Het_Regimes(GM_Endog_Error_Het_Regimes):
     def __init__(self, y, x, regimes, yend=None, q=None,\
                  w=None, w_lags=1, lag_q=True,\
                  max_iter=1, epsilon=0.00001, step1c=False,\
-                 cores=None, inv_method='power_exp',\
+                 cores=False, inv_method='power_exp',\
                  constant_regi='many', cols2regi='all',\
                  regime_err_sep=False, regime_lag_sep=False,\
                  vm=False, name_y=None, name_x=None,\
