@@ -54,6 +54,8 @@ class ML_Error_Regimes(BaseML_Error, REGI.Regimes_Frame):
                    tolerance criterion in mimimize_scalar function and inverse_product
     regime_err_sep : boolean
                    If True, a separate regression is run for each regime.
+    regime_lag_sep : boolean
+                   Always False, kept for consistency in function call, ignored.
     cores        : boolean
                    Specifies if multiprocessing is to be used
                    Default: no multiprocessing, cores = False
@@ -266,7 +268,7 @@ class ML_Error_Regimes(BaseML_Error, REGI.Regimes_Frame):
 
     def __init__(self, y, x, regimes, w=None, constant_regi='many',\
                  cols2regi='all', method='full', epsilon=0.0000001,\
-                 regime_err_sep=False, cores=False, spat_diag=False,\
+                 regime_err_sep=False, regime_lag_sep=False, cores=False, spat_diag=False,\
                  vm=False, name_y=None, name_x=None,\
                  name_w=None, name_ds=None, name_regimes=None):
 
