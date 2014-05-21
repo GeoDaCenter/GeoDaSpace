@@ -126,9 +126,10 @@ class Spmodel:
                       If True, the spatial parameter for spatial lag is also
                       computed according to different regimes. If False (default),
                       the spatial parameter is fixed accross regimes.
-    cores       : int
-                  Amount of cores to be used for multiprocessing tasks.
-                  Default: None, which is same as maximum number possible.
+    cores       : boolean
+                  Specifies if multiprocessing is to be used
+                  Default: no multiprocessing, cores = False
+                  Note: Multiprocessing may not work on all platforms.
     method      : string
                   If 'gm' computes models using GM estimators. If 'ml' uses
                   maximum-likelihood. If 'ols', computes OLS.
