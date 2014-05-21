@@ -180,7 +180,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False, method='ols',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_x
@@ -194,7 +194,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=True, hac=False, kp_het=False, inf_lambda=False, method='ols',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_x
@@ -208,7 +208,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=False, hac=True, kp_het=False, inf_lambda=False, method='ols',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_x
@@ -222,7 +222,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
@@ -236,7 +236,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=True, hac=False, kp_het=False, inf_lambda=False, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
@@ -250,7 +250,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
@@ -264,7 +264,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_x
@@ -278,7 +278,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=False, hac=False, kp_het=True, inf_lambda=False, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_x
@@ -292,7 +292,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=False, hac=False, kp_het=False, inf_lambda=True, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_x
@@ -306,7 +306,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=False, hac=False, kp_het=True, inf_lambda=True, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_x
@@ -320,7 +320,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
@@ -334,7 +334,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=False, hac=False, kp_het=True, inf_lambda=False, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
@@ -357,7 +357,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
@@ -371,7 +371,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=True, hac=False, kp_het=False, inf_lambda=False, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
@@ -385,7 +385,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=False, hac=True, kp_het=False, inf_lambda=False, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
@@ -399,7 +399,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
@@ -413,7 +413,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=True, hac=False, kp_het=False, inf_lambda=False, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
@@ -427,7 +427,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
@@ -441,7 +441,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
@@ -455,7 +455,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=False, hac=False, kp_het=True, inf_lambda=False, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
@@ -469,7 +469,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=False, hac=False, kp_het=False, inf_lambda=False, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
@@ -483,7 +483,7 @@ class Spmodel:
         comp_inverse='Power Expansion', step1c=False,\
         instrument_lags=1, lag_user_inst=True,\
         sig2n_k_ols=True, sig2n_k_tsls=False, sig2n_k_gmlag=False,\
-        regime_err_sep=None, regime_lag_sep=None, cores=None,\
+        regime_err_sep=None, regime_lag_sep=None, cores=False,\
         white=False, hac=False, kp_het=True, inf_lambda=False, method='gm',\
         ml_diag=False,ml_method='full',ml_epsilon=0.00001)
     >>> print reg.output[1].name_z
