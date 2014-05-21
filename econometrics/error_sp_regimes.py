@@ -51,6 +51,8 @@ class GM_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
                    If 'all' (default), all the variables vary by regime.
     regime_err_sep : boolean
                    If True, a separate regression is run for each regime.
+    regime_lag_sep : boolean
+                   Always False, kept for consistency, ignored.
     vm           : boolean
                    If True, include variance-covariance matrix in summary
                    results
@@ -282,6 +284,7 @@ class GM_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     def __init__(self, y, x, regimes, w,\
                  vm=False, name_y=None, name_x=None, name_w=None,\
                  constant_regi='many', cols2regi='all', regime_err_sep=False,\
+                 regime_lag_sep=False,\
                  cores=False, name_ds=None, name_regimes=None):
 
         n = USER.check_arrays(y, x)
@@ -445,6 +448,8 @@ class GM_Endog_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
                    If 'all' (default), all the variables vary by regime.
     regime_err_sep : boolean
                    If True, a separate regression is run for each regime.
+    regime_lag_sep : boolean
+                   Always False, kept for consistency, ignored.
     vm           : boolean
                    If True, include variance-covariance matrix in summary
                    results
@@ -702,7 +707,7 @@ class GM_Endog_Error_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     '''
     def __init__(self, y, x, yend, q, regimes, w, cores=False,\
                  vm=False, constant_regi='many', cols2regi='all',\
-                 regime_err_sep=False, name_y=None,\
+                 regime_err_sep=False, regime_lag_sep=False,name_y=None,\
                  name_x=None, name_yend=None, name_q=None, name_w=None,\
                  name_ds=None, name_regimes=None, summ=True, add_lag=False):      
         

@@ -56,6 +56,8 @@ class GM_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
                    If 'all' (default), all the variables vary by regime.
     regime_err_sep : boolean
                    If True, a separate regression is run for each regime.
+    regime_lag_sep : boolean
+                   Always False, kept for consistency, ignored.
     max_iter     : int
                    Maximum number of iterations of steps 2a and 2b from Arraiz
                    et al. Note: epsilon provides an additional stop condition.
@@ -303,6 +305,7 @@ class GM_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     def __init__(self, y, x, regimes, w,\
                  max_iter=1, epsilon=0.00001, A1='het', cores=False,\
                  constant_regi='many', cols2regi='all', regime_err_sep=False,\
+                 regime_lag_sep=False,\
                  vm=False, name_y=None, name_x=None,\
                  name_w=None, name_ds=None, name_regimes=None):
 
@@ -496,6 +499,8 @@ class GM_Endog_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
                    If 'all' (default), all the variables vary by regime.
     regime_err_sep : boolean
                    If True, a separate regression is run for each regime.
+    regime_lag_sep : boolean
+                   Always False, kept for consistency, ignored.
     max_iter     : int
                    Maximum number of iterations of steps 2a and 2b from Arraiz
                    et al. Note: epsilon provides an additional stop condition.
@@ -784,6 +789,7 @@ class GM_Endog_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
     
     def __init__(self, y, x, yend, q, regimes, w,\
                  constant_regi='many', cols2regi='all', regime_err_sep=False,\
+                 regime_lag_sep=False,\
                  max_iter=1, epsilon=0.00001, A1='het', cores=False,\
                  vm=False, name_y=None, name_x=None,\
                  name_yend=None, name_q=None, name_w=None,\
@@ -890,7 +896,7 @@ class GM_Endog_Error_Hom_Regimes(RegressionPropsY, REGI.Regimes_Frame):
             self.chow = REGI.Chow(self)
             self._cache = {}
             if summ:
-                self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES - REGIMES"
+                self.title = "SPATIALLY WEIGHTED TWO STAGE LEAST SQUARES (HOM) - REGIMES"
                 SUMMARY.GM_Endog_Error_Hom(reg=self, w=w, vm=vm, regimes=True)
 
     def _endog_error_regimes_multi(self, y, x, regimes, w, yend, q, cores,\
