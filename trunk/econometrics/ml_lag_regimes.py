@@ -341,7 +341,8 @@ class ML_Lag_Regimes(BaseML_Lag, REGI.Regimes_Frame):
                     regimes, constant_regi, cols2regi=cols2regi[:-1], names=name_x)
             self.name_x.append("_Global_"+USER.set_name_yend_sp(name_y))
             BaseML_Lag.__init__(self, y=y, x=x, w=w, method=method, epsilon=epsilon)
-            self.kf += 1 #Adding a fixed k to account for spatial lag.
+            self.kf += 1 #Adding a fixed k to account for spatial lag in Chow
+            self.k += 1 #adding a fixed k to account for spatial lag in aic, sc
             self.chow = REGI.Chow(self)
             self.aic = DIAG.akaike(reg=self)
             self.schwarz = DIAG.schwarz(reg=self)
