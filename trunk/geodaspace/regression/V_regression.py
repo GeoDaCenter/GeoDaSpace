@@ -413,6 +413,9 @@ class guiRegView(OGRegression_xrc.xrcGMM_REGRESSION):
                     self.SEHACCheckBox.SetValue(False)
                     m['modelType']['error']['hac'] = False
 
+                if m['spec']['R'] and m['modelType']['mType'] == 2:
+                    m['config']['regimes_regime_error'] is False
+
                 # Standard or SpatialLag
                 elif m['modelType']['mType'] == 0 or\
                    m['modelType']['mType'] == 1:
