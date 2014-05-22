@@ -246,7 +246,7 @@ def ML_Error_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False, w=Fal
         multireg[m].__summary = mreg.__summary
     reg.__summary = {}
     if regimes:
-        summary_chow(reg)
+        summary_chow(reg,lambd=True)   # LA lambd must be set to True
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=spat_diag)
 
