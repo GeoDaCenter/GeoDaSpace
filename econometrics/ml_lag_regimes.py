@@ -279,9 +279,9 @@ class ML_Lag_Regimes(BaseML_Lag, REGI.Regimes_Frame):
     >>> "{0:.6f}".format(mllag.logll)
     '-864.985056'
     >>> "{0:.6f}".format(mllag.aic)
-    '1745.970112'
+    '1747.970112'
     >>> "{0:.6f}".format(mllag.schwarz)
-    '1772.784977'
+    '1778.136835'
     >>> mllag.title
     'MAXIMUM LIKELIHOOD SPATIAL LAG - REGIMES (METHOD = full)'
     """
