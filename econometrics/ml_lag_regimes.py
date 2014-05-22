@@ -432,6 +432,7 @@ def _work(y,x,regi_ids,r,w_r,method,epsilon,name_ds,name_y,name_x,name_w,name_re
     model.name_x = ['%s_%s'%(str(r), i) for i in name_x]
     model.name_w = name_w
     model.name_regimes = name_regimes
+    model.k += 1  # add 1 for proper df and aic, sc
     model.aic = DIAG.akaike(reg=model)
     model.schwarz = DIAG.schwarz(reg=model)
     return model
