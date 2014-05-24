@@ -246,7 +246,7 @@ def ML_Error_multi(reg, multireg, vm, spat_diag, regimes=False, sur=False, w=Fal
         multireg[m].__summary = mreg.__summary
     reg.__summary = {}
     if regimes:
-        summary_chow(reg,lambd=True)   # LA lambd must be set to True
+        summary_chow(reg,lambd=True)  
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=spat_diag)
 
@@ -276,7 +276,7 @@ def GM_Error_multi(reg, multireg, vm, regimes=False):
         summary_warning(mreg)
         multireg[m].__summary = mreg.__summary
     reg.__summary = {}
-    summary_chow(reg)
+    summary_chow(reg,lambd=True)
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=False)
 
@@ -308,7 +308,7 @@ def GM_Endog_Error_multi(reg, multireg, vm, regimes=False):
         summary_warning(mreg)
         multireg[m].__summary = mreg.__summary
     reg.__summary = {}
-    summary_chow(reg)
+    summary_chow(reg,lambd=True)
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False)
 
@@ -474,7 +474,7 @@ def GM_Combo_multi(reg, multireg, vm, regimes=False):
         multireg[m].__summary = mreg.__summary
     reg.__summary = {}
     if regimes:
-        summary_chow(reg)
+        summary_chow(reg,lambd=True)
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False)
 
@@ -509,7 +509,7 @@ def GM_Combo_Hom_multi(reg, multireg, vm, regimes=False):
         multireg[m].__summary = mreg.__summary
     reg.__summary = {}
     if regimes:
-        summary_chow(reg)
+        summary_chow(reg,lambd=True)
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False)
 
@@ -544,7 +544,7 @@ def GM_Combo_Het_multi(reg, multireg, vm, regimes=False):
         multireg[m].__summary = mreg.__summary
     reg.__summary = {}
     if regimes:
-        summary_regimes(reg)
+        summary_chow(reg,lambd=True)
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False)
 
