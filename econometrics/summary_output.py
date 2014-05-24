@@ -276,7 +276,7 @@ def GM_Error_multi(reg, multireg, vm, regimes=False):
         summary_warning(mreg)
         multireg[m].__summary = mreg.__summary
     reg.__summary = {}
-    summary_chow(reg,lambd=True)
+    summary_chow(reg,lambd=False)
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=False, nonspat_diag=False, spat_diag=False)
 
@@ -308,7 +308,7 @@ def GM_Endog_Error_multi(reg, multireg, vm, regimes=False):
         summary_warning(mreg)
         multireg[m].__summary = mreg.__summary
     reg.__summary = {}
-    summary_chow(reg,lambd=True)
+    summary_chow(reg,lambd=False)
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False)
 
@@ -474,7 +474,7 @@ def GM_Combo_multi(reg, multireg, vm, regimes=False):
         multireg[m].__summary = mreg.__summary
     reg.__summary = {}
     if regimes:
-        summary_chow(reg,lambd=True)
+        summary_chow(reg,lambd=False)
     summary_warning(reg)
     summary_multi(reg=reg, multireg=multireg, vm=vm, instruments=True, nonspat_diag=False, spat_diag=False)
 
