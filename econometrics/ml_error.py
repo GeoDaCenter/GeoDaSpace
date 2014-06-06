@@ -7,13 +7,16 @@ __author__ = "Luc Anselin luc.anselin@asu.edu, Serge Rey srey@asu.edu"
 import numpy as np
 import numpy.linalg as la
 import pysal as ps
-from scipy.optimize import minimize_scalar
 from pysal.spreg.utils import RegressionPropsY,RegressionPropsVM
 import diagnostics as DIAG
 import user_output as USER
 import summary_output as SUMMARY
 import regimes as REGI
 from w_utils import symmetrize
+try:
+    from scipy.optimize import minimize_scalar
+except ImportError as e:
+    print(e, "Maximum Likelihood in PySAL requires SciPy version 0.11 or newer.")
 
 __all__ = ["ML_Error"]
 
