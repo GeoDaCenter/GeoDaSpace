@@ -7,7 +7,7 @@ __author__ = "Luc Anselin luc.anselin@asu.edu, Serge Rey srey@asu.edu"
 import numpy as np
 import numpy.linalg as la
 import pysal as ps
-from pysal.spreg.utils import RegressionPropsY,RegressionPropsVM
+from pysal.spreg.utils import RegressionPropsY, RegressionPropsVM
 import diagnostics as DIAG
 import user_output as USER
 import summary_output as SUMMARY
@@ -16,15 +16,18 @@ from w_utils import symmetrize
 try:
     from scipy.optimize import minimize_scalar
 except ImportError as e:
-    print(e, "Maximum Likelihood in PySAL requires SciPy version 0.11 or newer.")
+    print(
+        e, "Maximum Likelihood in PySAL requires SciPy version 0.11 or newer.")
 
 __all__ = ["ML_Error"]
 
-class BaseML_Error(RegressionPropsY,RegressionPropsVM,REGI.Regimes_Frame):
+
+class BaseML_Error(RegressionPropsY, RegressionPropsVM, REGI.Regimes_Frame):
+
     """
-    ML estimation of the spatial error model (note no consistency 
+    ML estimation of the spatial error model (note no consistency
     checks, diagnostics or constants added); Anselin (1988) [1]_
-    
+
     Parameters
     ----------
     y            : array
@@ -33,7 +36,7 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM,REGI.Regimes_Frame):
                    Two dimensional array with n rows and one column for each
                    independent (exogenous) variable, excluding the constant
     w            : Sparse matrix
-                   Spatial weights sparse matrix 
+                   Spatial weights sparse matrix
     method       : string
                    if 'full', brute force calculation (full matrix expressions)
     epsilon      : float
@@ -42,10 +45,11 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM,REGI.Regimes_Frame):
                    Dictionary containing elements to be used in case of a regimes model,
                    i.e. 'x' before regimes, 'regimes' list and 'cols2regi'
 
+
     Attributes
     ----------
     betas        : array
-                   kx1 array of estimated coefficients 
+                   kx1 array of estimated coefficients
     lam          : float
                    estimate of spatial autoregressive coefficient
     u            : array
@@ -84,8 +88,7 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM,REGI.Regimes_Frame):
                    maximized log-likelihood (including constant terms)
 
     Examples
-    ________
-    
+    --------
     >>> import numpy as np
     >>> import pysal as ps
     >>> np.set_printoptions(suppress=True) #prevent scientific format
@@ -149,7 +152,8 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM,REGI.Regimes_Frame):
     Kluwer Academic Publishers. Dordrecht.
 
     """
-    def __init__(self,y,x,w,method='full',epsilon=0.0000001,regimes_att=None):
+
+    def __init__(self, y, x, w, method='full', epsilon=0.0000001, regimes_att=None):
         # set up main regression variables and spatial filters
         self.y = y
         if regimes_att:
@@ -160,108 +164,114 @@ class BaseML_Error(RegressionPropsY,RegressionPropsVM,REGI.Regimes_Frame):
         self.method = method
         self.epsilon = epsilon
         W = w.full()[0]
-               
-        ylag = ps.lag_spatial(w,self.y)
+
+        ylag = ps.lag_spatial(w, self.y)
         xlag = self.get_x_lag(w, regimes_att)
 
-        # call minimizer using concentrated log-likelihood to get lambda       
+        # call minimizer using concentrated log-likelihood to get lambda
         methodML = method.upper()
-        if methodML in ['FULL','ORD']:
+        if methodML in ['FULL', 'ORD']:
             if methodML == 'FULL':
-                res = minimize_scalar(err_c_loglik,0.0,bounds=(-1.0,1.0),
-                              args=(self.n,self.y,ylag,self.x,xlag,W),method='bounded',
-                              tol=epsilon)
+                res = minimize_scalar(err_c_loglik, 0.0, bounds=(-1.0, 1.0),
+                                      args=(self.n, self.y, ylag, self.x,
+                                            xlag, W), method='bounded',
+                                      tol=epsilon)
             elif methodML == 'ORD':
-                if w.asymmetry(intrinsic=False) == []:  # check on symmetry structure
+                # check on symmetry structure
+                if w.asymmetry(intrinsic=False) == []:
                     ww = symmetrize(w)
                     WW = ww.todense()
                     evals = la.eigvalsh(WW)
                 else:
                     evals = la.eigvals(W)
-                res = minimize_scalar(err_c_loglik_ord,0.0,bounds=(-1.0,1.0),
-                              args=(self.n,self.y,ylag,self.x,xlag,evals),method='bounded',
-                              tol=epsilon)
+                res = minimize_scalar(
+                    err_c_loglik_ord, 0.0, bounds=(-1.0, 1.0),
+                    args=(self.n, self.y, ylag, self.x,
+                          xlag, evals), method='bounded',
+                    tol=epsilon)
         else:
-            raise Exception,"{0} is an unsupported method".format(method)
-  
+            raise Exception, "{0} is an unsupported method".format(method)
+
         self.lam = res.x
-        
+
         # compute full log-likelihood, including constants
-        ln2pi = np.log(2.0*np.pi)
-        llik = -res.fun - self.n/2.0 * ln2pi - self.n/2.0 
+        ln2pi = np.log(2.0 * np.pi)
+        llik = -res.fun - self.n / 2.0 * ln2pi - self.n / 2.0
 
         self.logll = llik
-        
-        # b, residuals and predicted values
-        
-        ys = self.y - self.lam*ylag
-        xs = self.x - self.lam*xlag
-        xsxs = np.dot(xs.T,xs)
-        xsxsi = np.linalg.inv(xsxs)
-        xsys = np.dot(xs.T,ys)
-        b = np.dot(xsxsi,xsys)
-        
-        self.betas = np.vstack((b,self.lam))
 
-        self.u = y - np.dot(self.x,b)
+        # b, residuals and predicted values
+
+        ys = self.y - self.lam * ylag
+        xs = self.x - self.lam * xlag
+        xsxs = np.dot(xs.T, xs)
+        xsxsi = np.linalg.inv(xsxs)
+        xsys = np.dot(xs.T, ys)
+        b = np.dot(xsxsi, xsys)
+
+        self.betas = np.vstack((b, self.lam))
+
+        self.u = y - np.dot(self.x, b)
         self.predy = self.y - self.u
 
         # residual variance
 
-        self.e_filtered = self.u - self.lam* ps.lag_spatial(w,self.u)
-        self.sig2 = np.dot(self.e_filtered.T,self.e_filtered) / self.n
-        
+        self.e_filtered = self.u - self.lam * ps.lag_spatial(w, self.u)
+        self.sig2 = np.dot(self.e_filtered.T, self.e_filtered) / self.n
+
         # variance-covariance matrix betas
-       
-        varb = self.sig2 * xsxsi  
+
+        varb = self.sig2 * xsxsi
 
         # variance-covariance matrix lambda, sigma
 
         a = -self.lam * W
         np.fill_diagonal(a, 1.0)
         ai = la.inv(a)
-        wai = np.dot(W,ai)
+        wai = np.dot(W, ai)
         tr1 = np.trace(wai)
-        
-        wai2 = np.dot(wai,wai)
+
+        wai2 = np.dot(wai, wai)
         tr2 = np.trace(wai2)
-        
-        waiTwai = np.dot(wai.T,wai)
+
+        waiTwai = np.dot(wai.T, wai)
         tr3 = np.trace(waiTwai)
-        
-        v1 = np.vstack((tr2+tr3,
-                       tr1/self.sig2))    
-        v2 = np.vstack((tr1/self.sig2,
-                       self.n/(2.0 * self.sig2**2)))
-        
-        v = np.hstack((v1,v2))
-        
+
+        v1 = np.vstack((tr2 + tr3,
+                        tr1 / self.sig2))
+        v2 = np.vstack((tr1 / self.sig2,
+                        self.n / (2.0 * self.sig2 ** 2)))
+
+        v = np.hstack((v1, v2))
+
         self.vm1 = np.linalg.inv(v)
-        
+
         # create variance matrix for beta, lambda
-        vv = np.hstack((varb,np.zeros((self.k,1))))
-        vv1 = np.hstack((np.zeros((1,self.k)),self.vm1[0,0]*np.ones((1,1))))
-        
-        self.vm = np.vstack((vv,vv1))
-        
+        vv = np.hstack((varb, np.zeros((self.k, 1))))
+        vv1 = np.hstack(
+            (np.zeros((1, self.k)), self.vm1[0, 0] * np.ones((1, 1))))
+
+        self.vm = np.vstack((vv, vv1))
+
         self._cache = {}
 
     def get_x_lag(self, w, regimes_att):
         if regimes_att:
-            xlag = ps.lag_spatial(w,regimes_att['x'])
-            xlag = REGI.Regimes_Frame.__init__(self, xlag,\
-                        regimes_att['regimes'], constant_regi=None, cols2regi=regimes_att['cols2regi'])[0]
+            xlag = ps.lag_spatial(w, regimes_att['x'])
+            xlag = REGI.Regimes_Frame.__init__(self, xlag,
+                                               regimes_att['regimes'], constant_regi=None, cols2regi=regimes_att['cols2regi'])[0]
             xlag = xlag.toarray()
         else:
-            xlag = ps.lag_spatial(w,self.x)
+            xlag = ps.lag_spatial(w, self.x)
         return xlag
-            
+
 
 class ML_Error(BaseML_Error):
+
     """
-    ML estimation of the spatial lag model with all results and diagnostics; 
+    ML estimation of the spatial lag model with all results and diagnostics;
     Anselin (1988) [1]_
-    
+
     Parameters
     ----------
     y            : array
@@ -270,7 +280,7 @@ class ML_Error(BaseML_Error):
                    Two dimensional array with n rows and one column for each
                    independent (exogenous) variable, excluding the constant
     w            : Sparse matrix
-                   Spatial weights sparse matrix 
+                   Spatial weights sparse matrix
     method       : string
                    if 'full', brute force calculation (full matrix expressions)
                    ir 'ord', Ord eigenvalue method
@@ -334,7 +344,7 @@ class ML_Error(BaseML_Error):
     utu          : float
                    Sum of squared residuals
     std_err      : array
-                   1xk array of standard errors of the betas    
+                   1xk array of standard errors of the betas
     z_stat       : list of tuples
                    z statistic; each tuple contains the pair (statistic,
                    p-value), where each is a float
@@ -350,8 +360,8 @@ class ML_Error(BaseML_Error):
                    Name of the regression method used
 
     Examples
-    ________
-    
+    --------
+
     >>> import numpy as np
     >>> import pysal as ps
     >>> np.set_printoptions(suppress=True)  #prevent scientific format
@@ -366,7 +376,7 @@ class ML_Error(BaseML_Error):
     >>> w = ww.read()
     >>> ww.close()
     >>> w_name = "south_q.gal"
-    >>> w.transform = 'r'    
+    >>> w.transform = 'r'
     >>> mlerr = ML_Error(y,x,w,name_y=y_name,name_x=x_names,\
                name_w=w_name,name_ds=ds_name)
     >>> np.around(mlerr.betas, decimals=4)
@@ -424,17 +434,20 @@ class ML_Error(BaseML_Error):
     Kluwer Academic Publishers. Dordrecht.
 
     """
-    def __init__(self,y,x,w,method='full',epsilon=0.0000001,\
-                 spat_diag=False,vm=False,name_y=None,name_x=None,\
-                 name_w=None,name_ds=None):
-        n = USER.check_arrays(y,x)
+
+    def __init__(self, y, x, w, method='full', epsilon=0.0000001,
+                 spat_diag=False, vm=False, name_y=None, name_x=None,
+                 name_w=None, name_ds=None):
+        n = USER.check_arrays(y, x)
         USER.check_y(y, n)
-        USER.check_weights(w, y, w_required=True)        
+        USER.check_weights(w, y, w_required=True)
         x_constant = USER.check_constant(x)
         method = method.upper()
-        if method in ['FULL','ORD']:
-            BaseML_Error.__init__(self,y=y,x=x_constant,w=w,method=method,epsilon=epsilon)
-            self.title = "MAXIMUM LIKELIHOOD SPATIAL ERROR" + " (METHOD = " + method + ")"
+        if method in ['FULL', 'ORD']:
+            BaseML_Error.__init__(self, y=y, x=x_constant,
+                                  w=w, method=method, epsilon=epsilon)
+            self.title = "MAXIMUM LIKELIHOOD SPATIAL ERROR" + \
+                " (METHOD = " + method + ")"
             self.name_ds = USER.set_name_ds(name_ds)
             self.name_y = USER.set_name_y(name_y)
             self.name_x = USER.set_name_x(name_x, x)
@@ -442,76 +455,79 @@ class ML_Error(BaseML_Error):
             self.name_w = USER.set_name_w(name_w, w)
             self.aic = DIAG.akaike(reg=self)
             self.schwarz = DIAG.schwarz(reg=self)
-            SUMMARY.ML_Error(reg=self,w=w,vm=vm,spat_diag=spat_diag)
+            SUMMARY.ML_Error(reg=self, w=w, vm=vm, spat_diag=spat_diag)
         else:
-            raise Exception,"{0} is an unsupported method".format(method)
+            raise Exception, "{0} is an unsupported method".format(method)
 
-def err_c_loglik(lam,n,y,ylag,x,xlag,W):
-    #concentrated log-lik for error model, no constants, brute force
-    ys = y - lam*ylag
-    xs = x - lam*xlag
-    ysys = np.dot(ys.T,ys)
-    xsxs = np.dot(xs.T,xs)
+
+def err_c_loglik(lam, n, y, ylag, x, xlag, W):
+    # concentrated log-lik for error model, no constants, brute force
+    ys = y - lam * ylag
+    xs = x - lam * xlag
+    ysys = np.dot(ys.T, ys)
+    xsxs = np.dot(xs.T, xs)
     xsxsi = np.linalg.inv(xsxs)
-    xsys = np.dot(xs.T,ys)
-    x1 = np.dot(xsxsi,xsys)
-    x2 = np.dot(xsys.T,x1)
+    xsys = np.dot(xs.T, ys)
+    x1 = np.dot(xsxsi, xsys)
+    x2 = np.dot(xsys.T, x1)
     ee = ysys - x2
-    sig2 = ee[0][0]/n
-    nlsig2 = (n/2.0)*np.log(sig2)
+    sig2 = ee[0][0] / n
+    nlsig2 = (n / 2.0) * np.log(sig2)
     a = -lam * W
     np.fill_diagonal(a, 1.0)
     jacob = np.log(np.linalg.det(a))
-    clik = nlsig2 - jacob  # this is the negative of the concentrated log lik for minimization
+    # this is the negative of the concentrated log lik for minimization
+    clik = nlsig2 - jacob
     return clik
 
-def err_c_loglik_ord(lam,n,y,ylag,x,xlag,evals):
-    #concentrated log-lik for error model, no constants, brute force
-    ys = y - lam*ylag
-    xs = x - lam*xlag
-    ysys = np.dot(ys.T,ys)
-    xsxs = np.dot(xs.T,xs)
+
+def err_c_loglik_ord(lam, n, y, ylag, x, xlag, evals):
+    # concentrated log-lik for error model, no constants, brute force
+    ys = y - lam * ylag
+    xs = x - lam * xlag
+    ysys = np.dot(ys.T, ys)
+    xsxs = np.dot(xs.T, xs)
     xsxsi = np.linalg.inv(xsxs)
-    xsys = np.dot(xs.T,ys)
-    x1 = np.dot(xsxsi,xsys)
-    x2 = np.dot(xsys.T,x1)
+    xsys = np.dot(xs.T, ys)
+    x1 = np.dot(xsxsi, xsys)
+    x2 = np.dot(xsys.T, x1)
     ee = ysys - x2
-    sig2 = ee[0][0]/n
-    nlsig2 = (n/2.0)*np.log(sig2)
+    sig2 = ee[0][0] / n
+    nlsig2 = (n / 2.0) * np.log(sig2)
     revals = lam * evals
-    jacob = np.log(1-revals).sum()
-    if isinstance(jacob,complex):
+    jacob = np.log(1 - revals).sum()
+    if isinstance(jacob, complex):
         jacob = jacob.real
-    clik = nlsig2 - jacob  # this is the negative of the concentrated log lik for minimization
+    # this is the negative of the concentrated log lik for minimization
+    clik = nlsig2 - jacob
     return clik
+
 
 def _test():
     import doctest
     start_suppress = np.get_printoptions()['suppress']
-    np.set_printoptions(suppress=True)    
+    np.set_printoptions(suppress=True)
     doctest.testmod()
     np.set_printoptions(suppress=start_suppress)
 
 if __name__ == "__main__":
     _test()
-    import numpy as np
-    import pysal as ps
-    db = ps.open(ps.examples.get_path("south.dbf"),'r')
+
+    db = ps.open(ps.examples.get_path("south.dbf"), 'r')
     ds_name = "south.dbf"
     y_name = "HR90"
     y = np.array(db.by_col(y_name))
-    y.shape = (len(y),1)
-    x_names = ["RD90","PS90","UE90","DV90"]
+    y.shape = (len(y), 1)
+    x_names = ["RD90", "PS90", "UE90", "DV90"]
     x = np.array([db.by_col(var) for var in x_names]).T
     ww = ps.open(ps.examples.get_path("south_q.gal"))
     w = ww.read()
     ww.close()
     w_name = "south_q.gal"
     w.transform = 'r'
-    mlerror = ML_Error(y,x,w,name_y=y_name,name_x=x_names,\
-               name_w=w_name,name_ds=ds_name)
+    mlerror = ML_Error(y, x, w, name_y=y_name, name_x=x_names,
+                       name_w=w_name, name_ds=ds_name)
     print mlerror.summary
-    mlerror1 = ML_Error(y,x,w,method='ord',name_y=y_name,name_x=x_names,\
-               name_w=w_name,name_ds=ds_name)
+    mlerror1 = ML_Error(y, x, w, method='ord', name_y=y_name, name_x=x_names,
+                        name_w=w_name, name_ds=ds_name)
     print mlerror1.summary
-
