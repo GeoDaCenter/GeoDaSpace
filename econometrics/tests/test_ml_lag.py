@@ -1,9 +1,12 @@
 import unittest
 import pysal
+import scipy
 import numpy as np
 from econometrics.ml_lag import ML_Lag
 from econometrics import utils
 
+@unittest.skipIf(int(scipy.__version__.split(".")[1]) < 12,
+        "Max Likelihood requires SciPy version 12 or newer.")
 class TestMLError(unittest.TestCase):
     def setUp(self):
         db =  pysal.open(pysal.examples.get_path("baltim.dbf"),'r')
