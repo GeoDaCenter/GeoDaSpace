@@ -1,4 +1,5 @@
 import unittest
+import scipy
 import pysal
 import numpy as np
 from econometrics.ml_lag_regimes import ML_Lag_Regimes
