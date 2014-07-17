@@ -1,4 +1,5 @@
 import unittest
+import scipy
 import pysal
 import numpy as np
 from econometrics.ml_error_regimes import ML_Error_Regimes
