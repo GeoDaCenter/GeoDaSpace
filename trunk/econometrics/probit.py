@@ -9,6 +9,7 @@ from scipy.stats import norm, chisqprob
 import scipy.sparse as SP
 import user_output as USER
 import summary_output as SUMMARY
+from utils import spdot, spbroadcast
 
 __all__ = ["Probit"]
 
@@ -183,14 +184,16 @@ class BaseProbit:
     @property
     def xmean(self):
         if 'xmean' not in self._cache:
-            self._cache['xmean'] = np.reshape(
-                sum(self.x) / self.n, (self.k, 1))
+            try:
+                self._cache['xmean'] = np.reshape(sum(self.x) / self.n, (self.k, 1))
+            except:
+                self._cache['xmean'] = np.reshape(sum(self.x).toarray() / self.n, (self.k, 1))
         return self._cache['xmean']
 
     @property
     def xb(self):
         if 'xb' not in self._cache:
-            self._cache['xb'] = np.dot(self.x, self.betas)
+            self._cache['xb'] = spdot(self.x, self.betas)
         return self._cache['xb']
 
     @property
@@ -239,7 +242,7 @@ class BaseProbit:
         if 'slopes_vm' not in self._cache:
             x = self.xmean
             b = self.betas
-            dfdb = np.eye(self.k) - np.dot(b.T, x) * np.dot(b, x.T)
+            dfdb = np.eye(self.k) - spdot(b.T, x) * spdot(b, x.T)
             slopes_vm = (self.scale ** 2) * \
                 np.dot(np.dot(dfdb, self.vm), dfdb.T)
             self._cache['slopes_vm'] = slopes_vm[1:, 1:]
@@ -291,8 +294,8 @@ class BaseProbit:
         return self._cache['PS_error']
 
     def par_est(self):
-        start = np.dot(la.inv(np.dot(self.x.T, self.x)),
-                       np.dot(self.x.T, self.y))
+        start = np.dot(la.inv(spdot(self.x.T, self.x)),
+                       spdot(self.x.T, self.y))
         flogl = lambda par: -self.ll(par)
         if self.optim == 'newton':
             fgrad = lambda par: self.gradient(par)
@@ -319,25 +322,25 @@ class BaseProbit:
     def ll(self, par):
         beta = np.reshape(np.array(par), (self.k, 1))
         q = 2 * self.y - 1
-        qxb = q * np.dot(self.x, beta)
+        qxb = q * spdot(self.x, beta)
         ll = sum(np.log(norm.cdf(qxb)))
         return ll
 
     def gradient(self, par):
         beta = np.reshape(np.array(par), (self.k, 1))
         q = 2 * self.y - 1
-        qxb = q * np.dot(self.x, beta)
+        qxb = q * spdot(self.x, beta)
         lamb = q * norm.pdf(qxb) / norm.cdf(qxb)
-        gradient = np.dot(lamb.T, self.x)[0]
+        gradient = spdot(lamb.T, self.x)[0]
         return gradient
 
     def hessian(self, par):
         beta = np.reshape(np.array(par), (self.k, 1))
         q = 2 * self.y - 1
-        xb = np.dot(self.x, beta)
+        xb = spdot(self.x, beta)
         qxb = q * xb
         lamb = q * norm.pdf(qxb) / norm.cdf(qxb)
-        hessian = np.dot((self.x.T), (-lamb * (lamb + xb) * self.x))
+        hessian = spdot(self.x.T, spbroadcast(self.x,-lamb * (lamb + xb)))
         return hessian
 
 
