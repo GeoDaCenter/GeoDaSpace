@@ -26,7 +26,8 @@ class BaseProbit:
     y           : array
                   nx1 array of dependent binary variable
     w           : W
-                  PySAL weights instance aligned with y
+                  PySAL weights instance or spatial weights sparse matrix
+                  aligned with y
     optim       : string
                   Optimization method.
                   Default: 'newton' (Newton-Raphson).
@@ -548,11 +549,11 @@ class Probit(BaseProbit):
 
         n = USER.check_arrays(y, x)
         USER.check_y(y, n)
-        if w:
+        if w != None:
             USER.check_weights(w, y)
             spat_diag = True
         x_constant = USER.check_constant(x)
-        BaseProbit.__init__(self, y=y, x=x_constant, w=w,
+        BaseProbit.__init__(self, y=y, x=x_constant, w=w.sparse,
                             optim=optim, scalem=scalem, maxiter=maxiter)
         self.title = "CLASSIC PROBIT ESTIMATOR"
         self.name_ds = USER.set_name_ds(name_ds)
@@ -607,8 +608,11 @@ def sp_tests(reg):
     reg         : regression object
                   output instance from a probit model            
     """
-    if reg.w:
-        w = reg.w.sparse
+    if reg.w != None:
+        try:
+            w = reg.w.sparse
+        except:
+            w = reg.w
         Phi = reg.predy
         phi = reg.phiy
         # Pinkse_error:
@@ -631,7 +635,7 @@ def sp_tests(reg):
         # chi-square instead of bootstrap.
         ps = np.array([ps, chisqprob(ps, 1)])
     else:
-        raise Exception, "W matrix not provided to calculate spatial test."
+        raise Exception, "W matrix must be provided to calculate spatial tests."
     return LM_err, moran, ps
 
 
@@ -649,7 +653,10 @@ def moran_KP(w, u, sig2i):
     sig2i       : array
                   nx1 array of individual variance               
     """
-    w = w.sparse
+    try:
+        w = w.sparse
+    except:
+        pass
     moran_num = np.dot(u.T, (w * u))
     E = SP.lil_matrix(w.get_shape())
     E.setdiag(sig2i.flat)
@@ -681,4 +688,4 @@ if __name__ == '__main__':
     probit1 = Probit(
         (y > 40).astype(float), x, w=w, name_x=var_x, name_y="CRIME",
         name_ds="Columbus", name_w="columbus.dbf")
-    # print probit1.summary
+    print probit1.summary

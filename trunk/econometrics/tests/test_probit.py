@@ -19,7 +19,7 @@ class TestBaseProbit(unittest.TestCase):
         self.w.transform = 'r'
 
     def test_model(self):
-        reg = PB.BaseProbit(self.y, self.X, w=self.w)
+        reg = PB.BaseProbit(self.y, self.X, w=self.w.sparse)
         betas = np.array([[ 3.35381078], [-0.1996531 ], [-0.02951371]])
         np.testing.assert_array_almost_equal(reg.betas,betas,6)
         predy = np.array([ 0.00174739])
