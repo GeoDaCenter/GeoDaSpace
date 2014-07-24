@@ -477,7 +477,6 @@ def __init_resources():
                       </object>
                     </object>
                     <cols>3</cols>
-                    <rows>5</rows>
                     <vgap>3</vgap>
                     <hgap>15</hgap>
                   </object>
@@ -636,7 +635,6 @@ def __init_resources():
                       <flag>wxALIGN_CENTRE</flag>
                     </object>
                     <cols>2</cols>
-                    <rows>8</rows>
                     <vgap>5</vgap>
                     <hgap>25</hgap>
                   </object>
@@ -739,7 +737,6 @@ def __init_resources():
                       </object>
                     </object>
                     <cols>2</cols>
-                    <rows>8</rows>
                     <vgap>7</vgap>
                     <hgap>25</hgap>
                   </object>
@@ -799,7 +796,6 @@ def __init_resources():
                       <flag>wxALIGN_CENTRE</flag>
                     </object>
                     <cols>2</cols>
-                    <rows>2</rows>
                     <vgap>20</vgap>
                     <hgap>10</hgap>
                   </object>
@@ -872,7 +868,6 @@ def __init_resources():
                       <flag>wxALIGN_CENTRE</flag>
                     </object>
                     <cols>2</cols>
-                    <rows>3</rows>
                     <vgap>20</vgap>
                     <hgap>10</hgap>
                   </object>
@@ -928,7 +923,6 @@ def __init_resources():
                       <flag>wxALIGN_CENTRE</flag>
                     </object>
                     <cols>2</cols>
-                    <rows>2</rows>
                     <vgap>20</vgap>
                     <hgap>10</hgap>
                   </object>
@@ -1085,7 +1079,6 @@ def __init_resources():
                       </object>
                     </object>
                     <cols>2</cols>
-                    <rows>8</rows>
                     <vgap>7</vgap>
                     <hgap>25</hgap>
                   </object>

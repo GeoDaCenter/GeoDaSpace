@@ -1,7 +1,6 @@
 <?xml version="1.0" ?>
 <resource>
   <object class="wxFrame" name="TextWindow">
-    <title>Results</title>
     <object class="wxToolBar" name="TextWindowToolBar">
       <object class="tool" name="ToolNew">
         <bitmap stock_id="wxART_NEW"/>
@@ -49,10 +48,10 @@
                   <style>normal</style>
                   <weight>normal</weight>
                   <underlined>0</underlined>
-                  <family>default</family>
+                  <family>modern</family>
                   <face>Courier New</face>
                 </font>
-                <style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LINEWRAP</style>
+                <style>wxTE_MULTILINE|wxTE_READONLY</style>
                 <XRCED>
                   <assign_var>1</assign_var>
                 </XRCED>
@@ -61,6 +60,15 @@
               <flag>wxALL|wxEXPAND|wxADJUST_MINSIZE</flag>
             </object>
           </object>
+          <font>
+            <size>9</size>
+            <style>normal</style>
+            <weight>normal</weight>
+            <underlined>0</underlined>
+            <family>modern</family>
+            <face>Courier New</face>
+            <encoding>WINDOWS-1252</encoding>
+          </font>
           <XRCED>
             <assign_var>1</assign_var>
           </XRCED>
@@ -69,5 +77,15 @@
         <flag>wxALL|wxEXPAND</flag>
       </object>
     </object>
+    <title>Results</title>
+    <font>
+      <size>10</size>
+      <style>normal</style>
+      <weight>normal</weight>
+      <underlined>0</underlined>
+      <family>modern</family>
+      <face>Courier New</face>
+      <encoding>WINDOWS-1252</encoding>
+    </font>
   </object>
 </resource>
