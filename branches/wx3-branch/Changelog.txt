@@ -1,2 +1,0 @@
-Build 0.8.0:
-	Fixes uninformative error message when |rho|>1.
