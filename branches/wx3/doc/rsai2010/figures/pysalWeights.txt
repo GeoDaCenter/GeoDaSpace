@@ -1,0 +1,13 @@
+>>> import pysal
+>>> wq=pysal.queen_from_shapefile("examples/stl_hom.shp")
+>>> wq.n
+78
+>>> wq.s0
+406.0
+>>> wq.histogram
+[(3, 12), (4, 19), (5, 14), (6, 16), (7, 10), (8, 5), (9, 2)]
+>>> wq.neighbors[75]
+[72, 65, 66, 74]
+>>> wq.neighbors[66]
+[65, 70, 72, 74, 75, 56, 62, 63]
+

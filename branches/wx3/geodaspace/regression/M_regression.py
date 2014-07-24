@@ -1,0 +1,556 @@
+import os.path
+import math
+import copy
+
+from geodaspace import abstractmodel
+import pysal
+import numpy as np
+from econometrics.gs_dispatcher import Spmodel
+from geodaspace.preferences.model import preferencesModel
+from geodaspace.weights.model import GeoDaSpace_W_Obj
+
+
+class guiRegModel(abstractmodel.AbstractModel):
+    STATE_EMPTY = 0
+    STATE_CHANGED = 1
+    STATE_SAVED = 2
+
+    def __init__(self):
+        abstractmodel.AbstractModel.__init__(self)
+        self.fileObj = None
+        self.reset()
+
+    def update(self):
+        self.state = self.STATE_CHANGED
+        abstractmodel.AbstractModel.update(self)
+    # The Setters
+
+    def setDataFile(self, path, passive=False):
+        if self.data['fname'] == path:
+            self.loadFieldNames()
+            self.update()
+        else:
+            if not passive:
+                self.reset()
+            self.data['fname'] = path
+            self.loadFieldNames()
+            self.update()
+
+    def setSpec(self, spec):
+        self.data['spec'] = spec
+        self.update()
+
+    def setModelType(self, setup):
+        self.data['modelType'] = setup
+        self.update()
+
+    def addMWeightsFile(self, path=None, obj=None):
+        if obj:
+            obj = GeoDaSpace_W_Obj(obj)
+            obj.w.transform = 'r'
+            if obj not in self.data['mWeights']:
+                self.data['mWeights'].append(obj)
+                self.update()
+        elif path:
+            obj = GeoDaSpace_W_Obj.from_path(path)
+            obj.w.transform = 'r'
+            if obj not in self.data['mWeights']:
+                self.data['mWeights'].append(obj)
+                self.update()
+        else:
+            pass
+
+    def addKWeightsFile(self, path=None, obj=None):
+        if obj:
+            obj = GeoDaSpace_W_Obj(obj)
+            if obj not in self.data['kWeights']:
+                self.data['kWeights'].append(obj)
+                self.update()
+        elif path:
+            obj = GeoDaSpace_W_Obj.from_path(path)
+            if obj not in self.data['kWeights']:
+                self.data['kWeights'].append(obj)
+                self.update()
+        else:
+            pass
+
+    def checkKW(self, obj):
+        print "running checkKW() this function needs work."
+        minK = int(math.ceil(obj.n ** (1 / 3.0)))
+        if min(obj.cardinalities.values()) < minK:
+            return False
+        return True
+
+    # The Getters
+    def getVariables(self):
+        if 'db' in self.data:
+            if 'header' in self.data['db']:
+                return self.data['db']['header']
+        else:
+            return []
+
+    def getDataFile(self):
+        if 'fname' in self.data:
+            return os.path.basename(self.data['fname'])
+        else:
+            return ''
+
+    def getSpec(self):
+        return self.data['spec']
+
+    def getModelType(self):
+        return self.data['modelType']
+
+    def getMWeightsFiles(self):
+        return self.data['mWeights']
+
+    def getMWeightsEnabled(self):
+        return [w for w in self.data['mWeights'] if w.enabled]
+
+    def setMWeightsTransform(self, t='R'):
+        c = 0
+        for w in self.data['mWeights']:
+            if w.w.transform.upper() != t.upper():
+                w.w.transform = t
+                c += 1
+        return c
+
+    def removeMW(self, idx):
+        w = self.data['mWeights'].pop(idx)
+        self.update()
+        return w
+
+    def removeKW(self, idx):
+        w = self.data['kWeights'].pop(idx)
+        self.update()
+        return w
+
+    def getKWeightsFiles(self):
+        return self.data['kWeights']
+
+    def getKWeightsEnabled(self):
+        return [w for w in self.data['kWeights'] if w.enabled]
+
+    def getModelMethod(self):
+        raise DeprecationWarning('getModelMethod has been depracted')
+        mType = self.data['modelType']['mType']
+        # bEndo = self.data['modelType']['endogenous'] # Endo is not a checkbox
+        # in the GUI
+        if mType == 0:  # Standard
+            space = None
+            # allowed estimators.
+            # est =[OLS ,IV  ,GMM   ]
+            #if bEndo:
+            #    est = [False, True, False]
+            #else:
+            #    est = [True, False, False]
+            meth = 'ols'
+        elif mType == 1:  # Spatial Lag
+            space = 'lag'
+            est = [False, True, False]
+            meth = 'twosls'
+        elif mType == 2:  # Spatial Error
+            space = 'error'
+            est = [True, False, True]
+            meth = 'ols'
+        elif mType == 3:  # Spatial Lag+Error
+            space = 'lagerror'
+            est = [False, True, True]
+            meth = 'twosls'
+        elif mType == 4:  # Regimes
+            space = None
+            est = None
+            meth = None
+        return (space, est, meth)
+
+    # Utility Functions
+    def reset(self):
+        self.state = self.STATE_EMPTY
+        self.fileObj = None
+        self.data = {}
+        self.data['fname'] = ''
+        self.data['dType'] = 'listvars'  # listvars: list of lists by variable
+        self.data['formatheader'] = 0
+        self.data['numonly'] = 0
+        self.data['spec'] = {
+            'y': "", 'YE': [], 'H': [], 'R': "", 'S': "", 'T': "", 'X': []}
+        self.data['mWeights'] = []
+        self.data['kWeights'] = []
+        # self.data['method'] = ''  #pas
+        self.data['modelType'] = {'mType': 0, 'endogenous': False, 'method': 0}
+        self.data['modelType']['method'] = 0
+        self.data['modelType']['error'] = {
+            'classic': True, 'white': False, 'hac': False, 'het': False}
+        self.data['modelType']['spatial_tests'] = {'lm': True}
+        config = {}
+        config.update(preferencesModel.DEFAULTS)
+        self.data['config'] = config
+
+    def loadFieldNames(self):
+        """Sets the db with field names"""
+        self.data['db'] = self.db(headerOnly=True)
+
+    def db(self, headerOnly=False):
+        if self.data['config']['other_missingValueCheck']:
+            pysal.MISSINGVALUE = self.data['config']['other_missingValue']
+        if 'fname' in self.data:
+            fileType = self.data['fname'].rsplit('.')[-1].lower()
+            self.fileType = fileType
+            if fileType == 'csv':
+                if headerOnly:
+                    f = pysal.open(self.data['fname'], 'rU')
+                    db = {}
+                    db['header'] = f.header
+                    f.close()
+                    return db
+                else:
+                    return pysal.open(self.data['fname'], 'rU')
+            elif fileType == 'dbf':
+                db = pysal.open(self.data['fname'], 'r')
+                header = []
+                # grab only the numeric fields.
+                if headerOnly:
+                    for field, spec in zip(db.header, db.field_spec):
+                        typ = spec[0].lower()
+                        if typ in ['d', 'n', 'f']:
+                            header.append(field)
+                    return {'header': header}
+                else:
+                    return db
+            else:
+                print "Unknown File Type"
+                return False
+        else:
+            return None
+
+    def save(self, fileObj):
+        """ Returns the contents of the model """
+        location = os.path.dirname(fileObj.name)
+        self.state = self.STATE_SAVED
+        data = copy.copy(self.data)
+        data['mWeights'] = [os.path.relpath(
+            w.path, location) for w in self.data['mWeights']]
+        data['kWeights'] = [os.path.relpath(
+            w.path, location) for w in self.data['kWeights']]
+        data['fname'] = os.path.relpath(data['fname'], location)
+        fileObj.write(str(data))
+        fileObj.flush()
+        self.fileObj = fileObj
+
+    def open(self, s):
+        """ Loads the contents of the model from s """
+        try:
+            self.reset()
+            data = eval(s)
+            # load config from mdl, make sure all settings are included (i.e.
+            # support older mdls).
+            if 'config' in data:
+                cfg = {}
+                cfg.update(preferencesModel.DEFAULTS)
+                cfg.update(data['config'])
+                data['config'] = cfg
+            data['mWeights'] = [GeoDaSpace_W_Obj.from_path(
+                w) for w in data['mWeights']]
+            for w in data['mWeights']:
+                w.w.transform = 'R'
+            data['kWeights'] = [GeoDaSpace_W_Obj.from_path(
+                w) for w in data['kWeights']]
+            self.data = data
+            if not os.path.exists(self.data['fname']):
+                return False
+            self.loadFieldNames()
+            self.update()
+            self.state = self.STATE_SAVED
+            return True
+        except:
+            raise
+            # raise TypeError,"The Supplied Model File Was Invalid."
+
+    def verify(self):
+        # if self.data['modelType']['endogenous'] == True: #endogenous == yes
+        lYE, lH = len(self.data['spec']['YE']), len(self.data['spec']['H'])
+        if lYE > 0 or lH > 0:
+            if lYE == 0:
+                return False, "There need to be at least one endogenous variable (YE) if you have one or more instruments (H)."
+            if lH < lYE:
+                return False, "There need to be at least as many instruments (H) as endogenous variables (YE)."
+            # if lYE == 0:
+            # return False,'Please add endogenous variables (YE) or disable the
+            # "Endogeneity" option.'
+        if self.data['spec']['y'] and self.data['spec']['X']:
+            pass
+        else:
+            msg = 'Model Spec is incomplete. Please populate both X and Y'
+            return False, msg
+        model_type = self.data['modelType']['mType']
+        if model_type > 0 and not self.getMWeightsEnabled():
+            return False, 'This model specification requires a spatial weights matrix'
+        if model_type < 2 and self.data['modelType']['error']['hac'] and not \
+           self.getKWeightsEnabled():
+            return False, 'The HAC requires a kernel spatial weights matrix'
+        # LM Test is now automatic.
+        # if self.data['modelType']['spatial_tests']['lm'] and not \
+                #self.getMWeightsEnabled():
+        # return False,'LM Test requires Model Weights, please add or create a
+        # weights file, or disable "LM".'
+        return True, None
+
+    @staticmethod
+    def get_col(db, col_name, allowMissing=False):
+        col = db.by_col(col_name)
+        if pysal.MISSINGVALUE is None and pysal.MISSINGVALUE in col:
+            raise ValueError(
+                "Data column \"%s\" contains missing values." % col_name)
+        return col
+
+    def run(self, path=None, predy_resid=None):
+        """ Runs the Model """
+        print self.verify()
+        if not self.verify()[0]:
+            return False
+        data = self.data
+        print data
+        if self.data['config']['other_missingValueCheck']:
+            pysal.MISSINGVALUE = self.data['config']['other_missingValue']
+        else:
+            pysal.MISSINGVALUE = None
+
+        # Build up args for dispatcher
+        # weights
+        w_names = [w.name for w in data['mWeights'] if w.enabled]
+        w_list = [w.w for w in data['mWeights'] if w.enabled]
+        for w, name in zip(w_list, w_names):
+            w.name = name
+        wk_names = [w.name for w in data['kWeights'] if w.enabled]
+        wk_list = [w.w for w in data['kWeights'] if w.enabled]
+        for w, name in zip(wk_list, wk_names):
+            w.name = name
+        if 'fname' in self.data:
+            fileType = self.data['fname'].rsplit('.')[-1].lower()
+            self.fileType = fileType
+            if fileType == 'csv':
+                db = pysal.open(data['fname'], 'rU')
+            else:
+                db = pysal.open(data['fname'], 'r')
+        else:
+            return None
+        # y
+        name_y = data['spec']['y']
+        y = np.array([self.get_col(db, name_y)]).T
+
+        # x
+        x = []
+        x_names = data['spec']['X']
+        for x_name in x_names:
+            x.append(self.get_col(db, x_name))
+        x = np.array(x).T
+
+        # YE
+        ye = []
+        ye_names = data['spec']['YE']
+        for ye_name in ye_names:
+            ye.append(self.get_col(db, ye_name))
+        ye = np.array(ye).T
+
+        # H
+        h = []
+        h_names = data['spec']['H']
+        for h_name in h_names:
+            h.append(self.get_col(db, h_name))
+        h = np.array(h).T
+
+        mtypes = {0: 'Standard', 1: 'Spatial Lag',
+                  2: 'Spatial Error', 3: 'Spatial Lag+Error'}
+        model_type = mtypes[data['modelType']['mType']]
+        print model_type
+
+        # estimation methods
+        # method_types = {0: 'gm', 1: 'ml'}
+        method_types = {0: 'ols', 1: 'gm', 2: 'ml'}
+        method = method_types[data['modelType']['method']]
+        print method
+
+        # R
+        if data['spec']['R']:
+            name_r = data['spec']['R']
+            r = self.get_col(db, name_r)
+        else:
+            name_r = None
+            r = None
+        # T
+        if data['spec']['T']:
+            name_t = data['spec']['T']
+            t = self.get_col(db, name_t)
+        else:
+            name_t = None
+            t = None
+        # These options are not available yet....
+        s = None
+        name_s = None
+
+        config = data['config']
+
+        if self.getMWeightsEnabled() and model_type in \
+           ['Standard', 'Spatial Lag']:
+            LM_TEST = True
+        else:
+            LM_TEST = False
+
+        print w_list, wk_list
+        fname = os.path.basename(data['fname'])
+        results = Spmodel(
+            name_ds=fname,
+            w_list=w_list,
+            wk_list=wk_list,
+            y=y,
+            name_y=name_y,
+            x=x,
+            name_x=x_names,
+            ye=ye,
+            name_ye=ye_names,
+            h=h,
+            name_h=h_names,
+            r=r,
+            name_r=name_r,
+            s=s,
+            name_s=name_s,
+            t=t,
+            name_t=name_t,
+            model_type=model_type,  # data['modelType']['endogenous'],
+            # data['modelType']['spatial_tests']['lm'],
+            spat_diag=LM_TEST,
+            white=data['modelType']['error']['white'],
+            hac=data['modelType']['error']['hac'],
+            kp_het=data['modelType']['error']['het'],
+            # config.....
+            sig2n_k_ols=config['sig2n_k_ols'],
+            sig2n_k_tsls=config['sig2n_k_2sls'],
+            sig2n_k_gmlag=config['sig2n_k_gmlag'],
+            max_iter=config['gmm_max_iter'],
+            stop_crit=config['gmm_epsilon'],
+            inf_lambda=config['gmm_inferenceOnLambda'],
+            comp_inverse=config['gmm_inv_method'],
+            step1c=config['gmm_step1c'],
+            instrument_lags=config['instruments_w_lags'],
+            lag_user_inst=config['instruments_lag_q'],
+            vc_matrix=config['output_vm_summary'],
+            predy_resid=predy_resid,
+            ols_diag=config['other_ols_diagnostics'],
+            moran=config['other_residualMoran'],
+            white_test=config['white_test'],
+            regime_err_sep=config['regimes_regime_error'],
+            regime_lag_sep=config['regimes_regime_lag'],
+            cores=config['other_numcores'],
+            ml_epsilon=config['ml_epsilon'],
+            ml_method=config['ml_method'],
+            ml_diag=config['ml_diagnostics'],
+            method=method
+        ).output
+        print results
+        for r in results:
+            path.write(r.summary)
+            path.write('\n\n\n')
+
+        return [r.summary for r in results]
+
+        """
+        modelHeader = 'ModelType = %(mtype)s, Endogenous = %(endo)s'#,
+        Standard Errors = %(errors)s'
+        modelSpec = {}
+        errors = []
+        if data['modelType']['error']['hac']:
+            errors.append('HAC')
+        if data['modelType']['error']['het']:
+            errors.append('KP HET')
+        if data['modelType']['error']['white']:
+            errors.append('White')
+        if errors:
+            modelSpec['errors'] = ', '.join(errors)
+        else:
+            modelSpec['errors'] = 'None'
+        if data['modelType']['endogenous'] == True: #endogenous == yes
+            modelSpec['endo'] = 'Y'
+        else:
+            modelSpec['endo'] = 'N'
+
+        db = self.db()
+        if not db:
+            raise TypeError, "This filetype is not yet supported"
+
+        # Setup the weights objects
+        mws, kws = self.prepWeights(db)
+
+        # The Sprecification is stored in a dictionary object
+        spec = data['spec']
+        spec['yend'] = spec['YE']
+
+        if data['modelType']['endogenous'] == True: #endogenous == yes
+            endo = 'endog'
+        else: #endogenous == no
+            endo = 'classic'
+
+        option = ''
+        if data['modelType']['error']['hac']:
+            option = 'hac'
+        if data['modelType']['error']['het']:
+            option = 'het'
+
+        mType = data['modelType']['mType']
+        if mType == 0: #Standard
+            modelSpec['mtype'] = 'Standard'
+            space = ''
+            meth = 'ols'
+            if endo=='endog': #LINE ADDED BY NANCY
+                meth= 'twosls'  #LINE ADDED BY NANCY
+
+        elif mType == 1: #Spatial Lag
+            modelSpec['mtype'] = 'Spatial Lag'
+            space = 'lag'
+            meth = 'twosls'
+        elif mType == 2: #Spatial Error
+            modelSpec['mtype'] = 'Spatial Error'
+            space = 'error'
+            meth = 'ols'
+            if endo=='endog': #LINE ADDED BY NANCY
+                meth= 'twosls'  #LINE ADDED BY NANCY
+
+        elif mType == 3: #Spatial Lag+Error
+            modelSpec['mtype'] = 'Spatial Lag+Error'
+            space = 'lagerror'
+            meth = 'twosls'
+        elif mType == 4: #Regimes
+            modelSpec['mtype'] = 'Regimes'
+            pass
+
+        mdls = []
+        if option is not 'hac':
+            kws = [[]]
+        else: #has is on...
+            for mw in mws: #lets runs all the None HAC models first....
+                mdl = spreg.spmodel(db, spec, model=endo, mweights=mw,
+                                    kweights=[], space=space, option='',
+                                    white=data['modelType']['error']['white'],
+                                    extraHeader=modelHeader % modelSpec,
+                                    lmtestOn=data['modelType']
+                                    ['spatial_tests']['lm'])
+                if meth =='ols':
+                    mdl.ols(outfile=path)
+                elif meth == 'twosls':
+                    mdl.twosls(outfile=path)
+                mdls.append(mdl)
+        for mw in mws:
+            for kw in kws:
+                mdl = spreg.spmodel(db, spec, model=endo, mweights=mw,
+                                    kweights=kw, space=space, option = option,
+                                    white=data['modelType']['error']['white'],
+                                    extraHeader=modelHeader % modelSpec,
+                                    lmtestOn=data['modelType']
+                                    ['spatial_tests']['lm'])
+                if meth =='ols':
+                    mdl.ols(outfile=path)
+                elif meth == 'twosls':
+                    mdl.twosls(outfile=path)
+                mdls.append(mdl)
+        return mdls
+
+        """

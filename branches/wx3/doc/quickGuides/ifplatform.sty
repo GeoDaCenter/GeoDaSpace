@@ -1,0 +1,83 @@
+%%
+%% This is file `ifplatform.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% ifplatform.dtx  (with options: `package')
+%%   ___________________________________________________
+%%   Copyright (C) 2007  Will Robertson & Johannes Große
+%%   License information appended.
+\ProvidesPackage{ifplatform}
+  [2007/11/18 v0.2  Testing for the operating system]
+\newif\ifshellescape
+\newif\ifwindows
+\newif\ifmacosx
+\newif\iflinux
+\newcommand\windowsname{Windows}
+\newcommand\linuxname{Linux}
+\newcommand\macosxname{Mac\,OS\,X}
+\newcommand\unknownplatform{[Unknown]}
+\edef\ip@file{\jobname.w18}
+\edef\ip@sig{write18-test-\the\year\the\month\the\day\the\time}
+\edef\ip@win{'\ip@sig'}
+\def\ip@read@file{%
+  \newread\instream
+  \openin\instream=\ip@file
+  \@tempcnta=\endlinechar
+  \endlinechar=-1
+  \read\instream to\@tempa
+  \endlinechar=\@tempcnta
+  \closein\instream}
+\immediate\write18{echo \ip@win >"\ip@file"}
+\IfFileExists{\ip@file}{\shellescapetrue}{\shellescapefalse\endinput}
+\ip@read@file
+\ifx\@tempa\ip@sig
+  \windowsfalse
+\else
+  \ifx\@tempa\ip@win
+    \windowstrue
+  \else
+    \PackageError{ifplatform}
+      {There is a problem. Please delete the file \ip@file.}
+      {Somehow an old file is lying around telling me the wrong things.
+       \MessageBreak This should never happen. Please let us know when it does!}
+  \fi
+\fi
+\ifwindows\else
+  \immediate\write18{uname -s > "\ip@file"}
+  \ip@read@file
+  \def\@tempb{Linux}
+  \ifx\@tempa\@tempb
+    \linuxtrue
+  \else
+    \def\@tempb{Darwin}
+    \ifx\@tempa\@tempb
+      \macosxtrue
+    \else
+      \edef\unknownplatform{\@tempa}
+    \fi
+  \fi
+\fi
+\edef\platformname{%
+  \ifwindows\noexpand\windowsname\else
+  \iflinux  \noexpand\linuxname\else
+  \ifmacosx \noexpand\macosxname\else
+            \noexpand\unknownplatform
+  \fi\fi\fi}
+\immediate\write18{\ifwindows del \else rm -- \fi "\ip@file"}
+%% Copyright (C) 2007 by Will Robertson & Johannes Große
+%% 
+%% Distributable under the LaTeX Project Public License,
+%% version 1.3c or higher (your choice). The latest version of
+%% this license is at: http://www.latex-project.org/lppl.txt
+%% 
+%% This work is "maintained" (as per LPPL maintenance status)
+%% by Will Robertson.
+%% 
+%% This work consists of the file  ifplatform.dtx
+%%           and the derived files ifplatform.pdf,
+%%                                 ifplatform.sty, and
+%%                                 ifplatform.ins.
+%%
+%% End of file `ifplatform.sty'.
