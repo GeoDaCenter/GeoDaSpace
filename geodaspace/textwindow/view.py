@@ -103,10 +103,10 @@ def __init_resources():
                   <style>normal</style>
                   <weight>normal</weight>
                   <underlined>0</underlined>
-                  <family>default</family>
+                  <family>modern</family>
                   <face>Courier New</face>
                 </font>
-                <style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LINEWRAP</style>
+                <style>wxTE_MULTILINE|wxTE_READONLY</style>
                 <XRCED>
                   <assign_var>1</assign_var>
                 </XRCED>

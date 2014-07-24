@@ -1452,7 +1452,7 @@ def __init_resources():
     </object>
     <title>Weights Creation</title>
     <centered>1</centered>
-    <style>wxCAPTION|wxSYSTEM_MENU|wxRESIZE_BORDER|wxRESIZE_BOX|wxCLOSE_BOX</style>
+    <style>wxCAPTION|wxSYSTEM_MENU|wxRESIZE_BORDER|wxCLOSE_BOX</style>
     <XRCED>
       <events>EVT_CLOSE</events>
     </XRCED>
@@ -1775,7 +1775,7 @@ def __init_resources():
                         <style>normal</style>
                         <weight>normal</weight>
                         <underlined>0</underlined>
-                        <family>default</family>
+                        <family>modern</family>
                         <face>Lucida Grande</face>
                         <encoding/>
                       </font>
@@ -1795,7 +1795,7 @@ def __init_resources():
                         <style>normal</style>
                         <weight>normal</weight>
                         <underlined>0</underlined>
-                        <family>default</family>
+                        <family>modern</family>
                         <face>applicationfont</face>
                         <encoding/>
                       </font>

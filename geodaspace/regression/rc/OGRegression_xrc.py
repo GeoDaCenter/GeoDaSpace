@@ -855,10 +855,9 @@ def __init_resources():
     <title>GeoDaSpace Regression</title>
     <centered>1</centered>
     <bg>#E8E8E8</bg>
-    <style>wxCAPTION|wxSYSTEM_MENU|wxRESIZE_BORDER|wxRESIZE_BOX|wxCLOSE_BOX|wxMAXIMIZE_BOX|wxMINIMIZE_BOX</style>
+    <style>wxCAPTION|wxSYSTEM_MENU|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX|wxMINIMIZE_BOX</style>
   </object>
   <object class="wxFrame" name="TextWindow">
-    <title>Results</title>
     <object class="wxToolBar" name="ToolBar">
       <object class="tool" name="ToolNew">
         <bitmap stock_id="wxART_NEW"/>
@@ -906,10 +905,10 @@ def __init_resources():
                   <style>normal</style>
                   <weight>normal</weight>
                   <underlined>0</underlined>
-                  <family>default</family>
+                  <family>modern</family>
                   <face>Courier New</face>
                 </font>
-                <style>wxTE_MULTILINE|wxTE_READONLY|wxTE_LINEWRAP</style>
+                <style>wxTE_MULTILINE|wxTE_READONLY</style>
                 <XRCED>
                   <assign_var>1</assign_var>
                 </XRCED>
@@ -918,6 +917,15 @@ def __init_resources():
               <flag>wxALL|wxEXPAND|wxADJUST_MINSIZE</flag>
             </object>
           </object>
+          <font>
+            <size>9</size>
+            <style>normal</style>
+            <weight>normal</weight>
+            <underlined>0</underlined>
+            <family>modern</family>
+            <face>Courier New</face>
+            <encoding>WINDOWS-1252</encoding>
+          </font>
           <XRCED>
             <assign_var>1</assign_var>
           </XRCED>
@@ -926,6 +934,16 @@ def __init_resources():
         <flag>wxALL|wxEXPAND</flag>
       </object>
     </object>
+    <title>Results</title>
+    <font>
+      <size>10</size>
+      <style>normal</style>
+      <weight>normal</weight>
+      <underlined>0</underlined>
+      <family>modern</family>
+      <face>Courier New</face>
+      <encoding>WINDOWS-1252</encoding>
+    </font>
   </object>
   <object class="wxPanel" name="VariablePanel">
     <object class="wxBoxSizer">

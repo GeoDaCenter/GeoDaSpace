@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <resource>
   <object class="wxDialog" name="CreateSpatialLag">
-    <title>Create Spatial Lag</title>
     <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
       <object class="sizeritem">
@@ -29,7 +28,7 @@
                     </object>
                     <object class="sizeritem">
                       <object class="wxStaticBitmap" name="dataFileWarn">
-                        <bitmap stock_id="wxART_WARNING"></bitmap>
+                        <bitmap stock_id="wxART_WARNING"/>
                         <size>20,20</size>
                         <tooltip>File does not exist, please enter a valid filename.</tooltip>
                       </object>
@@ -40,7 +39,7 @@
                 </object>
                 <object class="sizeritem">
                   <object class="wxBitmapButton" name="dataFileButton">
-                    <bitmap stock_id="wxART_FILE_OPEN"></bitmap>
+                    <bitmap stock_id="wxART_FILE_OPEN"/>
                     <size>15,13d</size>
                     <style>wxBU_AUTODRAW</style>
                   </object>
@@ -77,7 +76,7 @@
                 </object>
                 <object class="sizeritem">
                   <object class="wxBitmapButton" name="openWeights">
-                    <bitmap stock_id="wxART_FILE_OPEN"></bitmap>
+                    <bitmap stock_id="wxART_FILE_OPEN"/>
                     <size>25,25</size>
                   </object>
                   <option>0</option>
@@ -103,7 +102,7 @@
                     <object class="sizeritem">
                       <object class="wxPanel" name="VariablesPeer">
                         <size>0,0</size>
-                        <style></style>
+                        <style/>
                       </object>
                       <flag>wxALL|wxEXPAND|wxADJUST_MINSIZE</flag>
                     </object>
@@ -124,11 +123,11 @@
                                   <rows>0</rows>
                                   <object class="sizeritem">
                                     <object class="wxTextCtrl" name="">
-                                      <value></value>
+                                      <value/>
                                       <size>93,-1</size>
                                       <font>
                                         <size>14</size>
-                                        <family>default</family>
+                                        <family>modern</family>
                                         <style>normal</style>
                                         <weight>normal</weight>
                                         <underlined>0</underlined>
@@ -152,7 +151,7 @@
                                   <rows>2</rows>
                                   <object class="sizeritem">
                                     <object class="wxStaticBitmap" name="">
-                                      <bitmap stock_id="wxART_WARNING"></bitmap>
+                                      <bitmap stock_id="wxART_WARNING"/>
                                       <size>20,20</size>
                                       <hidden>1</hidden>
                                       <tooltip>This has a tooltip</tooltip>
@@ -204,7 +203,7 @@
                   <object class="wxButton" name="cancelButton">
                     <label>Close</label>
                     <default>0</default>
-                    <style></style>
+                    <style/>
                   </object>
                 </object>
                 <object class="spacer">
@@ -227,7 +226,17 @@
         <flag>wxALL|wxEXPAND|wxADJUST_MINSIZE</flag>
       </object>
     </object>
+    <title>Create Spatial Lag</title>
     <centered>1</centered>
+    <font>
+      <size>9</size>
+      <style>normal</style>
+      <weight>normal</weight>
+      <underlined>0</underlined>
+      <family>modern</family>
+      <face>Courier New</face>
+      <encoding>WINDOWS-1252</encoding>
+    </font>
     <style>wxCAPTION|wxSYSTEM_MENU|wxRESIZE_BORDER|wxCLOSE_BOX</style>
   </object>
   <object class="wxPanel" name="SpLagVariable">
@@ -245,7 +254,7 @@
                   <size>93,-1</size>
                   <font>
                     <size>14</size>
-                    <family>default</family>
+                    <family>modern</family>
                     <style>normal</style>
                     <weight>normal</weight>
                     <underlined>0</underlined>
@@ -268,7 +277,7 @@
               <rows>2</rows>
               <object class="sizeritem">
                 <object class="wxStaticBitmap" name="warn">
-                  <bitmap stock_id="wxART_WARNING"></bitmap>
+                  <bitmap stock_id="wxART_WARNING"/>
                   <size>20,20</size>
                   <hidden>1</hidden>
                   <tooltip>This has a tooltip</tooltip>
