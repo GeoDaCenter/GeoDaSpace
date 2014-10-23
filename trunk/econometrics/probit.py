@@ -555,8 +555,11 @@ class Probit(BaseProbit):
         if w != None:
             USER.check_weights(w, y)
             spat_diag = True
+            ws = w.sparse
+        else:
+            ws = None
         x_constant = USER.check_constant(x)
-        BaseProbit.__init__(self, y=y, x=x_constant, w=w.sparse,
+        BaseProbit.__init__(self, y=y, x=x_constant, w=ws,
                             optim=optim, scalem=scalem, maxiter=maxiter)
         self.title = "CLASSIC PROBIT ESTIMATOR"
         self.name_ds = USER.set_name_ds(name_ds)
