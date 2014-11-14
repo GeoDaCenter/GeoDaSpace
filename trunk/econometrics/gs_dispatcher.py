@@ -864,7 +864,7 @@ def get_OLS(gui):
     for rob_reg in robust_regs:
         SUMMARY.beta_diag_ols(rob_reg, rob_reg.robust)
         SUMMARY.summary(reg=rob_reg, vm=gui.vc_matrix, instruments=False,
-                        nonspat_diag=gui.ols_diag, spat_diag=gui.spat_dia)
+                        nonspat_diag=gui.ols_diag, spat_diag=gui.spat_diag)
     output.extend(robust_regs)
     return output
 
