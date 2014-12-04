@@ -8,8 +8,6 @@ test:
 doctest:
 	cd doc; make pickle; make doctest
 
-build:
-	/Library/Frameworks/Python.framework/Versions/2.7/bin/python  build_geodaspace.py
 
 clean: 
 	rm -rf dist/*
