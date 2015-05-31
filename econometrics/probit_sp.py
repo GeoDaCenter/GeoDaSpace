@@ -7,7 +7,7 @@ import scipy.linalg as sla
 import multiprocessing as mp
 import econometrics.probit as pb
 import scipy.optimize as op
-from pb_sp_gridworker import get_grid, run_grid, grid_results
+#from pb_sp_gridworker import get_grid, run_grid, grid_results
 
 class probit_sp:
     """
