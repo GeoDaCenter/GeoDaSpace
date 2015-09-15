@@ -1,8 +1,8 @@
 import unittest
 import numpy as np
 import pysal
-from econometrics import diagnostics
-from econometrics import utils
+from pysal.spreg import diagnostics
+from pysal.spreg import utils
 from econometrics.ols import OLS as OLS
 from econometrics.twosls import TSLS as TSLS
 from econometrics.twosls_sp import GM_Lag

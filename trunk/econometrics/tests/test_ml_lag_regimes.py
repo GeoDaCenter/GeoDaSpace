@@ -4,7 +4,7 @@ import pysal
 import numpy as np
 from econometrics.ml_lag_regimes import ML_Lag_Regimes
 from econometrics.ml_lag import ML_Lag
-from econometrics import utils
+from pysal.spreg import utils
 
 @unittest.skipIf(int(scipy.__version__.split(".")[1]) < 11,
          "Max Likelihood requires SciPy version 11 or newer.")

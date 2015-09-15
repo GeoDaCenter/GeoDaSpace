@@ -2,8 +2,8 @@ import unittest
 import pysal
 import numpy as np
 from scipy import sparse
-from econometrics import utils
-from econometrics import error_sp_het as HET
+from pysal.spreg import utils
+from pysal.spreg import error_sp_het as HET
 
 class TestBaseGMErrorHet(unittest.TestCase):
     def setUp(self):

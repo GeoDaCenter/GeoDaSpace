@@ -3,7 +3,7 @@ import numpy as np
 import pysal
 from econometrics.twosls_sp import BaseGM_Lag, GM_Lag
 import econometrics.diagnostics as D
-from econometrics import utils
+from pysal.spreg import utils
 from scipy import sparse as SP
 
 

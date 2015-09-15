@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import pysal
 import econometrics.diagnostics as D
-from econometrics import utils
+from pysal.spreg import utils
 from econometrics.twosls_sp import BaseGM_Lag, GM_Lag
 
 class TestBaseGMLag(unittest.TestCase):

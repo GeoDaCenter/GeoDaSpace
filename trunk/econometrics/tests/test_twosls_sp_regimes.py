@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import pysal
 from econometrics.twosls_sp_regimes import GM_Lag_Regimes
-from econometrics import utils
+from pysal.spreg import utils
 from econometrics.twosls_sp import GM_Lag
 
 class TestGMLag_Regimes(unittest.TestCase):

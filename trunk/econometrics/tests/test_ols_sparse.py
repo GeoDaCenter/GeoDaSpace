@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import pysal
-from econometrics import utils
+from pysal.spreg import utils
 import econometrics as EC
 from scipy import sparse
 

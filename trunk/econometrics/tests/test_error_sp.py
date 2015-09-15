@@ -2,7 +2,7 @@ import unittest
 import scipy
 import pysal
 import numpy as np
-from econometrics import error_sp as SP
+from pysal.spreg import error_sp as SP
 
 class TestBaseGMError(unittest.TestCase):
     def setUp(self):
