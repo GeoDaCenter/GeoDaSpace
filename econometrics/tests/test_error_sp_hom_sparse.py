@@ -4,9 +4,9 @@ Unittests for spreg.error_sp_hom module
 '''
 import unittest
 import pysal
-from econometrics import error_sp_hom as HOM
+from pysal.spreg import error_sp_hom as HOM
 from scipy import sparse
-from econometrics import utils
+from pysal.spreg import utils
 import numpy as np
 
 class BaseGM_Error_Hom_Tester(unittest.TestCase):
