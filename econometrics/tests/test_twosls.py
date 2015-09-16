@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import pysal
 from pysal.spreg import utils
-from econometrics.twosls import BaseTSLS, TSLS
+from pysal.spreg.twosls import BaseTSLS, TSLS
 
 class TestBaseTSLS(unittest.TestCase):
     def setUp(self):

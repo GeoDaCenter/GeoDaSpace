@@ -2,8 +2,8 @@ import unittest
 import scipy
 import pysal
 import numpy as np
-from econometrics.ml_error_regimes import ML_Error_Regimes
-from econometrics.ml_error import ML_Error
+from pysal.spreg.ml_error_regimes import ML_Error_Regimes
+from pysal.spreg.ml_error import ML_Error
 from pysal.spreg import utils
 
 @unittest.skipIf(int(scipy.__version__.split(".")[1]) < 11,

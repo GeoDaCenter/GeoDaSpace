@@ -1,9 +1,9 @@
 import unittest
 import numpy as np
 import pysal
-import econometrics.diagnostics as D
+import pysal.spreg.diagnostics as D
 from pysal.spreg import utils
-from econometrics.twosls_sp import BaseGM_Lag, GM_Lag
+from pysal.spreg.twosls_sp import BaseGM_Lag, GM_Lag
 
 class TestBaseGMLag(unittest.TestCase):
     def setUp(self):

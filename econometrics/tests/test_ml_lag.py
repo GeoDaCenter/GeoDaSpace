@@ -2,7 +2,7 @@ import unittest
 import pysal
 import scipy
 import numpy as np
-from econometrics.ml_lag import ML_Lag
+from pysal.spreg.ml_lag import ML_Lag
 from pysal.spreg import utils
 
 @unittest.skipIf(int(scipy.__version__.split(".")[1]) < 11,
