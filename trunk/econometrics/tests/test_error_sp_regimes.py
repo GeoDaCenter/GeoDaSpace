@@ -3,7 +3,7 @@ import scipy
 import pysal
 import numpy as np
 from pysal.spreg import error_sp_regimes as SP
-from econometrics.error_sp import GM_Error, GM_Endog_Error, GM_Combo
+from pysal.spreg.error_sp import GM_Error, GM_Endog_Error, GM_Combo
 
 @unittest.skipIf(int(scipy.__version__.split(".")[1]) < 11,
 "Maximum Likelihood requires SciPy version 11 or newer.")

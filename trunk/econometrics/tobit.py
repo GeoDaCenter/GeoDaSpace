@@ -150,7 +150,7 @@ if __name__ == '__main__':
     #_test()
     import numpy as np
     import pysal
-    from econometrics.utils import power_expansion
+    from pysal.spreg.utils import power_expansion
     n = 625
     np.random.seed(5)    
     x = np.random.uniform(-5,1,(n,1))
