@@ -1,176 +1,203 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="UTF-8">
-    <title>GeoDaSpace by the Center for Spatial Data Science</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
-  </head>
-  <body>
-    <section class="page-header">
-      <h1 class="project-name">GeoDaSpace</h1>
-      <h2 class="project-tagline">Software for Advanced Spatial Econometric Modeling</h2>
-      <a href="download.html" class="btn">Download</a>
-      <a href="https://github.com/GeoDaCenter/GeoDaSpace" class="btn">View on GitHub</a>
-      <a href="resources.html" class="btn">Resources</a>
-      <a href="http://geodacenter.github.io/support.html" class="btn">Support</a>
-    </section>
 
-    <section class="main-content">
+<head>
+	<meta charset="UTF-8">
+	<title>GeoDaSpace by the Center for Spatial Data Science</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+	<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+	<link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+</head>
 
-<p>GeoDaSpace is stand-alone program based on PySAL's spatial econometrics code (<a href="https://pysal.readthedocs.io/en/v1.11.0/library/spreg/">spreg API</a>). It is available for Windows and Mac OSX. The current release is an alpha release.</p>
+<body>
+	<section class="page-header">
+		<h1 class="project-name">GeoDaSpace</h1>
+		<h2 class="project-tagline">Software for Advanced Spatial Econometric Modeling</h2>
+		<a href="download.html" class="btn">Download</a>
+		<a href="https://github.com/GeoDaCenter/GeoDaSpace" class="btn">View on GitHub</a>
+		<a href="resources.html" class="btn">Resources</a>
+		<a href="http://geodacenter.github.io/support.html" class="btn">Support</a>
+	</section>
 
-<h2>Models in GeoDaSpace</h2>
+	<section class="main-content">
 
-<p>The following models that control for both spatial autocorrelation and heteroskedasticity are available in the GeoDaSpace alpha release based on <a href="#ref">these recent references </a>:</p>
-<p class="rteindent1">&bull; OLS<br />
-	&bull; 2SLS<br />
-	&bull; GM/GMM spatial error<br />
-	&bull; GM/GMM spatial lag<br />
-	&bull; GM/GMM spatial lag and error</p>
-<p>with options for:</p>
-<p class="rteindent1">&bull; spatial and non-spatial diagnostics<br />
-	&bull; non-spatial endogenous variables<br />
-	&bull; heteroskedasticity/HAC&nbsp;</p>
-<p>and these spatial weights:</p>
-<p class="rteindent1">&bull; contiguity<br />
-	&bull; distance (bands, knn, inverse distance)<br />
-	&bull; kernel</p>
+		<p>GeoDaSpace is stand-alone program based on PySAL's spatial econometrics code (<a
+				href="https://pysal.readthedocs.io/en/v1.11.0/library/spreg/">spreg API</a>). It is available for
+			Windows and Mac OSX. The current release is an alpha release.</p>
 
-<table border="0">
-	<tbody>
-		<tr>
-			<td><img alt="models" src="imgs/slide7.png" title="models" width="90%" /></td>
-		</tr>
-	</tbody>
-</table>
+		<h2>Models in GeoDaSpace</h2>
 
-<h2>Graphical User Interface (GUI)</h2>
+		<p>The following models that control for both spatial autocorrelation and heteroskedasticity are available in
+			the GeoDaSpace alpha release based on <a href="#ref">these recent references </a>:</p>
+		<p class="rteindent1">&bull; OLS<br />
+			&bull; 2SLS<br />
+			&bull; GM/GMM spatial error<br />
+			&bull; GM/GMM spatial lag<br />
+			&bull; GM/GMM spatial lag and error</p>
+		<p>with options for:</p>
+		<p class="rteindent1">&bull; spatial and non-spatial diagnostics<br />
+			&bull; non-spatial endogenous variables<br />
+			&bull; heteroskedasticity/HAC&nbsp;</p>
+		<p>and these spatial weights:</p>
+		<p class="rteindent1">&bull; contiguity<br />
+			&bull; distance (bands, knn, inverse distance)<br />
+			&bull; kernel</p>
 
-<p>These model options can be selected through a graphical user interface after specifying a dataset, variables (Y, X, and if needed instruments (YE) and spatial regimes or subregions (H)):</p>
+		<table border="0">
+			<tbody>
+				<tr>
+					<td><img alt="models" src="imgs/slide7.png" title="models" width="90%" /></td>
+				</tr>
+			</tbody>
+		</table>
 
-<table border="0">
-	<tbody>
-		<tr>
-			<td><img alt="GUI" src="imgs/1gui.png" title="GUI" /></td>
-		</tr>
-	</tbody>
-</table>
-<br />
-<h2>Output Example</h2>
+		<h2>Graphical User Interface (GUI)</h2>
 
-<p>An example of GeoDaSpace's spatial regression results:</p>
+		<p>These model options can be selected through a graphical user interface after specifying a dataset, variables
+			(Y, X, and if needed instruments (YE) and spatial regimes or subregions (H)):</p>
 
-<table border="0">
-	<tbody>
-		<tr>
-			<td><img alt="GUI" src="imgs/2output.png" title="GUI" /></td>
-		</tr>
-	</tbody>
-</table>
+		<table border="0">
+			<tbody>
+				<tr>
+					<td><img alt="GUI" src="imgs/1gui.png" title="GUI" /></td>
+				</tr>
+			</tbody>
+		</table>
+		<br />
+		<h2>Output Example</h2>
 
-<br />
-<h2>Spatial Weights Editor</h2>
+		<p>An example of GeoDaSpace's spatial regression results:</p>
 
-<p>This editor provides an overview of the properties of spatial weights:</p>
+		<table border="0">
+			<tbody>
+				<tr>
+					<td><img alt="GUI" src="imgs/2output.png" title="GUI" /></td>
+				</tr>
+			</tbody>
+		</table>
 
-<table border="0">
-	<tbody>
-		<tr>
-			<td><img alt="GUI" src="imgs/3w_edit.png" title="GUI" /></td>
-		</tr>
-	</tbody>
-</table>
-<br />
-<h2>Spatial Weights Map</h2>
+		<br />
+		<h2>Spatial Weights Editor</h2>
 
-<p>Mousing over an area in the spatial weight map selects this area (orange) and its neighbors (green) as defined by the spatial weights matrix.</p>
+		<p>This editor provides an overview of the properties of spatial weights:</p>
 
-<table border="0">
-	<tbody>
-		<tr>
-			<td><img alt="GUI" src="imgs/4w_map.png" title="GUI" /></td>
-		</tr>
-	</tbody>
-</table>
-<br />
-<h2>Preferences 1</h2>
+		<table border="0">
+			<tbody>
+				<tr>
+					<td><img alt="GUI" src="imgs/3w_edit.png" title="GUI" /></td>
+				</tr>
+			</tbody>
+		</table>
+		<br />
+		<h2>Spatial Weights Map</h2>
 
-<p>The following screenshots illustrate the variety of preference options available in GeoDaSpace:</p>
+		<p>Mousing over an area in the spatial weight map selects this area (orange) and its neighbors (green) as
+			defined by the spatial weights matrix.</p>
 
-<table border="0">
-	<tbody>
-		<tr>
-			<td><img alt="GUI" src="imgs/5pref_sd.png" title="GUI" /></td>
-		</tr>
-	</tbody>
-</table>
-<br />
-<h2>Preferences 2</h2>
-<table border="0">
-	<tbody>
-		<tr>
-			<td><img alt="GUI" src="imgs/6pref_gmm.png" title="GUI" /></td>
-		</tr>
-	</tbody>
-</table>
-<br />
-<h2>Preferences 3</h2>
-<table border="0">
-	<tbody>
-		<tr>
-			<td><img alt="GUI" src="imgs/7pref_h.png" title="GUI" /></td>
-		</tr>
-	</tbody>
-</table>
-<br />
-<h2>Preferences 4</h2>
-<table border="0">
-	<tbody>
-		<tr>
-			<td><img alt="GUI" src="imgs/8pref_output.png" title="GUI" /></td>
-		</tr>
-	</tbody>
-</table>
-<br />
-<h2>Preferences 5</h2>
-<table border="0">
-	<tbody>
-		<tr>
-			<td><img alt="GUI" src="imgs/9pref_other.png" title="GUI" /></td>
-		</tr>
-	</tbody>
-</table>
+		<table border="0">
+			<tbody>
+				<tr>
+					<td><img alt="GUI" src="imgs/4w_map.png" title="GUI" /></td>
+				</tr>
+			</tbody>
+		</table>
+		<br />
+		<h2>Preferences 1</h2>
 
-<h3>
-<a id="ref" class="anchor" href="#ref" aria-hidden="true"><span class="octicon octicon-link"></span></a>References</h3>
+		<p>The following screenshots illustrate the variety of preference options available in GeoDaSpace:</p>
 
-<p>Harry H. Kelejian and Ingmar R. Prucha. A Generalized Spatial Two-Stage Least Squares Procedures for Estimating a Spatial Autoregressive Model with Autoregressive Disturbances. <em>Journal of Real Estate Finance and Economics</em>, 17, 1998, 99-121.</p>
-<p>Harry H. Kelejian and Ingmar R. Prucha. A Generalized Moments Estimator for the Autoregressive Parameter in a Spatial Model. <em>International Economic Review</em>, 40, 1999, 509-533.</p>
-<p>Arraiz I, Drukker DM, Kelejian HH, Prucha IR (2010). &ldquo;A Spatial Cli?-Ord-type Model with Heteroscedastic Innovations: Small and Large Sample Results.&rdquo; <em>Journal of Regional Science</em>, 50, 592&ndash;614.</p>
-<p>David M. Drukker, Peter Egger, and Ingmar R. Prucha, (April 27, 2010). On Two-step Estimation of a Spatial Autoregressive Model with Autoregressive Disturbances and Endogenous Regressors. Available <a href="http://econpapers.repec.org/article/tafemetrv/v_3a32_3ay_3a2013_3ai_3a5-6_3ap_3a686-733.htm">here</a>.</p>
-<p>Kelejian HH, Prucha IR (2007). &ldquo;HAC Estimation in a Spatial Framework.&rdquo; <em>Journal of Econometrics</em>, 140, 131&ndash;154.</p>
-<p>&nbsp;</p>
+		<table border="0">
+			<tbody>
+				<tr>
+					<td><img alt="GUI" src="imgs/5pref_sd.png" title="GUI" /></td>
+				</tr>
+			</tbody>
+		</table>
+		<br />
+		<h2>Preferences 2</h2>
+		<table border="0">
+			<tbody>
+				<tr>
+					<td><img alt="GUI" src="imgs/6pref_gmm.png" title="GUI" /></td>
+				</tr>
+			</tbody>
+		</table>
+		<br />
+		<h2>Preferences 3</h2>
+		<table border="0">
+			<tbody>
+				<tr>
+					<td><img alt="GUI" src="imgs/7pref_h.png" title="GUI" /></td>
+				</tr>
+			</tbody>
+		</table>
+		<br />
+		<h2>Preferences 4</h2>
+		<table border="0">
+			<tbody>
+				<tr>
+					<td><img alt="GUI" src="imgs/8pref_output.png" title="GUI" /></td>
+				</tr>
+			</tbody>
+		</table>
+		<br />
+		<h2>Preferences 5</h2>
+		<table border="0">
+			<tbody>
+				<tr>
+					<td><img alt="GUI" src="imgs/9pref_other.png" title="GUI" /></td>
+				</tr>
+			</tbody>
+		</table>
 
-<h3>
-<a id="intro-support" class="anchor" href="#intro-support" aria-hidden="true"><span class="octicon octicon-link"></span></a>Support</h3>
-<p>The <a href="http://geodacenter.github.io/support.html">Openspace listserv</a> supports technical questions about GeoDaSpace.</p>
+		<h3>
+			<a id="ref" class="anchor" href="#ref" aria-hidden="true"><span
+					class="octicon octicon-link"></span></a>References
+		</h3>
 
-<h3>
-<a id="intro-contact" class="anchor" href="#intro-contact" aria-hidden="true"><span class="octicon octicon-link"></span></a>Contact</h3>
-<p>Questions? Contact <a href="mailto:spatial@uchicago.edu">us</a>.</p>
+		<p>Harry H. Kelejian and Ingmar R. Prucha. A Generalized Spatial Two-Stage Least Squares Procedures for
+			Estimating a Spatial Autoregressive Model with Autoregressive Disturbances. <em>Journal of Real Estate
+				Finance and Economics</em>, 17, 1998, 99-121.</p>
+		<p>Harry H. Kelejian and Ingmar R. Prucha. A Generalized Moments Estimator for the Autoregressive Parameter in a
+			Spatial Model. <em>International Economic Review</em>, 40, 1999, 509-533.</p>
+		<p>Arraiz I, Drukker DM, Kelejian HH, Prucha IR (2010). &ldquo;A Spatial Cli?-Ord-type Model with
+			Heteroscedastic Innovations: Small and Large Sample Results.&rdquo; <em>Journal of Regional Science</em>,
+			50, 592&ndash;614.</p>
+		<p>David M. Drukker, Peter Egger, and Ingmar R. Prucha, (April 27, 2010). On Two-step Estimation of a Spatial
+			Autoregressive Model with Autoregressive Disturbances and Endogenous Regressors. Available <a
+				href="http://econpapers.repec.org/article/tafemetrv/v_3a32_3ay_3a2013_3ai_3a5-6_3ap_3a686-733.htm">here</a>.
+		</p>
+		<p>Kelejian HH, Prucha IR (2007). &ldquo;HAC Estimation in a Spatial Framework.&rdquo; <em>Journal of
+				Econometrics</em>, 140, 131&ndash;154.</p>
+		<p>&nbsp;</p>
 
-      <footer class="site-footer">
-        <span class="site-footer-owner"><a href="https://github.com/GeoDaCenter/GeoDaSpace">GeoDaSpace</a> is maintained by tis maintained by <a href="#">lixun910</a>.</span>
-        
-        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
-      </footer>
+		<h3>
+			<a id="intro-support" class="anchor" href="#intro-support" aria-hidden="true"><span
+					class="octicon octicon-link"></span></a>Support
+		</h3>
+		<p>The <a href="http://geodacenter.github.io/support.html">Openspace listserv</a> supports technical questions
+			about GeoDaSpace.</p>
 
-    </section>
+		<h3>
+			<a id="intro-contact" class="anchor" href="#intro-contact" aria-hidden="true"><span
+					class="octicon octicon-link"></span></a>Contact
+		</h3>
+		<p>Questions? Contact <a href="mailto:spatial@uchicago.edu">us</a>.</p>
 
-  
-  </body>
+		<footer class="site-footer">
+			<span class="site-footer-owner"><a href="https://github.com/GeoDaCenter/GeoDaSpace">GeoDaSpace</a> is
+				maintained by tis maintained by <a href="#">lixun910</a>.</span>
+
+			<span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub
+					Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a
+					href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+		</footer>
+
+	</section>
+
+
+</body>
+
 </html>
